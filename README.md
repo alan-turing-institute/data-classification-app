@@ -18,7 +18,7 @@ pip install -r requirements/base.txt
 or, for local dev setup:
 
 ```bash
-pip install -r requirements/dev.txt
+pip install -r requirements/local.txt
 ```
 
 ### Set up PostgreSQL
@@ -74,3 +74,32 @@ Python dependencies are managed via [`pip-tools`](https://pypi.org/project/pip-t
 
 * Add the package name and version to the relevant `.in` file in `requirements/` (usually `requirements/base.in`)
 * Run `make -C requirements/` to rebuild the requirements txt files
+
+
+
+## Deploy to Azure
+
+Install the Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+
+```
+az login
+export APP_NAME='datasafehaven'
+az group create --name $APP_NAME --location westeurope
+az appservice plan create --name $APP_NAME --resource-group $APP_NAME --sku S1
+az webapp create --name $APP_NAME --resource-group $APP_NAME --plan $APP_NAME
+
+az webapp config set --python-version 3.6 --name $APP_NAME --resource-group $APP_NAME # set python version
+az webapp config appsettings set --name $APP_NAME --resource-group $APP_NAME --settings APP_CONFIG_NAME=dev
+
+
+az webapp deployment source config --name $APP_NAME --repo-url https://github.com/alan-turing-institute/data-safe-haven --resource-group $APP_NAME --app-working-dir=webapp --branch=master --cd-app-type=python --git-token  --python-version=3.6
+
+
+az webapp deployment slot create --name APP_NAME --resource-group $APP_NAME --slot $APP_SLOT
+
+az webapp config appsettings set --name $APP_NAME --resource-group $APP_NAME --slot  $APP_SLOT --settings SECRET_KEY='<random-string-of-characters>'
+
+
+az webapp config appsettings set --name $APP_NAME --resource-group $APP_NAME --slot  $APP_SLOT --settings DATABASE_URL='mssql://<username>:<password>@tcp:datasafehaven.database.windows.net:1433/haven-dev'
+```
+az webapp config appsettings set --name $APP_NAME --resource-group $APP_NAME --slot  $APP_SLOT --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
