@@ -9,6 +9,5 @@ django-crispy-forms==1.7.2
 django-environ==0.4.5
 django-pyodbc-azure==2.1.0.0
 django==2.1
-psycopg2-binary==2.7.5
 pyodbc==4.0.24            # via django-pyodbc-azure
 pytz==2018.5

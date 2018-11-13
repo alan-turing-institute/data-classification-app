@@ -13,7 +13,6 @@ django==2.1
 model-mommy==1.6.0
 more-itertools==4.3.0     # via pytest
 pluggy==0.7.1             # via pytest
-psycopg2-binary==2.7.5
 py==1.6.0                 # via pytest
 pytest-django==3.4.3
 pytest==3.8.2
