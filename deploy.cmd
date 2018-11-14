@@ -144,6 +144,8 @@ IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
   copy /y "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" "%DEPLOYMENT_TARGET%\web.config"
 )
 
+echo "Django path: %DJANGO_PATH%"
+
 :: 6. Django collectstatic
 IF EXIST "%DJANGO_PATH%\manage.py" (
   IF EXIST "%SITE_PACKAGES%\django" (
