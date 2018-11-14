@@ -122,9 +122,11 @@ IF EXIST "%DJANGO_PATH%\manage.py" (
         MKDIR "%DJANGO_PATH%\static"
       )
       %PYTHON_EXE% manage.py collectstatic --noinput --clear
+      IF !ERRORLEVEL! NEQ 0 goto error
 
       echo Running Django migrations. You can skip Django specific steps with a .skipDjango file.
       %PYTHON_EXE% manage.py migrate
+      IF !ERRORLEVEL! NEQ 0 goto error
       popd
     )
   )
