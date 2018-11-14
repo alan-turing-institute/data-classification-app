@@ -30,6 +30,10 @@ IF NOT DEFINED DEPLOYMENT_TARGET (
   SET DEPLOYMENT_TARGET=%ARTIFACTS%\wwwroot
 )
 
+IF NOT DEFINED DJANGO_PATH (
+  SET DJANGO_PATH=%DEPLOYMENT_TARGET%\haven
+)
+
 IF NOT DEFINED NEXT_MANIFEST_PATH (
   SET NEXT_MANIFEST_PATH=%ARTIFACTS%\manifest
 
@@ -141,12 +145,12 @@ IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
 )
 
 :: 6. Django collectstatic
-IF EXIST "%DEPLOYMENT_TARGET%\manage.py" (
+IF EXIST "%DJANGO_PATH%\manage.py" (
   IF EXIST "%SITE_PACKAGES%\django" (
-    IF NOT EXIST "%DEPLOYMENT_TARGET%\.skipDjango" (
+    IF NOT EXIST "%DJANGO_PATH%\.skipDjango" (
       echo Collecting Django static files. You can skip Django specific steps with a .skipDjango file.
-      IF NOT EXIST "%DEPLOYMENT_TARGET%\static" (
-        MKDIR "%DEPLOYMENT_TARGET%\static"
+      IF NOT EXIST "%DJANGO_PATH%\static" (
+        MKDIR "%DJANGO_PATH%\static"
       )
       %PYTHON_EXE% manage.py collectstatic --noinput --clear
 
