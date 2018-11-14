@@ -78,7 +78,7 @@ goto Deployment
 SET PYTHON_RUNTIME=python-3.6.4
 SET PYTHON_VER=3.6.4
 SET PYTHON_EXE=%SYSTEMDRIVE%\home\python364x86\python.exe
-SET PYTHON_ENV_MODULE=virtualenv
+SET PYTHON_ENV_MODULE=venv
 
 goto :EOF
 
