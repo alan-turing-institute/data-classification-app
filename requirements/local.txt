@@ -43,3 +43,4 @@ six==1.11.0
 sqlparse==0.2.4
 traitlets==4.3.2          # via ipython
 wcwidth==0.1.7            # via prompt-toolkit
+whitenoise==4.1.1

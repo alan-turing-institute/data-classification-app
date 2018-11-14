@@ -20,3 +20,4 @@ pytest==3.8.2
 pytz==2018.5              # via django
 six==1.11.0               # via model-mommy, more-itertools, pytest
 sqlparse==0.2.4           # via django-debug-toolbar
+whitenoise==4.1.1

@@ -11,3 +11,4 @@ django-environ==0.4.5
 django==2.1
 pytz==2018.5              # via django
 sqlparse==0.2.4           # via django-debug-toolbar
+whitenoise==4.1.1

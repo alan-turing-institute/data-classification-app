@@ -13,3 +13,4 @@ django==2.1
 pyodbc==4.0.24            # via django-pyodbc-azure
 pytz==2018.5
 sqlparse==0.2.4
+whitenoise==4.1.1
