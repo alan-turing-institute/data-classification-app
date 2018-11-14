@@ -131,12 +131,16 @@ pushd "%DEPLOYMENT_TARGET%"
 :: 4. Install packages
 echo Pip install requirements.
 %PIP_EXE% install -r requirements.txt
+echo "error level: %ERRORLEVEL%"
 IF !ERRORLEVEL! NEQ 0 goto error
+
 
 REM Add additional package installation here
 REM -- Example --
 REM env\scripts\easy_install pytz
 REM IF !ERRORLEVEL! NEQ 0 goto error
+
+echo "Copy web.config"
 
 :: 5. Copy web.config
 IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
@@ -144,7 +148,7 @@ IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
   copy /y "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" "%DEPLOYMENT_TARGET%\web.config"
 )
 
-echo "Django path: %DJANGO_PATH%"
+echo "Running Django steps: %DJANGO_PATH%"
 
 :: 6. Django collectstatic
 IF EXIST "%DJANGO_PATH%\manage.py" (
