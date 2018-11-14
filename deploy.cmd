@@ -141,20 +141,17 @@ REM -- Example --
 REM env\scripts\easy_install pytz
 REM IF !ERRORLEVEL! NEQ 0 goto error
 
-echo Copy web.config
-
 :: 5. Copy web.config
 IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
   echo Overwriting web.config with web.%PYTHON_VER%.config
   copy /y "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" "%DEPLOYMENT_TARGET%\web.config"
 )
 
-echo "Running Django steps: %DJANGO_PATH%"
-
 :: 6. Django collectstatic
 IF EXIST "%DJANGO_PATH%\manage.py" (
   IF EXIST "%SITE_PACKAGES%\django" (
     IF NOT EXIST "%DJANGO_PATH%\.skipDjango" (
+      pushd "%DJANGO_PATH%"
       echo Collecting Django static files. You can skip Django specific steps with a .skipDjango file.
       IF NOT EXIST "%DJANGO_PATH%\static" (
         MKDIR "%DJANGO_PATH%\static"
@@ -163,6 +160,7 @@ IF EXIST "%DJANGO_PATH%\manage.py" (
 
       echo Running Django migrations. You can skip Django specific steps with a .skipDjango file.
       %PYTHON_EXE% manage.py migrate
+      popd
     )
   )
 )
