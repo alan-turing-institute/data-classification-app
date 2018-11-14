@@ -133,7 +133,7 @@ echo Update pip
 %PYTHON_EXE% -m pip install -U pip
 echo Pip install requirements.
 %PIP_EXE% install -r requirements.txt
-IF !ERRORLEVEL! NEQ 0 goto error
+:: IF !ERRORLEVEL! NEQ 0 goto error
 
 
 REM Add additional package installation here
@@ -141,7 +141,7 @@ REM -- Example --
 REM env\scripts\easy_install pytz
 REM IF !ERRORLEVEL! NEQ 0 goto error
 
-echo "Copy web.config"
+echo Copy web.config
 
 :: 5. Copy web.config
 IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
