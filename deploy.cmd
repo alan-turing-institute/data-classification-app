@@ -58,29 +58,8 @@ goto Deployment
 
 :SelectPythonVersion
 
-:: IF DEFINED KUDU_SELECT_PYTHON_VERSION_CMD (
-::   call %KUDU_SELECT_PYTHON_VERSION_CMD% "%DEPLOYMENT_SOURCE%" "%DEPLOYMENT_TARGET%" "%DEPLOYMENT_TEMP%"
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: 
-::   SET /P PYTHON_RUNTIME=<"%DEPLOYMENT_TEMP%\__PYTHON_RUNTIME.tmp"
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: 
-::   SET /P PYTHON_VER=<"%DEPLOYMENT_TEMP%\__PYTHON_VER.tmp"
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: 
-::   SET /P PYTHON_EXE=<"%DEPLOYMENT_TEMP%\__PYTHON_EXE.tmp"
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: 
-::   SET /P PYTHON_ENV_MODULE=<"%DEPLOYMENT_TEMP%\__PYTHON_ENV_MODULE.tmp"
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: ) ELSE (
-::   SET PYTHON_RUNTIME=python-2.7
-::   SET PYTHON_VER=2.7
-::   SET PYTHON_EXE=%SYSTEMDRIVE%\python27\python.exe
-::   SET PYTHON_ENV_MODULE=virtualenv
-:: )
 SET PYTHON_RUNTIME=python-3.6.4
-SET PYTHON_VER=3.6.4
+SET PYTHON_VER=3.6
 SET PYTHON_EXE=%SYSTEMDRIVE%\home\python364x86\python.exe
 SET PYTHON_ENV_MODULE=venv
 SET PIP_EXE=%SYSTEMDRIVE%\home\python364x86\pip.bat
@@ -112,24 +91,10 @@ call :SelectPythonVersion
 pushd "%DEPLOYMENT_TARGET%"
 
 :: 3. Create virtual environment
-:: IF NOT EXIST "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" (
-::   IF EXIST "%DEPLOYMENT_TARGET%\env" (
-::     echo Deleting incompatible virtual environment.
-::     rmdir /q /s "%DEPLOYMENT_TARGET%\env"
-::     IF !ERRORLEVEL! NEQ 0 goto error
-::   )
-:: 
-::   echo Creating %PYTHON_RUNTIME% virtual environment.
-::   %PYTHON_EXE% -m %PYTHON_ENV_MODULE% env
-::   IF !ERRORLEVEL! NEQ 0 goto error
-:: 
-::   copy /y NUL "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" >NUL
-:: ) ELSE (
-::   echo Found compatible virtual environment.
-:: )
+:: Not used for python 3.6
 
 :: 4. Install packages
-echo Update pip
+echo Ensure pip is up to date
 %PYTHON_EXE% -m pip install -U pip
 echo Pip install requirements.
 %PYTHON_EXE% -m pip install -r requirements.txt
@@ -147,7 +112,7 @@ IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
   copy /y "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" "%DEPLOYMENT_TARGET%\web.config"
 )
 
-:: 6. Django collectstatic
+:: 6. Django collectstatic and migrations
 IF EXIST "%DJANGO_PATH%\manage.py" (
   IF EXIST "%SITE_PACKAGES%\django" (
     IF NOT EXIST "%DJANGO_PATH%\.skipDjango" (
