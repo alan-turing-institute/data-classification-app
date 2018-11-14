@@ -149,6 +149,9 @@ IF EXIST "%DEPLOYMENT_TARGET%\manage.py" (
         MKDIR "%DEPLOYMENT_TARGET%\static"
       )
       %PYTHON_EXE% manage.py collectstatic --noinput --clear
+
+      echo Running Django migrations. You can skip Django specific steps with a .skipDjango file.
+      %PYTHON_EXE% manage.py migrate
     )
   )
 )
