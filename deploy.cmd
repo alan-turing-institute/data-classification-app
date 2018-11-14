@@ -129,10 +129,10 @@ pushd "%DEPLOYMENT_TARGET%"
 :: )
 
 :: 4. Install packages
-echo Pip install requirements.
+echo Update pip
 %PYTHON_EXE% -m pip install -U pip
+echo Pip install requirements.
 %PIP_EXE% install -r requirements.txt
-echo "error level: %ERRORLEVEL%"
 IF !ERRORLEVEL! NEQ 0 goto error
 
 
