@@ -51,6 +51,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'crispy_forms',
+    'debug_toolbar',
 ]
 
 LOCAL_APPS = [
@@ -63,6 +64,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -146,6 +148,8 @@ STATIC_ROOT = str(BASE_DIR / 'staticfiles')
 STATICFILES_DIRS = [
     str(BASE_DIR / 'static'),
 ]
+
+INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
