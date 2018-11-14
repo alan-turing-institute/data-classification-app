@@ -79,6 +79,8 @@ SET PYTHON_RUNTIME=python-3.6.4
 SET PYTHON_VER=3.6.4
 SET PYTHON_EXE=%SYSTEMDRIVE%\home\python364x86\python.exe
 SET PYTHON_ENV_MODULE=venv
+SET PIP_EXE=%SYSTEMDRIVE%\home\python364x86\pip.bat
+SET SITE_PACKAGES=%SYSTEMDRIVE%\home\python364x86\Lib\site-packages
 
 goto :EOF
 
@@ -106,25 +108,25 @@ call :SelectPythonVersion
 pushd "%DEPLOYMENT_TARGET%"
 
 :: 3. Create virtual environment
-IF NOT EXIST "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" (
-  IF EXIST "%DEPLOYMENT_TARGET%\env" (
-    echo Deleting incompatible virtual environment.
-    rmdir /q /s "%DEPLOYMENT_TARGET%\env"
-    IF !ERRORLEVEL! NEQ 0 goto error
-  )
-
-  echo Creating %PYTHON_RUNTIME% virtual environment.
-  %PYTHON_EXE% -m %PYTHON_ENV_MODULE% env
-  IF !ERRORLEVEL! NEQ 0 goto error
-
-  copy /y NUL "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" >NUL
-) ELSE (
-  echo Found compatible virtual environment.
-)
+:: IF NOT EXIST "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" (
+::   IF EXIST "%DEPLOYMENT_TARGET%\env" (
+::     echo Deleting incompatible virtual environment.
+::     rmdir /q /s "%DEPLOYMENT_TARGET%\env"
+::     IF !ERRORLEVEL! NEQ 0 goto error
+::   )
+:: 
+::   echo Creating %PYTHON_RUNTIME% virtual environment.
+::   %PYTHON_EXE% -m %PYTHON_ENV_MODULE% env
+::   IF !ERRORLEVEL! NEQ 0 goto error
+:: 
+::   copy /y NUL "%DEPLOYMENT_TARGET%\env\azure.env.%PYTHON_RUNTIME%.txt" >NUL
+:: ) ELSE (
+::   echo Found compatible virtual environment.
+:: )
 
 :: 4. Install packages
 echo Pip install requirements.
-env\scripts\pip install -r requirements.txt
+%PIP_EXE% install -r requirements.txt
 IF !ERRORLEVEL! NEQ 0 goto error
 
 REM Add additional package installation here
@@ -140,13 +142,13 @@ IF EXIST "%DEPLOYMENT_SOURCE%\web.%PYTHON_VER%.config" (
 
 :: 6. Django collectstatic
 IF EXIST "%DEPLOYMENT_TARGET%\manage.py" (
-  IF EXIST "%DEPLOYMENT_TARGET%\env\lib\site-packages\django" (
+  IF EXIST "%SITE_PACKAGES%\django" (
     IF NOT EXIST "%DEPLOYMENT_TARGET%\.skipDjango" (
       echo Collecting Django static files. You can skip Django specific steps with a .skipDjango file.
       IF NOT EXIST "%DEPLOYMENT_TARGET%\static" (
         MKDIR "%DEPLOYMENT_TARGET%\static"
       )
-      env\scripts\python manage.py collectstatic --noinput --clear
+      %PYTHON_EXE% manage.py collectstatic --noinput --clear
     )
   )
 )
