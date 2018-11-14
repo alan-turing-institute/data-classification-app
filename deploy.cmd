@@ -132,8 +132,8 @@ pushd "%DEPLOYMENT_TARGET%"
 echo Update pip
 %PYTHON_EXE% -m pip install -U pip
 echo Pip install requirements.
-%PIP_EXE% install -r requirements.txt
-:: IF !ERRORLEVEL! NEQ 0 goto error
+%PYTHON_EXE% -m pip install -r requirements.txt
+IF !ERRORLEVEL! NEQ 0 goto error
 
 
 REM Add additional package installation here
