@@ -1,6 +1,11 @@
 # Data Safe Haven
-Django web application for the data safe haven
+Django web application for the data safe haven.
+This project can be set up in two configurations
 
+- local development, using a locally-hosted PostgreSQL server
+- web deployment, using an Azure server
+
+---
 
 ## Local Development Setup
 
@@ -17,7 +22,7 @@ pip install -r requirements/local.txt
 
 ### Set up PostgreSQL
 
-The --createdb flag should be set for the database user if running tests (so test databases can be set up and torn down). This should not be done on a production system.
+The `--createdb` flag should be set for the database user when running tests (so test databases can be set up and torn down). This should not be done on a production system.
 
 ```bash
 createuser haven --createdb
@@ -52,13 +57,18 @@ haven/manage.py createsuperuser
 ### Run server
 
 ```bash
-python haven/manage.py runserver
+haven/manage.py runserver
 ```
+
+### Test server
+The server can be accessed at `http://127.0.0.1:8000/`. The credentials are those
 
 ### Run unit tests
+These look for a folder called `staticfiles` which should be created before running the tests.
 
 
 ```
+mkdir -p haven/staticfiles
 cd haven
 
 # Create staticfiles directory to suppress warnings from whitenoise
@@ -74,19 +84,20 @@ Python dependencies are managed via [`pip-tools`](https://pypi.org/project/pip-t
 * Add the package name and version to the relevant `.in` file in `requirements/` (usually `requirements/base.in`)
 * Run `make -C requirements/` to rebuild the requirements txt files
 
+---
 
+## Deployment to Azure
 
-## Deploy to Azure
+Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 
-Install the Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+Use `az login` to log in on the command line.
 
-`az login` to log in on the command line
-
-Check that the values at the top of `scripts/provision.sh` are correct
+Check that the values at the top of `scripts/provision.sh` are correct.
 
 Then run `scripts/provision.sh` to create the webapp and relevant resources.
 
 Instructions are given at the end of the script to run some manual steps that need to be performed through the Azure portal.
+These instructions will also give you the URL at which the site is hosted.
 
 If errors are encountered in the browser after deploy, the following settings can be added to web.config to display useful errors in the browser:
 ```
