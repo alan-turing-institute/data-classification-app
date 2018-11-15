@@ -2,7 +2,7 @@
 Django web application for the data safe haven
 
 
-## Setup
+## Local Development Setup
 
 ### Install system requirements
 
@@ -10,12 +10,6 @@ Django web application for the data safe haven
 * Postgres 10+ (with dev headers)
 
 ### Install requirements into virtualenv
-
-```bash
-pip install -r requirements/base.txt
-```
-
-or, for local dev setup:
 
 ```bash
 pip install -r requirements/local.txt
