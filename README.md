@@ -1,6 +1,11 @@
 # Data Safe Haven
-Django web application for the data safe haven
+Django web application for the data safe haven.
+This project can be set up in two configurations
 
+- local development, using a locally-hosted PostgreSQL server
+- web deployment, using an Azure server
+
+---
 
 ## Local Development Setup
 
@@ -17,7 +22,7 @@ pip install -r requirements/local.txt
 
 ### Set up PostgreSQL
 
-The --createdb flag should be set for the database user if running tests (so test databases can be set up and torn down). This should not be done on a production system.
+The `--createdb` flag should be set for the database user when running tests (so test databases can be set up and torn down). This should not be done on a production system.
 
 ```bash
 createuser haven --createdb
@@ -69,15 +74,15 @@ Python dependencies are managed via [`pip-tools`](https://pypi.org/project/pip-t
 * Add the package name and version to the relevant `.in` file in `requirements/` (usually `requirements/base.in`)
 * Run `make -C requirements/` to rebuild the requirements txt files
 
+---
 
+## Deployment to Azure
 
-## Deploy to Azure
+Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 
-Install the Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+Use `az login` to log in on the command line.
 
-`az login` to log in on the command line
-
-Check that the values at the top of `scripts/provision.sh` are correct
+Check that the values at the top of `scripts/provision.sh` are correct.
 
 Then run `scripts/provision.sh` to create the webapp and relevant resources.
 
