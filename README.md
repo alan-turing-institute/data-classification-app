@@ -57,12 +57,17 @@ haven/manage.py createsuperuser
 ### Run server
 
 ```bash
-python haven/manage.py runserver
+haven/manage.py runserver
 ```
+
+### Test server
+The server can be accessed at `http://127.0.0.1:8000/`. The credentials are those
 
 ### Run unit tests
+These look for a folder called `staticfiles` which should be created before running the tests.
 
 ```
+mkdir -p haven/staticfiles
 cd haven
 pytest
 ```
