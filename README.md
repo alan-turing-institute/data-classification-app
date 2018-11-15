@@ -57,8 +57,13 @@ python haven/manage.py runserver
 
 ### Run unit tests
 
+
 ```
 cd haven
+
+# Create staticfiles directory to suppress warnings from whitenoise
+mkdir -p staticfiles
+
 pytest
 ```
 
