@@ -4,6 +4,15 @@
 # https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 #
 
+# Deployment parameters
+RESOURCE_GROUP=datasafehaven
+PLAN_NAME=datasafehaven
+APP_NAME=datasafehaven # please note that this name must be *globally* unique
+APP_SLOT=dev
+SQL_SERVER_NAME=datasafehaven
+DB_USERNAME=havenadmin
+LOCATION='ukwest'
+
 # Document usage for this script
 usage() {  
     echo "usage: $0 [-h] [-k key] [-p password]"
@@ -13,7 +22,7 @@ usage() {
     exit 1
 }
 
-# Set defaults
+# Set default key and password
 SECRET_KEY='mtd=_x966l9gg&q%uf!hf4ixdv47#a@adsms=v0%w%x4gm+3&4'
 DB_PASSWORD=Hgl0NzO27Ra1
 
@@ -35,20 +44,12 @@ while getopts "h:k:p:" opt; do
     esac
 done
 
-RESOURCE_GROUP=datasafehaven
-PLAN_NAME=datasafehaven
-# Please note that this name must be *globally* unique
-APP_NAME=datasafehaventestdeployment
-APP_SLOT=dev
-
-SQL_SERVER_NAME=datasafehaven
-DB_USERNAME=havenadmin
+# Construct DB and slot names
 DB_NAME="${APP_NAME}_${APP_SLOT}"
+SLOT_NAME="${APP_NAME}-${APP_SLOT}"
+SAFE_HAVEN_DOMAIN="${SLOT_NAME}.azurewebsites.net"
 
-LOCATION='ukwest'
-SAFE_HAVEN_DOMAIN="${APP_NAME}-${APP_SLOT}.azurewebsites.net"
-
-# az login
+# Must have called `az login` by this point
 
 # Create resource group if it does not already exist, then create appservice and webapp inside it
 if [ "$(az group exists --name $RESOURCE_GROUP)" != "true" ]; then
@@ -76,22 +77,24 @@ az webapp deployment slot create --name $APP_NAME --resource-group $RESOURCE_GRO
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings SECRET_KEY=$SECRET_KEY
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings ALLOWED_HOSTS="$APP_NAME-$APP_SLOT.azurewebsites.net"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings SAFE_HAVEN_DOMAIN="${APP_NAME}-${APP_SLOT}.azurewebsites.net"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings ALLOWED_HOSTS="${SAFE_HAVEN_DOMAIN}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
 
 # (Adding site extensions can't be done with az: see https://github.com/Azure/azure-cli/issues/7617)
 cat <<EOF
 To complete the deployment:
 
 1. Set up Python 3.6 site extension
-* Browse to Azure Portal -> App Services / $APP_NAME / Deployment slots / ${APP_NAME}-${APP_SLOT} / Extensions
+* Browse to Azure Portal -> App Services / $APP_NAME / Deployment slots / ${SLOT_NAME} / Extensions
 * Click Add, then Choose Extension and select Python 3.6.4 x86. Accept the terms and install.
 
 2. Set up GitHub deployment
-* Browse to Azure Portal -> App Services / $APP_NAME / Deployment slots / ${APP_NAME}-${APP_SLOT} / Deployment Center
+* Browse to Azure Portal -> App Services / $APP_NAME / Deployment slots / ${SLOT_NAME} / Deployment Center
 * Select GitHub and click Authorize
 * In the 'Configure' step, select:
   - Organization: 'alan-turing-institute'
   - repository: 'data-safe-haven-webapp'
   - branch: whatever is appropriate for this slot
+
+3. The webapp should now be accessible at: ${SAFE_HAVEN_DOMAIN}
 EOF

@@ -92,6 +92,7 @@ Check that the values at the top of `scripts/provision.sh` are correct.
 Then run `scripts/provision.sh` to create the webapp and relevant resources.
 
 Instructions are given at the end of the script to run some manual steps that need to be performed through the Azure portal.
+These instructions will also give you the URL at which the site is hosted.
 
 If errors are encountered in the browser after deploy, the following settings can be added to web.config to display useful errors in the browser:
 ```
