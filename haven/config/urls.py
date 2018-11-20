@@ -40,7 +40,9 @@ urlpatterns = [
     ),
 
 
-    path('', TemplateView.as_view(template_name='home.html'), name='home')
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+
+    path('auth/', include('social_django.urls', namespace='social')),
 ]
 
 if settings.DEBUG:

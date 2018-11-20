@@ -52,6 +52,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
+    'social_django',
 ]
 
 LOCAL_APPS = [
@@ -121,7 +122,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.azuread_tenant.AzureADTenantOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 AUTH_USER_MODEL = 'identity.User'
+
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID')
 
 LOGIN_REDIRECT_URL = 'projects:list'
 LOGOUT_REDIRECT_URL = 'login'
