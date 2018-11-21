@@ -133,6 +133,18 @@ SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID')
 
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'identity.pipeline.user_fields',
+)
+
 LOGIN_REDIRECT_URL = 'projects:list'
 LOGOUT_REDIRECT_URL = 'login'
 
