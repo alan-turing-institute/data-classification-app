@@ -15,34 +15,46 @@ LOCATION='ukwest'
 
 # Document usage for this script
 usage() {  
-    echo "usage: $0 [-h] [-k key] [-p password]"
+    echo "usage: $0 [-h] [-e envfile]"
     echo "  -h            display help"
-    echo "  -k key        generate a random string of characters"
-    echo "  -p password   choose a database password"
+    echo "  -e path to file containing environment variables"
     exit 1
 }
+
+
+# See Format of env file: 
+# .env.example
+
 
 # Set default key and password
 SECRET_KEY='mtd=_x966l9gg&q%uf!hf4ixdv47#a@adsms=v0%w%x4gm+3&4'
 DB_PASSWORD=Hgl0NzO27Ra1
+CURRENT_DIR=$(dirname "$0")
+ENVFILE="${CURRENT_DIR}/.env"
 
 # Read command line arguments, overriding defaults where necessary
-while getopts "h:k:p:" opt; do
+while getopts "h:e:" opt; do
     case $opt in
         h)
             usage
             ;;
-        k)
-            SECRET_KEY=$OPTARG
-            ;;
-        p)
-            DB_PASSWORD=$OPTARG
+        e)
+            ENVFILE=$OPTARG
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             ;;
     esac
 done
+
+
+if [ -e $ENVFILE ]
+then
+    source $ENVFILE
+else
+    echo "Envfile does not exist: $ENVFILE"
+    exit 1
+fi
 
 # Construct DB and slot names
 DB_NAME="${APP_NAME}_${APP_SLOT}"
@@ -79,6 +91,9 @@ az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GRO
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings ALLOWED_HOSTS="${SAFE_HAVEN_DOMAIN}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_KEY="${AZUREAD_OAUTH2_KEY}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_SECRET="${AZUREAD_OAUTH2_SECRET}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_TENANT_ID="${AZUREAD_OAUTH2_TENANT_ID}"
 
 # (Adding site extensions can't be done with az: see https://github.com/Azure/azure-cli/issues/7617)
 cat <<EOF
