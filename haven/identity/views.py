@@ -11,7 +11,10 @@ from .models import User
 from .roles import UserRole
 
 
-class UserCreate(LoginRequiredMixin, UserFormKwargsMixin, UserRoleRequiredMixin, CreateView):
+class UserCreate(LoginRequiredMixin,
+                 UserFormKwargsMixin,
+                 UserRoleRequiredMixin,
+                 CreateView):
     form_class = CreateUserForm
     model = User
     success_url = '/'
@@ -34,8 +37,9 @@ class UserCreate(LoginRequiredMixin, UserFormKwargsMixin, UserRoleRequiredMixin,
         formset = self.get_formset()
         form = self.get_form()
         if form.is_valid() and formset.is_valid():
-            formset.instance = form.save()
+            response = self.form_valid(form)
+            formset.instance = self.object
             formset.save()
-            return self.form_valid(form)
+            return response
         else:
             return self.form_invalid(form)

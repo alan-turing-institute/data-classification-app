@@ -180,4 +180,15 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='haven.example.com')
 
+
+USE_LDAP = env.bool('USE_LDAP', default=True)
+LDAP_SERVER = env.str('LDAP_SERVER', default='')
+LDAP_USER = env.str('LDAP_USER', default='')
+LDAP_PASSWORD = env.str('LDAP_PASSWORD', default='')
+
+
 SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
+
+AD_RESEARCH_USER_DN = 'CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk'
+
+AD_USER_OBJECT_CLASSES = ['user', 'organizationalPerson', 'person', 'top']

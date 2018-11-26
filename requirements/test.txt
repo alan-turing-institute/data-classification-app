@@ -18,18 +18,20 @@ django-debug-toolbar==1.10.1
 django-environ==0.4.5
 django==2.1
 idna==2.7                 # via cryptography, requests
+ldap3==2.5.1
 model-mommy==1.6.0
 more-itertools==4.3.0     # via pytest
 oauthlib==2.1.0           # via requests-oauthlib, social-auth-core
 pluggy==0.7.1             # via pytest
 py==1.6.0                 # via pytest
+pyasn1==0.4.4             # via ldap3
 pycparser==2.19           # via cffi
 pyjwt==1.6.4              # via social-auth-core
 pytest-django==3.4.3
 pytest==3.8.2
 python3-openid==3.1.0     # via social-auth-core
 pytz==2018.5              # via django
-requests-oauthlib==1.0.0  # via social-auth-core
+requests-oauthlib==1.0.0
 requests==2.20.1          # via requests-oauthlib, social-auth-core
 six==1.11.0               # via cryptography, model-mommy, more-itertools, pytest, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
