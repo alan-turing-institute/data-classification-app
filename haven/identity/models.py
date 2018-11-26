@@ -43,6 +43,10 @@ class User(AbstractUser):
             return UserRole.SUPERUSER
         return UserRole(self.role)
 
+    def set_role(self, role):
+        self.role = role.value
+        self.save()
+
     def generate_username(self):
         prefix = '{0}.{1}'.format(slugify(self.first_name), slugify(self.last_name))
 

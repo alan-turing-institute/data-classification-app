@@ -132,6 +132,7 @@ AUTH_USER_MODEL = 'identity.User'
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = 'https://graph.microsoft.com'
 
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
@@ -143,10 +144,11 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
     'identity.pipeline.user_fields',
+    'identity.pipeline.determine_role',
 )
 
 LOGIN_REDIRECT_URL = 'projects:list'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'home'
 
 
 # Internationalization
@@ -177,3 +179,5 @@ INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='haven.example.com')
+
+SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
