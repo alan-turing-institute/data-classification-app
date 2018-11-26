@@ -178,7 +178,7 @@ INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='haven.example.com')
+SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='dsgroupdev.co.uk')
 
 
 USE_LDAP = env.bool('USE_LDAP', default=True)
