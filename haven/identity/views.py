@@ -36,6 +36,7 @@ class UserCreate(LoginRequiredMixin,
     def post(self, request, *args, **kwargs):
         formset = self.get_formset()
         form = self.get_form()
+        self.object = self.get_object()
         if form.is_valid() and formset.is_valid():
             response = self.form_valid(form)
             formset.instance = self.object
