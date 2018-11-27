@@ -4,11 +4,6 @@ from .base import *  # noqa
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
     'handlers': {
         'logfile': {
             'class': 'logging.handlers.WatchedFileHandler',
