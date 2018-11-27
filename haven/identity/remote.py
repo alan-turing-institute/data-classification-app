@@ -17,7 +17,10 @@ def _connect_ldap():
         user=settings.LDAP_USER,
         password=settings.LDAP_PASSWORD,
     )
-    conn.bind()
+    if not conn.bind():
+        message = conn.result['message']
+        logger.error(message)
+        raise Exception('Failed to bind connection: %s' % message)
     return conn
 
 
