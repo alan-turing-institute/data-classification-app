@@ -41,6 +41,11 @@ def user_fields(backend, user, response, *args, **kwargs):
 
 @azure_backend
 def determine_role(backend, user, response, *args, **kwargs):
+    """
+    Social authentication pipeline
+
+    Query the Graph API for user's groups and assign roles as appropriate.
+    """
     graph = _authenticated_client(user)
     response = graph.get(GRAPH_URL + 'me/memberOf')
 
@@ -49,3 +54,4 @@ def determine_role(backend, user, response, *args, **kwargs):
         for group in groups:
             if group['displayName'] == settings.SYS_CONTROLLER_GROUP_NAME:
                 user.set_role(UserRole.SYSTEM_CONTROLLER)
+                break
