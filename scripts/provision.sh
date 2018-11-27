@@ -94,6 +94,10 @@ az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GRO
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_KEY="${AZUREAD_OAUTH2_KEY}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_SECRET="${AZUREAD_OAUTH2_SECRET}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings AZUREAD_OAUTH2_TENANT_ID="${AZUREAD_OAUTH2_TENANT_ID}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings USE_LDAP="${USE_LDAP}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings LDAP_SERVER="${LDAP_SERVER}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings LDAP_USER="${LDAP_USER}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings LDAP_PASSWORD="${LDAP_PASSWORD}"
 
 # (Adding site extensions can't be done with az: see https://github.com/Azure/azure-cli/issues/7617)
 cat <<EOF
