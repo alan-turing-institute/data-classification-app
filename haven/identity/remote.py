@@ -39,7 +39,10 @@ def create_user(user):
         'objectClass': settings.AD_USER_OBJECT_CLASSES,
     }
     dn = settings.AD_RESEARCH_USER_DN % dict(cn=cn)
-    if not conn.add(dn, attributes=attrs):
+    if conn.add(dn, attributes=attrs):
+        user.set_aad_status(user.AAD_STATUS_PENDING)
+    else:
+        user.set_aad_status(user.AAD_STATUS_FAILED_TO_CREATE)
         message = conn.result['message']
         logger.error(message)
         raise Exception('Failed to create remote user: %s' % message)

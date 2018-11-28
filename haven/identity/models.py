@@ -37,6 +37,22 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30, verbose_name='first name')
     last_name = models.CharField(max_length=150, verbose_name='last name')
 
+    AAD_STATUS_FAILED_TO_CREATE = 'failed_to_create'
+    AAD_STATUS_PENDING = 'pending'
+    AAD_STATUS_CREATED = 'created'
+    AAD_STATUS_ACTIVATED = 'activated'
+    AAD_STATUS_CHOICES = (
+        (AAD_STATUS_FAILED_TO_CREATE, 'Creation failed'),    # AD creation failed
+        (AAD_STATUS_PENDING, 'Pending'),  # has been creatd in AD and awaiting sync to AAD
+        (AAD_STATUS_CREATED, 'Created'),  # has been found in AAD and sent email
+        (AAD_STATUS_ACTIVATED, 'Activated'),  # has been activated / password set
+    )
+    aad_status = models.CharField(
+        max_length=16,
+        choices=AAD_STATUS_CHOICES,
+        blank=True
+    )
+
     @property
     def user_role(self):
         if self.is_superuser:
@@ -45,6 +61,10 @@ class User(AbstractUser):
 
     def set_role(self, role):
         self.role = role.value
+        self.save()
+
+    def set_aad_status(self, status):
+        self.aad_status = status
         self.save()
 
     def generate_username(self):
