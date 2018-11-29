@@ -123,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'social_core.backends.azuread_tenant.AzureADTenantOAuth2',
+    'identity.backends.CustomAzureOAuth2Backend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
