@@ -10,11 +10,11 @@ class IdentityUserAdmin(UserAdmin):
 
     fieldsets = UserAdmin.fieldsets + (
         ('Extra fields', {
-            'fields': ['role', 'aad_status',]
+            'fields': ['role', 'aad_status']
         }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Extra fields', {
-            'fields': ['role', 'aad_status',]
+            'fields': ['role', 'aad_status']
         }),
     )
