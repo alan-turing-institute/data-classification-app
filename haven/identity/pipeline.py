@@ -3,6 +3,7 @@ from functools import wraps
 from django.conf import settings
 from requests_oauthlib import OAuth2Session
 
+from identity.models import User
 from identity.roles import UserRole
 
 
@@ -18,7 +19,7 @@ def azure_backend(fn):
     @wraps(fn)
     def _inner(backend, *args, **kwargs):
         if backend.name == 'azuread-tenant-oauth2':
-            fn(backend, *args, **kwargs)
+            return fn(backend, *args, **kwargs)
     return _inner
 
 
@@ -55,3 +56,15 @@ def determine_role(backend, user, response, *args, **kwargs):
             if group['displayName'] == settings.SYS_CONTROLLER_GROUP_NAME:
                 user.set_role(UserRole.SYSTEM_CONTROLLER)
                 break
+
+
+@azure_backend
+def find_existing_user(backend, user, response, *args, **kwargs):
+    if user:
+        return {}
+
+    try:
+        user = User.objects.get(username=response['upn'])
+        return {'user': user}
+    except User.ObjectDoesNotExist:
+        return {}
