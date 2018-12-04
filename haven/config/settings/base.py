@@ -193,3 +193,12 @@ SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
 AD_RESEARCH_USER_DN = 'CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk'
 
 AD_USER_OBJECT_CLASSES = ['user', 'organizationalPerson', 'person', 'top']
+
+EMAIL_HOST = env.str('EMAIL_HOST', default='')
+if EMAIL_HOST:
+    EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.int('EMAIL_USE_TLS', default=True)
+
+DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')

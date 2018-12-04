@@ -42,7 +42,7 @@ def create_user(user):
         'sn': user.last_name,
         'mail': user.email,
         'userPrincipalName': user.username,
-        'mobile': user.mobile,
+        'mobile': str(user.mobile),
         'countryCode': COUNTRY_CODE_UK,
         'userAccountControl': DONT_EXPIRE_PASSWORD | NORMAL_USER_ACCOUNT | PASSWORD_NOT_REQUIRED,
         'displayName': user.get_full_name(),

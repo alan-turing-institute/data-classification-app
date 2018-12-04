@@ -1,7 +1,9 @@
 import logging
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
+from django.template.loader import render_to_string
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
@@ -40,6 +42,26 @@ class Command(BaseCommand):
             if response.ok:
                 logger.debug("User found")
                 user.set_aad_status(user.AAD_STATUS_CREATED)
-                # Now, prompt the user to log in
+
+                # Send the user an email inviting them to log in
+                message = render_to_string(
+                    'identity/email/invitation.txt', {
+                        'tenant_id': tenant_id,
+                        'full_name': user.get_full_name(),
+                        'upn': upn,
+                    }
+                )
+                result = send_mail(
+                    subject='Invitation to data safe haven',
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_MAIL,
+                    recipient_list=[user.email]
+
+                )
+
+                if result:
+                    logger.debug('mail sent')
+                else:
+                    logger.debug('mail failed to send')
             else:
                 logger.debug("User not found")
