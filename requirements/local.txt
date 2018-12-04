@@ -7,6 +7,7 @@
 asn1crypto==0.24.0
 atomicwrites==1.2.1
 attrs==18.2.0
+babel==2.6.0
 backcall==0.1.0           # via ipython
 certifi==2018.10.15
 cffi==1.11.5
@@ -19,6 +20,7 @@ django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
 django-environ==0.4.5
+django-phonenumber-field==2.1.0
 django==2.1
 flake8==3.5.0
 idna==2.7
@@ -34,6 +36,7 @@ more-itertools==4.3.0
 oauthlib==2.1.0
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
+phonenumbers==8.10.1
 pickleshare==0.7.5        # via ipython
 pip-tools==3.1.0
 pluggy==0.7.1

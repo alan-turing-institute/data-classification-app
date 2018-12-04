@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
+from phonenumber_field.modelfields import PhoneNumberField
 
 from projects.roles import ProjectRole
 
@@ -33,6 +34,8 @@ class User(AbstractUser):
         verbose_name='email address',
         null=True,
     )
+
+    mobile = PhoneNumberField(null=True)
 
     first_name = models.CharField(max_length=30, verbose_name='first name')
     last_name = models.CharField(max_length=150, verbose_name='last name')

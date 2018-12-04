@@ -10,7 +10,7 @@ from .remote import create_user
 class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'mobile']
 
     def clean_email(self):
         email = self.cleaned_data['email']

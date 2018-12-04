@@ -2,8 +2,8 @@ import logging
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
 
 from identity.models import User
 

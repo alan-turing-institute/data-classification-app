@@ -27,6 +27,13 @@ def _connect_ldap():
 def create_user(user):
     cn = user.username.split('@')[0]
 
+    # https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro
+    DONT_EXPIRE_PASSWORD = 0x10000
+    NORMAL_USER_ACCOUNT = 0x0200
+    PASSWORD_NOT_REQUIRED = 0x0020
+
+    # http://kirste.userpage.fu-berlin.de/diverse/doc/ISO_3166.html for country codes
+    COUNTRY_CODE_UK = 826
     conn = _connect_ldap()
     attrs = {
         'cn': cn,
@@ -35,6 +42,9 @@ def create_user(user):
         'sn': user.last_name,
         'mail': user.email,
         'userPrincipalName': user.username,
+        'mobile': user.mobile,
+        'countryCode': COUNTRY_CODE_UK,
+        'userAccountControl': DONT_EXPIRE_PASSWORD | NORMAL_USER_ACCOUNT | PASSWORD_NOT_REQUIRED,
         'displayName': user.get_full_name(),
         'objectClass': settings.AD_USER_OBJECT_CLASSES,
     }
