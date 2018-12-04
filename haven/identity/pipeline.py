@@ -66,5 +66,5 @@ def find_existing_user(backend, user, response, *args, **kwargs):
     try:
         user = User.objects.get(username=response['upn'])
         return {'user': user}
-    except User.ObjectDoesNotExist:
+    except User.DoesNotExist:
         return {}
