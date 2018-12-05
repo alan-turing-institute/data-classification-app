@@ -103,6 +103,8 @@ az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GRO
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
 
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --slot $APP_SLOT --settings BASE_URL="${BASE_URL}"
+
 # (Adding site extensions can't be done with az: see https://github.com/Azure/azure-cli/issues/7617)
 cat <<EOF
 To complete the deployment:

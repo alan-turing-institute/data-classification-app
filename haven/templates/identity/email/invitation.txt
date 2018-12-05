@@ -1,9 +1,9 @@
 Hi {{ full_name }}
 
-You have been invited to a project on the Data Safe Haven.
+You have been invited to the Data Safe Haven.
 
 To activate your account, please visit the following URL to set up your password:
 
-https://passwordreset.microsoftonline.com/?ru=https%3a%2f%2flogin.microsoftonline.com%2f{{ tenant_id }}%2f&username={{ upn }}
+https://passwordreset.microsoftonline.com/?ru={{ auth_url|urlencode:"" }}&username={{ upn }}
 
 The Data Safe Haven Team
