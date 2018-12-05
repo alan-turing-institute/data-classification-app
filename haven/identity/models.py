@@ -40,16 +40,22 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=30, verbose_name='first name')
     last_name = models.CharField(max_length=150, verbose_name='last name')
 
+    # AD creation failed
     AAD_STATUS_FAILED_TO_CREATE = 'failed_to_create'
+    # User created in AD and awaiting sync to AAD
     AAD_STATUS_PENDING = 'pending'
+    # User has been found in AAD and sent email
     AAD_STATUS_CREATED = 'created'
+    # User has been activated / password set
     AAD_STATUS_ACTIVATED = 'activated'
     AAD_STATUS_CHOICES = (
-        (AAD_STATUS_FAILED_TO_CREATE, 'Creation failed'),    # AD creation failed
-        (AAD_STATUS_PENDING, 'Pending'),  # has been creatd in AD and awaiting sync to AAD
-        (AAD_STATUS_CREATED, 'Created'),  # has been found in AAD and sent email
-        (AAD_STATUS_ACTIVATED, 'Activated'),  # has been activated / password set
+        (AAD_STATUS_FAILED_TO_CREATE, 'Creation failed'),
+        (AAD_STATUS_PENDING, 'Pending'),
+        (AAD_STATUS_CREATED, 'Created'),
+        (AAD_STATUS_ACTIVATED, 'Activated'),
     )
+
+    # Status of user in active directory
     aad_status = models.CharField(
         max_length=16,
         choices=AAD_STATUS_CHOICES,

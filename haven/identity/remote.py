@@ -8,6 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 def _connect_ldap():
+    """
+    Connect and bind to LDAP server as configured in settings
+
+    :return: `ldap3.Connection` object if conneciton was successful
+    :raise: Exception on failure to bind
+    """
     server = Server(
         settings.LDAP_SERVER,
         connect_timeout=5,
@@ -25,6 +31,12 @@ def _connect_ldap():
 
 
 def create_user(user):
+    """
+    Create remote version of user over LDAP
+
+    :param user: User object
+    :raise: Exception on failure to create
+    """
     cn = user.username.split('@')[0]
 
     # https://support.microsoft.com/en-gb/help/305144/how-to-use-the-useraccountcontrol-flags-to-manipulate-user-account-pro
@@ -40,12 +52,12 @@ def create_user(user):
         'samAccountName': cn,
         'givenName': user.first_name,
         'sn': user.last_name,
+        'displayName': user.get_full_name(),
         'mail': user.email,
         'userPrincipalName': user.username,
         'mobile': str(user.mobile),
         'countryCode': COUNTRY_CODE_UK,
         'userAccountControl': DONT_EXPIRE_PASSWORD | NORMAL_USER_ACCOUNT | PASSWORD_NOT_REQUIRED,
-        'displayName': user.get_full_name(),
         'objectClass': settings.AD_USER_OBJECT_CLASSES,
     }
     dn = settings.AD_RESEARCH_USER_DN % dict(cn=cn)

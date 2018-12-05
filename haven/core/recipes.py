@@ -5,3 +5,6 @@ project = Recipe('Project')
 participant = Recipe('Participant')
 researcher = participant.extend(role='researcher')
 investigator = participant.extend(role='investigator')
+
+
+social_auth = Recipe('UserSocialAuth')

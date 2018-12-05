@@ -61,7 +61,7 @@ def project_participant():
 @pytest.fixture
 def user1():
     return User.objects.create_user(
-        username='user@example.com',
+        username='user1@example.com',
         email='user@example.com',
         password=DUMMY_PASSWORD,
     )
