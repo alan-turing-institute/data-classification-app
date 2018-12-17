@@ -9,7 +9,7 @@
   {% for participant in participants %}
   <li class="list-group-item">
     <div class="d-flex w-100 justify-content-between">
-      <h4>{{ participant.get_role_display }}: {{ participant.user.username }}</a></h4>
+      <h4>{{ participant.get_role_display }}: {{ participant.user.get_full_name }}</a></h4>
       <small>added {{ participant.created_at }} by {{ participant.created_by }}</small>
     </div>
   </li>

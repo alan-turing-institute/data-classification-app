@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block h1_title %}Create User{% endblock %}
 
@@ -8,8 +9,12 @@
   {% csrf_token %}
   {{ form|crispy }}
 
+  <h2>Projects</h2>
+  <div id="project-formset">
   {% crispy formset helper %}
+  </div>
 
+  <br />
   <button type="submit" class="btn btn-success">Save User</button>
 </form>
 

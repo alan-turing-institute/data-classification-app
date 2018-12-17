@@ -53,6 +53,7 @@ THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
     'social_django',
+    'formset_bootstrap',
 ]
 
 LOCAL_APPS = [

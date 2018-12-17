@@ -225,3 +225,9 @@ pip-selfcheck.json
 
 .coverage
 coverage/
+
+# build from sass files
+css/
+
+# npm installs
+node_modules/

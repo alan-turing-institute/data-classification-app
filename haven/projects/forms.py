@@ -59,5 +59,6 @@ AddUsersToProjectInlineFormSet = inlineformset_factory(
     Participant,
     form=AddUserToProjectInlineForm,
     fk_name='user',
-    extra=1
+    extra=1,
+    can_delete=True,
 )
