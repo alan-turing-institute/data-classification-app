@@ -2,6 +2,7 @@ import pytest
 
 from core import recipes
 from identity.models import User
+from projects.roles import ProjectRole
 
 
 @pytest.mark.django_db
@@ -52,7 +53,9 @@ class TestCreateUser:
         }, follow=True)
 
         assert response.status_code == 200
-        assert User.objects.filter(email='testuser@example.com').exists()
+        user = User.objects.filter(email='testuser@example.com').first()
+        assert user
+        assert user.project_role(project) == ProjectRole.RESEARCHER
 
     def test_returns_403_if_cannot_create_users(self, as_project_participant):
         response = as_project_participant.get('/users/new')
@@ -61,3 +64,57 @@ class TestCreateUser:
         response = as_project_participant.post('/users/new', {})
         assert response.status_code == 403
         assert not User.objects.filter(email='testuser@example.com').exists()
+
+
+@pytest.mark.django_db
+class TestEditUser:
+    def test_anonymous_cannot_access_page(self, client, helpers, project_participant):
+        response = client.get('/users/%d/edit' % project_participant.id)
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/users/%d/edit' % project_participant.id, {})
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_system_controller, project_participant):
+        response = as_system_controller.get(
+            '/users/%d/edit' % project_participant.id)
+        assert response.status_code == 200
+        assert response.context['formset']
+
+    def test_add_to_project(self, as_system_controller, project_participant):
+        project = recipes.project.make()
+        response = as_system_controller.post(
+            '/users/%d/edit' % project_participant.id, {
+                'participant_set-TOTAL_FORMS': 1,
+                'participant_set-MAX_NUM_FORMS': 1,
+                'participant_set-MIN_NUM_FORMS': 0,
+                'participant_set-INITIAL_FORMS': 0,
+                'participant_set-0-project': project.id,
+                'participant_set-0-role': 'researcher',
+            }, follow=True)
+        assert response.status_code == 200
+        assert project_participant.project_role(project) == ProjectRole.RESEARCHER
+
+    def test_remove_from_project(self, as_system_controller, researcher):
+        project = researcher.project
+        user = researcher.user
+        response = as_system_controller.post(
+            '/users/%d/edit' % user.id, {
+                'participant_set-TOTAL_FORMS': 1,
+                'participant_set-MAX_NUM_FORMS': 1,
+                'participant_set-MIN_NUM_FORMS': 0,
+                'participant_set-INITIAL_FORMS': 1,
+                'participant_set-0-project': project.id,
+                'participant_set-0-role': 'researcher',
+                'participant_set-0-id': researcher.id,
+                'participant_set-0-DELETE': 'on',
+            }, follow=True)
+        assert response.status_code == 200
+        assert user.project_role(project) is None
+
+    def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
+        response = as_project_participant.get('/users/%d/edit' % researcher.id)
+        assert response.status_code == 403
+
+        response = as_project_participant.post('/users/%d/edit' % researcher.id, {})
+        assert response.status_code == 403

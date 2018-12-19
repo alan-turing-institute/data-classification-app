@@ -9,7 +9,9 @@
   {% for participant in participants %}
   <li class="list-group-item">
     <div class="d-flex w-100 justify-content-between">
-      <h4>{{ participant.get_role_display }}: {{ participant.user.get_full_name }}</a></h4>
+      {% if user_role.can_edit_users %}
+      <h4>{{ participant.get_role_display }}: <a href="{% url 'identity:edit_user' participant.user.id %}">{{ participant.user.get_full_name }}</a></h4>
+      {% endif %}
       <small>added {{ participant.created_at }} by {{ participant.created_by }}</small>
     </div>
   </li>

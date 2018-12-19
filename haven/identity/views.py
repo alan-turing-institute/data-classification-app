@@ -1,9 +1,12 @@
 from braces.views import UserFormKwargsMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.views.generic import DetailView
 from django.views.generic.edit import CreateView
 
 from core.forms import InlineFormSetHelper
-from projects.forms import AddUsersToProjectInlineFormSet
+from projects.forms import ProjectsForUserInlineFormSet
 
 from .forms import CreateUserForm
 from .mixins import UserRoleRequiredMixin
@@ -22,16 +25,17 @@ class UserCreate(LoginRequiredMixin,
     user_roles = [UserRole.SYSTEM_CONTROLLER]
 
     def get_context_data(self, **kwargs):
-        kwargs['formset'] = self.get_formset()
         kwargs['helper'] = InlineFormSetHelper()
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = False
         return super().get_context_data(**kwargs)
 
     def get_formset(self, **kwargs):
         form_kwargs = {'user': self.request.user}
         if self.request.method == 'POST':
-            return AddUsersToProjectInlineFormSet(self.request.POST, form_kwargs=form_kwargs)
+            return ProjectsForUserInlineFormSet(self.request.POST, form_kwargs=form_kwargs)
         else:
-            return AddUsersToProjectInlineFormSet(form_kwargs=form_kwargs)
+            return ProjectsForUserInlineFormSet(form_kwargs=form_kwargs)
 
     def post(self, request, *args, **kwargs):
         formset = self.get_formset()
@@ -44,3 +48,46 @@ class UserCreate(LoginRequiredMixin,
             return response
         else:
             return self.form_invalid(form)
+
+
+class UserEdit(LoginRequiredMixin,
+               UserRoleRequiredMixin,
+               DetailView):
+    model = User
+    template_name = 'identity/user_form.html'
+
+    user_roles = [UserRole.SYSTEM_CONTROLLER]
+
+    def get_success_url(self):
+        return reverse('identity:edit_user', args=[self.get_object().id])
+
+    def get_context_data(self, **kwargs):
+        kwargs['helper'] = InlineFormSetHelper()
+        if 'formset' not in kwargs:
+            kwargs['formset'] = self.get_formset()
+        kwargs['subject_user'] = self.get_object()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        form_kwargs = {'user': self.request.user}
+        if self.request.method == 'POST':
+            return ProjectsForUserInlineFormSet(
+                self.request.POST,
+                instance=self.get_object(),
+                form_kwargs=form_kwargs
+            )
+        else:
+            return ProjectsForUserInlineFormSet(
+                instance=self.get_object(),
+                form_kwargs=form_kwargs
+            )
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        self.object = self.get_object()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data(formset=formset))

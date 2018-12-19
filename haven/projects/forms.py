@@ -38,7 +38,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         return self.project.add_user(username, role, self.user)
 
 
-class AddUserToProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['project'].queryset = Project.objects.get_editable_projects(self.user)
@@ -54,10 +54,10 @@ class AddUserToProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
             raise ValidationError("You cannot assign the role on this project")
 
 
-AddUsersToProjectInlineFormSet = inlineformset_factory(
+ProjectsForUserInlineFormSet = inlineformset_factory(
     User,
     Participant,
-    form=AddUserToProjectInlineForm,
+    form=ProjectForUserInlineForm,
     fk_name='user',
     extra=1,
     can_delete=True,

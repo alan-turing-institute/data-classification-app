@@ -81,6 +81,11 @@ class UserRole(Enum):
             self.RESEARCH_COORDINATOR,
         ]
 
+    @property
+    def can_edit_users(self):
+        """Can a user with this role edit other users?"""
+        return self.can_create_users
+
     def can_create(self, role):
         """
         Can a user with this role create other users with the given role?
