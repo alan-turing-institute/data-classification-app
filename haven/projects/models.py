@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.db import models, transaction
 
 from data.models import Dataset
 from identity.models import User
+from identity.remote import create_user
 
 from .managers import ProjectQuerySet
 from .roles import ProjectRole
@@ -36,6 +38,9 @@ class Project(models.Model):
                 'created_by': creator,
             }
         )
+
+        if settings.USE_LDAP:
+            create_user(user)
 
         return Participant.objects.create(
             user=user,
