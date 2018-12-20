@@ -15,7 +15,8 @@ class Tier:
     # Tier 3: sensitive
     THREE = 3
 
-    # Tier 4 is secret (Out of scope)
+    # Tier 4 is secret
+    FOUR = 4
 
 
 TIER_CHOICES = [
@@ -23,4 +24,5 @@ TIER_CHOICES = [
     (Tier.ONE, 'Tier 1'),
     (Tier.TWO, 'Tier 2'),
     (Tier.THREE, 'Tier 3'),
+    (Tier.FOUR, 'Tier 4'),
 ]

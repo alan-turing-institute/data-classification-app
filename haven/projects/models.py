@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models, transaction
 
 from data.models import Dataset
+from data.tiers import TIER_CHOICES
 from identity.models import User
 from identity.remote import create_user
 
@@ -16,6 +17,15 @@ class Project(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', blank=True)
+
+    # Classification occurs at the project level because combinations of individual
+    # datasets might have a different tier to their individual tiers
+    # None means tier is unknown
+    tier = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=TIER_CHOICES,
+    )
 
     objects = ProjectQuerySet.as_manager()
 

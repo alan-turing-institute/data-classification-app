@@ -11,3 +11,11 @@ register = template.Library()
 @stringfilter
 def project_role_display(role):
     return dict(ProjectRole.choices()).get(role, '')
+
+
+@register.filter
+def tier(tier):
+    if tier is None:
+        return '?'
+    else:
+        return str(tier)
