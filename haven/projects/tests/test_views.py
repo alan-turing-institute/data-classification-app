@@ -216,3 +216,86 @@ class TestListParticipants:
 
         response = client.get('/projects/%d/participants/' % researcher.project.id)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestProjectAddDataset:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/datasets/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/datasets/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_add_new_dataset_to_project(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.datasets.count() == 1
+        assert project.datasets.first().name == 'dataset 1'
+        assert project.datasets.first().description == 'Dataset One'
+
+    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        project = recipes.project.make()
+
+        # Research coordinator shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 404
+
+        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add datasets, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get('/projects/%d/datasets/new' % researcher.project.id)
+        assert response.status_code == 403
+
+        response = client.post('/projects/%d/datasets/new' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestListDatasets:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/datasets/' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_research_coordinator):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_research_coordinator._user,
+        )
+        project.datasets.add(ds1, ds2)
+
+        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+
+        assert response.status_code == 200
+        assert list(response.context['datasets']) == [ds1, ds2]
+
+    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        project = recipes.project.make()
+
+        # Research coordinator shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+        assert response.status_code == 404

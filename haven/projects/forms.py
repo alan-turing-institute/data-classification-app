@@ -3,6 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
+from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
@@ -62,3 +63,9 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
 )
+
+
+class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    class Meta:
+        model = Dataset
+        fields = ('name', 'description')

@@ -52,6 +52,15 @@ class ProjectRole(Enum):
         ]
 
     @property
+    def can_add_datasets(self):
+        """Is this role able to add new datasets to the project?"""
+        return self in [
+            self.PROJECT_ADMIN,
+            self.RESEARCH_COORDINATOR,
+            self.INVESTIGATOR,
+        ]
+
+    @property
     def can_list_participants(self):
         """Is this role able to list participants?"""
         return self in [

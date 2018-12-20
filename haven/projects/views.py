@@ -9,7 +9,7 @@ from django.views.generic.edit import CreateView, FormMixin
 from identity.mixins import UserRoleRequiredMixin
 from identity.roles import UserRole
 
-from .forms import ProjectAddUserForm, ProjectForm
+from .forms import ProjectAddDatasetForm, ProjectAddUserForm, ProjectForm
 from .models import Participant, Project
 from .roles import ProjectRole
 
@@ -27,6 +27,11 @@ class SingleProjectMixin(SingleObjectMixin):
     def get_context_data(self, **kwargs):
         kwargs['project_role'] = self.get_project_role()
         return super().get_context_data(**kwargs)
+
+    def get_form(self):
+        form = super().get_form()
+        form.project = self.get_object()
+        return form
 
 
 class ProjectCreate(
@@ -64,7 +69,7 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
 
 class ProjectAddUser(
     LoginRequiredMixin, UserPassesTestMixin,
-    UserFormKwargsMixin, FormMixin, SingleProjectMixin, DetailView
+    UserFormKwargsMixin, SingleProjectMixin, FormMixin, DetailView
 ):
     template_name = 'projects/project_add_user.html'
     form_class = ProjectAddUserForm
@@ -75,7 +80,6 @@ class ProjectAddUser(
         project_role = self.get_project_role()
 
         # Restrict form dropdown to roles this user is allowed to assign on the project
-        form.project = self.get_object()
         form.fields['role'].choices = [
             (role, name)
             for (role, name) in form.fields['role'].choices
@@ -114,3 +118,37 @@ class ProjectListParticipants(
     def get_context_data(self, **kwargs):
         kwargs['participants'] = self.get_object().participant_set.all()
         return super().get_context_data(**kwargs)
+
+
+class ProjectListDatasets(
+    LoginRequiredMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/dataset_list.html'
+
+    def get_context_data(self, **kwargs):
+        kwargs['datasets'] = self.get_object().datasets.all()
+        return super().get_context_data(**kwargs)
+
+
+class ProjectCreateDataset(
+    LoginRequiredMixin, UserPassesTestMixin, UserFormKwargsMixin,
+    FormMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_add_dataset.html'
+    form_class = ProjectAddDatasetForm
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        self.object = self.get_object()
+        if form.is_valid():
+            dataset = form.save()
+            self.object.add_dataset(dataset)
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def test_func(self):
+        return self.get_project_role().can_add_datasets
+
+    def get_success_url(self):
+        return reverse('projects:detail', args=[self.get_object().id])

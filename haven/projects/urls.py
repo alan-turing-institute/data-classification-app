@@ -26,4 +26,16 @@ urlpatterns = [
         views.ProjectAddUser.as_view(),
         name='add_user'
     ),
+
+    path(
+        '<int:pk>/datasets/',
+        views.ProjectListDatasets.as_view(),
+        name='list_datasets'
+    ),
+
+    path(
+        '<int:pk>/datasets/new',
+        views.ProjectCreateDataset.as_view(),
+        name='add_dataset'
+    ),
 ]

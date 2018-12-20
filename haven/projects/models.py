@@ -59,6 +59,9 @@ class Project(models.Model):
             project=self,
         )
 
+    def add_dataset(self, dataset):
+        self.datasets.add(dataset)
+
 
 class Participant(models.Model):
     """
