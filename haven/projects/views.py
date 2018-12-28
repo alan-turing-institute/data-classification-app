@@ -1,11 +1,14 @@
 from braces.views import UserFormKwargsMixin
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
+from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin
+from formtools.wizard.views import SessionWizardView
 
+from data.forms import Tier0Form, Tier1Form, Tier2Form, Tier3Form
 from identity.mixins import UserRoleRequiredMixin
 from identity.roles import UserRole
 
@@ -152,3 +155,40 @@ class ProjectCreateDataset(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+
+def continue_to_tier_1(wizard):
+    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
+    tier = cleaned_data.get('tier')
+    return tier is None
+
+
+def continue_to_tier_2(wizard):
+    cleaned_data = wizard.get_cleaned_data_for_step('1') or {}
+    tier = cleaned_data.get('tier')
+    return tier is None
+
+
+def continue_to_tier_3(wizard):
+    cleaned_data = wizard.get_cleaned_data_for_step('2') or {}
+    tier = cleaned_data.get('tier')
+    return tier is None
+
+
+class ProjectClassifyData(SessionWizardView):
+    template_name = 'projects/project_classify_data.html'
+
+    form_list = [Tier0Form, Tier1Form, Tier2Form, Tier3Form]
+    condition_dict = {
+        '1': continue_to_tier_1,
+        '2': continue_to_tier_2,
+        '3': continue_to_tier_3,
+    }
+
+    def done(self, form_list, **kwargs):
+        for form in form_list:
+            if 'tier' in form.cleaned_data:
+                return HttpResponse(
+                    'Tier %d' % form.cleaned_data['tier'])
+
+        return HttpResponse('Unknown Tier')

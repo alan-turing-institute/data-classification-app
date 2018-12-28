@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Data Classification for {{ project.name }}{% endblock %}
+
+{% block content %}
+<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<form action="" method="post">{% csrf_token %}
+<table>
+  {{ wizard.management_form }}
+  {{ wizard.form|crispy }}
+</table>
+{% if wizard.steps.prev %}
+<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">First Step</button>
+<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Prev Step</button>
+{% endif %}
+<input type="submit" value="Submit"/>
+</form>
+{% endblock content %}

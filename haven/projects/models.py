@@ -62,6 +62,11 @@ class Project(models.Model):
     def add_dataset(self, dataset):
         self.datasets.add(dataset)
 
+    @property
+    def has_tier(self):
+        """Has this project's data been classified?"""
+        return self.tier is not None
+
 
 class Participant(models.Model):
     """

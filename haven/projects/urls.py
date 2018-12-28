@@ -38,4 +38,10 @@ urlpatterns = [
         views.ProjectCreateDataset.as_view(),
         name='add_dataset'
     ),
+
+    path(
+        '<int:pk>/classify',
+        views.ProjectClassifyData.as_view(),
+        name='classify_data'
+    ),
 ]

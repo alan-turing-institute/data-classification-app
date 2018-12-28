@@ -16,6 +16,7 @@ class ProjectRole(Enum):
     RESEARCH_COORDINATOR = 'research_coordinator'
     INVESTIGATOR = 'investigator'
     RESEARCHER = 'researcher'
+    DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
 
     @classmethod
     def choices(cls):
@@ -25,6 +26,7 @@ class ProjectRole(Enum):
             (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
             (cls.INVESTIGATOR.value, 'Investigator'),
             (cls.RESEARCHER.value, 'Researcher'),
+            (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
         ]
 
     @property
@@ -34,10 +36,11 @@ class ProjectRole(Enum):
 
         :return: list of `ProjectRole` objects
         """
-        if self is self.PROJECT_ADMIN:
-            return [self.RESEARCH_COORDINATOR, self.INVESTIGATOR, self.RESEARCHER]
-        elif self is self.RESEARCH_COORDINATOR:
-            return [self.RESEARCH_COORDINATOR, self.INVESTIGATOR, self.RESEARCHER]
+        if self in [self.PROJECT_ADMIN, self.RESEARCH_COORDINATOR]:
+            return [self.RESEARCH_COORDINATOR,
+                    self.DATA_PROVIDER_REPRESENTATIVE,
+                    self.INVESTIGATOR,
+                    self.RESEARCHER]
         elif self is self.INVESTIGATOR:
             return [self.RESEARCHER]
         return []
@@ -66,6 +69,14 @@ class ProjectRole(Enum):
         return self in [
             self.PROJECT_ADMIN,
             self.RESEARCH_COORDINATOR,
+            self.INVESTIGATOR,
+        ]
+
+    def can_classify_data(self):
+        return self in [
+            self.PROJECT_ADMIN,
+            self.RESEARCH_COORDINATOR,
+            self.DATA_PROVIDER_REPRESENTATIVE,
             self.INVESTIGATOR,
         ]
 

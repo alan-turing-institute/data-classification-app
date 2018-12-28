@@ -20,7 +20,7 @@
     "watchify": "^3.11.0"
   },
   "browserify-shim": {
-	  "jquery": "global:jQuery"
+    "jquery": "global:jQuery"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

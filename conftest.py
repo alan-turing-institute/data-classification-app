@@ -69,12 +69,7 @@ def user1():
 
 @pytest.fixture
 def data_provider_representative():
-    return User.objects.create_user(
-        username='datarep@example.com',
-        email='datarep@example.com',
-        role=UserRole.DATA_PROVIDER_REPRESENTATIVE.value,
-        password=DUMMY_PASSWORD,
-    )
+    return recipes.participant.make(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
 
 
 @pytest.fixture
