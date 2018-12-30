@@ -1,10 +1,12 @@
 from django import forms
 
+from .classification import QuestionText
+
 
 class Tier0Form(forms.Form):
     is_public_and_open = forms.BooleanField(
         required=False,
-        label='Is the data public and open?',
+        label=QuestionText.PUBLIC_AND_OPEN,
     )
 
     def clean(self):
@@ -17,31 +19,32 @@ class Tier0Form(forms.Form):
 class Tier1Form(forms.Form):
     publishable = forms.BooleanField(
         required=False,
-        label='Is the data publishable?',
+        label=QuestionText.PUBLISHABLE,
     )
 
-    describes_individuals = forms.BooleanField(
+    does_not_describe_individuals = forms.BooleanField(
         required=False,
-        label='Does the data describe individuals?',
+        label=QuestionText.DOES_NOT_DESCRIBE_INDIVIDUALS,
     )
 
     disclosure_termination = forms.BooleanField(
         required=False,
-        label='Could disclosure result in contract termination?',
+        label=QuestionText.DISCLOSURE_TERMINATION,
     )
 
     disclosure_embarrassment = forms.BooleanField(
         required=False,
-        label='Could disclosure result in embarrassment?',
+        label=QuestionText.DISCLOSURE_EMBARRASSMENT
     )
 
     def clean(self):
         publishable = self.cleaned_data.get('is_publishable', False)
-        describes_individuals = self.cleaned_data.get('describes_individuals', False)
+        does_not_describe_individuals = self.cleaned_data.get(
+            'does_not_describe_individuals', False)
         disclosure_termination = self.cleaned_data.get('disclosure_termination', False)
         disclosure_embarrassment = self.cleaned_data.get('disclosure_embarrassment', False)
         if ((publishable and
-             not describes_individuals and
+             does_not_describe_individuals and
              not disclosure_termination and
              not disclosure_embarrassment)):
             self.cleaned_data['tier'] = 1
@@ -49,20 +52,20 @@ class Tier1Form(forms.Form):
 
 
 class Tier2Form(forms.Form):
-    could_be_identifiable = forms.BooleanField(
+    individuals_are_anonymous = forms.BooleanField(
         required=False,
-        label='Could individuals be identified?',
+        label=QuestionText.INDIVIDUALS_ARE_ANONYMOUS,
     )
 
     disclosure_penalties = forms.BooleanField(
         required=False,
-        label='Could disclosure result in penalties?',
+        label=QuestionText.DISCLOSURE_PENALTIES,
     )
 
     def clean(self):
-        could_be_identifiable = self.cleaned_data.get('could_be_identiable', False)
+        individuals_are_anonymous = self.cleaned_data.get('individuals_are_anonymous', False)
         disclosure_penalties = self.cleaned_data.get('disclosure_penalties', False)
-        if not could_be_identifiable and not disclosure_penalties:
+        if not individuals_are_anonymous and not disclosure_penalties:
             self.cleaned_data['tier'] = 2
         return self.cleaned_data
 
@@ -70,7 +73,7 @@ class Tier2Form(forms.Form):
 class Tier3Form(forms.Form):
     valuable_to_enemies = forms.BooleanField(
         required=False,
-        label='Could data be valuable to enemies?'
+        label=QuestionText.VALUABLE_TO_ENEMIES,
     )
 
     def clean(self):
