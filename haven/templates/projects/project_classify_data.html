@@ -6,14 +6,26 @@
 {% block content %}
 <p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
 <form action="" method="post">{% csrf_token %}
-<table>
   {{ wizard.management_form }}
-  {{ wizard.form|crispy }}
+<table class="table table-sm">
+  <tbody>
+    {% for field in wizard.form %}
+    <tr>
+      <td>{{ field.label }}</td>
+      <td>{{ field }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% if wizard.steps.prev %}
-<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">First Step</button>
-<button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Prev Step</button>
+<button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">Start Again</button>
+<button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Back </button>
 {% endif %}
-<input type="submit" value="Submit"/>
+
+{% if wizard.steps.next %}
+<input type="submit" value="Continue " class="btn btn-primary" />
+{% else %}
+<input type="submit" value="Finish" class="btn btn-primary" />
+{% endif %}
 </form>
 {% endblock content %}
