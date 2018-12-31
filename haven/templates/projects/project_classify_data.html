@@ -4,7 +4,7 @@
 {% block h1_title %}Data Classification for {{ project.name }}{% endblock %}
 
 {% block content %}
-<p>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }}</p>
+<p>Step {{ wizard.steps.step1 }}</p>
 <form action="" method="post">{% csrf_token %}
   {{ wizard.management_form }}
 <table class="table table-sm">
@@ -24,8 +24,6 @@
 
 {% if wizard.steps.next %}
 <input type="submit" value="Continue " class="btn btn-primary" />
-{% else %}
-<input type="submit" value="Finish" class="btn btn-primary" />
 {% endif %}
 </form>
 {% endblock content %}

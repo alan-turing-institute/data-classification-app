@@ -97,3 +97,16 @@ class Participant(models.Model):
 
     def __str__(self):
         return f'{self.user} ({self.get_role_display()} on {self.project})'
+
+
+class ClassificationOpinion(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the classification was made',
+    )
+
+    class Meta:
+        unique_together = ('user', 'project')

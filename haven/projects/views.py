@@ -1,7 +1,7 @@
 from braces.views import UserFormKwargsMixin
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
-from django.http import HttpResponse
+from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
@@ -13,7 +13,7 @@ from identity.mixins import UserRoleRequiredMixin
 from identity.roles import UserRole
 
 from .forms import ProjectAddDatasetForm, ProjectAddUserForm, ProjectForm
-from .models import Participant, Project
+from .models import ClassificationOpinion, Participant, Project
 from .roles import ProjectRole
 
 
@@ -31,8 +31,8 @@ class SingleProjectMixin(SingleObjectMixin):
         kwargs['project_role'] = self.get_project_role()
         return super().get_context_data(**kwargs)
 
-    def get_form(self):
-        form = super().get_form()
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
         form.project = self.get_object()
         return form
 
@@ -175,7 +175,7 @@ def continue_to_tier_3(wizard):
     return tier is None
 
 
-class ProjectClassifyData(SessionWizardView):
+class ProjectClassifyData(SingleProjectMixin, SessionWizardView):
     template_name = 'projects/project_classify_data.html'
 
     form_list = [Tier0Form, Tier1Form, Tier2Form, Tier3Form]
@@ -185,10 +185,34 @@ class ProjectClassifyData(SessionWizardView):
         '3': continue_to_tier_3,
     }
 
+    def dispatch(self, *args, **kwargs):
+        self.object = self.get_object()
+
+        classification = ClassificationOpinion.objects.filter(
+            project=self.object,
+            user=self.request.user
+        ).first()
+        if classification:
+            return self.render_result(classification)
+
+        return super().dispatch(*args, *kwargs)
+
     def done(self, form_list, **kwargs):
+        tier = None
         for form in form_list:
             if 'tier' in form.cleaned_data:
-                return HttpResponse(
-                    'Tier %d' % form.cleaned_data['tier'])
+                tier = form.cleaned_data['tier']
+                break
 
-        return HttpResponse('Unknown Tier')
+        classification = ClassificationOpinion.objects.create(
+            project=self.object,
+            user=self.request.user,
+            tier=tier,
+        )
+
+        return self.render_result(classification)
+
+    def render_result(self, classification):
+        return render(self.request, 'projects/project_classify_results.html', {
+            'classification': classification,
+        })

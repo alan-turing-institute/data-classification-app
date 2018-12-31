@@ -1,6 +1,7 @@
 from django import forms
 
 from .classification import QuestionText
+from .tiers import Tier
 
 
 class Tier0Form(forms.Form):
@@ -12,7 +13,7 @@ class Tier0Form(forms.Form):
     def clean(self):
         is_public = self.cleaned_data.get('is_public_and_open', False)
         if is_public:
-            self.cleaned_data['tier'] = 0
+            self.cleaned_data['tier'] = Tier.ZERO
         return self.cleaned_data
 
 
@@ -34,7 +35,7 @@ class Tier1Form(forms.Form):
 
     disclosure_embarrassment = forms.BooleanField(
         required=False,
-        label=QuestionText.DISCLOSURE_EMBARRASSMENT
+        label=QuestionText.DISCLOSURE_EMBARRASSMENT,
     )
 
     def clean(self):
@@ -47,7 +48,7 @@ class Tier1Form(forms.Form):
              does_not_describe_individuals and
              not disclosure_termination and
              not disclosure_embarrassment)):
-            self.cleaned_data['tier'] = 1
+            self.cleaned_data['tier'] = Tier.ONE
         return self.cleaned_data
 
 
@@ -66,7 +67,7 @@ class Tier2Form(forms.Form):
         individuals_are_anonymous = self.cleaned_data.get('individuals_are_anonymous', False)
         disclosure_penalties = self.cleaned_data.get('disclosure_penalties', False)
         if not individuals_are_anonymous and not disclosure_penalties:
-            self.cleaned_data['tier'] = 2
+            self.cleaned_data['tier'] = Tier.TWO
         return self.cleaned_data
 
 
@@ -79,7 +80,7 @@ class Tier3Form(forms.Form):
     def clean(self):
         valuable_to_enemies = self.cleaned_data.get('valuable_to_enemies', False)
         if valuable_to_enemies:
-            self.cleaned_data['tier'] = 4
+            self.cleaned_data['tier'] = Tier.FOUR
         else:
-            self.cleaned_data['tier'] = 3
+            self.cleaned_data['tier'] = Tier.THREE
         return self.cleaned_data
