@@ -157,45 +157,57 @@ class ProjectCreateDataset(
         return reverse('projects:detail', args=[self.get_object().id])
 
 
-def continue_to_tier_1(wizard):
-    cleaned_data = wizard.get_cleaned_data_for_step('0') or {}
-    tier = cleaned_data.get('tier')
-    return tier is None
+def _has_tier(wizard, previous_steps):
+    return not any(
+        'tier' in (wizard.get_cleaned_data_for_step(step) or {})
+        for step in previous_steps
+    )
 
 
-def continue_to_tier_2(wizard):
-    cleaned_data = wizard.get_cleaned_data_for_step('1') or {}
-    tier = cleaned_data.get('tier')
-    return tier is None
+def show_tier_1(wizard):
+    return _has_tier(wizard, ['tier0'])
 
 
-def continue_to_tier_3(wizard):
-    cleaned_data = wizard.get_cleaned_data_for_step('2') or {}
-    tier = cleaned_data.get('tier')
-    return tier is None
+def show_tier_2(wizard):
+    return _has_tier(wizard, ['tier0', 'tier1'])
 
 
-class ProjectClassifyData(SingleProjectMixin, SessionWizardView):
+def show_tier_3(wizard):
+    return _has_tier(wizard, ['tier0', 'tier1', 'tier2'])
+
+
+class ProjectClassifyData(
+    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, SessionWizardView
+):
     template_name = 'projects/project_classify_data.html'
 
-    form_list = [Tier0Form, Tier1Form, Tier2Form, Tier3Form]
+    form_list = [
+        ('tier0', Tier0Form),
+        ('tier1', Tier1Form),
+        ('tier2', Tier2Form),
+        ('tier3', Tier3Form),
+    ]
     condition_dict = {
-        '1': continue_to_tier_1,
-        '2': continue_to_tier_2,
-        '3': continue_to_tier_3,
+        'tier1': show_tier_1,
+        'tier2': show_tier_2,
+        'tier3': show_tier_3,
     }
 
     def dispatch(self, *args, **kwargs):
-        self.object = self.get_object()
+        if self.request.user.is_authenticated:
+            self.object = self.get_object()
 
-        classification = ClassificationOpinion.objects.filter(
-            project=self.object,
-            user=self.request.user
-        ).first()
-        if classification:
-            return self.render_result(classification)
+            classification = ClassificationOpinion.objects.filter(
+                project=self.object,
+                user=self.request.user
+            ).first()
+            if classification:
+                return self.render_result(classification)
 
         return super().dispatch(*args, *kwargs)
+
+    def test_func(self):
+        return self.get_project_role().can_classify_data
 
     def done(self, form_list, **kwargs):
         tier = None

@@ -100,7 +100,7 @@ class Participant(models.Model):
 
 
 class ClassificationOpinion(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     created_at = models.DateTimeField(
@@ -110,3 +110,6 @@ class ClassificationOpinion(models.Model):
 
     class Meta:
         unique_together = ('user', 'project')
+
+    def __str__(self):
+        return f'{self.user}: {self.project} (tier {self.tier})'

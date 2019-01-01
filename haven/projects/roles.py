@@ -72,6 +72,7 @@ class ProjectRole(Enum):
             self.INVESTIGATOR,
         ]
 
+    @property
     def can_classify_data(self):
         return self in [
             self.PROJECT_ADMIN,

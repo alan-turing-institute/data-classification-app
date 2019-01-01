@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('tier', models.PositiveSmallIntegerField(choices=[(0, 'Tier 0'), (1, 'Tier 1'), (2, 'Tier 2'), (3, 'Tier 3'), (4, 'Tier 4')])),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Time the classification was made')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='projects.Project')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classifications', to='projects.Project')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
             ],
         ),

@@ -39,7 +39,7 @@ class Tier1Form(forms.Form):
     )
 
     def clean(self):
-        publishable = self.cleaned_data.get('is_publishable', False)
+        publishable = self.cleaned_data.get('publishable', False)
         does_not_describe_individuals = self.cleaned_data.get(
             'does_not_describe_individuals', False)
         disclosure_termination = self.cleaned_data.get('disclosure_termination', False)
@@ -66,7 +66,7 @@ class Tier2Form(forms.Form):
     def clean(self):
         individuals_are_anonymous = self.cleaned_data.get('individuals_are_anonymous', False)
         disclosure_penalties = self.cleaned_data.get('disclosure_penalties', False)
-        if not individuals_are_anonymous and not disclosure_penalties:
+        if individuals_are_anonymous and not disclosure_penalties:
             self.cleaned_data['tier'] = Tier.TWO
         return self.cleaned_data
 
