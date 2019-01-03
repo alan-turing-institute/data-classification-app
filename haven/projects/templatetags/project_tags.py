@@ -19,3 +19,8 @@ def tier(tier):
         return '?'
     else:
         return str(tier)
+
+
+@register.filter
+def project_role(user, project):
+    return project_role_display(user.project_role(project).value)

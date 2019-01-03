@@ -10,6 +10,10 @@ from .managers import ProjectQuerySet
 from .roles import ProjectRole
 
 
+class ClassificationException(Exception):
+    pass
+
+
 class Project(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
@@ -61,6 +65,50 @@ class Project(models.Model):
 
     def add_dataset(self, dataset):
         self.datasets.add(dataset)
+
+    @property
+    def is_classification_ready(self):
+        users = self.classifications.values_list('user', flat=True)
+        roles = {
+            ProjectRole(part.role)
+            for part in self.participant_set.filter(user__in=users)
+        }
+
+        required_roles = {
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+        }
+        print(roles)
+        print(required_roles)
+        print(roles - required_roles)
+
+        return roles >= required_roles
+
+    @property
+    def tier_conflict(self):
+        tiers = self.classifications.distinct('tier')
+        return tiers.count() > 1
+
+    def calculate_tier(self):
+        if self.has_tier:
+            return
+
+        if self.is_classification_ready and not self.tier_conflict:
+            self.tier = self.classifications.first().tier
+            self.save()
+
+    def classify_as(self, tier, by_user):
+        classification = ClassificationOpinion.objects.create(
+            project=self,
+            user=by_user,
+            tier=tier,
+        )
+
+        # This might qualify the project for classification, so try
+        self.calculate_tier()
+
+        return classification
 
     @property
     def has_tier(self):

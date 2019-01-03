@@ -1,7 +1,32 @@
 {% extends "base.html" %}
+{% load project_tags %}
+
 
 {% block h1_title %}Data Classification for {{ classification.project.name }}{% endblock %}
 
 {% block content %}
+
+{% with classification.project as project %}
 <p>You have classified this project as Tier {{ classification.tier }}</p>
+
+{% if other_classifications.exists %}
+  <ul>
+  {% for cl in other_classifications %}
+    <li>{{ cl.user }} ({{cl.user|project_role:project}}) classified the project as Tier {{ cl.tier }}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+
+<h2>Overall classification</h2>
+{% if project.has_tier %}
+  Project is tier {{ project.tier }}
+{% elif not project.is_classification_ready %}
+<p>Classification incomplete</p>
+{% elif project.tier_conflict %}
+<p>Users disagree on data tier</p>
+{% endif %}
+
+
+{% endwith %}
+
 {% endblock content %}

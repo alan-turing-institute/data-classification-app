@@ -216,15 +216,18 @@ class ProjectClassifyData(
                 tier = form.cleaned_data['tier']
                 break
 
-        classification = ClassificationOpinion.objects.create(
-            project=self.object,
-            user=self.request.user,
-            tier=tier,
-        )
+        classification = self.object.classify_as(tier, self.request.user)
 
         return self.render_result(classification)
 
     def render_result(self, classification):
+        other_classifications = self.object.classifications.exclude(
+            user=self.request.user)
+
+        self.object.calculate_tier()
+
         return render(self.request, 'projects/project_classify_results.html', {
             'classification': classification,
+            'other_classifications': other_classifications,
+            'project_tier': self.object.tier,
         })
