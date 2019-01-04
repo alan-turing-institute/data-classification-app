@@ -317,6 +317,7 @@ class TestProjectClassifyData:
         response = as_research_coordinator.get('/projects/%d/classify' % project.id)
         assert response.status_code == 200
         assert response.context['project'] == project
+        assert 'wizard' in response.context
 
     def test_returns_404_for_invisible_project(self, as_research_coordinator):
         project = recipes.project.make()
@@ -338,6 +339,14 @@ class TestProjectClassifyData:
 
         response = client.post('/projects/%d/classify' % researcher.project.id)
         assert response.status_code == 403
+
+    def test_do_not_show_form_if_user_already_classified(self, client, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+        project.classify_as(0, as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+
+        assert 'wizard' not in response.context
 
     def test_classify_as_tier_0(self, as_research_coordinator):
         project = recipes.project.make(created_by=as_research_coordinator._user)

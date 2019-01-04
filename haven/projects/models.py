@@ -10,10 +10,6 @@ from .managers import ProjectQuerySet
 from .roles import ProjectRole
 
 
-class ClassificationException(Exception):
-    pass
-
-
 class Project(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
