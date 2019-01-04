@@ -158,6 +158,10 @@ class ProjectCreateDataset(
 
 
 def _has_tier(wizard, previous_steps):
+    """
+    Have any of the previous steps yielded a 'tier' data field (i.e.
+    determined definitively which tier the data is?
+    """
     return not any(
         'tier' in (wizard.get_cleaned_data_for_step(step) or {})
         for step in previous_steps
@@ -165,14 +169,29 @@ def _has_tier(wizard, previous_steps):
 
 
 def show_tier_1(wizard):
+    """
+    Determine whether to show the tier 1 questions form
+
+    If the tier0 form yielded a definitive result, then don't.
+    """
     return _has_tier(wizard, ['tier0'])
 
 
 def show_tier_2(wizard):
+    """
+    Determine whether to show the tier 2 questions form
+
+    If the tier0 or tier1 forms yielded a definitive result, then don't.
+    """
     return _has_tier(wizard, ['tier0', 'tier1'])
 
 
 def show_tier_3(wizard):
+    """
+    Determine whether to show the tier 3 questions form
+
+    If the tier0, tier1 or tier2 forms yielded a definitive result, then don't.
+    """
     return _has_tier(wizard, ['tier0', 'tier1', 'tier2'])
 
 
@@ -187,6 +206,11 @@ class ProjectClassifyData(
         ('tier2', Tier2Form),
         ('tier3', Tier3Form),
     ]
+
+    """
+    Form wizard control logic: determine whether to show a given form, based
+    on previous inputs.
+    """
     condition_dict = {
         'tier1': show_tier_1,
         'tier2': show_tier_2,
@@ -194,6 +218,13 @@ class ProjectClassifyData(
     }
 
     def dispatch(self, *args, **kwargs):
+        """
+        Before doing anything on this view, determine whether this user has
+        already classified the project.
+
+        If they have, then show their classification (and others) rather than
+        display the form again.
+        """
         if self.request.user.is_authenticated:
             self.object = self.get_object()
 
@@ -210,6 +241,11 @@ class ProjectClassifyData(
         return self.get_project_role().can_classify_data
 
     def done(self, form_list, **kwargs):
+        """
+        Called when the classification process is complete
+
+        Record the user's classification and show results
+        """
         tier = None
         for form in form_list:
             if 'tier' in form.cleaned_data:
@@ -221,6 +257,10 @@ class ProjectClassifyData(
         return self.render_result(classification)
 
     def render_result(self, classification):
+        """
+        Show the classification result, along with that of other users
+        (and the project's final classification, if available yet)
+        """
         other_classifications = self.object.classifications.exclude(
             user=self.request.user)
 

@@ -11,6 +11,9 @@ class Tier0Form(forms.Form):
     )
 
     def clean(self):
+        """
+        Decide whether the answers determine the data as Tier 0
+        """
         is_public = self.cleaned_data.get('is_public_and_open', False)
         if is_public:
             self.cleaned_data['tier'] = Tier.ZERO
@@ -39,6 +42,9 @@ class Tier1Form(forms.Form):
     )
 
     def clean(self):
+        """
+        Decide whether the answers determine the data as Tier 1
+        """
         publishable = self.cleaned_data.get('publishable', False)
         does_not_describe_individuals = self.cleaned_data.get(
             'does_not_describe_individuals', False)
@@ -64,6 +70,9 @@ class Tier2Form(forms.Form):
     )
 
     def clean(self):
+        """
+        Decide whether the answers determine the data as Tier 2
+        """
         individuals_are_anonymous = self.cleaned_data.get('individuals_are_anonymous', False)
         disclosure_penalties = self.cleaned_data.get('disclosure_penalties', False)
         if individuals_are_anonymous and not disclosure_penalties:
@@ -78,6 +87,11 @@ class Tier3Form(forms.Form):
     )
 
     def clean(self):
+        """
+        Decide whether the answers determine the data as Tier 3 or Tier 4
+
+        (This is the final step, so it must be one or the other)
+        """
         valuable_to_enemies = self.cleaned_data.get('valuable_to_enemies', False)
         if valuable_to_enemies:
             self.cleaned_data['tier'] = Tier.FOUR

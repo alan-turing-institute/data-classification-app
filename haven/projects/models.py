@@ -64,6 +64,13 @@ class Project(models.Model):
 
     @property
     def is_classification_ready(self):
+        """
+        Is the project ready for classification yet?
+
+        i.e. have all the required users been through the classification proess
+
+        :return: True if ready for classification, False otherwise.
+        """
         users = self.classifications.values_list('user', flat=True)
         roles = {
             ProjectRole(part.role)
@@ -75,18 +82,30 @@ class Project(models.Model):
             ProjectRole.INVESTIGATOR,
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
         }
-        print(roles)
-        print(required_roles)
-        print(roles - required_roles)
 
         return roles >= required_roles
 
     @property
     def tier_conflict(self):
+        """
+        Do users disagree on project data tier?
+
+        This has meaning even if not all required users have done the classification yet.
+
+        :return: True if there is conflict, False otherwise
+        """
         tiers = self.classifications.distinct('tier')
         return tiers.count() > 1
 
     def calculate_tier(self):
+        """
+        Calculate the tier of the project based on classifications submitted
+        by relevant users, and save the value in the database.
+
+        Will only happen if a tier has not already been determined, and if
+        it passes the relevant classification criteria (all required users have
+        classified the project, and they all agree on the tier)
+        """
         if self.has_tier:
             return
 
@@ -95,6 +114,14 @@ class Project(models.Model):
             self.save()
 
     def classify_as(self, tier, by_user):
+        """
+        Add a user's opinion of the project classification
+
+        :param tier: Tier the user thinks the project is
+        :param by_user: User object
+
+        :return: `ClassificationOpinion` object
+        """
         classification = ClassificationOpinion.objects.create(
             project=self,
             user=by_user,
@@ -144,6 +171,9 @@ class Participant(models.Model):
 
 
 class ClassificationOpinion(models.Model):
+    """
+    Represents a user's opinion about the data tier classificaiton of a project
+    """
     project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
