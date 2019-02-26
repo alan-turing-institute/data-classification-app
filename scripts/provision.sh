@@ -4,15 +4,6 @@
 # https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 #
 
-# Deployment parameters
-RESOURCE_GROUP=datasafehaven
-PLAN_NAME=datasafehaven
-APP_NAME=datasafehaven # please note that this name must be *globally* unique
-APP_SLOT=dev
-SQL_SERVER_NAME=datasafehaven
-DB_USERNAME=havenadmin
-LOCATION='ukwest'
-
 # Document usage for this script
 usage() {  
     echo "usage: $0 [-h] [-e envfile]"
@@ -25,10 +16,6 @@ usage() {
 # See Format of env file: 
 # .env.example
 
-
-# Set default key and password
-SECRET_KEY='mtd=_x966l9gg&q%uf!hf4ixdv47#a@adsms=v0%w%x4gm+3&4'
-DB_PASSWORD=Hgl0NzO27Ra1
 CURRENT_DIR=$(dirname "$0")
 ENVFILE="${CURRENT_DIR}/.env"
 
