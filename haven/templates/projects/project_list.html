@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load project_tags %}
+
+{% block page_title %}Projects{% endblock %}
+{% block h1_title %}Projects{% endblock %}
+
+{% block content %}
+<ul class="list-group">
+  {% for project in projects %}
+  <li class="list-group-item">
+    <div class="d-flex w-100 justify-content-between">
+      <h4><a href="{% url "projects:detail" project.id %}">{{ project.name }}</a>
+        {% if project.your_role %}
+          ({{ project.your_role|project_role_display }})
+        {% endif %}
+      </h4>
+      <small>{{ project.created_at }}</small>
+    </div>
+    <p>
+    {{ project.description }}
+    </p>
+  </li>
+  {% endfor %}
+</ul>
+
+<div class="btn-group my-3" role="group">
+  {% if user.user_role.can_create_projects %}
+    <a class="btn btn-primary btn-lg" href="{% url 'projects:create' %}">Create Project</a>
+  {% endif %}
+</div>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Projects</li>
+{% endblock crumbs %}

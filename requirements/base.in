@@ -1,0 +1,11 @@
+Django==2.1
+
+django-environ==0.4.5
+
+django-crispy-forms==1.7.2
+
+django-braces==1.13.0
+
+django-debug-toolbar==1.10.1
+
+whitenoise==4.1.1

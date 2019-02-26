@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Create Project{% endblock %}
+
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  {{ form|crispy }}
+  <button type="submit" class="btn btn-success">Save Project</button>
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item active" aria-current="page">New</li>
+{% endblock crumbs %}
