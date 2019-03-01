@@ -61,12 +61,12 @@ az webapp create --name $APP_NAME --resource-group $RESOURCE_GROUP --plan $PLAN_
 
 # Set up the database server
 echo "Setting up the database server"
-az sql server create --admin-user=$DB_USERNAME --admin-password=$DB_PASSWORD --name=$SQL_SERVER_NAME --location=$LOCATION --resource-group=$APP_NAME
+az sql server create --admin-user=$DB_USERNAME --admin-password=$DB_PASSWORD --name=$SQL_SERVER_NAME --location=$LOCATION --resource-group=$RESOURCE_GROUP
 az sql server firewall-rule create --server $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
 
 # Create the database
 echo "Creating the database"
-az sql db create --name=$DB_NAME --resource-group=$APP_NAME --server=$SQL_SERVER_NAME
+az sql db create --name=$DB_NAME --resource-group=$RESOURCE_GROUP --server=$SQL_SERVER_NAME
 
 echo "Setting up the server"
 # Create a deployment slot for dev
