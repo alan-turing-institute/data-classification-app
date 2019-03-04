@@ -49,6 +49,9 @@ SAFE_HAVEN_DOMAIN="${APP_NAME}.azurewebsites.net"
 
 # Must have called `az login` by this point
 
+# Set the default Azure subscription
+az account set --subscription "$SUBSCRIPTION"
+
 # Create resource group if it does not already exist, then create appservice and webapp inside it
 if [ "$(az group exists --name $RESOURCE_GROUP)" != "true" ]; then
     echo "Creating resource group"
