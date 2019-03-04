@@ -99,7 +99,7 @@ To complete the deployment:
 * Browse to Azure Portal -> App Services / $APP_NAME / Extensions
 * Click Add, then Choose Extension and select Python 3.6.4 x86. Accept the terms and install.
 
-2. Set up GitHub deployment
+2. Set up GitHub deployment - note this requires a user with admin access to the repository
 * Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
 * Select GitHub and click Authorize
 * In the 'Configure' step, select:
