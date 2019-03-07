@@ -107,5 +107,7 @@ To complete the deployment:
   - repository: 'data-safe-haven-webapp'
   - branch: whatever is appropriate
 
-3. The webapp should now be accessible at: ${SAFE_HAVEN_DOMAIN}
+3. Register the webapp using the Azure Portal and update the OAUTH2 settings if necessary
+
+4. The webapp should now be accessible at: ${SAFE_HAVEN_DOMAIN}
 EOF
