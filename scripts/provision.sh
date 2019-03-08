@@ -44,7 +44,7 @@ else
 fi
 
 # Construct domain and DB name
-BASE_URL='https://${APP_NAME}.azurewebsites.net/'
+BASE_URL="https://${APP_NAME}.azurewebsites.net/"
 
 # Must have called `az login` by this point
 
