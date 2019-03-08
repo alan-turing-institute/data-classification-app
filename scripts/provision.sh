@@ -44,8 +44,7 @@ else
 fi
 
 # Construct domain and DB name
-DB_NAME="${APP_NAME}"
-SAFE_HAVEN_DOMAIN="${APP_NAME}.azurewebsites.net"
+BASE_URL='https://${APP_NAME}.azurewebsites.net/'
 
 # Must have called `az login` by this point
 
@@ -109,5 +108,5 @@ To complete the deployment:
 
 3. Register the webapp using the Azure Portal and update the OAUTH2 settings if necessary
 
-4. The webapp should now be accessible at: ${SAFE_HAVEN_DOMAIN}
+4. The webapp should now be accessible at: ${BASE_URL}
 EOF
