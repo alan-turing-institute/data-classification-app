@@ -43,8 +43,14 @@ else
     exit 1
 fi
 
-# Construct domain and DB name
-BASE_URL="https://${APP_NAME}.azurewebsites.net/"
+# Construct domain
+BASE_DOMAIN="${APP_NAME}.azurewebsites.net"
+
+# ALLOWED_HOSTS must not contain the protocol
+ALLOWED_HOSTS="${BASE_DOMAIN}"
+
+# The safe haven URL
+BASE_URL="https://${BASE_DOMAIN}/"
 
 # Must have called `az login` by this point
 
@@ -74,7 +80,7 @@ echo "Setting up the server"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SECRET_KEY=$SECRET_KEY
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings ALLOWED_HOSTS="${SAFE_HAVEN_DOMAIN}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_KEY="${AZUREAD_OAUTH2_KEY}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_SECRET="${AZUREAD_OAUTH2_SECRET}"
