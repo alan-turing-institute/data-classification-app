@@ -7,4 +7,10 @@ app_name = 'identity'
 
 urlpatterns = [
     path('new', views.UserCreate.as_view(), name='add_user'),
+
+    path(
+        '<int:pk>/edit',
+        views.UserEdit.as_view(),
+        name='edit_user',
+    ),
 ]

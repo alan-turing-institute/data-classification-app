@@ -1,5 +1,6 @@
 -r base.in
 
 pytest==3.8.2
+pytest-cov==2.6.0
 pytest-django==3.4.3
 model-mommy==1.6.0

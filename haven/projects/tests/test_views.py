@@ -216,3 +216,239 @@ class TestListParticipants:
 
         response = client.get('/projects/%d/participants/' % researcher.project.id)
         assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestProjectAddDataset:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/datasets/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/datasets/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_add_new_dataset_to_project(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.datasets.count() == 1
+        assert project.datasets.first().name == 'dataset 1'
+        assert project.datasets.first().description == 'Dataset One'
+
+    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        project = recipes.project.make()
+
+        # Research coordinator shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 404
+
+        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id)
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add datasets, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get('/projects/%d/datasets/new' % researcher.project.id)
+        assert response.status_code == 403
+
+        response = client.post('/projects/%d/datasets/new' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestListDatasets:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/datasets/' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_research_coordinator):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_research_coordinator._user,
+        )
+        project.datasets.add(ds1, ds2)
+
+        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+
+        assert response.status_code == 200
+        assert list(response.context['datasets']) == [ds1, ds2]
+
+    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        project = recipes.project.make()
+
+        # Research coordinator shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestProjectClassifyData:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/classify' % project.id)
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/classify' % project.id, {})
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        assert response.status_code == 200
+        assert response.context['project'] == project
+        assert 'wizard' in response.context
+
+    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        project = recipes.project.make()
+
+        # Research coordinator shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        assert response.status_code == 404
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id)
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_classify_permissions(self, client, researcher):
+        # Researchers can't classify, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get('/projects/%d/classify' % researcher.project.id)
+        assert response.status_code == 403
+
+        response = client.post('/projects/%d/classify' % researcher.project.id)
+        assert response.status_code == 403
+
+    def test_do_not_show_form_if_user_already_classified(self, client, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+        project.classify_as(0, as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+
+        assert 'wizard' not in response.context
+
+    def test_classify_as_tier_0(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier0-is_public_and_open': 'on',
+            'project_classify_data-current_step': 'tier0',
+        })
+
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 0
+        assert project.classifications.get().tier == 0
+
+    def test_classify_as_tier_1(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier0',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier1-publishable': 'on',
+            'tier1-does_not_describe_individuals': 'on',
+            'project_classify_data-current_step': 'tier1',
+        })
+
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 1
+        assert project.classifications.get().tier == 1
+
+    def test_classify_as_tier_2(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier0',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier1-publishable': 'on',
+            'project_classify_data-current_step': 'tier1',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier2-individuals_are_anonymous': 'on',
+            'project_classify_data-current_step': 'tier2',
+        })
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 2
+        assert project.classifications.get().tier == 2
+
+    def test_classify_as_tier_3(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier0',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier1-publishable': 'on',
+            'project_classify_data-current_step': 'tier1',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier2',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier3',
+        })
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 3
+        assert project.classifications.get().tier == 3
+
+    def test_classify_as_tier_4(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier0',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier1-publishable': 'on',
+            'project_classify_data-current_step': 'tier1',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'tier2',
+        })
+        assert 'wizard' in response.context
+
+        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+            'tier3-valuable_to_enemies': 'on',
+            'project_classify_data-current_step': 'tier3',
+        })
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 4
+        assert project.classifications.get().tier == 4

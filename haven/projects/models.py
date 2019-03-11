@@ -1,7 +1,10 @@
+from django.conf import settings
 from django.db import models, transaction
 
 from data.models import Dataset
+from data.tiers import TIER_CHOICES
 from identity.models import User
+from identity.remote import create_user
 
 from .managers import ProjectQuerySet
 from .roles import ProjectRole
@@ -14,6 +17,15 @@ class Project(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', blank=True)
+
+    # Classification occurs at the project level because combinations of individual
+    # datasets might have a different tier to their individual tiers
+    # None means tier is unknown
+    tier = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=TIER_CHOICES,
+    )
 
     objects = ProjectQuerySet.as_manager()
 
@@ -37,12 +49,94 @@ class Project(models.Model):
             }
         )
 
+        if settings.USE_LDAP:
+            create_user(user)
+
         return Participant.objects.create(
             user=user,
             role=role,
             created_by=creator,
             project=self,
         )
+
+    def add_dataset(self, dataset):
+        self.datasets.add(dataset)
+
+    @property
+    def is_classification_ready(self):
+        """
+        Is the project ready for classification yet?
+
+        i.e. have all the required users been through the classification proess
+
+        :return: True if ready for classification, False otherwise.
+        """
+        users = self.classifications.values_list('user', flat=True)
+        roles = {
+            ProjectRole(part.role)
+            for part in self.participant_set.filter(user__in=users)
+        }
+
+        required_roles = {
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+        }
+
+        return roles >= required_roles
+
+    @property
+    def tier_conflict(self):
+        """
+        Do users disagree on project data tier?
+
+        This has meaning even if not all required users have done the classification yet.
+
+        :return: True if there is conflict, False otherwise
+        """
+        tiers = self.classifications.distinct('tier')
+        return tiers.count() > 1
+
+    def calculate_tier(self):
+        """
+        Calculate the tier of the project based on classifications submitted
+        by relevant users, and save the value in the database.
+
+        Will only happen if a tier has not already been determined, and if
+        it passes the relevant classification criteria (all required users have
+        classified the project, and they all agree on the tier)
+        """
+        if self.has_tier:
+            return
+
+        if self.is_classification_ready and not self.tier_conflict:
+            self.tier = self.classifications.first().tier
+            self.save()
+
+    def classify_as(self, tier, by_user):
+        """
+        Add a user's opinion of the project classification
+
+        :param tier: Tier the user thinks the project is
+        :param by_user: User object
+
+        :return: `ClassificationOpinion` object
+        """
+        classification = ClassificationOpinion.objects.create(
+            project=self,
+            user=by_user,
+            tier=tier,
+        )
+
+        # This might qualify the project for classification, so try
+        self.calculate_tier()
+
+        return classification
+
+    @property
+    def has_tier(self):
+        """Has this project's data been classified?"""
+        return self.tier is not None
 
 
 class Participant(models.Model):
@@ -74,3 +168,22 @@ class Participant(models.Model):
 
     def __str__(self):
         return f'{self.user} ({self.get_role_display()} on {self.project})'
+
+
+class ClassificationOpinion(models.Model):
+    """
+    Represents a user's opinion about the data tier classificaiton of a project
+    """
+    project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the classification was made',
+    )
+
+    class Meta:
+        unique_together = ('user', 'project')
+
+    def __str__(self):
+        return f'{self.user}: {self.project} (tier {self.tier})'

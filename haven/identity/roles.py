@@ -9,7 +9,6 @@ class UserRole(Enum):
     # Roles which are assignable to users on the `role` field
     SYSTEM_CONTROLLER = 'system_controller'
     RESEARCH_COORDINATOR = 'research_coordinator'
-    DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
 
     # Django admin superuser
     SUPERUSER = 'superuser'
@@ -24,7 +23,6 @@ class UserRole(Enum):
         return [
             (cls.SYSTEM_CONTROLLER.value, 'System Controller'),
             (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
-            (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
         ]
 
     @property
@@ -38,12 +36,10 @@ class UserRole(Enum):
             return [
                 self.SYSTEM_CONTROLLER,
                 self.RESEARCH_COORDINATOR,
-                self.DATA_PROVIDER_REPRESENTATIVE,
             ]
         elif self is self.SYSTEM_CONTROLLER:
             return [
                 self.RESEARCH_COORDINATOR,
-                self.DATA_PROVIDER_REPRESENTATIVE,
             ]
         return []
 
@@ -80,6 +76,11 @@ class UserRole(Enum):
             self.SYSTEM_CONTROLLER,
             self.RESEARCH_COORDINATOR,
         ]
+
+    @property
+    def can_edit_users(self):
+        """Can a user with this role edit other users?"""
+        return self.can_create_users
 
     def can_create(self, role):
         """

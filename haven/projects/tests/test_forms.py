@@ -1,7 +1,7 @@
 import pytest
 
 from core import recipes
-from projects.forms import AddUserToProjectInlineForm, ProjectAddUserForm
+from projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
 from projects.roles import ProjectRole
 
 
@@ -68,7 +68,7 @@ class TestAddUserForm:
         read_only_project = recipes.researcher.make(user=user).project
         other_project = recipes.project.make()
 
-        form = AddUserToProjectInlineForm(user=user)
+        form = ProjectForUserInlineForm(user=user)
         field = form.fields['project']
         assert field.valid_value(involved_project.pk)
         assert not field.valid_value(other_project.pk)
@@ -76,7 +76,7 @@ class TestAddUserForm:
 
     def test_add_user_to_project(self, investigator, project_participant):
         project = investigator.project
-        form = AddUserToProjectInlineForm({
+        form = ProjectForUserInlineForm({
             'project': project.pk,
             'role': ProjectRole.RESEARCHER.value,
         }, user=investigator.user)
@@ -88,7 +88,7 @@ class TestAddUserForm:
         assert project_participant.project_role(project) == ProjectRole.RESEARCHER
 
     def test_cannot_add_restricted_project_role_combination(self, investigator):
-        form = AddUserToProjectInlineForm({
+        form = ProjectForUserInlineForm({
             'project': investigator.project.pk,
             'role': ProjectRole.INVESTIGATOR.value,
         }, user=investigator.user)

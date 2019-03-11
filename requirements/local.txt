@@ -4,27 +4,41 @@
 #
 #    pip-compile --output-file local.txt local.in
 #
+asn1crypto==0.24.0
 atomicwrites==1.2.1
 attrs==18.2.0
+babel==2.6.0
 backcall==0.1.0           # via ipython
+certifi==2018.10.15
+cffi==1.11.5
+chardet==3.0.4
 click==7.0                # via pip-tools
+coverage==4.5.2
+cryptography==2.4.1
 decorator==4.3.0          # via ipython, traitlets
+defusedxml==0.5.0
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
 django-environ==0.4.5
+django-formtools==2.1
+django-phonenumber-field==2.1.0
 django==2.1
 flake8==3.5.0
+idna==2.7
 ipdb==0.11
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.0.1            # via ipdb
 isort==4.3.4
 jedi==0.13.1              # via ipython
+ldap3==2.5.1
 mccabe==0.6.1             # via flake8
 model-mommy==1.6.0
 more-itertools==4.3.0
+oauthlib==2.1.0
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
+phonenumbers==8.10.1
 pickleshare==0.7.5        # via ipython
 pip-tools==3.1.0
 pluggy==0.7.1
@@ -32,15 +46,25 @@ prompt-toolkit==2.0.6     # via ipython
 psycopg2-binary==2.7.5
 ptyprocess==0.6.0         # via pexpect
 py==1.6.0
+pyasn1==0.4.4
 pycodestyle==2.3.1        # via flake8
+pycparser==2.19
 pyflakes==1.6.0           # via flake8
 pygments==2.2.0           # via ipython
+pyjwt==1.6.4
+pytest-cov==2.6.0
 pytest-django==3.4.3
 pytest==3.8.2
+python3-openid==3.1.0
 pytz==2018.5
+requests-oauthlib==1.0.0
+requests==2.20.1
 simplegeneric==0.8.1      # via ipython
 six==1.11.0
+social-auth-app-django==3.1.0
+social-auth-core==2.0.0
 sqlparse==0.2.4
 traitlets==4.3.2          # via ipython
+urllib3==1.24.1
 wcwidth==0.1.7            # via prompt-toolkit
 whitenoise==4.1.1

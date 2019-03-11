@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
+from phonenumber_field.modelfields import PhoneNumberField
 
 from projects.roles import ProjectRole
 
@@ -31,17 +32,49 @@ class User(AbstractUser):
     email = models.EmailField(
         max_length=254,
         verbose_name='email address',
-        unique=True
+        null=True,
     )
+
+    mobile = PhoneNumberField(null=True)
 
     first_name = models.CharField(max_length=30, verbose_name='first name')
     last_name = models.CharField(max_length=150, verbose_name='last name')
+
+    # AD creation failed
+    AAD_STATUS_FAILED_TO_CREATE = 'failed_to_create'
+    # User created in AD and awaiting sync to AAD
+    AAD_STATUS_PENDING = 'pending'
+    # User has been found in AAD and sent email
+    AAD_STATUS_CREATED = 'created'
+    # User has been activated / password set
+    AAD_STATUS_ACTIVATED = 'activated'
+    AAD_STATUS_CHOICES = (
+        (AAD_STATUS_FAILED_TO_CREATE, 'Creation failed'),
+        (AAD_STATUS_PENDING, 'Pending'),
+        (AAD_STATUS_CREATED, 'Created'),
+        (AAD_STATUS_ACTIVATED, 'Activated'),
+    )
+
+    # Status of user in active directory
+    aad_status = models.CharField(
+        max_length=16,
+        choices=AAD_STATUS_CHOICES,
+        blank=True
+    )
 
     @property
     def user_role(self):
         if self.is_superuser:
             return UserRole.SUPERUSER
         return UserRole(self.role)
+
+    def set_role(self, role):
+        self.role = role.value
+        self.save()
+
+    def set_aad_status(self, status):
+        self.aad_status = status
+        self.save()
 
     def generate_username(self):
         prefix = '{0}.{1}'.format(slugify(self.first_name), slugify(self.last_name))

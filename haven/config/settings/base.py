@@ -52,6 +52,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
+    'social_django',
 ]
 
 LOCAL_APPS = [
@@ -121,10 +122,34 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'identity.backends.CustomAzureOAuth2Backend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 AUTH_USER_MODEL = 'identity.User'
 
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = 'https://graph.microsoft.com'
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'identity.pipeline.find_existing_user',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'identity.pipeline.user_fields',
+    'identity.pipeline.determine_role',
+)
+
 LOGIN_REDIRECT_URL = 'projects:list'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'home'
 
 
 # Internationalization
@@ -154,4 +179,28 @@ INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='haven.example.com')
+SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='dsgroupdev.co.uk')
+
+
+USE_LDAP = env.bool('USE_LDAP', default=True)
+LDAP_SERVER = env.str('LDAP_SERVER', default='')
+LDAP_USER = env.str('LDAP_USER', default='')
+LDAP_PASSWORD = env.str('LDAP_PASSWORD', default='')
+
+
+BASE_URL = env.str('BASE_URL', default='http://localhost:8000/')
+
+SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
+
+AD_RESEARCH_USER_DN = 'CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk'
+
+AD_USER_OBJECT_CLASSES = ['user', 'organizationalPerson', 'person', 'top']
+
+EMAIL_HOST = env.str('EMAIL_HOST', default='')
+if EMAIL_HOST:
+    EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
+    EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+    EMAIL_USE_TLS = env.int('EMAIL_USE_TLS', default=True)
+
+DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')

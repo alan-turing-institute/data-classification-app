@@ -12,6 +12,7 @@ class TestCreateUserForm:
             'email': 'testuser@example.com',
             'first_name': 'Test',
             'last_name': 'User',
+            'mobile': '+443338888888',
         }, user=system_controller)
         assert form.is_valid()
 
@@ -29,6 +30,7 @@ class TestCreateUserForm:
             'email': 'e@f.com',
             'first_name': 'Test',
             'last_name': 'User',
+            'mobile': '+443338888888',
         }, user=system_controller)
 
         assert form.is_valid()

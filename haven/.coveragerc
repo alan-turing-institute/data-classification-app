@@ -1,0 +1,10 @@
+[run]
+omit = **/migrations/*,**/settings/*,**/wsgi.py,**/tests/*,**/manage.py,**/functional_tests/*
+source = .
+branch = True
+
+[html]
+directory = ../coverage/html
+
+[xml]
+output = ../coverage/coverage.xml

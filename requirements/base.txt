@@ -4,11 +4,34 @@
 #
 #    pip-compile --output-file base.txt base.in
 #
+asn1crypto==0.24.0        # via cryptography
+babel==2.6.0              # via django-phonenumber-field
+certifi==2018.10.15       # via requests
+cffi==1.11.5              # via cryptography
+chardet==3.0.4            # via requests
+cryptography==2.4.1
+defusedxml==0.5.0         # via python3-openid, social-auth-core
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
 django-environ==0.4.5
+django-formtools==2.1
+django-phonenumber-field==2.1.0
 django==2.1
-pytz==2018.5              # via django
+idna==2.7                 # via cryptography, requests
+ldap3==2.5.1
+oauthlib==2.1.0           # via requests-oauthlib, social-auth-core
+phonenumbers==8.10.1
+pyasn1==0.4.4             # via ldap3
+pycparser==2.19           # via cffi
+pyjwt==1.6.4              # via social-auth-core
+python3-openid==3.1.0     # via social-auth-core
+pytz==2018.5              # via babel, django
+requests-oauthlib==1.0.0
+requests==2.20.1          # via requests-oauthlib, social-auth-core
+six==1.11.0               # via cryptography, social-auth-app-django, social-auth-core
+social-auth-app-django==3.1.0
+social-auth-core==2.0.0   # via social-auth-app-django
 sqlparse==0.2.4           # via django-debug-toolbar
+urllib3==1.24.1           # via requests
 whitenoise==4.1.1
