@@ -30,6 +30,11 @@
               <a class="nav-link" href="{% url 'identity:add_user' %}">Create User</a>
             </li>
             {% endif %}
+            {% if request.user.user_role.can_view_all_users %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'identity:list' %}">Users</a>
+            </li>
+            {% endif %}
 
             <li class="nav-item">
               <a class="nav-link" href="{% url 'projects:list' %}">Projects</a>

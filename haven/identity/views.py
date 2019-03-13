@@ -2,7 +2,7 @@ from braces.views import UserFormKwargsMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import DetailView
+from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView
 
 from core.forms import InlineFormSetHelper
@@ -91,3 +91,13 @@ class UserEdit(LoginRequiredMixin,
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(self.get_context_data(formset=formset))
+
+
+class UserList(LoginRequiredMixin, ListView):
+    """List of users"""
+
+    context_object_name = 'users'
+    model = User
+
+    def get_queryset(self):
+        return User.objects.get_visible_users(self.request.user)

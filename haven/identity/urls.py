@@ -6,6 +6,7 @@ from . import views
 app_name = 'identity'
 
 urlpatterns = [
+    path('', views.UserList.as_view(), name='list'),
     path('new', views.UserCreate.as_view(), name='add_user'),
 
     path(
