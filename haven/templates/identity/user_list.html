@@ -40,6 +40,16 @@
         <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:add_user' %}">Create user</a>
       {% endif %}
     </div>
+    <div class="form-group" role="group">
+      {% if user.user_role.can_import_users %}
+      <form method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label class="btn btn-primary btn-lg mx-2">
+        Import user list <input type="file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()">
+      </label>
+      </form>
+      {% endif %}
+    </div>
   </div>
 </div>
 

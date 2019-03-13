@@ -1,4 +1,5 @@
 from braces.views import UserFormKwargsMixin
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -101,3 +102,12 @@ class UserList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
+
+
+def import_users(request):
+
+    if "GET" == request.method:
+        return HttpResponseRedirect(reverse("identity:list"))
+
+    messages.warning(request, 'User file import has not yet been implemented.')
+    return HttpResponseRedirect(reverse("identity:list"))
