@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView
+from phonenumber_field.phonenumber import PhoneNumber
 
 from core.forms import InlineFormSetHelper
 from projects.forms import ProjectsForUserInlineFormSet
@@ -109,5 +110,78 @@ def import_users(request):
     if "GET" == request.method:
         return HttpResponseRedirect(reverse("identity:list"))
 
-    messages.warning(request, 'User file import has not yet been implemented.')
+    if "POST" == request.method and request.FILES and request.FILES["upload_file"]:
+        try:
+            upload_file = request.FILES["upload_file"]
+            if not upload_file.name.endswith('.csv'):
+                messages.error(request, 'This file cannot be processed as it is not a .csv file')
+                return HttpResponseRedirect(reverse("identity:list"))
+
+            # if file is too large, return
+            if upload_file.multiple_chunks():
+                messages.error(request, "This file is too large to process.")
+                return HttpResponseRedirect(reverse("identity:list"))
+
+            # messages.warning(request, 'User file import has not yet been implemented.')
+            fp = FileParser(upload_file)
+            if not fp.ok:
+                messages.error(request, "The column names were not understood.")
+                return HttpResponseRedirect(reverse("identity:list"))
+
+            while not fp.eof():
+                new_user = fp.next_line()
+                user_string = new_user.first_name + " " + new_user.last_name\
+                              + " (" + new_user.email + ")"
+
+                try:
+                    # Determine uniqueness using first name, last name and email
+                    existing_user_id = User.objects.filter(first_name=new_user.first_name, last_name=new_user.last_name, email=new_user.email)
+                    if existing_user_id.exists():
+                        messages.info(request, "Already exists:  " + user_string)
+                    else:
+                        new_user.generate_username()
+                        new_user.save()
+                        messages.info(request, "Created user " + user_string)
+                except:
+                    messages.info(request, "Error adding user " + user_string)
+
+        except Exception as e:
+            messages.error(request,"The file could not be processed. Error: " + repr(e))
+    else:
+        messages.error(request, "The file could not be processed.")
+
     return HttpResponseRedirect(reverse("identity:list"))
+
+
+class FileParser:
+    def __init__(self, upload_file):
+        file_data = upload_file.read().decode("utf-8")
+        self.lines = file_data.split("\n")
+        self.line_index = 1
+        titles = self.lines[0].split(",")
+        try:
+            self.first_name_index = find_index(titles, "First Name")
+            self.last_name_index = find_index(titles, "Last Name")
+            self.email_index = find_index(titles, "Email")
+            self.mobile_index = find_index(titles, "Mobile Phone")
+            self.ok = True
+        except ValueError:
+            self.ok = False
+
+    def eof(self):
+        return self.line_index >= len(self.lines)
+
+    def next_line(self):
+        fields = self.lines[self.line_index].split(",")
+        self.line_index += 1
+        first_name = fields[self.first_name_index]
+        last_name = fields[self.last_name_index]
+        email = fields[self.email_index]
+        mobile = PhoneNumber.from_string(fields[self.mobile_index], region='GB')
+        new_user = User(first_name=first_name, last_name=last_name,
+                        mobile=mobile, email=email)
+        return new_user
+
+
+def find_index(fields, name):
+    return [item.lower() for item in fields].index(name.lower())
