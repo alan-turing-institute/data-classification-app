@@ -117,19 +117,8 @@ def import_users(request):
                 messages.error(request, 'Can only import .csv files')
                 return HttpResponseRedirect(reverse("identity:list"))
 
-            file_data = upload_file.read().decode("utf-8")
-            lines = file_data.split("\n")
-
-            reader = csv.DictReader(lines)
-            for row in reader:
-
-                # Construct the new user
-                new_user = User(
-                    first_name=row['First Name'],
-                    last_name=row['Last Name'],
-                    mobile=PhoneNumber.from_string(row['Mobile Phone'],
-                                                   region='GB'),
-                    email=row['Email'])
+            users = csv_users(upload_file.read().decode("utf-8"))
+            for new_user in users:
 
                 # Construct a string for displaying as a message
                 user_string = new_user.first_name + " " + new_user.last_name \
@@ -153,3 +142,19 @@ def import_users(request):
                            "The file could not be processed. Error: " + repr(e))
 
     return HttpResponseRedirect(reverse("identity:list"))
+
+
+def csv_users(lines):
+    """Generator for users from a CSV file"""
+
+    # lines = upload_file.read().decode("utf-8").split("\n")
+    reader = csv.DictReader(lines.split("\n"))
+    for row in reader:
+        yield User(
+            first_name=row['First Name'],
+            last_name=row['Last Name'],
+            mobile=PhoneNumber.from_string(row['Mobile Phone'],
+                                           region='GB'),
+            email=row['Email']
+        )
+

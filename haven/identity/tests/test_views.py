@@ -2,6 +2,7 @@ import pytest
 
 from core import recipes
 from identity.models import User
+from identity.views import csv_users
 from projects.roles import ProjectRole
 
 
@@ -118,3 +119,24 @@ class TestEditUser:
 
         response = as_project_participant.post('/users/%d/edit' % researcher.id, {})
         assert response.status_code == 403
+
+class TestImportUsers:
+    def test_csv_users(self):
+        users = csv_users('Email,Last Name,First Name,Mobile Phone,Other field\nem1@email.com,ln1,fn1,01234567890,other1\nem2@email.com,ln2,fn2,02345678901,other2\nem3@email.com,ln3,fn3,03456789012,other3')
+        u1 = users.__next__()
+        assert u1.first_name == 'fn1'
+        assert u1.last_name == 'ln1'
+        assert u1.email == 'em1@email.com'
+        assert u1.mobile == '+441234567890'
+
+        u2 = users.__next__()
+        assert u2.first_name == 'fn2'
+        assert u2.last_name == 'ln2'
+        assert u2.email == 'em2@email.com'
+        assert u2.mobile == '+442345678901'
+
+        u3 = users.__next__()
+        assert u3.first_name == 'fn3'
+        assert u3.last_name == 'ln3'
+        assert u3.email == 'em3@email.com'
+        assert u3.mobile == '++443456789012'
