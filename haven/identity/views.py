@@ -1,3 +1,5 @@
+import csv
+
 from braces.views import UserFormKwargsMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,7 +16,6 @@ from .forms import CreateUserForm
 from .mixins import UserRoleRequiredMixin
 from .models import User
 from .roles import UserRole
-
 
 class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
@@ -106,82 +107,49 @@ class UserList(LoginRequiredMixin, ListView):
 
 
 def import_users(request):
-
-    if "GET" == request.method:
-        return HttpResponseRedirect(reverse("identity:list"))
+    """Import list of users from an uploaded file"""
 
     if "POST" == request.method and request.FILES and request.FILES["upload_file"]:
         try:
             upload_file = request.FILES["upload_file"]
+
             if not upload_file.name.endswith('.csv'):
-                messages.error(request, 'This file cannot be processed as it is not a .csv file')
+                messages.error(request, 'Can only import .csv files')
                 return HttpResponseRedirect(reverse("identity:list"))
 
-            # if file is too large, return
-            if upload_file.multiple_chunks():
-                messages.error(request, "This file is too large to process.")
-                return HttpResponseRedirect(reverse("identity:list"))
+            file_data = upload_file.read().decode("utf-8")
+            lines = file_data.split("\n")
 
-            # messages.warning(request, 'User file import has not yet been implemented.')
-            fp = FileParser(upload_file)
-            if not fp.ok:
-                messages.error(request, "The column names were not understood.")
-                return HttpResponseRedirect(reverse("identity:list"))
+            reader = csv.DictReader(lines)
+            for row in reader:
 
-            while not fp.eof():
-                new_user = fp.next_line()
-                user_string = new_user.first_name + " " + new_user.last_name\
+                # Construct the new user
+                new_user = User(
+                    first_name=row['First Name'],
+                    last_name=row['Last Name'],
+                    mobile=PhoneNumber.from_string(row['Mobile Phone'],
+                                                   region='GB'),
+                    email=row['Email'])
+
+                # Construct a string for displaying as a message
+                user_string = new_user.first_name + " " + new_user.last_name \
                               + " (" + new_user.email + ")"
 
-                try:
-                    # Determine uniqueness using first name, last name and email
-                    existing_user_id = User.objects.filter(first_name=new_user.first_name, last_name=new_user.last_name, email=new_user.email)
-                    if existing_user_id.exists():
-                        messages.info(request, "Already exists:  " + user_string)
-                    else:
-                        new_user.generate_username()
-                        new_user.save()
-                        messages.info(request, "Created user " + user_string)
-                except:
-                    messages.info(request, "Error adding user " + user_string)
+                # Check whether a user with this name and email already exists
+                if User.objects.filter(
+                    first_name=new_user.first_name,
+                    last_name=new_user.last_name,
+                    email=new_user.email
+                ).exists():
+                    messages.info(request, "Already exists:  " + user_string)
+                else:
+                    # Save the new user to the database
+                    new_user.generate_username()
+                    new_user.save()
+                    messages.info(request, "Created user " + user_string)
 
         except Exception as e:
-            messages.error(request,"The file could not be processed. Error: " + repr(e))
-    else:
-        messages.error(request, "The file could not be processed.")
+            messages.error(request,
+                           "The file could not be processed. Error: " + repr(e))
 
     return HttpResponseRedirect(reverse("identity:list"))
-
-
-class FileParser:
-    def __init__(self, upload_file):
-        file_data = upload_file.read().decode("utf-8")
-        self.lines = file_data.split("\n")
-        self.line_index = 1
-        titles = self.lines[0].split(",")
-        try:
-            self.first_name_index = find_index(titles, "First Name")
-            self.last_name_index = find_index(titles, "Last Name")
-            self.email_index = find_index(titles, "Email")
-            self.mobile_index = find_index(titles, "Mobile Phone")
-            self.ok = True
-        except ValueError:
-            self.ok = False
-
-    def eof(self):
-        return self.line_index >= len(self.lines)
-
-    def next_line(self):
-        fields = self.lines[self.line_index].split(",")
-        self.line_index += 1
-        first_name = fields[self.first_name_index]
-        last_name = fields[self.last_name_index]
-        email = fields[self.email_index]
-        mobile = PhoneNumber.from_string(fields[self.mobile_index], region='GB')
-        new_user = User(first_name=first_name, last_name=last_name,
-                        mobile=mobile, email=email)
-        return new_user
-
-
-def find_index(fields, name):
-    return [item.lower() for item in fields].index(name.lower())
