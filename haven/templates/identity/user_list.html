@@ -45,7 +45,7 @@
       <form method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
       {% csrf_token %}
       <label class="btn btn-primary btn-lg mx-2">
-        Import user list <input type="file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()">
+        Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
       </label>
       </form>
       {% endif %}
