@@ -50,6 +50,11 @@
       </form>
       {% endif %}
     </div>
+    <div class="form-group" role="group">
+      {% if user.user_role.can_export_users %}
+        <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:export_users' %}">Export UserCreate.csv</a>
+      {% endif %}
+    </div>
   </div>
 </div>
 

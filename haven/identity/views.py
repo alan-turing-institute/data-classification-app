@@ -3,7 +3,7 @@ import csv
 from braces.views import UserFormKwargsMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView
@@ -104,6 +104,40 @@ class UserList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
+
+
+def export_users(request):
+    """Export list of users as a UserCreate.csv file"""
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="UserCreate.csv"'
+
+    writer = csv.writer(response)
+
+    writer.writerow([
+        'SamAccountName',
+        'GivenName',
+        'Surname',
+        'Mobile',
+        'SecondaryEmail'
+    ])
+
+    # Write out all users visible to the current user
+    for user in User.objects.get_visible_users(request.user):
+
+        # Remove the domain from the username
+        username = user.username.split('@')[0]
+
+        writer.writerow([
+            username,
+            user.first_name,
+            user.last_name,
+            user.mobile,
+            user.email
+        ])
+
+    return response
 
 
 def import_users(request):
