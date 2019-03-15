@@ -174,6 +174,7 @@ def import_users(request):
                 else:
                     # Save the new user to the database
                     new_user.generate_username()
+                    new_user.created_by = request.user
                     new_user.save()
                     messages.info(request, "Created user " + user_string)
 
