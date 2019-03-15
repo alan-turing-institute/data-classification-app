@@ -59,3 +59,45 @@ class TestUserRoleViewAllProjects:
 
     def test_unprivileged_user_cannot_view_all_projects(self):
         assert not UserRole.NONE.can_view_all_projects
+
+
+class TestUserRoleViewAllUsers:
+    def test_superuser_can_view_all_users(self):
+        assert UserRole.SUPERUSER.can_view_all_users
+
+    def test_system_controller_can_view_all_users(self):
+        assert UserRole.SYSTEM_CONTROLLER.can_view_all_users
+
+    def test_research_coordinator_can_view_all_users(self):
+        assert not UserRole.RESEARCH_COORDINATOR.can_view_all_users
+
+    def test_unprivileged_user_cannot_view_all_users(self):
+        assert not UserRole.NONE.can_view_all_users
+
+
+class TestUserRoleImportUsers:
+    def test_superuser_can_import_users(self):
+        assert UserRole.SUPERUSER.can_import_users
+
+    def test_system_controller_can_import_users(self):
+        assert UserRole.SYSTEM_CONTROLLER.can_import_users
+
+    def test_research_coordinator_can_import_users(self):
+        assert not UserRole.RESEARCH_COORDINATOR.can_import_users
+
+    def test_unprivileged_user_cannot_import_users(self):
+        assert not UserRole.NONE.can_import_users
+
+
+class TestUserRoleExportUsers:
+    def test_superuser_can_export_users(self):
+        assert UserRole.SUPERUSER.can_export_users
+
+    def test_system_controller_can_export_users(self):
+        assert UserRole.SYSTEM_CONTROLLER.can_export_users
+
+    def test_research_coordinator_can_export_users(self):
+        assert not UserRole.RESEARCH_COORDINATOR.can_export_users
+
+    def test_unprivileged_user_cannot_export_users(self):
+        assert not UserRole.NONE.can_export_users

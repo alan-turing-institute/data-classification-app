@@ -85,6 +85,13 @@ class UserRole(Enum):
             self.SYSTEM_CONTROLLER,
         ]
 
+    @property
+    def can_export_users(self):
+        """Can a user with this role export a user list?"""
+        return self in [
+            self.SUPERUSER,
+            self.SYSTEM_CONTROLLER,
+        ]
 
     @property
     def can_import_users(self):
