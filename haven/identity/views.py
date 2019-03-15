@@ -166,11 +166,9 @@ def import_users(request):
 
                 # Check whether a user with this name and email already exists
                 if User.objects.filter(
-                    first_name=new_user.first_name,
-                    last_name=new_user.last_name,
                     email=new_user.email
                 ).exists():
-                    messages.info(request, "Already exists:  " + user_string)
+                    messages.info(request, "Email already exists:  " + user_string)
                 else:
                     # Save the new user to the database
                     new_user.generate_username()
