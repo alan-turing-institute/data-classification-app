@@ -97,7 +97,7 @@ class UserEdit(LoginRequiredMixin,
             return self.render_to_response(self.get_context_data(formset=formset))
 
 
-class UserList(LoginRequiredMixin, ListView):
+class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
     """List of users"""
 
     context_object_name = 'users'
