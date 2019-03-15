@@ -1,5 +1,6 @@
 import csv
 
+import openpyxl
 from braces.views import UserFormKwargsMixin
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -147,11 +148,16 @@ def import_users(request):
         try:
             upload_file = request.FILES["upload_file"]
 
-            if not upload_file.name.endswith('.csv'):
-                messages.error(request, 'Can only import .csv files')
+            if upload_file.name.endswith('.xlsx'):
+                users = xlsx_users(upload_file)
+
+            elif upload_file.name.endswith('.csv'):
+                users = csv_users(upload_file.read().decode("utf-8"))
+
+            else:
+                messages.error(request, 'Can only import .csv or .xlsx files')
                 return HttpResponseRedirect(reverse("identity:list"))
 
-            users = csv_users(upload_file.read().decode("utf-8"))
             for new_user in users:
 
                 # Construct a string for displaying as a message
@@ -181,7 +187,6 @@ def import_users(request):
 def csv_users(lines):
     """Generator for users from a CSV file"""
 
-    # lines = upload_file.read().decode("utf-8").split("\n")
     reader = csv.DictReader(lines.split("\n"))
     for row in reader:
         yield User(
@@ -192,3 +197,24 @@ def csv_users(lines):
             email=row['Email']
         )
 
+def xlsx_users(upload_file):
+    """Generator for users from an xlsx file"""
+
+    workbook = openpyxl.load_workbook(upload_file)
+    for worksheet in workbook.worksheets:
+
+        row_iter = worksheet.iter_rows()
+
+        column_names = next(row_iter)
+        for row in row_iter:
+            row_dict = {}
+            for title, entry in zip(column_names, row):
+                row_dict[title.value] = entry.value
+
+            yield User(
+                first_name=row_dict['First Name'],
+                last_name=row_dict['Last Name'],
+                mobile=PhoneNumber.from_string(row_dict['Mobile Phone'],
+                                               region='GB'),
+                email=row_dict['Email']
+            )
