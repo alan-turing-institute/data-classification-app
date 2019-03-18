@@ -78,6 +78,30 @@ class UserRole(Enum):
         ]
 
     @property
+    def can_view_all_users(self):
+        """Can a user with this role view all users?"""
+        return self in [
+            self.SUPERUSER,
+            self.SYSTEM_CONTROLLER,
+        ]
+
+    @property
+    def can_export_users(self):
+        """Can a user with this role export a user list?"""
+        return self in [
+            self.SUPERUSER,
+            self.SYSTEM_CONTROLLER,
+        ]
+
+    @property
+    def can_import_users(self):
+        """Can a user with this role create users from an imported file?"""
+        return self in [
+            self.SUPERUSER,
+            self.SYSTEM_CONTROLLER,
+        ]
+
+    @property
     def can_edit_users(self):
         """Can a user with this role edit other users?"""
         return self.can_create_users
