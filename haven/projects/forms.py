@@ -1,5 +1,6 @@
 from braces.forms import UserKwargModelFormMixin
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
@@ -27,10 +28,25 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
     def clean_username(self):
         username = self.cleaned_data['username']
 
+        # Allow adding username without the domain
+        if not '@' in username:
+            username = '{username}@{domain}'.format(
+                username=username,
+                domain=settings.SAFE_HAVEN_DOMAIN
+            )
+
+        # Verify if user already exists on project
         if self.project.participant_set.filter(
             user__username=username
         ).exists():
             raise ValidationError("User is already on project")
+
+        # Do not allow user to be added unless they have already been created
+        # in the database
+        if not User.objects.filter(
+            username=username
+        ).exists():
+            raise ValidationError("Username not known")
         return username
 
     def save(self, **kwargs):
