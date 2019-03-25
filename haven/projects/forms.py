@@ -49,10 +49,11 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
         fields = ('project', 'role')
 
     def clean(self):
-        project = self.cleaned_data['project']
-        role = ProjectRole(self.cleaned_data['role'])
-        if not self.user.project_role(project).can_assign_role(role):
-            raise ValidationError("You cannot assign the role on this project")
+        if 'project' in self.cleaned_data:
+            project = self.cleaned_data['project']
+            role = ProjectRole(self.cleaned_data['role'])
+            if not self.user.project_role(project).can_assign_role(role):
+                raise ValidationError("You cannot assign the role on this project")
 
 
 ProjectsForUserInlineFormSet = inlineformset_factory(
