@@ -20,7 +20,13 @@
     {% for user in users %}
     <tr>
       <td>{{ user.id }}</td>
-      <td>{{ user.username }}</td>
+      <td>
+        {% if user.user_role.can_edit_users %}
+          <a href="{% url 'identity:edit_user' user.id %}">{{ user.username }}</a>
+        {% else %}
+          {{ user.username }}
+        {% endif %}
+      </td>
       <td>{{ user.email }}</td>
       <td>{{ user.first_name }}</td>
       <td>{{ user.last_name }}</td>
