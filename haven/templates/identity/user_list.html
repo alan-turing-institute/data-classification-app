@@ -17,22 +17,24 @@
       <th>Added by</th>
     </tr>
     {% if users %}
-    {% for user in users %}
+    {% for next_user in users %}
     <tr>
-      <td>{{ user.id }}</td>
+      <td>{{ next_user.id }}</td>
+
       <td>
         {% if user.user_role.can_edit_users %}
-          <a href="{% url 'identity:edit_user' user.id %}">{{ user.username }}</a>
+          <a href="{% url 'identity:edit_user' next_user.id %}">{{ next_user.username }}</a>
         {% else %}
-          {{ user.username }}
+          {{ next_user.username }}
         {% endif %}
       </td>
-      <td>{{ user.email }}</td>
-      <td>{{ user.first_name }}</td>
-      <td>{{ user.last_name }}</td>
-      <td>{{ user.mobile }}</td>
-      <td>{{ user.date_joined }}</td>
-      <td>{{ user.created_by }}</td>
+
+      <td>{{ next_user.email }}</td>
+      <td>{{ next_user.first_name }}</td>
+      <td>{{ next_user.last_name }}</td>
+      <td>{{ next_user.mobile }}</td>
+      <td>{{ next_user.date_joined }}</td>
+      <td>{{ next_user.created_by }}</td>
     </tr>
     {% endfor %}
     {% endif %}
