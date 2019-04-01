@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.conf import settings
+from social_core.exceptions import AuthForbidden
 
 from .graph import user_client
 from .models import User
@@ -68,3 +69,5 @@ def find_existing_user(backend, user, response, *args, **kwargs):
             return {'user': user}
         except User.DoesNotExist:
             pass
+        except KeyError:
+            raise AuthForbidden('azuread-tenant-oauth2')
