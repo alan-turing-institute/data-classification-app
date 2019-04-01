@@ -74,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -204,3 +205,5 @@ if EMAIL_HOST:
     EMAIL_USE_TLS = env.int('EMAIL_USE_TLS', default=True)
 
 DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')
+
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/error/'
