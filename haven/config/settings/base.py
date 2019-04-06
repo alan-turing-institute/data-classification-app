@@ -125,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     'identity.backends.CustomAzureOAuth2Backend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 AUTH_USER_MODEL = 'identity.User'
@@ -149,8 +148,9 @@ SOCIAL_AUTH_PIPELINE = (
     'identity.pipeline.determine_role',
 )
 
-LOGIN_REDIRECT_URL = 'projects:list'
+LOGIN_REDIRECT_URL = '/projects'
 LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = '/auth/login/azuread-tenant-oauth2/'
 
 
 # Internationalization
