@@ -69,5 +69,6 @@ def find_existing_user(backend, user, response, *args, **kwargs):
             return {'user': user}
         except User.DoesNotExist:
             pass
+        # A missing upn key likely indicates log in from a personal account
         except KeyError:
             raise AuthForbidden('azuread-tenant-oauth2')
