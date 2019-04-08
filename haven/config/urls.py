@@ -29,6 +29,9 @@ urlpatterns = [
 
     path('logout/', core_views.logout, name='logout'),
 
+    # Externally-driven single sign out
+    path('ssologout/', core_views.sso_logout, name='sso_logout'),
+
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 
     path('auth/', include('social_django.urls', namespace='social')),
