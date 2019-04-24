@@ -28,13 +28,7 @@ urlpatterns = [
     path('projects/', include('projects.urls', namespace='projects')),
 
     path(
-        'accounts/login/',
-        auth_views.LoginView.as_view(template_name='identity/login.html'),
-        name='login'
-    ),
-
-    path(
-        'accounts/logout/',
+        'logout/',
         auth_views.LogoutView.as_view(),
         name='logout'
     ),
@@ -43,6 +37,8 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 
     path('auth/', include('social_django.urls', namespace='social')),
+
+    path('error/', TemplateView.as_view(template_name='error.html'), name="error-page"),
 ]
 
 if settings.DEBUG:
