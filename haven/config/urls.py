@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.generic import TemplateView
+from core import views as core_views
 
 
 urlpatterns = [
@@ -27,12 +27,10 @@ urlpatterns = [
 
     path('projects/', include('projects.urls', namespace='projects')),
 
-    path(
-        'logout/',
-        auth_views.LogoutView.as_view(),
-        name='logout'
-    ),
+    path('logout/', core_views.logout, name='logout'),
 
+    # Externally-driven single sign out
+    path('ssologout/', core_views.sso_logout, name='sso_logout'),
 
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 
