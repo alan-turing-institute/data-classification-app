@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 
 from projects.roles import ProjectRole
+from .managers import CustomUserManager
 
 from .roles import UserRole
 
@@ -61,6 +62,9 @@ class User(AbstractUser):
         choices=AAD_STATUS_CHOICES,
         blank=True
     )
+
+    # Use a custom UserManager with our own QuerySet methods
+    objects = CustomUserManager()
 
     @property
     def user_role(self):

@@ -74,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -124,7 +125,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = [
     'identity.backends.CustomAzureOAuth2Backend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 AUTH_USER_MODEL = 'identity.User'
@@ -148,8 +148,9 @@ SOCIAL_AUTH_PIPELINE = (
     'identity.pipeline.determine_role',
 )
 
-LOGIN_REDIRECT_URL = 'projects:list'
+LOGIN_REDIRECT_URL = '/projects'
 LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = '/auth/login/azuread-tenant-oauth2/'
 
 
 # Internationalization
@@ -204,3 +205,5 @@ if EMAIL_HOST:
     EMAIL_USE_TLS = env.int('EMAIL_USE_TLS', default=True)
 
 DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')
+
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/error/'

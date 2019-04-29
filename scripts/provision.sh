@@ -74,11 +74,12 @@ az sql server firewall-rule create --server $SQL_SERVER_NAME --resource-group $R
 # Create the database
 echo "Creating the database"
 az sql db create --name=$DB_NAME --resource-group=$RESOURCE_GROUP --server=$SQL_SERVER_NAME
+DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 
 echo "Setting up the server"
 # Settings for dev server
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SECRET_KEY=$SECRET_KEY
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SECRET_KEY="${SECRET_KEY}"
+az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DATABASE_URL="${DATABASE_URL}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
 az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"

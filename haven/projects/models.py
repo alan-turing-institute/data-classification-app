@@ -67,7 +67,7 @@ class Project(models.Model):
         """
         Is the project ready for classification yet?
 
-        i.e. have all the required users been through the classification proess
+        i.e. have all the required users been through the classification process
 
         :return: True if ready for classification, False otherwise.
         """
@@ -94,7 +94,7 @@ class Project(models.Model):
 
         :return: True if there is conflict, False otherwise
         """
-        tiers = self.classifications.distinct('tier')
+        tiers = self.classifications.values('tier').distinct()
         return tiers.count() > 1
 
     def calculate_tier(self):

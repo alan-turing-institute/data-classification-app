@@ -228,3 +228,4 @@ coverage/
 
 # npm installs
 node_modules/
+haven/staticfiles

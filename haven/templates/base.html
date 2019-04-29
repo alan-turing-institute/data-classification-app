@@ -30,6 +30,11 @@
               <a class="nav-link" href="{% url 'identity:add_user' %}">Create User</a>
             </li>
             {% endif %}
+            {% if request.user.user_role.can_view_all_users %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'identity:list' %}">Users</a>
+            </li>
+            {% endif %}
 
             <li class="nav-item">
               <a class="nav-link" href="{% url 'projects:list' %}">Projects</a>
@@ -61,6 +66,7 @@
     </nav>
 
     <main role="main" class="container">
+      {% include 'includes/messages.html' %}
       <div class="row">
         <div class="col-lg mt-4">
           <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>

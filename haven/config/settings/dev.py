@@ -1,19 +1,29 @@
 from .base import *  # noqa
 
 
+SECURE_SSL_REDIRECT = True
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s '
+                      '%(process)d %(thread)d %(message)s'
+        },
+    },
     'handlers': {
         'logfile': {
+            'level': 'WARNING',
             'class': 'logging.handlers.WatchedFileHandler',
-            'filename': 'D:\home\site\wwwroot\myapp.log'
+            'filename': 'D:\home\site\wwwroot\haven.log',
+            'formatter': 'verbose'
         }
     },
     'loggers': {
         'django': {
             'handlers': ['logfile'],
-            'level': 'ERROR',
+            'level': 'WARNING',
             'propagate': False,
         }
     }
