@@ -1,6 +1,7 @@
 import pytest
 
 from core import recipes
+from identity.models import User
 from projects.models import Project
 from projects.roles import ProjectRole
 
@@ -126,9 +127,27 @@ class TestAddUserToProject:
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_add_new_user_to_project(self, as_research_coordinator):
+    def test_add_user_to_project(self, as_research_coordinator):
         project = recipes.project.make(created_by=as_research_coordinator._user)
 
+        User.objects.create_user(username='newuser@example.com')
+        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'username': 'newuser@example.com',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        assert project.participant_set.count() == 1
+        assert project.participant_set.first().user.username == 'newuser@example.com'
+
+    def test_add_user_without_domain_to_project(self, as_research_coordinator):
+        """Check that domain will not be added to entered username if the username exists as it is"""
+
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        User.objects.create_user(username='newuser')
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': 'newuser',
@@ -139,6 +158,52 @@ class TestAddUserToProject:
 
         assert project.participant_set.count() == 1
         assert project.participant_set.first().user.username == 'newuser'
+
+    def test_add_user_to_project_with_autofill_domain(self, as_research_coordinator):
+        """Check that the domain will be added to the username entered"""
+
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        User.objects.create_user(username='newuser@example.com')
+        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'username': 'newuser',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        assert project.participant_set.count() == 1
+        assert project.participant_set.first().user.username == 'newuser@example.com'
+
+    def test_cannot_add_existing_user_to_project(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        project_participant = User.objects.create_user(username='newuser@example.com')
+        project.add_user(project_participant, ProjectRole.RESEARCHER, as_research_coordinator._user)
+        assert project.participant_set.count() == 1
+
+        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'username': 'newuser',
+        })
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+        assert project.participant_set.count() == 1
+
+    def test_cannot_add_nonexisting_user_to_project(self, as_research_coordinator):
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'username': 'newuser',
+        })
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+        assert project.participant_set.count() == 0
 
     def test_returns_404_for_invisible_project(self, as_research_coordinator):
         project = recipes.project.make()
