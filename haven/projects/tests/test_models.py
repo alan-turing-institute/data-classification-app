@@ -42,12 +42,9 @@ class TestProject:
             role=ProjectRole.INVESTIGATOR.value, project=project)
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
-        rc = recipes.participant.make(
-            role=ProjectRole.RESEARCH_COORDINATOR.value, project=project)
 
         project.classify_as(0, investigator.user)
         project.classify_as(0, data_rep.user)
-        project.classify_as(0, rc.user)
 
         assert project.is_classification_ready
         assert not project.tier_conflict
@@ -56,13 +53,41 @@ class TestProject:
 
     def test_classification_not_ready(self):
         project = recipes.project.make()
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.classify_as(0, data_rep.user)
+
+        assert not project.is_classification_ready
+        assert not project.has_tier
+
+    def test_classify_project_tier2(self):
+        project = recipes.project.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+        ref = recipes.participant.make(
+            role=ProjectRole.REFEREE.value, project=project)
+
+        project.classify_as(2, investigator.user)
+        project.classify_as(2, data_rep.user)
+        project.classify_as(2, ref.user)
+
+        assert project.is_classification_ready
+        assert not project.tier_conflict
+        assert project.has_tier
+        assert project.tier == 2
+
+    def test_classification_not_ready_tier2(self):
+        project = recipes.project.make()
         investigator = recipes.participant.make(
             role=ProjectRole.INVESTIGATOR.value, project=project)
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        project.classify_as(0, investigator.user)
-        project.classify_as(0, data_rep.user)
+        project.classify_as(2, investigator.user)
+        project.classify_as(2, data_rep.user)
 
         assert not project.is_classification_ready
         assert not project.has_tier
@@ -77,7 +102,7 @@ class TestProject:
             role=ProjectRole.RESEARCH_COORDINATOR.value, project=project)
 
         project.classify_as(0, investigator.user)
-        project.classify_as(0, data_rep.user)
+        project.classify_as(1, data_rep.user)
         project.classify_as(1, rc.user)
 
         assert project.is_classification_ready

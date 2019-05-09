@@ -76,7 +76,7 @@ class ProjectRole(Enum):
     def can_classify_data(self):
         return self in [
             self.PROJECT_ADMIN,
-            self.RESEARCH_COORDINATOR,
+            self.REFEREE,
             self.DATA_PROVIDER_REPRESENTATIVE,
             self.INVESTIGATOR,
         ]

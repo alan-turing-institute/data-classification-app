@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models, transaction
 
 from data.models import Dataset
-from data.tiers import TIER_CHOICES
+from data.tiers import TIER_CHOICES, Tier
 from identity.models import User
 from identity.remote import create_user
 
@@ -71,17 +71,17 @@ class Project(models.Model):
 
         :return: True if ready for classification, False otherwise.
         """
-        users = self.classifications.values_list('user', flat=True)
-        roles = {
-            ProjectRole(part.role)
-            for part in self.participant_set.filter(user__in=users)
-        }
-
         required_roles = {
-            ProjectRole.RESEARCH_COORDINATOR,
-            ProjectRole.INVESTIGATOR,
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+            ProjectRole.INVESTIGATOR,
         }
+        roles = set()
+
+        for c in self.classifications.all():
+            role = c.user.project_role(self)
+            roles.add(role)
+            if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE and c.tier >= Tier.TWO:
+                required_roles.add(ProjectRole.REFEREE)
 
         return roles >= required_roles
 
