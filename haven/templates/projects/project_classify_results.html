@@ -7,7 +7,7 @@
 {% block content %}
 
 {% with classification.project as project %}
-<p>You have classified this project as Tier {{ classification.tier }}</p>
+<p>You ({{ classification.user }}, {{classification.user|project_role:project}}) have classified this project as Tier {{ classification.tier }}</p>
 
 {% if other_classifications.exists %}
   <ul>
