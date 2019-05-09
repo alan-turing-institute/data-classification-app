@@ -29,11 +29,15 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         username = self.cleaned_data['username']
 
         # Allow adding username without the domain
-        if not '@' in username:
-            username = '{username}@{domain}'.format(
+        if '@' not in username:
+            test_username = '{username}@{domain}'.format(
                 username=username,
                 domain=settings.SAFE_HAVEN_DOMAIN
             )
+            # If username does not exist but username@domain does, use that
+            if not User.objects.filter(username=username).exists() \
+                    and User.objects.filter(username=test_username).exists():
+                username = test_username
 
         # Verify if user already exists on project
         if self.project.participant_set.filter(

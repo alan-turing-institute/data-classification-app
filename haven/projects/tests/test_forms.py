@@ -7,7 +7,7 @@ from projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestProjectAddUserForm:
-    def test_add_new_user(self, research_coordinator):
+    def test_cannot_add_nonexisting_user(self, research_coordinator):
         project = recipes.project.make(created_by=research_coordinator)
 
         form = ProjectAddUserForm({
@@ -15,16 +15,7 @@ class TestProjectAddUserForm:
             'username': 'newuser',
         }, user=research_coordinator)
         form.project = project
-        assert form.is_valid()
-
-        form_obj = form.save()
-
-        participant = project.participant_set.get()
-        assert form_obj == participant
-        assert participant.user.username == 'newuser'
-        assert participant.role == ProjectRole.RESEARCHER.value
-        assert participant.created_by == research_coordinator
-        assert participant.user.created_by == research_coordinator
+        assert not form.is_valid()
 
     def test_add_existing_user(self, research_coordinator, project_participant):
         project = recipes.project.make(created_by=research_coordinator)
