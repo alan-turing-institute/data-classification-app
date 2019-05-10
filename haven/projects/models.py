@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 
 from data.models import Dataset
@@ -139,6 +140,12 @@ class Project(models.Model):
         return self.tier is not None
 
 
+def validate_role(role):
+    """Validator for assigning a participant's role in a project"""
+    if not ProjectRole.is_valid_assignable_participant_role(role):
+        raise ValidationError('Not a valid ProjectRole string')
+
+
 class Participant(models.Model):
     """
     Represents a user's participation in a project
@@ -146,6 +153,7 @@ class Participant(models.Model):
     role = models.CharField(
         max_length=50,
         choices=ProjectRole.choices(),
+        validators=[validate_role],
         help_text="The participant's role on this project"
     )
 
