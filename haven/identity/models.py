@@ -110,7 +110,12 @@ class User(AbstractUser):
 
     def project_role(self, project):
         """
-        Return the role of a user on this project
+        Return the administrative role of a user on this project.
+        This is used for determining project permissions.
+
+        Do not use for data classification purposes, since for for some users
+        the assigned project role will be overriden by PROJECT_ADMIN.
+        For data classification purposes, use project_participation_role().
 
         :return: ProjectRole or None if user is not involved in project
         """
@@ -121,3 +126,16 @@ class User(AbstractUser):
         else:
             participant = self.get_participant(project)
             return ProjectRole(participant.role) if participant else None
+
+    def project_participation_role(self, project):
+        """
+        Return the assigned project role of a user.
+        This is their participation role and ignores PROJECT_ADMIN status.
+
+        Use this method for classification purposes.
+        For determining project permissions, use project_role().
+
+        :return: ProjectRole or None if user is not involved in project
+        """
+        participant = self.get_participant(project)
+        return ProjectRole(participant.role) if participant else None

@@ -57,6 +57,8 @@ class TestCreateUser:
         user = User.objects.filter(email='testuser@example.com').first()
         assert user
         assert user.project_role(project) == ProjectRole.RESEARCHER
+        assert user.project_participation_role(project) == \
+               ProjectRole.RESEARCHER
 
     def test_returns_403_if_cannot_create_users(self, as_project_participant):
         response = as_project_participant.get('/users/new')
