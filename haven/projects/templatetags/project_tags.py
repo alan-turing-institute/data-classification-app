@@ -23,4 +23,5 @@ def tier(tier):
 
 @register.filter
 def project_role(user, project):
-    return project_role_display(user.project_role(project).value)
+    role = user.project_participation_role(project)
+    return  project_role_display(role.value if role else None)

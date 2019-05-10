@@ -79,7 +79,7 @@ class Project(models.Model):
         roles = set()
 
         for c in self.classifications.all():
-            role = c.user.project_role(self)
+            role = c.user.project_participation_role(self)
             roles.add(role)
             if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE)
