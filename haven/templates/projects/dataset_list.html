@@ -23,7 +23,7 @@
   {% if project_role.can_add_datasets %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:add_dataset' project.id %}">Add Dataset</a>
   {% endif %}
-  {% if project_role.can_classify_data and not project.has_tier %}
+  {% if project_participation_role.can_classify_data and not project.has_tier %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:classify_data' project.id %}">Classify Data</a>
   {% endif %}
 </div>

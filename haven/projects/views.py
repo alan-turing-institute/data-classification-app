@@ -24,11 +24,16 @@ class SingleProjectMixin(SingleObjectMixin):
         return super().get_queryset().get_visible_projects(self.request.user)
 
     def get_project_role(self):
-        """Logged in user's role on the project"""
+        """Return the logged in user's administrative role on the project"""
         return self.request.user.project_role(self.get_object())
+
+    def get_project_participation_role(self):
+        """Return the logged in user's assigned role on the project"""
+        return self.request.user.project_participation_role(self.get_object())
 
     def get_context_data(self, **kwargs):
         kwargs['project_role'] = self.get_project_role()
+        kwargs['project_participation_role'] = self.get_project_participation_role()
         return super().get_context_data(**kwargs)
 
     def get_form(self, *args, **kwargs):
@@ -238,7 +243,7 @@ class ProjectClassifyData(
         return super().dispatch(*args, *kwargs)
 
     def test_func(self):
-        return self.get_project_role().can_classify_data
+        return self.get_project_participation_role().can_classify_data
 
     def done(self, form_list, **kwargs):
         """

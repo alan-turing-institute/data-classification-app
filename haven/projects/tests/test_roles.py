@@ -47,3 +47,25 @@ class TestProjectRoleListParticipants:
 
     def test_researcher_cannot_list_participants(self):
         assert not ProjectRole.RESEARCHER.can_list_participants
+
+
+class TestIsValidAssignableParticipantRole:
+    def test_valid_roles(self):
+        assert ProjectRole.is_valid_assignable_participant_role('referee')
+        assert ProjectRole.is_valid_assignable_participant_role('research_coordinator')
+        assert ProjectRole.is_valid_assignable_participant_role('investigator')
+        assert ProjectRole.is_valid_assignable_participant_role('researcher')
+        assert ProjectRole.is_valid_assignable_participant_role('data_provider_representative')
+
+    def test_project_admin_is_not_valid_assignable_role(self):
+        assert not ProjectRole.is_valid_assignable_participant_role('project_admin')
+
+    def test_labels_are_not_valid_roles(self):
+        assert not ProjectRole.is_valid_assignable_participant_role('Research Coordinator')
+        assert not ProjectRole.is_valid_assignable_participant_role('Data Provider Representative')
+
+    def test_invalid_roles(self):
+        assert not ProjectRole.is_valid_assignable_participant_role('')
+        assert not ProjectRole.is_valid_assignable_participant_role(None)
+        assert not ProjectRole.is_valid_assignable_participant_role('data')
+        assert not ProjectRole.is_valid_assignable_participant_role('inv')

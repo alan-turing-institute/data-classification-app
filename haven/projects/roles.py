@@ -19,6 +19,13 @@ class ProjectRole(Enum):
     DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
 
     @classmethod
+    def is_valid_assignable_participant_role(cls, role):
+        """Return True if role is a valid project assignment. Return False for
+        any non-assignable roles such as PROJECT__ADMIN"""
+        valid_role_names = [choice[0] for choice in ProjectRole.choices()]
+        return role in valid_role_names
+
+    @classmethod
     def choices(cls):
         """Dropdown choices for project roles"""
         return [
@@ -74,8 +81,10 @@ class ProjectRole(Enum):
 
     @property
     def can_classify_data(self):
+        """Is this role able to perform a data classification?"""
+
+        # Does not include PROJECT_ADMIN because classification should only be done by appointed users
         return self in [
-            self.PROJECT_ADMIN,
             self.REFEREE,
             self.DATA_PROVIDER_REPRESENTATIVE,
             self.INVESTIGATOR,
