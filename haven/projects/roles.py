@@ -81,8 +81,10 @@ class ProjectRole(Enum):
 
     @property
     def can_classify_data(self):
+        """Is this role able to perform a data classification?"""
+
+        # Does not include PROJECT_ADMIN because classification should only be done by appointed users
         return self in [
-            self.PROJECT_ADMIN,
             self.REFEREE,
             self.DATA_PROVIDER_REPRESENTATIVE,
             self.INVESTIGATOR,
