@@ -1,6 +1,8 @@
 import pytest
 
 from core import recipes
+from data.classification import insert_initial_questions
+from data.models import ClassificationQuestion
 from identity.models import User
 from projects.models import Project
 from projects.roles import ProjectRole
@@ -377,6 +379,7 @@ class TestProjectClassifyData:
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
@@ -424,14 +427,28 @@ class TestProjectClassifyData:
         assert 'wizard' not in response.context
 
     def test_classify_as_tier_0(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier0-is_public_and_open': 'on',
-            'project_classify_data-current_step': 'tier0',
+            'public_and_open-question': 'on',
+            'project_classify_data-current_step': 'public_and_open',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_identify_living'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'open_identify_living',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_publication'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'open_publication-question': 'on',
+            'project_classify_data-current_step': 'open_publication',
         })
 
         assert response.status_code == 200
@@ -439,20 +456,32 @@ class TestProjectClassifyData:
         assert project.classifications.get().tier == 0
 
     def test_classify_as_tier_1(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier0',
+            'project_classify_data-current_step': 'public_and_open',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'publishable'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier1-publishable': 'on',
-            'tier1-does_not_describe_individuals': 'on',
-            'project_classify_data-current_step': 'tier1',
+            'project_classify_data-current_step': 'publishable',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'closed_personal'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'closed_personal',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'include_commercial'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'include_commercial',
         })
 
         assert response.status_code == 200
@@ -460,85 +489,202 @@ class TestProjectClassifyData:
         assert project.classifications.get().tier == 1
 
     def test_classify_as_tier_2(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier0',
+            'project_classify_data-current_step': 'public_and_open',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'publishable'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier1-publishable': 'on',
-            'project_classify_data-current_step': 'tier1',
+            'project_classify_data-current_step': 'publishable',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'closed_personal'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier2-individuals_are_anonymous': 'on',
-            'project_classify_data-current_step': 'tier2',
+            'closed_personal-question': 'on',
+            'project_classify_data-current_step': 'closed_personal',
         })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'closed_identify_living'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'closed_identify_living',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'no_reidentify_absolute'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'no_reidentify_absolute-question': 'on',
+            'project_classify_data-current_step': 'no_reidentify_absolute',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'include_commercial'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'include_commercial-question': 'on',
+            'project_classify_data-current_step': 'include_commercial',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'financial_low'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'financial_low-question': 'on',
+            'project_classify_data-current_step': 'financial_low',
+        })
+
         assert response.status_code == 200
         assert response.context['classification'].tier == 2
         assert project.classifications.get().tier == 2
 
     def test_classify_as_tier_3(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier0',
+            'public_and_open-question': 'on',
+            'project_classify_data-current_step': 'public_and_open',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_identify_living'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier1-publishable': 'on',
-            'project_classify_data-current_step': 'tier1',
+            'open_identify_living-question': 'on',
+            'project_classify_data-current_step': 'open_identify_living',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_generate_new'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier2',
+            'open_generate_new-question': 'on',
+            'project_classify_data-current_step': 'open_generate_new',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'substantial_threat'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier3',
+            'project_classify_data-current_step': 'substantial_threat',
         })
+
         assert response.status_code == 200
         assert response.context['classification'].tier == 3
         assert project.classifications.get().tier == 3
 
     def test_classify_as_tier_4(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=as_project_participant._user.username,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier0',
+            'project_classify_data-current_step': 'public_and_open',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'publishable'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier1-publishable': 'on',
-            'project_classify_data-current_step': 'tier1',
+            'project_classify_data-current_step': 'publishable',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'closed_personal'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'tier2',
+            'project_classify_data-current_step': 'closed_personal',
         })
         assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'include_commercial'
 
         response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'tier3-valuable_to_enemies': 'on',
-            'project_classify_data-current_step': 'tier3',
+            'include_commercial-question': 'on',
+            'project_classify_data-current_step': 'include_commercial',
         })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'financial_low'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'financial_low',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'sophisticated_attack'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'sophisticated_attack-question': 'on',
+            'project_classify_data-current_step': 'sophisticated_attack',
+        })
+
         assert response.status_code == 200
         assert response.context['classification'].tier == 4
         assert project.classifications.get().tier == 4
+
+    def test_classify_backwards(self, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'public_and_open-question': 'on',
+            'project_classify_data-current_step': 'public_and_open',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_identify_living'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'open_identify_living-question': 'on',
+            'project_classify_data-current_step': 'open_identify_living',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_generate_new'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'wizard_goto_step': 'public_and_open',
+            'project_classify_data-current_step': 'open_generate_new',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'public_and_open'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'public_and_open',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'publishable'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'project_classify_data-current_step': 'publishable',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'closed_personal'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'wizard_goto_step': 'publishable',
+            'project_classify_data-current_step': 'closed_personal',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'publishable'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'publishable-question': 'on',
+            'project_classify_data-current_step': 'publishable',
+        })
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_publication'
+
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
+            'open_publication-question': 'on',
+            'project_classify_data-current_step': 'open_publication',
+        })
+
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 0
+        assert project.classifications.get().tier == 0
