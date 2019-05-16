@@ -376,10 +376,13 @@ class TestProjectClassifyData:
         response = client.post('/projects/%d/classify' % project.id, {})
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_view_page(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        response = as_project_participant.get('/projects/%d/classify' % project.id)
         assert response.status_code == 200
         assert response.context['project'] == project
         assert 'wizard' in response.context
@@ -395,7 +398,7 @@ class TestProjectClassifyData:
         response = as_research_coordinator.post('/projects/%d/classify' % project.id)
         assert response.status_code == 404
 
-    def test_returns_403_if_no_classify_permissions(self, client, researcher):
+    def test_returns_403_for_researcher(self, client, researcher):
         # Researchers can't classify, so do not display the page
         client.force_login(researcher.user)
 
@@ -403,6 +406,13 @@ class TestProjectClassifyData:
         assert response.status_code == 403
 
         response = client.post('/projects/%d/classify' % researcher.project.id)
+        assert response.status_code == 403
+
+    def test_returns_403_for_research_coordinator(self, as_research_coordinator):
+        # Research Coordinators can't classify data
+        project = recipes.project.make(created_by=as_research_coordinator._user)
+
+        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
         assert response.status_code == 403
 
     def test_do_not_show_form_if_user_already_classified(self, client, as_research_coordinator):
@@ -413,10 +423,13 @@ class TestProjectClassifyData:
 
         assert 'wizard' not in response.context
 
-    def test_classify_as_tier_0(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_classify_as_tier_0(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier0-is_public_and_open': 'on',
             'project_classify_data-current_step': 'tier0',
         })
@@ -425,15 +438,18 @@ class TestProjectClassifyData:
         assert response.context['classification'].tier == 0
         assert project.classifications.get().tier == 0
 
-    def test_classify_as_tier_1(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_classify_as_tier_1(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier0',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier1-publishable': 'on',
             'tier1-does_not_describe_individuals': 'on',
             'project_classify_data-current_step': 'tier1',
@@ -443,21 +459,24 @@ class TestProjectClassifyData:
         assert response.context['classification'].tier == 1
         assert project.classifications.get().tier == 1
 
-    def test_classify_as_tier_2(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_classify_as_tier_2(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier0',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier1-publishable': 'on',
             'project_classify_data-current_step': 'tier1',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier2-individuals_are_anonymous': 'on',
             'project_classify_data-current_step': 'tier2',
         })
@@ -465,52 +484,58 @@ class TestProjectClassifyData:
         assert response.context['classification'].tier == 2
         assert project.classifications.get().tier == 2
 
-    def test_classify_as_tier_3(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_classify_as_tier_3(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier0',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier1-publishable': 'on',
             'project_classify_data-current_step': 'tier1',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier2',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier3',
         })
         assert response.status_code == 200
         assert response.context['classification'].tier == 3
         assert project.classifications.get().tier == 3
 
-    def test_classify_as_tier_4(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_classify_as_tier_4(self, as_project_participant, research_coordinator):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier0',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier1-publishable': 'on',
             'project_classify_data-current_step': 'tier1',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'project_classify_data-current_step': 'tier2',
         })
         assert 'wizard' in response.context
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id, {
+        response = as_project_participant.post('/projects/%d/classify' % project.id, {
             'tier3-valuable_to_enemies': 'on',
             'project_classify_data-current_step': 'tier3',
         })
