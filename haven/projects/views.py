@@ -36,7 +36,6 @@ class SingleProjectMixin(SingleObjectMixin):
 
     def get_context_data(self, **kwargs):
         kwargs['project_role'] = self.get_project_role()
-        kwargs['project_participation_role'] = self.get_project_participation_role()
         return super().get_context_data(**kwargs)
 
     def get_form(self, *args, **kwargs):
@@ -226,7 +225,7 @@ class ProjectClassifyData(
         return f
 
     def test_func(self):
-        role = self.get_project_participation_role()
+        role = self.get_project_role()
         return role.can_classify_data if role else False
 
     def done(self, form_list, **kwargs):
