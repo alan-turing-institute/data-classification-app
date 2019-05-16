@@ -6,11 +6,6 @@ class ProjectRole(Enum):
     Roles which a user can take in the context of a project.
     """
 
-    # Project admin is an inherited role - it's not stored anywhere but is
-    # automatically applied to a project owner, or users which have certain
-    # system-level roles
-    PROJECT_ADMIN = 'project_admin'
-
     # Roles which are assignable to users on a project
     REFEREE = 'referee'
     RESEARCH_COORDINATOR = 'research_coordinator'
@@ -36,6 +31,16 @@ class ProjectRole(Enum):
             (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
         ]
 
+
+class UserProjectPermissions:
+    """
+    Determine the permissions a User has on a particular project.
+    """
+
+    def __init__(self, project_role, is_project_admin):
+        self.role = project_role
+        self.is_project_admin = is_project_admin
+
     @property
     def assignable_roles(self):
         """
@@ -43,40 +48,37 @@ class ProjectRole(Enum):
 
         :return: list of `ProjectRole` objects
         """
-        if self in [self.PROJECT_ADMIN, self.RESEARCH_COORDINATOR]:
-            return [self.RESEARCH_COORDINATOR,
-                    self.DATA_PROVIDER_REPRESENTATIVE,
-                    self.INVESTIGATOR,
-                    self.RESEARCHER]
-        elif self is self.INVESTIGATOR:
-            return [self.RESEARCHER]
+        if self.is_project_admin or self.role is ProjectRole.RESEARCH_COORDINATOR:
+            return [ProjectRole.RESEARCH_COORDINATOR,
+                    ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+                    ProjectRole.INVESTIGATOR,
+                    ProjectRole.RESEARCHER]
+        elif self.role is ProjectRole.INVESTIGATOR:
+            return [ProjectRole.RESEARCHER]
         return []
 
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
-        return self in [
-            self.PROJECT_ADMIN,
-            self.RESEARCH_COORDINATOR,
-            self.INVESTIGATOR,
+        return self.is_project_admin or self.role in [
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
         ]
 
     @property
     def can_add_datasets(self):
         """Is this role able to add new datasets to the project?"""
-        return self in [
-            self.PROJECT_ADMIN,
-            self.RESEARCH_COORDINATOR,
-            self.INVESTIGATOR,
+        return self.is_project_admin or self.role in [
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
         ]
 
     @property
     def can_list_participants(self):
         """Is this role able to list participants?"""
-        return self in [
-            self.PROJECT_ADMIN,
-            self.RESEARCH_COORDINATOR,
-            self.INVESTIGATOR,
+        return self.is_project_admin or self.role in [
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
         ]
 
     @property
@@ -84,10 +86,10 @@ class ProjectRole(Enum):
         """Is this role able to perform a data classification?"""
 
         # Does not include PROJECT_ADMIN because classification should only be done by appointed users
-        return self in [
-            self.REFEREE,
-            self.DATA_PROVIDER_REPRESENTATIVE,
-            self.INVESTIGATOR,
+        return self.role in [
+            ProjectRole.REFEREE,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+            ProjectRole.INVESTIGATOR,
         ]
 
     def can_assign_role(self, role):
