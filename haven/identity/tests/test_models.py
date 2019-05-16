@@ -20,18 +20,18 @@ class TestUser:
         assert researcher.user.get_participant(recipes.project.make()) is None
 
     def test_project_role_for_participant(self, researcher):
-        assert researcher.user.project_role(researcher.project) is ProjectRole.RESEARCHER
+        assert researcher.user.project_role(researcher.project).role is ProjectRole.RESEARCHER
         assert researcher.user.project_participation_role(researcher.project) is ProjectRole.RESEARCHER
 
     def test_superuser_gets_project_admin_role(self, superuser):
-        assert superuser.project_role(recipes.project.make()) is ProjectRole.PROJECT_ADMIN
+        assert superuser.project_role(recipes.project.make()).is_project_admin
 
     def test_superuser_does_not_get_participation_for_non_involed_projects(self, superuser):
         assert superuser.get_participant(recipes.project.make()) is None
         assert superuser.project_participation_role(recipes.project.make()) is None
 
     def test_system_controller_gets_project_admin_role(self, system_controller):
-        assert system_controller.project_role(recipes.project.make()) is ProjectRole.PROJECT_ADMIN
+        assert system_controller.project_role(recipes.project.make()).is_project_admin
 
     def test_system_controller_does_not_get_participation_for_non_involed_projects(self, system_controller):
         assert system_controller.get_participant(recipes.project.make()) == None
@@ -39,12 +39,12 @@ class TestUser:
 
     def test_project_owner_gets_project_admin_role_when_not_involved(self, research_coordinator):
         project = recipes.project.make(created_by=research_coordinator)
-        assert research_coordinator.project_role(project) is ProjectRole.PROJECT_ADMIN
+        assert research_coordinator.project_role(project).is_project_admin
 
     def test_project_owner_gets_project_admin_role_when_involved(self, research_coordinator):
         project = recipes.project.make(created_by=research_coordinator)
         project.add_user(username=research_coordinator.username, role=ProjectRole.INVESTIGATOR.value, creator=research_coordinator)
-        assert research_coordinator.project_role(project) is ProjectRole.PROJECT_ADMIN
+        assert research_coordinator.project_role(project).is_project_admin
 
     def test_project_owner_is_not_participant_when_not_involved(self, research_coordinator):
         project = recipes.project.make(created_by=research_coordinator)
@@ -60,7 +60,8 @@ class TestUser:
     def test_project_owner_does_not_get_admin_on_other_project_when_not_participating(self, research_coordinator):
         recipes.project.make(created_by=research_coordinator)
         project = recipes.project.make()
-        assert research_coordinator.project_role(project) is None
+        assert not research_coordinator.project_role(project).is_project_admin
+        assert research_coordinator.project_participation_role(project) is None
 
     def test_project_owner_does_not_get_role_on_other_project_when_not_participating(self, research_coordinator):
         recipes.project.make(created_by=research_coordinator)
@@ -72,10 +73,10 @@ class TestUser:
         recipes.project.make(created_by=research_coordinator)
         project = recipes.project.make()
         project.add_user(username=research_coordinator.username, role=ProjectRole.INVESTIGATOR.value, creator=research_coordinator)
-        assert research_coordinator.project_role(project) is not ProjectRole.PROJECT_ADMIN
+        assert not research_coordinator.project_role(project).is_project_admin
 
     def test_project_role_is_None_for_non_involved_project(self, researcher):
-        assert researcher.user.project_role(recipes.project.make()) is None
+        assert researcher.user.project_role(recipes.project.make()).role is None
 
     def test_project_participation_role_is_None_for_non_involved_project(self, researcher):
         assert researcher.user.project_participation_role(recipes.project.make()) is None
