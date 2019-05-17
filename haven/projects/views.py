@@ -243,7 +243,8 @@ class ProjectClassifyData(
         return super().dispatch(*args, *kwargs)
 
     def test_func(self):
-        return self.get_project_participation_role().can_classify_data
+        role = self.get_project_participation_role()
+        return role.can_classify_data if role else False
 
     def done(self, form_list, **kwargs):
         """
