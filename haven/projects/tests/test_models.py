@@ -1,6 +1,8 @@
 import pytest
 
 from core import recipes
+from data.classification import insert_initial_questions
+from data.models import ClassificationQuestion
 from projects.roles import ProjectRole
 
 
@@ -108,3 +110,96 @@ class TestProject:
         assert project.is_classification_ready
         assert project.tier_conflict
         assert not project.has_tier
+
+    def test_ordered_questions(self):
+        insert_initial_questions(ClassificationQuestion)
+        questions = ClassificationQuestion.objects.get_ordered_questions()
+        assert len(questions) == 13
+
+        ordered = [
+            'public_and_open',
+            'open_identify_living',
+            'publishable',
+            'open_generate_new',
+            'closed_personal',
+            'open_publication',
+            'closed_identify_living',
+            'substantial_threat',
+            'no_reidentify_absolute',
+            'include_commercial',
+            'no_reidentify_strong',
+            'financial_low',
+            'sophisticated_attack',
+        ]
+        assert [q.name for q in questions] == ordered
+
+    def test_classify_questions_tier0(self):
+        insert_initial_questions(ClassificationQuestion)
+        q = ClassificationQuestion.objects.get_starting_question()
+        assert q.name == 'public_and_open'
+        q = q.answer_no()
+        assert q.name == 'publishable'
+        q = q.answer_yes()
+        assert q.name == 'open_publication'
+        tier = q.answer_yes()
+        assert tier == 0
+
+    def test_classify_questions_tier1(self):
+        insert_initial_questions(ClassificationQuestion)
+        q = ClassificationQuestion.objects.get_starting_question()
+        assert q.name == 'public_and_open'
+        q = q.answer_yes()
+        assert q.name == 'open_identify_living'
+        q = q.answer_yes()
+        assert q.name == 'open_generate_new'
+        q = q.answer_no()
+        assert q.name == 'open_publication'
+        tier = q.answer_no()
+        assert tier == 1
+
+    def test_classify_questions_tier2(self):
+        insert_initial_questions(ClassificationQuestion)
+        q = ClassificationQuestion.objects.get_starting_question()
+        assert q.name == 'public_and_open'
+        q = q.answer_no()
+        assert q.name == 'publishable'
+        q = q.answer_no()
+        assert q.name == 'closed_personal'
+        q = q.answer_yes()
+        assert q.name == 'closed_identify_living'
+        q = q.answer_no()
+        assert q.name == 'no_reidentify_absolute'
+        q = q.answer_no()
+        assert q.name == 'no_reidentify_strong'
+        tier = q.answer_yes()
+        assert tier == 2
+
+    def test_classify_questions_tier3(self):
+        insert_initial_questions(ClassificationQuestion)
+        q = ClassificationQuestion.objects.get_starting_question()
+        assert q.name == 'public_and_open'
+        q = q.answer_no()
+        assert q.name == 'publishable'
+        q = q.answer_no()
+        assert q.name == 'closed_personal'
+        q = q.answer_no()
+        assert q.name == 'include_commercial'
+        q = q.answer_yes()
+        assert q.name == 'financial_low'
+        q = q.answer_no()
+        assert q.name == 'sophisticated_attack'
+        tier = q.answer_no()
+        assert tier == 3
+
+    def test_classify_questions_tier4(self):
+        insert_initial_questions(ClassificationQuestion)
+        q = ClassificationQuestion.objects.get_starting_question()
+        assert q.name == 'public_and_open'
+        q = q.answer_yes()
+        assert q.name == 'open_identify_living'
+        q = q.answer_yes()
+        assert q.name == 'open_generate_new'
+        q = q.answer_yes()
+        assert q.name == 'substantial_threat'
+        tier = q.answer_yes()
+        assert tier == 4

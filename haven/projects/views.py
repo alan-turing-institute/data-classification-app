@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from braces.views import UserFormKwargsMixin
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
@@ -8,7 +10,8 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin
 from formtools.wizard.views import SessionWizardView
 
-from data.forms import Tier0Form, Tier1Form, Tier2Form, Tier3Form
+from data.forms import SingleQuestionForm
+from data.models import ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
 from identity.roles import UserRole
 
@@ -162,65 +165,13 @@ class ProjectCreateDataset(
         return reverse('projects:detail', args=[self.get_object().id])
 
 
-def _has_tier(wizard, previous_steps):
-    """
-    Have any of the previous steps yielded a 'tier' data field (i.e.
-    determined definitively which tier the data is?
-    """
-    return not any(
-        'tier' in (wizard.get_cleaned_data_for_step(step) or {})
-        for step in previous_steps
-    )
-
-
-def show_tier_1(wizard):
-    """
-    Determine whether to show the tier 1 questions form
-
-    If the tier0 form yielded a definitive result, then don't.
-    """
-    return _has_tier(wizard, ['tier0'])
-
-
-def show_tier_2(wizard):
-    """
-    Determine whether to show the tier 2 questions form
-
-    If the tier0 or tier1 forms yielded a definitive result, then don't.
-    """
-    return _has_tier(wizard, ['tier0', 'tier1'])
-
-
-def show_tier_3(wizard):
-    """
-    Determine whether to show the tier 3 questions form
-
-    If the tier0, tier1 or tier2 forms yielded a definitive result, then don't.
-    """
-    return _has_tier(wizard, ['tier0', 'tier1', 'tier2'])
-
-
 class ProjectClassifyData(
     LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, SessionWizardView
 ):
     template_name = 'projects/project_classify_data.html'
-
     form_list = [
-        ('tier0', Tier0Form),
-        ('tier1', Tier1Form),
-        ('tier2', Tier2Form),
-        ('tier3', Tier3Form),
+        ('_', SingleQuestionForm)
     ]
-
-    """
-    Form wizard control logic: determine whether to show a given form, based
-    on previous inputs.
-    """
-    condition_dict = {
-        'tier1': show_tier_1,
-        'tier2': show_tier_2,
-        'tier3': show_tier_3,
-    }
 
     def dispatch(self, *args, **kwargs):
         """
@@ -240,7 +191,39 @@ class ProjectClassifyData(
             if classification:
                 return self.render_result(classification)
 
+        self.form_list = OrderedDict()
+        self.condition_dict = {}
+        first_step = None
+        for q in ClassificationQuestion.objects.get_ordered_questions():
+            if not first_step:
+                first_step = q.name
+            # SessionWizardView doesn't support having a form_list that
+            # changes from step to step, so instead it needs to contain all
+            # the forms, and use the condition_dict to determine which to show
+            self.form_list[q.name] = SingleQuestionForm.subclass_for_question(q)
+            self.condition_dict[q.name] = self.show_step(q, first_step)
+
         return super().dispatch(*args, *kwargs)
+
+    def show_step(self, question, first_step):
+        def f(wizard):
+            # The condition needs to be true not just for the form to show, but
+            # also all the steps leading up to it. However, you can't just check
+            # whether a step already has data, because that interferes with the
+            # ability to go backwards, so you need to follow the chain of
+            # submitted forms
+            chain = []
+            next_step = first_step
+            while True:
+                chain.append(next_step)
+                data = self.get_cleaned_data_for_step(next_step)
+                if not data:
+                    break
+                next_step = data.get('next_step')
+                if not next_step:
+                    break
+            return question.name in chain
+        return f
 
     def test_func(self):
         role = self.get_project_participation_role()
@@ -277,3 +260,9 @@ class ProjectClassifyData(
             'other_classifications': other_classifications,
             'project_tier': self.object.tier,
         })
+
+    def get_form(self, *args, **kwargs):
+        # Both SessionWizardView and SingleProjectMixin define a get_form function
+        # SessionWizardView calls it a *lot*, and the definition in SingleProjectMixin
+        # results in a database call that we really don't need
+        return SessionWizardView.get_form(self, *args, **kwargs)
