@@ -76,7 +76,7 @@ class TestAddUserForm:
         form.instance.user = project_participant
         form.save()
 
-        assert project_participant.project_role(project) == ProjectRole.RESEARCHER
+        assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
 
     def test_cannot_add_restricted_project_role_combination(self, investigator):
         form = ProjectForUserInlineForm({

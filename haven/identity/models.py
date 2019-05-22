@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 
-from projects.roles import ProjectRole
+from projects.roles import ProjectRole, UserProjectPermissions
 from .managers import CustomUserManager
 
 from .roles import UserRole
@@ -119,13 +119,14 @@ class User(AbstractUser):
 
         :return: ProjectRole or None if user is not involved in project
         """
-        if ((self.is_superuser or
-             self.user_role is UserRole.SYSTEM_CONTROLLER or
-             self == project.created_by)):
-            return ProjectRole.PROJECT_ADMIN
-        else:
-            participant = self.get_participant(project)
-            return ProjectRole(participant.role) if participant else None
+
+        participant = self.get_participant(project)
+        project_role = ProjectRole(participant.role) if participant else None
+
+        is_project_admin = self.is_superuser or \
+            self.user_role is UserRole.SYSTEM_CONTROLLER or \
+            self == project.created_by
+        return UserProjectPermissions(project_role, is_project_admin)
 
     def project_participation_role(self, project):
         """

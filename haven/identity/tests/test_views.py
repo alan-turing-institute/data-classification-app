@@ -56,7 +56,6 @@ class TestCreateUser:
         assert response.status_code == 200
         user = User.objects.filter(email='testuser@example.com').first()
         assert user
-        assert user.project_role(project) == ProjectRole.RESEARCHER
         assert user.project_participation_role(project) == \
                ProjectRole.RESEARCHER
 
@@ -96,7 +95,7 @@ class TestEditUser:
                 'participant_set-0-role': 'researcher',
             }, follow=True)
         assert response.status_code == 200
-        assert project_participant.project_role(project) == ProjectRole.RESEARCHER
+        assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
 
     def test_remove_from_project(self, as_system_controller, researcher):
         project = researcher.project
@@ -113,7 +112,7 @@ class TestEditUser:
                 'participant_set-0-DELETE': 'on',
             }, follow=True)
         assert response.status_code == 200
-        assert user.project_role(project) is None
+        assert user.project_participation_role(project) is None
 
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
         response = as_project_participant.get('/users/%d/edit' % researcher.id)
