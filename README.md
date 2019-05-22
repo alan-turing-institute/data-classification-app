@@ -91,6 +91,8 @@ Python dependencies are managed via [`pip-tools`](https://pypi.org/project/pip-t
 
 Azure deployment requires you to configure an `.env` file, run a deployment script, and perform certain actions on the Azure Portal.
 
+To deploy a development instance at the ATI, you will need access to the Alan Turing Institute active directory (where the resource groups and apps will be created) and the Data Study Group Development active directory (where the app is registered with Azure and test users can be created).
+
 ### Register an app using the Azure Active Directory
 
 This step may not be required if your app was previously registered, because the registration will remain even if the webapp and resource group are deleted.
@@ -103,17 +105,17 @@ However, you could perform this step later as long as you update the variables o
  * Click View All Applications and check that a registration does not already exist for your webapp
  * Click New Application Registration
  * Choose a suitable application name (eg. DSH web management development)
- * Set the sign-on URL to the deployment URL eg. https://datasafehaven.azurewebsites.net/
- * Go to the Settings for this new registration
- * Under Reply URL add the authentication endpoint (you must include the trailing slash) eg. https://datasafehaven.azurewebsites.net/auth/complete/azuread-tenant-oauth2/
+ * Under Redirect URI add the authentication endpoint (you must include the trailing slash) eg. https://datasafehaven.azurewebsites.net/auth/complete/azuread-tenant-oauth2/
+ * Click Register
  * Under Required Permissions add the following permissions for Microsoft Graph:
    * Read directory data
    * Sign in and read user profile
    * Access directory as the signed in user
    * View users' email address
    * View users' basic profile
- * Under Keys, add a new Passwords called "App key". Copy the value into a suitable keyvault as you won't be able to read it later. You will need it for the AZUREAD_OAUTH2_SECRET parameter in the `.env` file below.
- * Note the Application ID which will be needed for AZUREAD_OAUTH2_KEY.
+ * Under Certificates and secrets add a new client secret called "App key". Copy the value into a suitable keyvault as you won't be able to read it later. You will need it for the AZUREAD_OAUTH2_SECRET parameter in the `.env` file below.
+ * Under Overview copy the Application ID which will be needed for AZUREAD_OAUTH2_KEY in the `.env` file below.
+ * Under Branding set the home page URL eg,. https://datasafehaven.azurewebsites.net/
 
 ### Configure your environment settings
 
