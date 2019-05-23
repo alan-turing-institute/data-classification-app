@@ -24,3 +24,5 @@ phonenumbers==8.10.1
 django-formtools==2.1
 
 openpyxl==2.6.1
+
+django-autocomplete-light==3.3.0
