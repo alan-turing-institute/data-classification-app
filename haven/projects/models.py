@@ -134,6 +134,11 @@ class Project(models.Model):
 
         return classification
 
+    def classification_for(self, user):
+        return self.classifications.filter(
+            user=user
+        )
+
     @property
     def has_tier(self):
         """Has this project's data been classified?"""

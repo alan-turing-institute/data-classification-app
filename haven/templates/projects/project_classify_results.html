@@ -9,6 +9,10 @@
 {% with classification.project as project %}
 <p>You ({{ classification.user }}, {{classification.user|project_participation_role:project}}) have classified this project as Tier {{ classification.tier }}</p>
 
+{% if not project.has_tier %}
+  <p><a class="btn btn-primary btn-lg" href="{% url 'projects:classify_delete' project.id %}">Delete My Classification</a></p>
+{% endif %}
+
 {% if other_classifications.exists %}
   <ul>
   {% for cl in other_classifications %}

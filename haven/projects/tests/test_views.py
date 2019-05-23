@@ -426,6 +426,27 @@ class TestProjectClassifyData:
 
         assert 'wizard' not in response.context
 
+    def test_delete_classification(self, client, as_project_participant, research_coordinator):
+        insert_initial_questions(ClassificationQuestion)
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(username=as_project_participant._user.username,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
+        project.classify_as(0, as_project_participant._user)
+
+        response = as_project_participant.get('/projects/%d/classify' % project.id)
+        assert b'Delete My Classification' in response.content
+
+        response = as_project_participant.get('/projects/%d/classify_delete' % project.id)
+        assert b'Delete Classification' in response.content
+
+        response = as_project_participant.post('/projects/%d/classify_delete' % project.id, {})
+
+        response = as_project_participant.get('/projects/%d/classify' % project.id)
+        assert 'wizard' in response.context
+        assert b'Delete My Classification' not in response.content
+
+
     def test_classify_as_tier_0(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
