@@ -143,22 +143,19 @@ class TestAddUserToProject:
         assert project.participant_set.count() == 1
         assert project.participant_set.first().user.username == project_participant.username
 
-    def test_add_user_without_domain_to_project(self, as_research_coordinator):
-        """Check that domain will not be added to entered username if the username exists as it is"""
+    def test_cancel_add_new_user_to_project(self, as_research_coordinator, project_participant):
 
         project = recipes.project.make(created_by=as_research_coordinator._user)
-
-        User.objects.create_user(username='newuser')
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser',
+            'username': project_participant.pk,
+            'cancel': 'Cancel',
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == 'newuser'
+        assert project.participant_set.count() == 0
 
     def test_add_user_without_domain_to_project(self, as_research_coordinator):
         """Check that domain will not be added to entered username if the username exists as it is"""

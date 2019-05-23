@@ -4,6 +4,7 @@ from braces.views import UserFormKwargsMixin
 from dal import autocomplete
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
@@ -120,6 +121,9 @@ class ProjectAddUser(
         return self.get_project_role().can_add_participants
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
         form = self.get_form()
         self.object = self.get_object()
         if form.is_valid():
