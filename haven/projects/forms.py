@@ -107,6 +107,7 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
     fk_name='user',
     extra=1,
     can_delete=True,
+    help_texts={'project': None, 'role': None},
 )
 
 
