@@ -91,6 +91,11 @@ class ProjectAddUser(
     template_name = 'projects/project_add_user.html'
     form_class = ProjectAddUserForm
 
+    def get_form_kwargs(self):
+        kwargs = super(ProjectAddUser, self).get_form_kwargs()
+        kwargs['project_id'] = self.kwargs['pk']
+        return kwargs
+
     def get_form(self):
         form = super().get_form()
 

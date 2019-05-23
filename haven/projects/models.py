@@ -1,11 +1,9 @@
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 
 from data.models import Dataset
 from data.tiers import TIER_CHOICES, Tier
 from identity.models import User
-from identity.remote import create_user
 
 from .managers import ProjectQuerySet
 from .roles import ProjectRole
@@ -34,24 +32,19 @@ class Project(models.Model):
         return self.name
 
     @transaction.atomic
-    def add_user(self, username, role, creator):
+    def add_user(self, user, role, creator):
         """
         Add user to this project
-        Creates user if they do not already exist
+        User must already exist in the database
 
-        :param username: username of user to add
+        :param user: user to add
         :param role: Role user will have on the project
         :param creator: `User` who is doing the adding
         """
-        user, _ = User.objects.get_or_create(
-            username=username,
-            defaults={
-                'created_by': creator,
-            }
-        )
 
-        if settings.USE_LDAP:
-            create_user(user)
+        # Verify if user already exists on project
+        if user.get_participant(self):
+            raise ValidationError("User is already on project")
 
         return Participant.objects.create(
             user=user,

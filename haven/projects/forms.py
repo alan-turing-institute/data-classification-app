@@ -1,10 +1,11 @@
 from braces.forms import UserKwargModelFormMixin
+from dal import autocomplete
 from django import forms
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
 from data.models import Dataset
+from django.urls import reverse
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
@@ -18,26 +19,49 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
         fields = ['name', 'description']
 
 
+class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
+    """Autocomplete field for adding users"""
+
+    def __init__(self, project_id=None):
+        """User choice should be restricted to users not yet in this project"""
+
+        if project_id:
+            autocomplete_url = reverse('projects:new_participant_autocomplete', kwargs={'pk': project_id})
+        else:
+            autocomplete_url = 'projects:new_participant_autocomplete/'
+
+        widget = autocomplete.ModelSelect2(
+            url=autocomplete_url,
+            attrs={
+                'data-placeholder': 'Search for user',
+            },
+        )
+        super().__init__(queryset=User.objects.all(), widget=widget)
+
+
 class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
-    username = forms.CharField(help_text='Username')
+    """Form template for adding participants to a project"""
+
+    def __init__(self, *args, **kwargs):
+        project_id = kwargs.pop('project_id')
+        super(ProjectAddUserForm, self).__init__(*args, **kwargs)
+
+        # Update user field with project ID
+        self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
+
+    username = ProjectUserAutocompleteChoiceField()
+
     role = forms.ChoiceField(
         choices=ProjectRole.choices(),
         help_text='Role on this project'
     )
 
+    class Meta:
+        model = User
+        fields = ('__all__')
+
     def clean_username(self):
         username = self.cleaned_data['username']
-
-        # Allow adding username without the domain
-        if '@' not in username:
-            test_username = '{username}@{domain}'.format(
-                username=username,
-                domain=settings.SAFE_HAVEN_DOMAIN
-            )
-            # If username does not exist but username@domain does, use that
-            if not User.objects.filter(username=username).exists() \
-                    and User.objects.filter(username=test_username).exists():
-                username = test_username
 
         # Verify if user already exists on project
         if self.project.participant_set.filter(
@@ -55,8 +79,8 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
     def save(self, **kwargs):
         role = self.cleaned_data['role']
-        username = self.cleaned_data['username']
-        return self.project.add_user(username, role, self.user)
+        user = self.cleaned_data['username']
+        return self.project.add_user(user, role, self.user)
 
 
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
