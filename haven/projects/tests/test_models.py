@@ -8,33 +8,18 @@ from projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestProject:
-    def test_add_new_user(self, research_coordinator):
+    def test_add_new_user(self, research_coordinator, project_participant):
         project = recipes.project.make()
 
         part = project.add_user(
-            'newuser',
+            project_participant,
             ProjectRole.RESEARCHER.value,
             research_coordinator
         )
 
         assert project.participant_set.count() == 1
         assert project.participant_set.first() == part
-        assert part.user.username == 'newuser'
-        assert part.role == 'researcher'
-        assert part.created_by == research_coordinator
-
-    def test_add_existing_user(self, research_coordinator, project_participant):
-        project = recipes.project.make()
-
-        part = project.add_user(
-            project_participant.username,
-            ProjectRole.RESEARCHER.value,
-            research_coordinator
-        )
-
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first() == part
-        assert part.user == project_participant
+        assert part.user.username == 'project_participant@example.com'
         assert part.role == 'researcher'
         assert part.created_by == research_coordinator
 

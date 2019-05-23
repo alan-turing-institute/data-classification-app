@@ -1,6 +1,7 @@
 import pytest
 
 from core import recipes
+from identity.models import User
 from projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
 from projects.roles import ProjectRole
 
@@ -12,8 +13,8 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser',
-        }, user=research_coordinator)
+            'username': 'some_unknown_user',
+        }, user=research_coordinator, project_id=project.pk)
         form.project = project
         assert not form.is_valid()
 
@@ -22,8 +23,8 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.username,
-        }, user=research_coordinator)
+            'username': project_participant.pk,
+        }, user=research_coordinator, project_id=project.pk)
         form.project = project
 
         assert form.is_valid()
@@ -40,8 +41,8 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.INVESTIGATOR.value,
-            'username': project_participant.username,
-        }, user=research_coordinator)
+            'username': project_participant.pk,
+        }, user=research_coordinator, project_id=project.pk)
         form.project = project
 
         assert not form.is_valid()

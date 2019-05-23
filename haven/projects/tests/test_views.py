@@ -129,20 +129,19 @@ class TestAddUserToProject:
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_add_user_to_project(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_add_new_user_to_project(self, as_research_coordinator, project_participant):
 
-        User.objects.create_user(username='newuser@example.com')
+        project = recipes.project.make(created_by=as_research_coordinator._user)
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser@example.com',
+            'username': project_participant.pk,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
         assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == 'newuser@example.com'
+        assert project.participant_set.first().user.username == project_participant.username
 
     def test_add_user_without_domain_to_project(self, as_research_coordinator):
         """Check that domain will not be added to entered username if the username exists as it is"""
@@ -161,33 +160,32 @@ class TestAddUserToProject:
         assert project.participant_set.count() == 1
         assert project.participant_set.first().user.username == 'newuser'
 
-    def test_add_user_to_project_with_autofill_domain(self, as_research_coordinator):
-        """Check that the domain will be added to the username entered"""
+    def test_add_user_without_domain_to_project(self, as_research_coordinator):
+        """Check that domain will not be added to entered username if the username exists as it is"""
 
         project = recipes.project.make(created_by=as_research_coordinator._user)
 
-        User.objects.create_user(username='newuser@example.com')
+        new_user = User.objects.create_user(username='newuser')
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser',
+            'username': new_user.pk,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
         assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == 'newuser@example.com'
+        assert project.participant_set.first().user.username == 'newuser'
 
-    def test_cannot_add_existing_user_to_project(self, as_research_coordinator):
+    def test_cannot_add_existing_user_to_project(self, as_research_coordinator, project_participant):
         project = recipes.project.make(created_by=as_research_coordinator._user)
 
-        project_participant = User.objects.create_user(username='newuser@example.com')
         project.add_user(project_participant, ProjectRole.RESEARCHER, as_research_coordinator._user)
         assert project.participant_set.count() == 1
 
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser',
+            'username': project_participant.pk,
         })
 
         assert response.status_code == 200
@@ -199,7 +197,7 @@ class TestAddUserToProject:
 
         response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'newuser',
+            'username': 12345,
         })
 
         assert response.status_code == 200
@@ -228,13 +226,13 @@ class TestAddUserToProject:
         response = client.post('/projects/%d/participants/add' % researcher.project.id)
         assert response.status_code == 403
 
-    def test_restricts_creation_based_on_role(self, client, investigator):
+    def test_restricts_creation_based_on_role(self, client, investigator, researcher):
         # An investigator cannot create another investigator on the project
         client.force_login(investigator.user)
         response = client.post(
             '/projects/%d/participants/add' % investigator.project.id,
             {
-                'username': 'newuser',
+                'username': researcher.pk,
                 'role': ProjectRole.INVESTIGATOR.value,
             })
 
@@ -381,7 +379,7 @@ class TestProjectClassifyData:
     def test_view_page(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -429,7 +427,7 @@ class TestProjectClassifyData:
     def test_delete_classification(self, client, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
         project.classify_as(0, as_project_participant._user)
@@ -450,7 +448,7 @@ class TestProjectClassifyData:
     def test_classify_as_tier_0(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -479,7 +477,7 @@ class TestProjectClassifyData:
     def test_classify_as_tier_1(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -512,7 +510,7 @@ class TestProjectClassifyData:
     def test_classify_as_tier_2(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -567,7 +565,7 @@ class TestProjectClassifyData:
     def test_classify_as_tier_3(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -603,7 +601,7 @@ class TestProjectClassifyData:
     def test_classify_as_tier_4(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
@@ -650,7 +648,7 @@ class TestProjectClassifyData:
     def test_classify_backwards(self, as_project_participant, research_coordinator):
         insert_initial_questions(ClassificationQuestion)
         project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(username=as_project_participant._user.username,
+        project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=research_coordinator)
 
