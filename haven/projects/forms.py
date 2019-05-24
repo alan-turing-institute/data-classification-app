@@ -90,3 +90,7 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = Dataset
         fields = ('name', 'description')
+
+
+class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+    pass

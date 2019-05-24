@@ -15,7 +15,12 @@ from data.models import ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
 from identity.roles import UserRole
 
-from .forms import ProjectAddDatasetForm, ProjectAddUserForm, ProjectForm
+from .forms import (
+    ProjectAddDatasetForm,
+    ProjectAddUserForm,
+    ProjectClassifyDeleteForm,
+    ProjectForm,
+)
 from .models import ClassificationOpinion, Participant, Project
 from .roles import ProjectRole
 
@@ -265,3 +270,31 @@ class ProjectClassifyData(
         # SessionWizardView calls it a *lot*, and the definition in SingleProjectMixin
         # results in a database call that we really don't need
         return SessionWizardView.get_form(self, *args, **kwargs)
+
+
+class ProjectClassifyDelete(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_classify_delete.html'
+    form_class = ProjectClassifyDeleteForm
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            self.object.classification_for(self.request.user).delete()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def test_func(self):
+        role = self.get_project_role()
+        if not role or not role.can_classify_data:
+            return False
+        self.object = self.get_object()
+        if self.object.has_tier:
+            return False
+        return self.object.classification_for(self.request.user).exists()
+
+    def get_success_url(self):
+        return reverse('projects:detail', args=[self.object.id])

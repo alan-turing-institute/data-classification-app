@@ -44,4 +44,10 @@ urlpatterns = [
         views.ProjectClassifyData.as_view(),
         name='classify_data'
     ),
+
+    path(
+        '<int:pk>/classify_delete',
+        views.ProjectClassifyDelete.as_view(),
+        name='classify_delete'
+    ),
 ]
