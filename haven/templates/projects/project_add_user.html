@@ -13,9 +13,7 @@
 <form method="POST">
   {% csrf_token %}
   {{ form.media }}
-  {{ form|crispy }}
-  <button type="submit" class="btn btn-success">Add User</button>
-  <button type="submit" class="btn btn-secondary" name="cancel" value="Cancel" formnovalidate='formnovalidate'/>Cancel</button>
+  {% crispy form %}
 </form>
 
 {% endblock content %}

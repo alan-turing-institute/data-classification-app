@@ -1,4 +1,6 @@
 from braces.forms import UserKwargModelFormMixin
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 from dal import autocomplete
 from django import forms
 from django.core.exceptions import ValidationError
@@ -48,6 +50,14 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
         # Update user field with project ID
         self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
+
+    # Use crispy FormHelper to add submit and cancel buttons
+    helper = FormHelper()
+    helper.add_input(Submit('submit', 'Add user'))
+    helper.add_input(Submit('cancel', 'Cancel',
+                                 css_class='btn-secondary',
+                                 formnovalidate='formnovalidate'))
+    helper.form_method = 'POST'
 
     username = ProjectUserAutocompleteChoiceField()
 
