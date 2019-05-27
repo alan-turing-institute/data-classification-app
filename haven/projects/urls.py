@@ -50,4 +50,9 @@ urlpatterns = [
         views.ProjectClassifyDelete.as_view(),
         name='classify_delete'
     ),
+
+    path('<int:pk>/new_participant_autocomplete/',
+         views.NewParticipantAutocomplete.as_view(),
+         name='new_participant_autocomplete'
+    ),
 ]

@@ -7,9 +7,7 @@
 <p>Please confirm below if you would like to delete your classification.</p>
 <form method="POST">
   {% csrf_token %}
-  {{ form|crispy }}
-  <a href="{{ view.get_success_url }}" class="btn btn-secondary">Cancel</a>
-  <button type="submit" class="btn btn-danger">Delete Classification</button>
+  {% crispy form %}
 </form>
 
 {% endblock content %}

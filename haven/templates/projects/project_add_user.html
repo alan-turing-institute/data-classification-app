@@ -10,13 +10,11 @@
 {{ project.description }}
 </p>
 
-<div class="btn-group my-3" role="group">
-  <form method="POST">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-success">Add User</button>
-  </form>
-</div>
+<form method="POST">
+  {% csrf_token %}
+  {{ form.media }}
+  {% crispy form %}
+</form>
 
 {% endblock content %}
 

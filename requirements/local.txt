@@ -18,6 +18,7 @@ coverage==4.5.2
 cryptography==2.4.1
 decorator==4.3.0          # via ipython, traitlets
 defusedxml==0.5.0
+django-autocomplete-light==3.3.0
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
