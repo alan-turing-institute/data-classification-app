@@ -21,7 +21,4 @@ class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
     def save(self, **kwargs):
         self.instance.generate_username()
 
-        if settings.USE_LDAP:
-            create_user(self.instance)
-
         return super().save(**kwargs)
