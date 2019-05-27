@@ -291,6 +291,9 @@ class ProjectClassifyDelete(
     form_class = ProjectClassifyDeleteForm
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
         form = self.get_form()
         if form.is_valid():
             self.object.classification_for(self.request.user).delete()

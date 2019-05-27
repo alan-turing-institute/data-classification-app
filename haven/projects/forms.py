@@ -128,4 +128,11 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
 
 
 class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
-    pass
+    # Static crispy form helper for adding cancel and delete buttons
+    helper = FormHelper()
+    helper.add_input(Submit('cancel', 'Cancel',
+                            css_class='btn-secondary',
+                            formnovalidate='formnovalidate'))
+    helper.add_input(Submit('submit', 'Delete Classification',
+                            css_class='btn-danger'))
+    helper.form_method = 'POST'
