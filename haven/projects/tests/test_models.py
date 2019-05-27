@@ -3,6 +3,8 @@ import pytest
 from core import recipes
 from data.classification import insert_initial_questions
 from data.models import ClassificationQuestion
+from projects.models import Policy, PolicyAssignment, PolicyGroup
+from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
 
 
@@ -188,3 +190,128 @@ class TestProject:
         assert q.name == 'substantial_threat'
         tier = q.answer_yes()
         assert tier == 4
+
+    def test_project_policy_tier0(self, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(0)
+        assert project.has_tier
+
+        expected = [
+            ['tier', 'tier_0'],
+            ['mirror', 'mirror_open'],
+            ['inbound', 'inbound_open'],
+            ['outbound', 'outbound_open'],
+            ['device', 'device_open'],
+            ['physical', 'physical_open'],
+            ['user', 'user_open'],
+            ['connection', 'connection_ssh'],
+            ['internet', 'internet_allowed'],
+            ['software', 'software_open'],
+            ['ingress', 'ingress_open'],
+            ['copy', 'copy_allowed'],
+            ['ref_class', 'ref_class_open'],
+            ['ref_reclass', 'ref_reclass_open'],
+            ['egress', 'egress_allowed'],
+        ]
+        table = [[p.policy.group.name, p.policy.name] for p in project.get_policies()]
+        assert table == expected
+
+    def test_project_policy_tier1(self, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(1)
+        assert project.has_tier
+
+        expected = [
+            ['tier', 'tier_1'],
+            ['mirror', 'mirror_open'],
+            ['inbound', 'inbound_open'],
+            ['outbound', 'outbound_open'],
+            ['device', 'device_open'],
+            ['physical', 'physical_open'],
+            ['user', 'user_open'],
+            ['connection', 'connection_ssh'],
+            ['internet', 'internet_allowed'],
+            ['software', 'software_open'],
+            ['ingress', 'ingress_open'],
+            ['copy', 'copy_allowed'],
+            ['ref_class', 'ref_class_open'],
+            ['ref_reclass', 'ref_reclass_open'],
+            ['egress', 'egress_allowed'],
+        ]
+        table = [[p.policy.group.name, p.policy.name] for p in project.get_policies()]
+        assert table == expected
+
+    def test_project_policy_tier2(self, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(2)
+        assert project.has_tier
+
+        expected = [
+            ['tier', 'tier_2'],
+            ['mirror', 'mirror_delay'],
+            ['inbound', 'inbound_institution'],
+            ['outbound', 'outbound_restricted'],
+            ['device', 'device_open'],
+            ['physical', 'physical_open'],
+            ['user', 'user_open'],
+            ['connection', 'connection_rdp'],
+            ['internet', 'internet_forbidden'],
+            ['software', 'software_airlock'],
+            ['ingress', 'ingress_open'],
+            ['copy', 'copy_restricted'],
+            ['ref_class', 'ref_class_required'],
+            ['ref_reclass', 'ref_reclass_open'],
+            ['egress', 'egress_allowed'],
+        ]
+        table = [[p.policy.group.name, p.policy.name] for p in project.get_policies()]
+        assert table == expected
+
+    def test_project_policy_tier3(self, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(3)
+        assert project.has_tier
+
+        expected = [
+            ['tier', 'tier_3'],
+            ['mirror', 'mirror_whitelist'],
+            ['inbound', 'inbound_restricted'],
+            ['outbound', 'outbound_restricted'],
+            ['device', 'device_managed'],
+            ['physical', 'physical_medium'],
+            ['user', 'user_signoff'],
+            ['connection', 'connection_rdp'],
+            ['internet', 'internet_forbidden'],
+            ['software', 'software_signoff'],
+            ['ingress', 'ingress_secure'],
+            ['copy', 'copy_forbidden'],
+            ['ref_class', 'ref_class_required'],
+            ['ref_reclass', 'ref_reclass_required'],
+            ['egress', 'egress_signoff'],
+        ]
+        table = [[p.policy.group.name, p.policy.name] for p in project.get_policies()]
+        assert table == expected
+
+    def test_project_policy_tier4(self, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(4)
+        assert project.has_tier
+
+        expected = [
+            ['tier', 'tier_4'],
+            ['mirror', 'mirror_whitelist'],
+            ['inbound', 'inbound_restricted'],
+            ['outbound', 'outbound_restricted'],
+            ['device', 'device_managed'],
+            ['physical', 'physical_high'],
+            ['user', 'user_signoff'],
+            ['connection', 'connection_rdp'],
+            ['internet', 'internet_forbidden'],
+            ['software', 'software_signoff'],
+            ['ingress', 'ingress_secure'],
+            ['copy', 'copy_forbidden'],
+            ['ref_class', 'ref_class_required'],
+            ['ref_reclass', 'ref_reclass_required'],
+            ['egress', 'egress_signoff'],
+        ]
+        table = [[p.policy.group.name, p.policy.name] for p in project.get_policies()]
+        assert table == expected

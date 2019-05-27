@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load django_tables2 %}
 
 {% block page_title %}{{ project.name }}{% endblock %}
 {% block h1_title %}{{ project.name }}{% endblock %}
@@ -34,6 +35,10 @@ Role: {{ participant.get_role_display }}
   {% endif %}
 </div>
 
+{% if project.has_tier %}
+  <h2>Project Policies</h2>
+  {% render_table table %}
+{% endif %}
 
 {% endblock content %}
 

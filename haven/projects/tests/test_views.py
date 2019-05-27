@@ -4,7 +4,8 @@ from core import recipes
 from data.classification import insert_initial_questions
 from data.models import ClassificationQuestion
 from identity.models import User
-from projects.models import Project
+from projects.models import Policy, PolicyAssignment, PolicyGroup, Project
+from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
 
 
@@ -110,6 +111,18 @@ class TestViewProject:
 
         assert response.status_code == 200
         assert response.context['project'] == project
+
+    def test_view_project_policy_tier0(self, as_research_coordinator, classified_project):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        project = classified_project(0)
+
+        response = as_research_coordinator.get('/projects/%d' % project.id)
+
+        assert response.status_code == 200
+        table = list(response.context['table'].as_values())
+        assert len(table) == 16
+        assert table[0] == ['Policy', 'Description']
+        assert table[1] == ['Tier', '0']
 
 
 @pytest.mark.django_db
