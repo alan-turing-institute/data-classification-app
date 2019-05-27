@@ -1,8 +1,10 @@
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
+from dal import autocomplete
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
@@ -13,6 +15,7 @@ from formtools.wizard.views import SessionWizardView
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
+from identity.models import User
 from identity.roles import UserRole
 
 from .forms import (
@@ -89,6 +92,11 @@ class ProjectAddUser(
     template_name = 'projects/project_add_user.html'
     form_class = ProjectAddUserForm
 
+    def get_form_kwargs(self):
+        kwargs = super(ProjectAddUser, self).get_form_kwargs()
+        kwargs['project_id'] = self.kwargs['pk']
+        return kwargs
+
     def get_form(self):
         form = super().get_form()
 
@@ -113,6 +121,9 @@ class ProjectAddUser(
         return self.get_project_role().can_add_participants
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
         form = self.get_form()
         self.object = self.get_object()
         if form.is_valid():
@@ -280,6 +291,9 @@ class ProjectClassifyDelete(
     form_class = ProjectClassifyDeleteForm
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
         form = self.get_form()
         if form.is_valid():
             self.object.classification_for(self.request.user).delete()
@@ -298,3 +312,33 @@ class ProjectClassifyDelete(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.object.id])
+
+
+class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
+    """
+    Autocomplete username from list of Users who are not currently participants in this project
+    """
+    def get_queryset(self):
+
+        # Filter results depending on user role permissions
+        if not self.request.user.user_role.can_view_all_users:
+            return User.objects.none()
+
+        if 'pk' in self.kwargs:
+            # Autocomplete suggestions are users not already participating in this project
+            project_id = self.kwargs['pk']
+            existing_users = Project.objects.get(pk=project_id).participant_set.values('user')
+            qs = User.objects.exclude(pk__in=existing_users)
+        else:
+            qs = User.objects.all()
+
+        if self.q:
+            qs = qs.filter(username__istartswith=self.q) | \
+                 qs.filter(first_name__istartswith=self.q) | \
+                 qs.filter(last_name__istartswith=self.q)
+
+        return qs
+
+    def get_result_label(self, user):
+        return "{full_name} ({username})".format(
+            full_name=user.get_full_name(), username=user.username)
