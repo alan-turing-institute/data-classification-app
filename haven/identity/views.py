@@ -2,6 +2,7 @@ import csv
 
 import openpyxl
 from braces.views import UserFormKwargsMixin
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse
@@ -193,8 +194,9 @@ def csv_users(lines):
         yield User(
             first_name=row['First Name'],
             last_name=row['Last Name'],
-            mobile=PhoneNumber.from_string(row['Mobile Phone'],
-                                           region='GB'),
+            mobile=PhoneNumber.from_string(
+                row['Mobile Phone'],
+                region=settings.PHONENUMBER_DEFAULT_REGION),
             email=row['Email']
         )
 
@@ -215,7 +217,8 @@ def xlsx_users(upload_file):
             yield User(
                 first_name=row_dict['First Name'],
                 last_name=row_dict['Last Name'],
-                mobile=PhoneNumber.from_string(row_dict['Mobile Phone'],
-                                               region='GB'),
+                mobile=PhoneNumber.from_string(
+                    row_dict['Mobile Phone'],
+                    region=settings.PHONENUMBER_DEFAULT_REGION),
                 email=row_dict['Email']
             )

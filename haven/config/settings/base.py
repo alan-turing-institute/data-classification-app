@@ -212,3 +212,5 @@ if EMAIL_HOST:
 DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')
 
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/error/'
+
+PHONENUMBER_DEFAULT_REGION = "GB"
