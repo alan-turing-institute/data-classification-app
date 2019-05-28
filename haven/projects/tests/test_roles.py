@@ -19,22 +19,26 @@ class TestProjectRoleAddParticipants:
 class TestProjectRoleAssignableRoles:
     def test_project_admin_can_assign_any_roles(self):
         # Use RESEARCHER because we are verifying that PROJECT_ADMIN overrides researchers with lower permissions
-        assert UserProjectPermissions(ProjectRole.RESEARCHER.value, True).can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
-        assert UserProjectPermissions(ProjectRole.RESEARCHER.value, True).can_assign_role(ProjectRole.INVESTIGATOR)
-        assert UserProjectPermissions(ProjectRole.RESEARCHER.value, True).can_assign_role(ProjectRole.RESEARCHER)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER.value, True)
+        assert permissions.can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
+        assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
+        assert permissions.can_assign_role(ProjectRole.RESEARCHER)
 
     def test_research_coordinator_can_assign_any_roles(self):
-        assert UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False).can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
-        assert UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False).can_assign_role(ProjectRole.INVESTIGATOR)
-        assert UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False).can_assign_role(ProjectRole.RESEARCHER)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False)
+        assert permissions.can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
+        assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
+        assert permissions.can_assign_role(ProjectRole.RESEARCHER)
 
     def test_investigator_can_only_assign_researchers(self):
-        assert UserProjectPermissions(ProjectRole.INVESTIGATOR, False).can_assign_role(ProjectRole.RESEARCHER)
-        assert not UserProjectPermissions(ProjectRole.INVESTIGATOR, False).can_assign_role(ProjectRole.INVESTIGATOR)
+        permissions = UserProjectPermissions(ProjectRole.INVESTIGATOR, False)
+        assert permissions.can_assign_role(ProjectRole.RESEARCHER)
+        assert not permissions.can_assign_role(ProjectRole.INVESTIGATOR)
 
     def test_researcher_cannot_assign_roles(self):
-        assert UserProjectPermissions(ProjectRole.RESEARCHER.value, False).assignable_roles == []
-        assert not UserProjectPermissions(ProjectRole.RESEARCHER.value, False).can_assign_role(ProjectRole.RESEARCHER)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER.value, False)
+        assert permissions.assignable_roles == []
+        assert not permissions.can_assign_role(ProjectRole.RESEARCHER)
 
 
 class TestProjectRoleListParticipants:
