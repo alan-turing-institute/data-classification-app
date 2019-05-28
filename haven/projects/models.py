@@ -137,6 +137,12 @@ class Project(models.Model):
         """Has this project's data been classified?"""
         return self.tier is not None
 
+    def get_policies(self):
+        if not self.has_tier:
+            return []
+
+        return PolicyAssignment.objects.filter(tier=self.tier)
+
 
 def validate_role(role):
     """Validator for assigning a participant's role in a project"""
@@ -193,3 +199,19 @@ class ClassificationOpinion(models.Model):
 
     def __str__(self):
         return f'{self.user}: {self.project} (tier {self.tier})'
+
+
+class PolicyGroup(models.Model):
+    name = models.CharField(max_length=256)
+    description = models.TextField()
+
+
+class Policy(models.Model):
+    name = models.CharField(max_length=256)
+    group = models.ForeignKey(PolicyGroup, on_delete=models.PROTECT)
+    description = models.TextField()
+
+
+class PolicyAssignment(models.Model):
+    tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
+    policy = models.ForeignKey(Policy, on_delete=models.PROTECT)
