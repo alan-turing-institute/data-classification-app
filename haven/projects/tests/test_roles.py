@@ -15,6 +15,9 @@ class TestProjectRoleAddParticipants:
     def test_researcher_cannot_add_participants(self):
         assert not UserProjectPermissions(ProjectRole.RESEARCHER, False).can_add_participants
 
+    def test_referee_cannot_add_participants(self):
+        assert not UserProjectPermissions(ProjectRole.REFEREE, False).can_add_participants
+
 
 class TestProjectRoleAssignableRoles:
     def test_project_admin_can_assign_any_roles(self):
@@ -23,22 +26,30 @@ class TestProjectRoleAssignableRoles:
         assert permissions.can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
+        assert permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_research_coordinator_can_assign_any_roles(self):
         permissions = UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False)
         assert permissions.can_assign_role(ProjectRole.RESEARCH_COORDINATOR)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
+        assert permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_investigator_can_only_assign_researchers(self):
         permissions = UserProjectPermissions(ProjectRole.INVESTIGATOR, False)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert not permissions.can_assign_role(ProjectRole.INVESTIGATOR)
+        assert not permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_researcher_cannot_assign_roles(self):
         permissions = UserProjectPermissions(ProjectRole.RESEARCHER.value, False)
         assert permissions.assignable_roles == []
         assert not permissions.can_assign_role(ProjectRole.RESEARCHER)
+
+    def test_referee_cannot_assign_roles(self):
+        permissions = UserProjectPermissions(ProjectRole.REFEREE.value, False)
+        assert permissions.assignable_roles == []
+        assert not permissions.can_assign_role(ProjectRole.REFEREE)
 
 
 class TestProjectRoleListParticipants:
@@ -53,6 +64,9 @@ class TestProjectRoleListParticipants:
 
     def test_researcher_cannot_list_participants(self):
         assert not UserProjectPermissions(ProjectRole.RESEARCHER, False).can_list_participants
+
+    def test_referee_cannot_list_participants(self):
+        assert not UserProjectPermissions(ProjectRole.REFEREE, False).can_list_participants
 
 
 class TestIsValidAssignableParticipantRole:
