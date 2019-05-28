@@ -1,6 +1,7 @@
 import pytest
 
 from core import recipes
+from data.tiers import Tier
 from identity.models import User
 from identity.roles import UserRole
 from projects.roles import ProjectRole
@@ -82,6 +83,11 @@ def researcher():
     return recipes.participant.make(role=ProjectRole.RESEARCHER.value)
 
 
+@pytest.fixture
+def referee():
+    return recipes.participant.make(role=ProjectRole.REFEREE.value)
+
+
 def client_login(client, user):
     client.force_login(user)
     client._user = user
@@ -111,3 +117,24 @@ def as_data_provider_representative(client, data_provider_representative):
 @pytest.fixture
 def as_project_participant(client, project_participant):
     return client_login(client, project_participant)
+
+
+@pytest.fixture
+def classified_project(research_coordinator, investigator, data_provider_representative, referee):
+    def _classified_project(tier):
+        project = recipes.project.make(created_by=research_coordinator)
+        project.add_user(user=investigator.user,
+                         role=ProjectRole.INVESTIGATOR.value,
+                         creator=research_coordinator)
+        project.add_user(user=data_provider_representative.user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=research_coordinator)
+        project.classify_as(tier, investigator.user)
+        project.classify_as(tier, data_provider_representative.user)
+        if tier >= Tier.TWO:
+            project.add_user(user=referee.user,
+                             role=ProjectRole.REFEREE.value,
+                             creator=research_coordinator)
+            project.classify_as(tier, referee.user)
+        return project
+    return _classified_project

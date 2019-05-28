@@ -1,3 +1,6 @@
+from data.tiers import Tier
+
+
 def insert_question(model_cls, **kwargs):
     q = model_cls(**kwargs)
     q.full_clean()
@@ -17,23 +20,23 @@ def insert_initial_questions(model_cls):
                   'well-resourced and determined threats, such as highly '
                   'capable serious organised crime groups and state '
                   'actors?'),
-        yes_tier=4,
-        no_tier=3,
+        yes_tier=Tier.FOUR,
+        no_tier=Tier.THREE,
     )
     q12 = insert_question(
         model_cls,
         name='no_reidentify_strong',
         question=('Is your confidence that it is not possible to '
                   're-identify individuals from the data strong?'),
-        yes_tier=2,
-        no_tier=3,
+        yes_tier=Tier.TWO,
+        no_tier=Tier.THREE,
     )
     q11 = insert_question(
         model_cls,
         name='financial_low',
         question=('Are the legal or financial consequences of disclosure '
                   'low?'),
-        yes_tier=2,
+        yes_tier=Tier.TWO,
         no_question=q13,
     )
     q9 = insert_question(
@@ -42,7 +45,7 @@ def insert_initial_questions(model_cls):
         question=('Will you be working with commercial-in-confidence '
                   'information or third-party intellectual property?'),
         yes_question=q11,
-        no_tier=1,
+        no_tier=Tier.ONE,
     )
     q10 = insert_question(
         model_cls,
@@ -57,8 +60,8 @@ def insert_initial_questions(model_cls):
         name='open_publication',
         question=('Will you be working in an open, continuously published '
                   'manner?'),
-        yes_tier=0,
-        no_tier=1
+        yes_tier=Tier.ZERO,
+        no_tier=Tier.ONE
     )
     q7 = insert_question(
         model_cls,
@@ -66,8 +69,8 @@ def insert_initial_questions(model_cls):
         question=('Would disclosure pose a substantial threat to the '
                   'personal safety, health or security of the data '
                   'subjects?'),
-        yes_tier=4,
-        no_tier=3,
+        yes_tier=Tier.FOUR,
+        no_tier=Tier.THREE,
     )
     q6 = insert_question(
         model_cls,

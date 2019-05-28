@@ -57,6 +57,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
+    'django_tables2',
     'social_django',
 ]
 
