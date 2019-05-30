@@ -22,6 +22,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:pk>/participants/edit',
+        views.EditProjectListParticipants.as_view(),
+        name='edit_participants'
+    ),
+
+    path(
         '<int:pk>/participants/add',
         views.ProjectAddUser.as_view(),
         name='add_user'

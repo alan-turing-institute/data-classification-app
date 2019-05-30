@@ -99,6 +99,14 @@ class UserProjectPermissions:
         ]
 
     @property
+    def can_edit_participants(self):
+        """Is this role able to edit participants?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
+        ]
+
+    @property
     def can_classify_data(self):
         """Is this role able to perform a data classification?"""
 

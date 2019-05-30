@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
+from crispy_forms.layout import Submit
 from dal import autocomplete
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import OuterRef, Subquery
@@ -15,9 +16,12 @@ from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
+from core.forms import InlineFormSetHelper
 from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
+from projects.forms import UsersForProjectInlineFormSet, \
+    ParticipantInlineFormSetHelper
 
 from .forms import (
     ProjectAddDatasetForm,
@@ -128,7 +132,7 @@ class ProjectAddUser(
             return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
-        return self.get_project_role().can_add_participants
+        return self.get_project_role().can_add_participants and self.request.user.user_role.can_view_all_users
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -153,7 +157,68 @@ class ProjectListParticipants(
 
     def get_context_data(self, **kwargs):
         kwargs['ordered_participants'] = self.get_object().ordered_participant_set()
+        kwargs.update({"accessing_user": self.request.user})
         return super().get_context_data(**kwargs)
+
+
+class EditProjectListParticipants(
+    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
+):
+    def __init__(self, *args, **kwargs):
+        super(EditProjectListParticipants, self).__init__(*args, **kwargs)
+
+    template_name = 'projects/edit_participant_list.html'
+
+    def get_success_url(self):
+        return reverse('projects:list_participants', args=[self.get_object().id])
+
+    def test_func(self):
+        return self.get_project_role().can_edit_participants and self.request.user.user_role.can_view_all_users
+
+    def get_context_data(self, **kwargs):
+        helper = ParticipantInlineFormSetHelper()
+        # Use crispy FormHelper to add submit and cancel buttons
+        helper.add_input(Submit('submit', 'Save Changes'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+        helper.form_method = 'POST'
+        kwargs['helper'] = helper
+
+        kwargs['participants'] = self.get_object().ordered_participant_set()
+        kwargs['project'] = self.get_object()
+        if 'formset' not in kwargs:
+            kwargs['formset'] = self.get_formset()
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        form_kwargs = {'user': self.request.user}
+        if self.request.method == 'POST':
+            return UsersForProjectInlineFormSet(
+                self.request.POST,
+                instance=self.get_object(),
+                form_kwargs=form_kwargs,
+                queryset=self.get_object().ordered_participant_set()
+            )
+        else:
+            return UsersForProjectInlineFormSet(
+                instance=self.get_object(),
+                form_kwargs=form_kwargs,
+                queryset=self.get_object().ordered_participant_set()
+            )
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
+        formset = self.get_formset()
+        self.object = self.get_object()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data(formset=formset))
 
 
 class ProjectListDatasets(
