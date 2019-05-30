@@ -153,6 +153,7 @@ class ProjectListParticipants(
 
     def get_context_data(self, **kwargs):
         kwargs['participants'] = self.get_object().participant_set.all()
+        kwargs['ordered_role_list'] = ProjectRole.ordered_display_role_list()
         return super().get_context_data(**kwargs)
 
 
