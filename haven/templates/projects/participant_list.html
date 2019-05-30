@@ -7,9 +7,8 @@
 {% block content %}
 <table class="table table-sm">
   <tbody>
-    {% if participants %}
-      {% for role in ordered_role_list %}
-        {% for participant in participants|has_role:role %}
+    {% if ordered_participants %}
+      {% for participant in ordered_participants %}
           <tr>
             <td>
 
@@ -31,7 +30,6 @@
                 <br/>
                 by {{ participant.created_by }}</small></td>
           </tr>
-        {% endfor %}
       {% endfor %}
     {% endif %}
   </tbody>

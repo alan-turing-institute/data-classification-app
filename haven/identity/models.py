@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Case, When
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -65,6 +66,14 @@ class User(AbstractUser):
 
     # Use a custom UserManager with our own QuerySet methods
     objects = CustomUserManager()
+
+    @classmethod
+    def ordered_participant_set(cls):
+        """Order Users by their UserRole"""
+        ordered_role_list = UserRole.ordered_display_role_list()
+        order = Case(*[When(role=role, then=pos) for pos, role in
+                       enumerate(ordered_role_list)])
+        return User.objects.filter(role__in=ordered_role_list).order_by(order)
 
     @property
     def user_role(self):

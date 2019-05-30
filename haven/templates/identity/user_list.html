@@ -14,8 +14,7 @@
       <th>Created</th>
     </tr>
     {% if users %}
-      {% for role in ordered_role_list %}
-        {% for next_user in users|has_role:role %}
+      {% for next_user in ordered_user_list %}
           <tr>
             <td>
 
@@ -39,7 +38,6 @@
                 <br/>
                 by {{ next_user.created_by }}</small></td>
           </tr>
-        {% endfor %}
       {% endfor %}
     {% endif %}
   </tbody>

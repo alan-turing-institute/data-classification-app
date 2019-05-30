@@ -110,7 +110,7 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
         return User.objects.get_visible_users(self.request.user)
 
     def get_context_data(self, **kwargs):
-        kwargs['ordered_role_list'] = UserRole.ordered_display_role_list()
+        kwargs['ordered_user_list'] = User.ordered_participant_set()
         return super().get_context_data(**kwargs)
 
 
