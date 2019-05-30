@@ -52,6 +52,7 @@ class UserProjectPermissions:
             return [ProjectRole.RESEARCH_COORDINATOR,
                     ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
                     ProjectRole.INVESTIGATOR,
+                    ProjectRole.REFEREE,
                     ProjectRole.RESEARCHER]
         elif self.role is ProjectRole.INVESTIGATOR:
             return [ProjectRole.RESEARCHER]
