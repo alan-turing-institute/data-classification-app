@@ -109,6 +109,10 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
 
+    def get_context_data(self, **kwargs):
+        kwargs['ordered_role_list'] = UserRole.ordered_display_role_list()
+        return super().get_context_data(**kwargs)
+
 
 def export_users(request):
     """Export list of users as a UserCreate.csv file"""
