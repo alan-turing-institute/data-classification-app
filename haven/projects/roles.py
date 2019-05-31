@@ -31,6 +31,17 @@ class ProjectRole(Enum):
             (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
         ]
 
+    @classmethod
+    def ordered_display_role_list(cls):
+        """List of roles in a suitable display order"""
+        return [
+            ProjectRole.INVESTIGATOR.value,
+            ProjectRole.RESEARCH_COORDINATOR.value,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+            ProjectRole.REFEREE.value,
+            ProjectRole.RESEARCHER.value,
+        ]
+
 
 class UserProjectPermissions:
     """

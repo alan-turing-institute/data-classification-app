@@ -53,7 +53,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
     # Use crispy FormHelper to add submit and cancel buttons
     helper = FormHelper()
-    helper.add_input(Submit('submit', 'Add user'))
+    helper.add_input(Submit('submit', 'Add Participant'))
     helper.add_input(Submit('cancel', 'Cancel',
                                  css_class='btn-secondary',
                                  formnovalidate='formnovalidate'))

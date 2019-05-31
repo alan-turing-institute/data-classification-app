@@ -34,7 +34,7 @@ class Project(models.Model):
     @transaction.atomic
     def add_user(self, user, role, creator):
         """
-        Add user to this project
+        Add participant to this project
         User must already exist in the database
 
         :param user: user to add

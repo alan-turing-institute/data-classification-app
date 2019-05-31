@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load identity_tags %}
 
 {% block page_title %}Users{% endblock %}
 {% block h1_title %}Users{% endblock %}
@@ -7,36 +8,39 @@
 <table class="table table-sm">
   <tbody>
     <tr>
-      <th>ID</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>First name</th>
-      <th>Last name</th>
+      <th>User</th>
       <th>Mobile</th>
-      <th>Date added</th>
-      <th>Added by</th>
+      <th>Personal email</th>
+      <th>Created</th>
     </tr>
     {% if users %}
-    {% for next_user in users %}
-    <tr>
-      <td>{{ next_user.id }}</td>
+      {% for role in ordered_role_list %}
+        {% for next_user in users|has_role:role %}
+          <tr>
+            <td>
 
-      <td>
-        {% if user.user_role.can_edit_users %}
-          <a href="{% url 'identity:edit_user' next_user.id %}">{{ next_user.username }}</a>
-        {% else %}
-          {{ next_user.username }}
-        {% endif %}
-      </td>
+              {% if user.user_role.can_edit_users %}
+              <a href="{% url 'identity:edit_user' next_user.id %}">
+                {% endif %}
 
-      <td>{{ next_user.email }}</td>
-      <td>{{ next_user.first_name }}</td>
-      <td>{{ next_user.last_name }}</td>
-      <td>{{ next_user.mobile }}</td>
-      <td>{{ next_user.date_joined }}</td>
-      <td>{{ next_user.created_by }}</td>
-    </tr>
-    {% endfor %}
+                {{ next_user.get_full_name }}: {{ next_user.username }}
+
+                {% if user.user_role.can_edit_users %}
+              </a>
+              {% endif %}
+              <br/>
+              {{ next_user.role|role_display }}
+            </td>
+
+            <td>{{ next_user.mobile }}</td>
+            <td>{{ next_user.email }}</td>
+            <td>
+              <small>{{ next_user.date_joined|date:'d M Y H:i' }}
+                <br/>
+                by {{ next_user.created_by }}</small></td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
     {% endif %}
   </tbody>
 </table>

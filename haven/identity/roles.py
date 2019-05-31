@@ -23,6 +23,16 @@ class UserRole(Enum):
         return [
             (cls.SYSTEM_CONTROLLER.value, 'System Controller'),
             (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
+            (cls.NONE.value, ''),
+        ]
+
+    @classmethod
+    def ordered_display_role_list(cls):
+        """List of roles in a suitable display order"""
+        return [
+            cls.SYSTEM_CONTROLLER.value,
+            cls.RESEARCH_COORDINATOR.value,
+            cls.NONE.value
         ]
 
     @property

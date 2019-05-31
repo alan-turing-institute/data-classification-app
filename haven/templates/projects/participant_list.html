@@ -1,30 +1,46 @@
 {% extends "base.html" %}
+{% load project_tags %}
 
 {% block page_title %}{{ project.name }}: Participants{% endblock %}
 {% block h1_title %}{{ project.name }}: Participants{% endblock %}
 
 {% block content %}
+<table class="table table-sm">
+  <tbody>
+    {% if participants %}
+      {% for role in ordered_role_list %}
+        {% for participant in participants|has_role:role %}
+          <tr>
+            <td>
 
-<ul class="list-group">
-  {% for participant in participants %}
-  <li class="list-group-item">
-    <div class="d-flex w-100 justify-content-between">
-      {% if user.user_role.can_edit_users %}
-      <h4>{{ participant.get_role_display }}:
-        <a href="{% url 'identity:edit_user' participant.user.id %}">
-          {{ participant.user.get_full_name }}: {{participant.user.username}}</a></h4>
-      {% else %}
-      <h4>{{ participant.user.get_full_name }}</h4>
-      {% endif %}
-      <small>added {{ participant.created_at }} by {{ participant.created_by }}</small>
-    </div>
-  </li>
-  {% endfor %}
-</ul>
+              {% if user.user_role.can_edit_users %}
+                <a href="{% url 'identity:edit_user' participant.user.id %}">
+              {% endif %}
+
+                {{ participant.user.get_full_name }}: {{participant.user.username}}
+
+              {% if user.user_role.can_edit_users %}
+                </a>
+              {% endif %}
+              <br/>
+              {{ participant.role|project_role_display }}
+            </td>
+
+            <td>
+              <small>added on {{ participant.created_at|date:'d M Y H:i' }}
+                <br/>
+                by {{ participant.created_by }}</small></td>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+
 
 <div class="my-3" role="group">
   {% if project_role.can_add_participants %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_user' project.id %}">Add User</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
   {% endif %}
 </div>
 
