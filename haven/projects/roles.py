@@ -32,6 +32,11 @@ class ProjectRole(Enum):
         ]
 
     @classmethod
+    def display_name(cls, role):
+        """User-visible string describing the role"""
+        return dict(cls.choices())[role]
+
+    @classmethod
     def ordered_display_role_list(cls):
         """List of roles in a suitable display order"""
         return [
