@@ -9,7 +9,7 @@
   {% csrf_token %}
   
   {% if editing %}
-    {{ subject_user.get_full_name }}
+    {{ subject_user.display_name }}
   {% else %}
     {{ form|crispy }}
   {% endif %}

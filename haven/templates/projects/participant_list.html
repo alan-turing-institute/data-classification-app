@@ -16,7 +16,7 @@
                 <a href="{% url 'identity:edit_user' participant.user.id %}">
               {% endif %}
 
-                {{ participant.user.get_full_name }}: {{participant.user.username}}
+                {{ participant.user.display_name }}
 
               {% if user.user_role.can_edit_users %}
                 </a>

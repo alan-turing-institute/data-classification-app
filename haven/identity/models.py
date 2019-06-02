@@ -149,3 +149,18 @@ class User(AbstractUser):
         """
         participant = self.get_participant(project)
         return ProjectRole(participant.role) if participant else None
+
+    def display_name(self):
+        """
+        Return a combined name and username for display
+
+        :return:string combining the user's full name and username
+        """
+
+        full_name = self.get_full_name()
+        username = self.username
+        if full_name:
+            return "{full_name}: {username}".format(
+                full_name=full_name, username=username)
+        else:
+            return username

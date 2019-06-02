@@ -350,5 +350,4 @@ class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
     def get_result_label(self, user):
-        return "{full_name} ({username})".format(
-            full_name=user.get_full_name(), username=user.username)
+        return user.display_name()
