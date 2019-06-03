@@ -19,15 +19,18 @@ from .mixins import UserRoleRequiredMixin
 from .models import User
 from .roles import UserRole
 
+
 class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
                  UserRoleRequiredMixin,
                  CreateView):
     form_class = CreateUserForm
     model = User
-    success_url = '/'
 
     user_roles = [UserRole.SYSTEM_MANAGER]
+
+    def get_success_url(self):
+        return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
         kwargs['helper'] = InlineFormSetHelper()

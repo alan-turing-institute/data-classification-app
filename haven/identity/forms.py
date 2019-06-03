@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 
+from identity.roles import UserRole
 from .mixins import SaveCreatorMixin
 from .models import User
 
@@ -10,7 +11,7 @@ from .models import User
 class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'mobile']
+        fields = ['role', 'email', 'first_name', 'last_name', 'mobile']
         widgets = {
             'mobile': PhoneNumberInternationalFallbackWidget(
                 region=settings.PHONENUMBER_DEFAULT_REGION,
@@ -28,6 +29,15 @@ class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
                 'invalid': 'Enter a valid UK or international phone number.',
             },
         }
+
+    def clean_role(self):
+        role = self.cleaned_data['role']
+        if 'role' in self.changed_data:
+            role_model = UserRole(self.cleaned_data['role'])
+            if not UserRole(self.user.role).can_assign_role(role_model):
+                raise ValidationError("You cannot assign role " + UserRole.display_name(role))
+        return role
+
     def clean_email(self):
         email = self.cleaned_data['email']
         if User.objects.filter(email=email).exists():
