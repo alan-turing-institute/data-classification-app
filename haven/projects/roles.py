@@ -8,7 +8,7 @@ class ProjectRole(Enum):
 
     # Roles which are assignable to users on a project
     REFEREE = 'referee'
-    RESEARCH_COORDINATOR = 'research_coordinator'
+    PROJECT_MANAGER = 'project_manager'
     INVESTIGATOR = 'investigator'
     RESEARCHER = 'researcher'
     DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
@@ -25,7 +25,7 @@ class ProjectRole(Enum):
         """Dropdown choices for project roles"""
         return [
             (cls.REFEREE.value, 'Referee'),
-            (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
+            (cls.PROJECT_MANAGER.value, 'Project Manager'),
             (cls.INVESTIGATOR.value, 'Investigator'),
             (cls.RESEARCHER.value, 'Researcher'),
             (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
@@ -41,7 +41,7 @@ class ProjectRole(Enum):
         """List of roles in a suitable display order"""
         return [
             ProjectRole.INVESTIGATOR.value,
-            ProjectRole.RESEARCH_COORDINATOR.value,
+            ProjectRole.PROJECT_MANAGER.value,
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             ProjectRole.REFEREE.value,
             ProjectRole.RESEARCHER.value,
@@ -65,8 +65,8 @@ class UserProjectPermissions:
 
         :return: list of `ProjectRole` objects
         """
-        if self.is_project_admin or self.role is ProjectRole.RESEARCH_COORDINATOR:
-            return [ProjectRole.RESEARCH_COORDINATOR,
+        if self.is_project_admin or self.role is ProjectRole.PROJECT_MANAGER:
+            return [ProjectRole.PROJECT_MANAGER,
                     ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
                     ProjectRole.INVESTIGATOR,
                     ProjectRole.REFEREE,
@@ -81,7 +81,7 @@ class UserProjectPermissions:
 
         # To add a new participant, the user must also have system-level access to view users
         return self.system_role.can_view_all_users and (self.is_project_admin or self.role in [
-                    ProjectRole.RESEARCH_COORDINATOR,
+                    ProjectRole.PROJECT_MANAGER,
                     ProjectRole.INVESTIGATOR,
                 ])
 
@@ -89,7 +89,7 @@ class UserProjectPermissions:
     def can_add_datasets(self):
         """Is this role able to add new datasets to the project?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.PROJECT_MANAGER,
             ProjectRole.INVESTIGATOR,
         ]
 
@@ -97,7 +97,7 @@ class UserProjectPermissions:
     def can_list_participants(self):
         """Is this role able to list participants?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.PROJECT_MANAGER,
             ProjectRole.INVESTIGATOR,
         ]
 
@@ -105,7 +105,7 @@ class UserProjectPermissions:
     def can_edit_participants(self):
         """Is this role able to edit participants?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.PROJECT_MANAGER,
             ProjectRole.INVESTIGATOR,
         ]
 

@@ -88,7 +88,7 @@ class TestProject:
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
         rc = recipes.participant.make(
-            role=ProjectRole.RESEARCH_COORDINATOR.value, project=project)
+            role=ProjectRole.PROJECT_MANAGER.value, project=project)
 
         project.classify_as(0, investigator.user)
         project.classify_as(1, data_rep.user)
