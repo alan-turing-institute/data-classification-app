@@ -59,7 +59,6 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.SYSTEM_CONTROLLER,
-            self.RESEARCH_COORDINATOR,
         ]
 
     @property
@@ -68,7 +67,6 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.SYSTEM_CONTROLLER,
-            self.RESEARCH_COORDINATOR,
         ]
 
     @property
@@ -86,7 +84,6 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.SYSTEM_CONTROLLER,
-            self.RESEARCH_COORDINATOR,
         ]
 
     @property
@@ -103,7 +100,6 @@ class UserRole(Enum):
         """Can a user with this role export a user list?"""
         return self in [
             self.SUPERUSER,
-            self.RESEARCH_COORDINATOR,
             self.SYSTEM_CONTROLLER,
         ]
 
@@ -112,7 +108,6 @@ class UserRole(Enum):
         """Can a user with this role create users from an imported file?"""
         return self in [
             self.SUPERUSER,
-            self.RESEARCH_COORDINATOR,
             self.SYSTEM_CONTROLLER,
         ]
 
