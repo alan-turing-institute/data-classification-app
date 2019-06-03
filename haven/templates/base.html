@@ -44,7 +44,7 @@
 
         <span class="navbar-text">
           {% if request.user.is_authenticated %}
-            Logged in as {{ request.user.get_full_name }}
+            Logged in as {{ request.user.display_name }}
           {% else %}
           <a class="nav-link" href="{% url "social:begin" "azuread-tenant-oauth2" %}">Log In</a>
           {% endif %}

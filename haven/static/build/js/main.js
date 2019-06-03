@@ -7,9 +7,11 @@ require('django-formset');
 require('bootstrap-checkbox');
 
 $(function() {
-  $("form .formset tbody tr").formset({
+  $("form:not(.remove-add-button) .formset tbody tr").formset({
     addText: '<i class="fas fa-plus"></i> Add more',
     addCssClass: 'add-row btn btn-sm btn-outline-secondary',
+  });
+  $("form.remove-add-button .formset tbody tr").formset({
   });
 
   $(":checkbox").checkboxpicker();

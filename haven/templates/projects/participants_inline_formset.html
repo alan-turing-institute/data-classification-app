@@ -1,0 +1,86 @@
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+
+{% specialspaceless %}
+{% if formset_tag %}
+<form {{ flat_attrs|safe }} method="{{ form_method }}" {% if formset.is_multipart %} enctype="multipart/form-data"{% endif %}>
+{% endif %}
+    {% if formset_method|lower == 'post' and not disable_csrf %}
+        {% csrf_token %}
+    {% endif %}
+
+    <div>
+        {{ formset.management_form|crispy }}
+    </div>
+
+    <table class="formset" {% if form_id %} id="{{ form_id }}_table"{% endif%} class="table table-sm">
+        <thead>
+            {% if formset.readonly and not formset.queryset.exists %}
+            {% else %}
+                <tr>
+                    <th>User</th>
+
+                    {% for field in formset.forms.0 %}
+                        {% if field.label and not field|is_checkbox and not field.is_hidden %}
+                            <th for="{{ field.auto_id }}" class="col-form-label {% if field.field.required %}requiredField{% endif %}">
+                                {{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}
+                            </th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endif %}
+        </thead>
+
+        <tbody>
+            <tr class="d-none empty-form">
+                {% for field in formset.empty_form %}
+                    {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                {% endfor %}
+            </tr>
+
+            {% for form in formset %}
+
+                {% if form_show_errors and not form.is_extra %}
+                    {% include "bootstrap4/errors.html" %}
+                {% endif %}
+
+                <tr>
+                    <td class="form-group">
+
+                        {% if user.user_role.can_edit_users %}
+                            <a href="{% url 'identity:edit_user' form.project_user.id %}">
+                        {% endif %}
+
+                        {{ form.project_user.display_name }}
+
+                        {% if user.user_role.can_edit_users %}
+                            </a>
+                        {% endif %}
+
+
+
+
+                        {{ form.get_display_name }}
+                    </td>
+                    {% for field in form %}
+                      {% if field.name == 'DELETE' %}
+                        <td class="form-group">
+                          <a href="#" class="delete-row" title="delete">
+                          {{ field }}
+                          <i class="fas fa-trash"></i>
+                          </a>
+                        </td>
+                      {% else %}
+                        {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                      {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "bootstrap4/inputs.html" %}
+
+{% if formset_tag %}</form>{% endif %}
+{% endspecialspaceless %}

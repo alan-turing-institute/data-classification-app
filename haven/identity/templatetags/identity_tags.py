@@ -11,7 +11,3 @@ register = template.Library()
 def role_display(role):
     return dict(UserRole.choices()).get(role, '')
 
-
-@register.filter
-def has_role(users, role):
-    return users.filter(role=role)

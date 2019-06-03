@@ -1,5 +1,4 @@
 from braces.forms import UserKwargModelFormMixin
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from dal import autocomplete
 from django import forms
@@ -13,6 +12,16 @@ from identity.models import User
 
 from .models import Participant, Project
 from .roles import ProjectRole
+
+
+from crispy_forms.helper import FormHelper
+
+
+class ParticipantInlineFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form_tag = False
+        self.template = 'projects/participants_inline_formset.html'
 
 
 class ProjectForm(SaveCreatorMixin, forms.ModelForm):
@@ -94,6 +103,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
 
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single user/role assignment on a project"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['project'].queryset = Project.objects.get_editable_projects(self.user)
@@ -108,6 +118,7 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
             role = ProjectRole(self.cleaned_data['role'])
             if not self.user.project_role(project).can_assign_role(role):
                 raise ValidationError("You cannot assign the role on this project")
+        return self.cleaned_data
 
 
 ProjectsForUserInlineFormSet = inlineformset_factory(
@@ -118,6 +129,41 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
     help_texts={'project': None, 'role': None},
+)
+
+
+class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single project/role assignment for a user"""
+    def __init__(self, *args, **kwargs):
+        super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Participant
+        fields = ('role',)
+
+    def project_user(self):
+        return self.instance.user
+
+    def clean_role(self):
+        role = self.cleaned_data['role']
+        if 'role' in self.changed_data:
+            project = self.instance.project
+            role_model = ProjectRole(self.cleaned_data['role'])
+            if not self.user.project_role(project).can_assign_role(role_model):
+                raise ValidationError("You cannot assign role " +
+                                      ProjectRole.display_name(role) +
+                                      " for this project")
+        return role
+
+
+UsersForProjectInlineFormSet = inlineformset_factory(
+    Project,
+    Participant,
+    form=UserForProjectInlineForm,
+    fk_name='project',
+    extra=0,
+    can_delete=True,
+    help_texts={'role': None},
 )
 
 

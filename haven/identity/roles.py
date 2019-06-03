@@ -84,7 +84,6 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.SYSTEM_CONTROLLER,
-            self.RESEARCH_COORDINATOR,
         ]
 
     @property
@@ -92,6 +91,7 @@ class UserRole(Enum):
         """Can a user with this role view all users?"""
         return self in [
             self.SUPERUSER,
+            self.RESEARCH_COORDINATOR,
             self.SYSTEM_CONTROLLER,
         ]
 

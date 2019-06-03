@@ -8,8 +8,8 @@ class TestUserRoleCreateUser:
     def test_system_controller_can_create_users(self):
         assert UserRole.SYSTEM_CONTROLLER.can_create_users
 
-    def test_research_coordinator_can_create_users(self):
-        assert UserRole.RESEARCH_COORDINATOR.can_create_users
+    def test_research_coordinator_cannot_create_users(self):
+        assert not UserRole.RESEARCH_COORDINATOR.can_create_users
 
     def test_unprivileged_user_cannot_create_users(self):
         assert not UserRole.NONE.can_create_users
@@ -26,7 +26,7 @@ class TestUserRoleCreatableRoles:
 
     def test_research_coordinator_creatable_roles(self):
         assert UserRole.RESEARCH_COORDINATOR.creatable_roles == []
-        assert UserRole.RESEARCH_COORDINATOR.can_create(UserRole.NONE)
+        assert not UserRole.RESEARCH_COORDINATOR.can_create(UserRole.NONE)
 
     def test_unprivileged_user_has_no_creatable_roles(self):
         assert UserRole.NONE.creatable_roles == []
@@ -68,8 +68,8 @@ class TestUserRoleViewAllUsers:
     def test_system_controller_can_view_all_users(self):
         assert UserRole.SYSTEM_CONTROLLER.can_view_all_users
 
-    def test_research_coordinator_cannot_view_all_users(self):
-        assert not UserRole.RESEARCH_COORDINATOR.can_view_all_users
+    def test_research_coordinator_can_view_all_users(self):
+        assert UserRole.RESEARCH_COORDINATOR.can_view_all_users
 
     def test_unprivileged_user_cannot_view_all_users(self):
         assert not UserRole.NONE.can_view_all_users

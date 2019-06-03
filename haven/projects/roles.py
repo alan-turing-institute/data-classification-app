@@ -32,6 +32,11 @@ class ProjectRole(Enum):
         ]
 
     @classmethod
+    def display_name(cls, role):
+        """User-visible string describing the role"""
+        return dict(cls.choices())[role]
+
+    @classmethod
     def ordered_display_role_list(cls):
         """List of roles in a suitable display order"""
         return [
@@ -48,7 +53,8 @@ class UserProjectPermissions:
     Determine the permissions a User has on a particular project.
     """
 
-    def __init__(self, project_role, is_project_admin):
+    def __init__(self, project_role, system_role, is_project_admin):
+        self.system_role = system_role
         self.role = project_role
         self.is_project_admin = is_project_admin
 
@@ -72,10 +78,12 @@ class UserProjectPermissions:
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
-            ProjectRole.INVESTIGATOR,
-        ]
+
+        # To add a new participant, the user must also have system-level access to view users
+        return self.system_role.can_view_all_users and (self.is_project_admin or self.role in [
+                    ProjectRole.RESEARCH_COORDINATOR,
+                    ProjectRole.INVESTIGATOR,
+                ])
 
     @property
     def can_add_datasets(self):
@@ -88,6 +96,14 @@ class UserProjectPermissions:
     @property
     def can_list_participants(self):
         """Is this role able to list participants?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.INVESTIGATOR,
+        ]
+
+    @property
+    def can_edit_participants(self):
+        """Is this role able to edit participants?"""
         return self.is_project_admin or self.role in [
             ProjectRole.RESEARCH_COORDINATOR,
             ProjectRole.INVESTIGATOR,

@@ -7,6 +7,7 @@ from identity.models import User
 
 from .managers import ProjectQuerySet
 from .roles import ProjectRole
+from django.db.models import Case, When
 
 
 class Project(models.Model):
@@ -142,6 +143,14 @@ class Project(models.Model):
             return []
 
         return PolicyAssignment.objects.filter(tier=self.tier)
+
+    def ordered_participant_set(self):
+        """Order participants on this project by their ProjectRole"""
+        ordered_role_list = ProjectRole.ordered_display_role_list()
+        order = Case(*[When(role=role, then=pos) for pos, role in
+                       enumerate(ordered_role_list)])
+        return self.participant_set.filter(
+            role__in=ordered_role_list).order_by(order)
 
 
 def validate_role(role):
