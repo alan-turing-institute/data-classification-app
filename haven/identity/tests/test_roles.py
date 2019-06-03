@@ -68,8 +68,8 @@ class TestUserRoleViewAllUsers:
     def test_system_controller_can_view_all_users(self):
         assert UserRole.SYSTEM_CONTROLLER.can_view_all_users
 
-    def test_research_coordinator_cannot_view_all_users(self):
-        assert not UserRole.RESEARCH_COORDINATOR.can_view_all_users
+    def test_research_coordinator_can_view_all_users(self):
+        assert UserRole.RESEARCH_COORDINATOR.can_view_all_users
 
     def test_unprivileged_user_cannot_view_all_users(self):
         assert not UserRole.NONE.can_view_all_users

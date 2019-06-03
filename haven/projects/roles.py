@@ -78,10 +78,12 @@ class UserProjectPermissions:
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
-            ProjectRole.INVESTIGATOR,
-        ]
+
+        # To add a new participant, the user must also have system-level access to view users
+        return self.system_role.can_view_all_users and (self.is_project_admin or self.role in [
+                    ProjectRole.RESEARCH_COORDINATOR,
+                    ProjectRole.INVESTIGATOR,
+                ])
 
     @property
     def can_add_datasets(self):

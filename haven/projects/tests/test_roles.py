@@ -4,14 +4,14 @@ from projects.roles import ProjectRole, UserProjectPermissions
 
 
 class TestProjectRoleAddParticipants:
-    def test_project_admin_can_add_participants(self):
-        assert UserProjectPermissions(ProjectRole.RESEARCHER.value, True).can_add_participants
+    def test_project_admin_cannot_add_participants(self):
+        assert not UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True).can_add_participants
 
-    def test_research_coordinator_can_add_participants(self):
-        assert UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, False).can_add_participants
+    def test_project_manager_cannot_add_participants(self):
+        assert not UserProjectPermissions(ProjectRole.RESEARCH_COORDINATOR, UserRole.NONE, False).can_add_participants
 
-    def test_investigator_can_add_participants(self):
-        assert UserProjectPermissions(ProjectRole.INVESTIGATOR, False).can_add_participants
+    def test_investigator_cannot_add_participants(self):
+        assert not UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False).can_add_participants
 
     def test_researcher_cannot_add_participants(self):
         assert not UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False).can_add_participants
