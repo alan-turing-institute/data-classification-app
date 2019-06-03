@@ -135,7 +135,7 @@ class User(AbstractUser):
         is_project_admin = self.is_superuser or \
             self.user_role is UserRole.SYSTEM_CONTROLLER or \
             self == project.created_by
-        return UserProjectPermissions(project_role, is_project_admin)
+        return UserProjectPermissions(project_role, self.user_role, is_project_admin)
 
     def project_participation_role(self, project):
         """

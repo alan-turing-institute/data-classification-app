@@ -53,7 +53,8 @@ class UserProjectPermissions:
     Determine the permissions a User has on a particular project.
     """
 
-    def __init__(self, project_role, is_project_admin):
+    def __init__(self, project_role, system_role, is_project_admin):
+        self.system_role = system_role
         self.role = project_role
         self.is_project_admin = is_project_admin
 

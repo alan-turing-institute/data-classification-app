@@ -132,7 +132,7 @@ class ProjectAddUser(
             return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
-        return self.get_project_role().can_add_participants and self.request.user.user_role.can_view_all_users
+        return self.get_project_role().can_add_participants
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:

@@ -276,7 +276,7 @@ class TestListParticipants:
         response = as_research_coordinator.get('/projects/%d/participants/' % project.id)
 
         assert response.status_code == 200
-        assert list(response.context['participants']) == [researcher, investigator]
+        assert list(response.context['ordered_participants']) == [investigator, researcher]
 
     def test_returns_404_for_invisible_project(self, as_research_coordinator):
         project = recipes.project.make()
