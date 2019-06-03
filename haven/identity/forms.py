@@ -1,3 +1,4 @@
+from braces.forms import UserKwargModelFormMixin
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -8,10 +9,10 @@ from .mixins import SaveCreatorMixin
 from .models import User
 
 
-class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
+class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ['role', 'email', 'first_name', 'last_name', 'mobile']
+        fields = ['first_name', 'last_name', 'mobile', 'email', 'role']
         widgets = {
             'mobile': PhoneNumberInternationalFallbackWidget(
                 region=settings.PHONENUMBER_DEFAULT_REGION,
@@ -40,9 +41,13 @@ class CreateUserForm(SaveCreatorMixin, forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if User.objects.filter(email=email).exists():
-            raise ValidationError("There is already a user with this email address.")
+        if 'email' in self.changed_data:
+            if User.objects.filter(email=email).exists():
+                raise ValidationError("There is already a user with this email address.")
         return email
+
+
+class CreateUserForm(SaveCreatorMixin, EditUserForm):
 
     def save(self, **kwargs):
         self.instance.generate_username()

@@ -8,13 +8,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
 from core.forms import InlineFormSetHelper
 from projects.forms import ProjectsForUserInlineFormSet
 
-from .forms import CreateUserForm
+from .forms import CreateUserForm, EditUserForm
 from .mixins import UserRoleRequiredMixin
 from .models import User
 from .roles import UserRole
@@ -24,6 +24,8 @@ class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
                  UserRoleRequiredMixin,
                  CreateView):
+    """View for creating a new user"""
+
     form_class = CreateUserForm
     model = User
 
@@ -59,15 +61,19 @@ class UserCreate(LoginRequiredMixin,
 
 
 class UserEdit(LoginRequiredMixin,
+               UserFormKwargsMixin,
                UserRoleRequiredMixin,
-               DetailView):
+               UpdateView):
+    """View for modifying an existing user"""
+
+    form_class = EditUserForm
     model = User
     template_name = 'identity/user_form.html'
 
     user_roles = [UserRole.SYSTEM_MANAGER]
 
     def get_success_url(self):
-        return reverse('identity:edit_user', args=[self.get_object().id])
+        return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
         kwargs['helper'] = InlineFormSetHelper()
@@ -92,13 +98,16 @@ class UserEdit(LoginRequiredMixin,
             )
 
     def post(self, request, *args, **kwargs):
-        formset = self.get_formset()
         self.object = self.get_object()
-        if formset.is_valid():
+        formset = self.get_formset()
+        form = self.get_form()
+        if form.is_valid() and formset.is_valid():
+            response = self.form_valid(form)
+            formset.instance = self.object
             formset.save()
-            return HttpResponseRedirect(self.get_success_url())
+            return response
         else:
-            return self.render_to_response(self.get_context_data(formset=formset))
+            return self.form_invalid(form)
 
 
 class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):

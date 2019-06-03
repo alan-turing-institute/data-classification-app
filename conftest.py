@@ -53,9 +53,13 @@ def programme_manager():
 @pytest.fixture
 def project_participant():
     return User.objects.create_user(
+        first_name='Angela',
+        last_name='Zala',
         username='project_participant@example.com',
         email='project_participant@example.com',
         password=DUMMY_PASSWORD,
+        role=UserRole.NONE.value,
+        mobile='+441234567890'
     )
 
 
