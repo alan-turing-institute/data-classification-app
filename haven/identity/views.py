@@ -2,6 +2,7 @@ import csv
 
 import openpyxl
 from braces.views import UserFormKwargsMixin
+from crispy_forms.layout import Submit
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -35,7 +36,12 @@ class UserCreate(LoginRequiredMixin,
         return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
-        kwargs['helper'] = InlineFormSetHelper()
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Add User'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+        kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = False
         return super().get_context_data(**kwargs)
@@ -48,6 +54,10 @@ class UserCreate(LoginRequiredMixin,
             return ProjectsForUserInlineFormSet(form_kwargs=form_kwargs)
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
         formset = self.get_formset()
         form = self.get_form()
         self.object = None
@@ -76,7 +86,12 @@ class UserEdit(LoginRequiredMixin,
         return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
-        kwargs['helper'] = InlineFormSetHelper()
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Save Changes'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+        kwargs['helper'] = helper
         if 'formset' not in kwargs:
             kwargs['formset'] = self.get_formset()
         kwargs['subject_user'] = self.get_object()
@@ -98,6 +113,10 @@ class UserEdit(LoginRequiredMixin,
             )
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
         self.object = self.get_object()
         formset = self.get_formset()
         form = self.get_form()
