@@ -21,8 +21,8 @@ class TestProjectRoleAddParticipants:
     def test_system_manager_can_add_participants(self):
         assert UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, True).can_add_participants
 
-    def test_research_coordinator_can_add_participants(self):
-        assert UserProjectPermissions(ProjectRole.REFEREE, UserRole.RESEARCH_COORDINATOR, True).can_add_participants
+    def test_programme_manager_can_add_participants(self):
+        assert UserProjectPermissions(ProjectRole.REFEREE, UserRole.PROGRAMME_MANAGER, True).can_add_participants
 
 
 class TestProjectRoleAssignableRoles:
@@ -34,9 +34,9 @@ class TestProjectRoleAssignableRoles:
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert permissions.can_assign_role(ProjectRole.REFEREE)
 
-    def test_research_coordinator_can_assign_any_roles(self):
-        # Use RESEARCHER because we are verifying that system-wide RESEARCH_COORDINATOR overrides researchers with lower permissions
-        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.RESEARCH_COORDINATOR, True)
+    def test_programme_manager_can_assign_any_roles(self):
+        # Use RESEARCHER because we are verifying that system-wide PROGRAMME_MANAGER overrides researchers with lower permissions
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER, True)
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
@@ -89,8 +89,8 @@ class TestProjectRoleListParticipants:
     def test_referee_cannot_list_participants(self):
         assert not UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False).can_list_participants
 
-    def test_research_coordinator_can_list_participants(self):
-        assert not UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.RESEARCH_COORDINATOR, False).can_list_participants
+    def test_programme_manager_can_list_participants(self):
+        assert not UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER, False).can_list_participants
 
     def test_system_manager_can_list_participants(self):
         assert not UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, False).can_list_participants

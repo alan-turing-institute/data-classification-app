@@ -8,23 +8,23 @@ from projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestProjectAddUserForm:
-    def test_cannot_add_nonexisting_user(self, research_coordinator):
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_cannot_add_nonexisting_user(self, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
             'username': 'some_unknown_user',
-        }, user=research_coordinator, project_id=project.pk)
+        }, user=programme_manager, project_id=project.pk)
         form.project = project
         assert not form.is_valid()
 
-    def test_add_existing_user(self, research_coordinator, project_participant):
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_add_existing_user(self, programme_manager, project_participant):
+        project = recipes.project.make(created_by=programme_manager)
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
             'username': project_participant.pk,
-        }, user=research_coordinator, project_id=project.pk)
+        }, user=programme_manager, project_id=project.pk)
         form.project = project
 
         assert form.is_valid()
@@ -34,15 +34,15 @@ class TestProjectAddUserForm:
 
         assert participant.user == project_participant
 
-    def test_cannot_add_user_to_project_twice(self, research_coordinator, project_participant):
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_cannot_add_user_to_project_twice(self, programme_manager, project_participant):
+        project = recipes.project.make(created_by=programme_manager)
 
-        project.add_user(project_participant, ProjectRole.RESEARCHER, research_coordinator)
+        project.add_user(project_participant, ProjectRole.RESEARCHER, programme_manager)
 
         form = ProjectAddUserForm({
             'role': ProjectRole.INVESTIGATOR.value,
             'username': project_participant.pk,
-        }, user=research_coordinator, project_id=project.pk)
+        }, user=programme_manager, project_id=project.pk)
         form.project = project
 
         assert not form.is_valid()

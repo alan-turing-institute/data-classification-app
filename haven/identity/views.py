@@ -104,7 +104,7 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
     context_object_name = 'users'
     model = User
 
-    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.RESEARCH_COORDINATOR]
+    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)

@@ -8,7 +8,7 @@ class UserRole(Enum):
 
     # Roles which are assignable to users on the `role` field
     SYSTEM_MANAGER = 'system_manager'
-    RESEARCH_COORDINATOR = 'research_coordinator'
+    PROGRAMME_MANAGER = 'programme_manager'
 
     # Django admin superuser
     SUPERUSER = 'superuser'
@@ -22,7 +22,7 @@ class UserRole(Enum):
         """Dropdown choices for user roles"""
         return [
             (cls.SYSTEM_MANAGER.value, 'System Manager'),
-            (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
+            (cls.PROGRAMME_MANAGER.value, 'Programme Manager'),
             (cls.NONE.value, ''),
         ]
 
@@ -31,7 +31,7 @@ class UserRole(Enum):
         """List of roles in a suitable display order"""
         return [
             cls.SYSTEM_MANAGER.value,
-            cls.RESEARCH_COORDINATOR.value,
+            cls.PROGRAMME_MANAGER.value,
             cls.NONE.value
         ]
 
@@ -45,11 +45,11 @@ class UserRole(Enum):
         if self is self.SUPERUSER:
             return [
                 self.SYSTEM_MANAGER,
-                self.RESEARCH_COORDINATOR,
+                self.PROGRAMME_MANAGER,
             ]
         elif self is self.SYSTEM_MANAGER:
             return [
-                self.RESEARCH_COORDINATOR,
+                self.PROGRAMME_MANAGER,
             ]
         return []
 
@@ -75,7 +75,7 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.SYSTEM_MANAGER,
-            self.RESEARCH_COORDINATOR,
+            self.PROGRAMME_MANAGER,
         ]
 
     @property
@@ -91,7 +91,7 @@ class UserRole(Enum):
         """Can a user with this role view all users?"""
         return self in [
             self.SUPERUSER,
-            self.RESEARCH_COORDINATOR,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 
