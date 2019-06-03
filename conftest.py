@@ -31,11 +31,11 @@ def superuser():
 
 
 @pytest.fixture
-def system_controller():
+def system_manager():
     return User.objects.create_user(
         username='controller@example.com',
         email='controller@example.com',
-        role=UserRole.SYSTEM_CONTROLLER.value,
+        role=UserRole.SYSTEM_MANAGER.value,
         password=DUMMY_PASSWORD,
     )
 
@@ -100,8 +100,8 @@ def as_superuser(client, superuser):
 
 
 @pytest.fixture
-def as_system_controller(client, system_controller):
-    return client_login(client, system_controller)
+def as_system_manager(client, system_manager):
+    return client_login(client, system_manager)
 
 
 @pytest.fixture

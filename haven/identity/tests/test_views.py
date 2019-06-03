@@ -16,15 +16,15 @@ class TestCreateUser:
         helpers.assert_login_redirect(response)
         assert not User.objects.filter(username='testuser@example.com').exists()
 
-    def test_view_page(self, as_system_controller):
-        response = as_system_controller.get('/users/new')
+    def test_view_page(self, as_system_manager):
+        response = as_system_manager.get('/users/new')
 
         assert response.status_code == 200
         assert response.context['form']
         assert response.context['formset']
 
-    def test_create_user(self, as_system_controller):
-        response = as_system_controller.post('/users/new', {
+    def test_create_user(self, as_system_manager):
+        response = as_system_manager.post('/users/new', {
             'email': 'testuser@example.com',
             'first_name': 'Test',
             'last_name': 'User',
@@ -38,9 +38,9 @@ class TestCreateUser:
         assert response.status_code == 200
         assert User.objects.filter(email='testuser@example.com').exists()
 
-    def test_create_user_and_add_to_project(self, as_system_controller):
+    def test_create_user_and_add_to_project(self, as_system_manager):
         project = recipes.project.make()
-        response = as_system_controller.post('/users/new', {
+        response = as_system_manager.post('/users/new', {
             'email': 'testuser@example.com',
             'first_name': 'Test',
             'last_name': 'User',
@@ -77,15 +77,15 @@ class TestEditUser:
         response = client.post('/users/%d/edit' % project_participant.id, {})
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_system_controller, project_participant):
-        response = as_system_controller.get(
+    def test_view_page(self, as_system_manager, project_participant):
+        response = as_system_manager.get(
             '/users/%d/edit' % project_participant.id)
         assert response.status_code == 200
         assert response.context['formset']
 
-    def test_add_to_project(self, as_system_controller, project_participant):
+    def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
-        response = as_system_controller.post(
+        response = as_system_manager.post(
             '/users/%d/edit' % project_participant.id, {
                 'participant_set-TOTAL_FORMS': 1,
                 'participant_set-MAX_NUM_FORMS': 1,
@@ -97,10 +97,10 @@ class TestEditUser:
         assert response.status_code == 200
         assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
 
-    def test_remove_from_project(self, as_system_controller, researcher):
+    def test_remove_from_project(self, as_system_manager, researcher):
         project = researcher.project
         user = researcher.user
-        response = as_system_controller.post(
+        response = as_system_manager.post(
             '/users/%d/edit' % user.id, {
                 'participant_set-TOTAL_FORMS': 1,
                 'participant_set-MAX_NUM_FORMS': 1,

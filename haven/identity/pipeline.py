@@ -51,7 +51,7 @@ def determine_role(backend, user, response, *args, **kwargs):
         groups = graph_response.json().get('value', [])
         for group in groups:
             if group['displayName'] == settings.SYS_CONTROLLER_GROUP_NAME:
-                role = UserRole.SYSTEM_CONTROLLER
+                role = UserRole.SYSTEM_MANAGER
                 break
 
     user.set_role(role)

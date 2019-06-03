@@ -30,12 +30,12 @@ class TestUser:
         assert superuser.get_participant(recipes.project.make()) is None
         assert superuser.project_participation_role(recipes.project.make()) is None
 
-    def test_system_controller_gets_project_admin_role(self, system_controller):
-        assert system_controller.project_role(recipes.project.make()).is_project_admin
+    def test_system_manager_gets_project_admin_role(self, system_manager):
+        assert system_manager.project_role(recipes.project.make()).is_project_admin
 
-    def test_system_controller_does_not_get_participation_for_non_involed_projects(self, system_controller):
-        assert system_controller.get_participant(recipes.project.make()) == None
-        assert system_controller.project_participation_role(recipes.project.make()) is None
+    def test_system_manager_does_not_get_participation_for_non_involed_projects(self, system_manager):
+        assert system_manager.get_participant(recipes.project.make()) == None
+        assert system_manager.project_participation_role(recipes.project.make()) is None
 
     def test_project_owner_gets_project_admin_role_when_not_involved(self, research_coordinator):
         project = recipes.project.make(created_by=research_coordinator)

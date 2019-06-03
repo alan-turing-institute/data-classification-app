@@ -7,7 +7,7 @@ class UserRole(Enum):
     """
 
     # Roles which are assignable to users on the `role` field
-    SYSTEM_CONTROLLER = 'system_controller'
+    SYSTEM_MANAGER = 'system_manager'
     RESEARCH_COORDINATOR = 'research_coordinator'
 
     # Django admin superuser
@@ -21,7 +21,7 @@ class UserRole(Enum):
     def choices(cls):
         """Dropdown choices for user roles"""
         return [
-            (cls.SYSTEM_CONTROLLER.value, 'System Controller'),
+            (cls.SYSTEM_MANAGER.value, 'System Manager'),
             (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
             (cls.NONE.value, ''),
         ]
@@ -30,7 +30,7 @@ class UserRole(Enum):
     def ordered_display_role_list(cls):
         """List of roles in a suitable display order"""
         return [
-            cls.SYSTEM_CONTROLLER.value,
+            cls.SYSTEM_MANAGER.value,
             cls.RESEARCH_COORDINATOR.value,
             cls.NONE.value
         ]
@@ -44,10 +44,10 @@ class UserRole(Enum):
         """
         if self is self.SUPERUSER:
             return [
-                self.SYSTEM_CONTROLLER,
+                self.SYSTEM_MANAGER,
                 self.RESEARCH_COORDINATOR,
             ]
-        elif self is self.SYSTEM_CONTROLLER:
+        elif self is self.SYSTEM_MANAGER:
             return [
                 self.RESEARCH_COORDINATOR,
             ]
@@ -58,7 +58,7 @@ class UserRole(Enum):
         """Can a user with this role view all projects?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property
@@ -66,7 +66,7 @@ class UserRole(Enum):
         """Can a user with this role edit all projects?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property
@@ -74,7 +74,7 @@ class UserRole(Enum):
         """Can a user with this role create projects?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
             self.RESEARCH_COORDINATOR,
         ]
 
@@ -83,7 +83,7 @@ class UserRole(Enum):
         """Can a user with this role create other users?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property
@@ -92,7 +92,7 @@ class UserRole(Enum):
         return self in [
             self.SUPERUSER,
             self.RESEARCH_COORDINATOR,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property
@@ -100,7 +100,7 @@ class UserRole(Enum):
         """Can a user with this role export a user list?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property
@@ -108,7 +108,7 @@ class UserRole(Enum):
         """Can a user with this role create users from an imported file?"""
         return self in [
             self.SUPERUSER,
-            self.SYSTEM_CONTROLLER,
+            self.SYSTEM_MANAGER,
         ]
 
     @property

@@ -65,36 +65,36 @@ class TestDetermineRole:
         determine_role(azure_backend, user1, {})
 
         user1.refresh_from_db()
-        assert user1.role == 'system_controller'
+        assert user1.role == 'system_manager'
 
-    def test_detects_no_role(self, mock_client, azure_backend, system_controller):
+    def test_detects_no_role(self, mock_client, azure_backend, system_manager):
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {'value': [{
             'displayName': 'Safe Haven Research Users',
         }]}
 
-        determine_role(azure_backend, system_controller, {})
+        determine_role(azure_backend, system_manager, {})
 
-        system_controller.refresh_from_db()
-        assert system_controller.role == ''
+        system_manager.refresh_from_db()
+        assert system_manager.role == ''
 
-    def test_no_role_if_error(self, mock_client, azure_backend, system_controller):
+    def test_no_role_if_error(self, mock_client, azure_backend, system_manager):
         mock_client.return_value.get_my_memberships.return_value.ok = False
 
-        determine_role(azure_backend, system_controller, {})
+        determine_role(azure_backend, system_manager, {})
 
-        system_controller.refresh_from_db()
-        assert system_controller.role == ''
+        system_manager.refresh_from_db()
+        assert system_manager.role == ''
 
-    def test_does_nothing_if_backend_mismatch(self, mock_client, system_controller):
+    def test_does_nothing_if_backend_mismatch(self, mock_client, system_manager):
         backend = Mock()
         backend.configure_mock(name='some-other-backend')
 
-        determine_role(backend, system_controller, {})
+        determine_role(backend, system_manager, {})
 
-        system_controller.refresh_from_db()
-        assert system_controller.role == 'system_controller'
+        system_manager.refresh_from_db()
+        assert system_manager.role == 'system_manager'
 
 
 @pytest.mark.django_db

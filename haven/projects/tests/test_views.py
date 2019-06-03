@@ -48,9 +48,9 @@ class TestListProjects:
         response = client.get('/projects/')
         helpers.assert_login_redirect(response)
 
-    def test_list_owned_projects(self, as_research_coordinator, system_controller):
+    def test_list_owned_projects(self, as_research_coordinator, system_manager):
         my_project = recipes.project.make(created_by=as_research_coordinator._user)
-        recipes.project.make(created_by=system_controller)
+        recipes.project.make(created_by=system_manager)
 
         response = as_research_coordinator.get('/projects/')
 
@@ -65,11 +65,11 @@ class TestListProjects:
 
         assert list(response.context['projects']) == [project1]
 
-    def test_list_all_projects(self, research_coordinator, as_system_controller):
-        my_project = recipes.project.make(created_by=as_system_controller._user)
+    def test_list_all_projects(self, research_coordinator, as_system_manager):
+        my_project = recipes.project.make(created_by=as_system_manager._user)
         other_project = recipes.project.make(created_by=research_coordinator)
 
-        response = as_system_controller.get('/projects/')
+        response = as_system_manager.get('/projects/')
 
         assert list(response.context['projects']) == [my_project, other_project]
 
@@ -104,10 +104,10 @@ class TestViewProject:
 
         assert response.status_code == 404
 
-    def test_view_as_system_controller(self, as_system_controller):
+    def test_view_as_system_manager(self, as_system_manager):
         project = recipes.project.make()
 
-        response = as_system_controller.get('/projects/%d' % project.id)
+        response = as_system_manager.get('/projects/%d' % project.id)
 
         assert response.status_code == 200
         assert response.context['project'] == project
