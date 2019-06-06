@@ -23,8 +23,13 @@ class UserRole(Enum):
         return [
             (cls.SYSTEM_MANAGER.value, 'System Manager'),
             (cls.PROGRAMME_MANAGER.value, 'Programme Manager'),
-            (cls.NONE.value, ''),
+            (cls.NONE.value, 'Standard user'),
         ]
+
+    @classmethod
+    def display_name(cls, role):
+        """User-visible string describing the role"""
+        return dict(cls.choices())[role]
 
     @classmethod
     def ordered_display_role_list(cls):
@@ -127,3 +132,12 @@ class UserRole(Enum):
             role is self.NONE and self.can_create_users or
             role in self.creatable_roles
         )
+
+    def can_assign_role(self, role):
+        """
+        Can this role assign the given system role?
+
+        :param role: `UserRole` to be assigned
+        :return `True` if can assign role, `False` if not
+        """
+        return role in self.creatable_roles

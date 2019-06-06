@@ -87,6 +87,11 @@ class TestEditUser:
         project = recipes.project.make()
         response = as_system_manager.post(
             '/users/%d/edit' % project_participant.id, {
+                'role': project_participant.role,
+                'email': project_participant.email,
+                'mobile': project_participant.mobile,
+                'first_name': project_participant.first_name,
+                'last_name': project_participant.last_name,
                 'participant_set-TOTAL_FORMS': 1,
                 'participant_set-MAX_NUM_FORMS': 1,
                 'participant_set-MIN_NUM_FORMS': 0,
@@ -102,6 +107,11 @@ class TestEditUser:
         user = researcher.user
         response = as_system_manager.post(
             '/users/%d/edit' % user.id, {
+                'role': '',
+                'email': 'example@example.com',
+                'mobile': '+441234567890',
+                'first_name': 'E',
+                'last_name': 'F',
                 'participant_set-TOTAL_FORMS': 1,
                 'participant_set-MAX_NUM_FORMS': 1,
                 'participant_set-MIN_NUM_FORMS': 0,
