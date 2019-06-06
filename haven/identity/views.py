@@ -27,7 +27,7 @@ class UserCreate(LoginRequiredMixin,
     model = User
     success_url = '/'
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER]
+    user_roles = [UserRole.SYSTEM_MANAGER]
 
     def get_context_data(self, **kwargs):
         kwargs['helper'] = InlineFormSetHelper()
@@ -61,7 +61,7 @@ class UserEdit(LoginRequiredMixin,
     model = User
     template_name = 'identity/user_form.html'
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER]
+    user_roles = [UserRole.SYSTEM_MANAGER]
 
     def get_success_url(self):
         return reverse('identity:edit_user', args=[self.get_object().id])
@@ -104,7 +104,7 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
     context_object_name = 'users'
     model = User
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER, UserRole.RESEARCH_COORDINATOR]
+    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)

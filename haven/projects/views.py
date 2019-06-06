@@ -65,7 +65,7 @@ class ProjectCreate(
     model = Project
     form_class = ProjectForm
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER, UserRole.RESEARCH_COORDINATOR]
+    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
 
     def get_success_url(self):
         return reverse('projects:list')

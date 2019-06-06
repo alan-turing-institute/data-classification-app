@@ -10,20 +10,20 @@ from projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestProject:
-    def test_add_new_user(self, research_coordinator, project_participant):
+    def test_add_new_user(self, programme_manager, project_participant):
         project = recipes.project.make()
 
         part = project.add_user(
             project_participant,
             ProjectRole.RESEARCHER.value,
-            research_coordinator
+            programme_manager
         )
 
         assert project.participant_set.count() == 1
         assert project.participant_set.first() == part
         assert part.user.username == 'project_participant@example.com'
         assert part.role == 'researcher'
-        assert part.created_by == research_coordinator
+        assert part.created_by == programme_manager
 
     def test_classify_project(self):
         project = recipes.project.make()
@@ -88,7 +88,7 @@ class TestProject:
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
         rc = recipes.participant.make(
-            role=ProjectRole.RESEARCH_COORDINATOR.value, project=project)
+            role=ProjectRole.PROJECT_MANAGER.value, project=project)
 
         project.classify_as(0, investigator.user)
         project.classify_as(1, data_rep.user)

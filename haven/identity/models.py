@@ -133,7 +133,7 @@ class User(AbstractUser):
         project_role = ProjectRole(participant.role) if participant else None
 
         is_project_admin = self.is_superuser or \
-            self.user_role is UserRole.SYSTEM_CONTROLLER or \
+            self.user_role is UserRole.SYSTEM_MANAGER or \
             self == project.created_by
         return UserProjectPermissions(project_role, self.user_role, is_project_admin)
 
