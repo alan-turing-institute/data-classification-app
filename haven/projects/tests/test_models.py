@@ -98,6 +98,39 @@ class TestProject:
         assert project.tier_conflict
         assert not project.has_tier
 
+    def test_classify_project_role_changed(self):
+        project = recipes.project.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.classify_as(0, investigator.user)
+        investigator.role = ProjectRole.RESEARCHER.value
+        investigator.save()
+
+        project.classify_as(0, data_rep.user)
+
+        assert not project.is_classification_ready
+        assert not project.tier_conflict
+        assert not project.has_tier
+
+    def test_classify_project_participant_removed(self):
+        project = recipes.project.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.classify_as(0, investigator.user)
+        investigator.delete()
+
+        project.classify_as(0, data_rep.user)
+
+        assert not project.is_classification_ready
+        assert not project.tier_conflict
+        assert not project.has_tier
+
     def test_ordered_questions(self):
         insert_initial_questions(ClassificationQuestion)
         questions = ClassificationQuestion.objects.get_ordered_questions()
