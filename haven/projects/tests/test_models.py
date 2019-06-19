@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 
 from core import recipes
 from data.classification import insert_initial_questions
@@ -98,6 +99,15 @@ class TestProject:
         assert project.tier_conflict
         assert not project.has_tier
 
+    def test_classify_project_not_partipant(self):
+        project = recipes.project.make()
+        other_project = recipes.project.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=other_project)
+
+        with pytest.raises(ValidationError):
+            project.classify_as(0, investigator.user)
+
     def test_classify_project_role_changed(self):
         project = recipes.project.make()
         investigator = recipes.participant.make(
@@ -111,9 +121,10 @@ class TestProject:
 
         project.classify_as(0, data_rep.user)
 
-        assert not project.is_classification_ready
+        assert project.is_classification_ready
         assert not project.tier_conflict
-        assert not project.has_tier
+        assert project.has_tier
+        assert project.tier == 0
 
     def test_classify_project_participant_removed(self):
         project = recipes.project.make()
@@ -127,9 +138,10 @@ class TestProject:
 
         project.classify_as(0, data_rep.user)
 
-        assert not project.is_classification_ready
+        assert project.is_classification_ready
         assert not project.tier_conflict
-        assert not project.has_tier
+        assert project.has_tier
+        assert project.tier == 0
 
     def test_ordered_questions(self):
         insert_initial_questions(ClassificationQuestion)
