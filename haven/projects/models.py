@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Case, When
 
 from data.models import Dataset
 from data.tiers import TIER_CHOICES, Tier
@@ -7,7 +8,6 @@ from identity.models import User
 
 from .managers import ProjectQuerySet
 from .roles import ProjectRole
-from django.db.models import Case, When
 
 
 class Project(models.Model):
@@ -67,16 +67,15 @@ class Project(models.Model):
         :return: True if ready for classification, False otherwise.
         """
         required_roles = {
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
-            ProjectRole.INVESTIGATOR,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+            ProjectRole.INVESTIGATOR.value,
         }
         roles = set()
 
         for c in self.classifications.all():
-            role = c.user.project_participation_role(self)
-            roles.add(role)
-            if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE and c.tier >= Tier.TWO:
-                required_roles.add(ProjectRole.REFEREE)
+            roles.add(c.role)
+            if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
+                required_roles.add(ProjectRole.REFEREE.value)
 
         return roles >= required_roles
 
@@ -117,9 +116,15 @@ class Project(models.Model):
 
         :return: `ClassificationOpinion` object
         """
+        if not by_user:
+            raise ValidationError("No user provided")
+        role = by_user.project_participation_role(self)
+        if not role:
+            raise ValidationError("User not a participant of project")
         classification = ClassificationOpinion.objects.create(
             project=self,
             user=by_user,
+            role=role.value,
             tier=tier,
         )
 
@@ -198,6 +203,12 @@ class ClassificationOpinion(models.Model):
     project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
+    role = models.CharField(
+        max_length=50,
+        choices=ProjectRole.choices(),
+        validators=[validate_role],
+        help_text="The participant's role on this project at the time classification was made"
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text='Time the classification was made',
