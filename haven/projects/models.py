@@ -107,12 +107,14 @@ class Project(models.Model):
             self.tier = self.classifications.first().tier
             self.save()
 
-    def classify_as(self, tier, by_user):
+    def classify_as(self, tier, by_user, questions=None):
         """
         Add a user's opinion of the project classification
 
         :param tier: Tier the user thinks the project is
         :param by_user: User object
+        :param questions: Sequence of (str, bool) items representing the
+            user's classification answers
 
         :return: `ClassificationOpinion` object
         """
@@ -127,6 +129,15 @@ class Project(models.Model):
             role=role.value,
             tier=tier,
         )
+
+        if questions:
+            for i, q in enumerate(questions):
+                ClassificationOpinionQuestion.objects.create(
+                    opinion=classification,
+                    order=i,
+                    question=q[0],
+                    answer=q[1],
+                )
 
         # This might qualify the project for classification, so try
         self.calculate_tier()
@@ -219,6 +230,13 @@ class ClassificationOpinion(models.Model):
 
     def __str__(self):
         return f'{self.user}: {self.project} (tier {self.tier})'
+
+
+class ClassificationOpinionQuestion(models.Model):
+    opinion = models.ForeignKey(ClassificationOpinion, on_delete=models.CASCADE, related_name='questions')
+    order = models.SmallIntegerField()
+    question = models.TextField()
+    answer = models.BooleanField()
 
 
 class PolicyGroup(models.Model):
