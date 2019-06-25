@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load project_tags %}
+{% load django_tables2 %}
 
 
 {% block h1_title %}Data Classification for {{ classification.project.name }}{% endblock %}
@@ -30,6 +31,10 @@
 <p>Users disagree on data tier</p>
 {% endif %}
 
+{% if questions_table %}
+  <h2>Classification answers</h2>
+  {% render_table questions_table %}
+{% endif %}
 
 {% endwith %}
 

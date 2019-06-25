@@ -41,9 +41,14 @@ Role: {{ participant.get_role_display }}
   {% endif %}
 </div>
 
-{% if project.has_tier %}
+{% if policy_table %}
   <h2>Project Policies</h2>
-  {% render_table table %}
+  {% render_table policy_table %}
+{% endif %}
+
+{% if question_table %}
+  <h2>Data Classification</h2>
+  {% render_table question_table %}
 {% endif %}
 
 {% endblock content %}
