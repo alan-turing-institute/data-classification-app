@@ -34,3 +34,10 @@
 {% endwith %}
 
 {% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' classification.project.id %}">{{ classification.project.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
+{% endblock crumbs %}
