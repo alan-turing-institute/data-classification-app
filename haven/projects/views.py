@@ -13,6 +13,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from formtools.wizard.views import SessionWizardView
 
+from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
@@ -279,7 +280,7 @@ class ProjectCreateDataset(
         self.object = self.get_object()
         if form.is_valid():
             dataset = form.save()
-            self.object.add_dataset(dataset)
+            self.object.add_dataset(dataset, request.user)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)

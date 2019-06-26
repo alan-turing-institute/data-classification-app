@@ -26,6 +26,18 @@ class TestProject:
         assert part.role == 'researcher'
         assert part.created_by == programme_manager
 
+    def test_add_dataset(self, programme_manager, user1):
+        project = recipes.project.make()
+        dataset = recipes.dataset.make(default_representative=user1)
+
+        project.add_dataset(dataset, programme_manager)
+
+        assert project.participant_set.count() == 1
+        part = project.participant_set.first()
+        assert part.user.username == 'user1@example.com'
+        assert part.role == 'data_provider_representative'
+        assert part.created_by == programme_manager
+
     def test_classify_project(self):
         project = recipes.project.make()
         investigator = recipes.participant.make(

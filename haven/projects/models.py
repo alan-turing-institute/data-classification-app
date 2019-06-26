@@ -54,8 +54,12 @@ class Project(models.Model):
             project=self,
         )
 
-    def add_dataset(self, dataset):
+    @transaction.atomic
+    def add_dataset(self, dataset, creator):
         self.datasets.add(dataset)
+        user = dataset.default_representative
+        if user:
+            self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
 
     @property
     def is_classification_ready(self):
