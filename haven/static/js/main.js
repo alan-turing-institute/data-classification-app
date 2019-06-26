@@ -3,6 +3,7 @@ global.jQuery = $;
 global.$ = $;
 require('django-formset');
 require('bootstrap-checkbox');
+require('bootstrap/js/dist/collapse');
 
 $(function() {
   $("form:not(.remove-add-button) .formset tbody tr").formset({
