@@ -237,7 +237,8 @@ class TestAddUserToProject:
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, investigator, researcher):
-        # An investigator cannot add a user because they cannot see a list of users outside their project
+        # An investigator cannot add a user because they cannot see a list of users outside their
+        # project
         client.force_login(investigator.user)
         response = client.post(
             '/projects/%d/participants/add' % investigator.project.id,
@@ -414,7 +415,8 @@ class TestProjectClassifyData:
         response = as_programme_manager.get('/projects/%d/classify' % project.id)
         assert response.status_code == 403
 
-    def test_do_not_show_form_if_user_already_classified(self, client, as_project_participant, programme_manager):
+    def test_do_not_show_form_if_user_already_classified(self, client, as_project_participant,
+                                                         programme_manager):
         project = recipes.project.make(created_by=programme_manager)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
@@ -444,7 +446,6 @@ class TestProjectClassifyData:
         response = as_project_participant.get('/projects/%d/classify' % project.id)
         assert 'wizard' in response.context
         assert b'Delete My Classification' not in response.content
-
 
     def test_classify_as_tier_0(self, as_project_participant, programme_manager):
         insert_initial_questions(ClassificationQuestion)

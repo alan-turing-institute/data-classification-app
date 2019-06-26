@@ -16,12 +16,13 @@ from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
-from core.forms import InlineFormSetHelper
 from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
-from projects.forms import UsersForProjectInlineFormSet, \
-    ParticipantInlineFormSetHelper
+from projects.forms import (
+    ParticipantInlineFormSetHelper,
+    UsersForProjectInlineFormSet,
+)
 
 from .forms import (
     ProjectAddDatasetForm,
@@ -173,7 +174,8 @@ class EditProjectListParticipants(
         return reverse('projects:list_participants', args=[self.get_object().id])
 
     def test_func(self):
-        return self.get_project_role().can_edit_participants and self.request.user.user_role.can_view_all_users
+        return (self.get_project_role().can_edit_participants
+                and self.request.user.user_role.can_view_all_users)
 
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
