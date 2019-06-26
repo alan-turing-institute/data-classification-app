@@ -16,6 +16,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:pk>/edit',
+        views.ProjectEdit.as_view(),
+        name='edit'
+    ),
+
+    path(
         '<int:pk>/participants/',
         views.ProjectListParticipants.as_view(),
         name='list_participants'

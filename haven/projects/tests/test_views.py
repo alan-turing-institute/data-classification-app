@@ -126,6 +126,71 @@ class TestViewProject:
 
 
 @pytest.mark.django_db
+class TestEditProject:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/edit')
+        helpers.assert_login_redirect(response)
+
+    def test_edit(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+        response = as_project_participant.post('/projects/%d/edit' % project.id, {
+            'name': 'my updated project',
+            'description': 'a different project',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        response = as_project_participant.get('/projects/%d' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'].name == 'my updated project'
+        assert response.context['project'].description == 'a different project'
+
+    def test_view_owned_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_view_as_manager(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_view_as_user(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 403
+
+    def test_view_as_system_manager(self, as_system_manager):
+        project = recipes.project.make()
+
+        response = as_system_manager.get('/projects/%d' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+
+@pytest.mark.django_db
 class TestAddUserToProject:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()

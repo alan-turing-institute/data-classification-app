@@ -113,6 +113,36 @@ class TestProjectRoleListParticipants:
         assert not perms.can_list_participants
 
 
+class TestProjectRoleEditProject:
+    def test_project_admin_can_edit(self):
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True)
+        assert perms.can_edit
+
+    def test_project_manager_can_edit(self):
+        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE, False)
+        assert perms.can_edit
+
+    def test_investigator_can_edit(self):
+        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False)
+        assert not perms.can_edit
+
+    def test_researcher_cannot_list_participants(self):
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False)
+        assert not perms.can_edit
+
+    def test_referee_cannot_list_participants(self):
+        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False)
+        assert not perms.can_edit
+
+    def test_programme_manager_can_edit(self):
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER, False)
+        assert not perms.can_edit
+
+    def test_system_manager_can_edit(self):
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, False)
+        assert not perms.can_edit
+
+
 class TestIsValidAssignableParticipantRole:
     def test_valid_roles(self):
         assert ProjectRole.is_valid_assignable_participant_role('referee')

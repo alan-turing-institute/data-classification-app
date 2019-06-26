@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, FormMixin
+from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from django_tables2 import SingleTableMixin
 from formtools.wizard.views import SessionWizardView
 
@@ -98,6 +98,21 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView, SingleTa
         table = self.get_table(**self.get_table_kwargs())
         context[self.get_context_table_name(table)] = table
         return context
+
+
+class ProjectEdit(
+    LoginRequiredMixin, UserPassesTestMixin,
+    SingleProjectMixin, UserFormKwargsMixin, UpdateView
+):
+    model = Project
+    form_class = ProjectForm
+
+    def test_func(self):
+        return self.get_project_role().can_edit
+
+    def get_success_url(self):
+        obj = self.get_object()
+        return reverse('projects:detail', args=[obj.id])
 
 
 class ProjectAddUser(
