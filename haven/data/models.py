@@ -1,4 +1,5 @@
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from data import tiers
 from identity.models import User
@@ -24,6 +25,7 @@ class ClassificationQuestion(models.Model):
         null=True, blank=True)
     yes_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
     no_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
+    history = HistoricalRecords()
 
     objects = ClassificationQuestionQuerySet.as_manager()
 

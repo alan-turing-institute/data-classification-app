@@ -364,7 +364,7 @@ class ProjectClassifyData(
         tier = None
         questions = []
         for form in form_list:
-            question = form.fields['question'].label
+            question = form.question_obj
             answer = form.cleaned_data['question']
             questions.append((question, answer))
             if 'tier' in form.cleaned_data:

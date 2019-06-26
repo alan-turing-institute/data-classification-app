@@ -62,7 +62,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
     @staticmethod
     def _populate_column_data(column_name, questions, unique_questions):
         for question in questions:
-            key = question.question
+            key = question.question_at_time.question
             row = unique_questions.setdefault(key, {
                 'question': key,
             })

@@ -58,6 +58,7 @@ THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
     'django_tables2',
+    'simple_history',
     'social_django',
 ]
 

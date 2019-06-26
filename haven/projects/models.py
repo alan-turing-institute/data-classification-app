@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Case, When
 
-from data.models import Dataset
+from data.models import ClassificationQuestion, Dataset
 from data.tiers import TIER_CHOICES, Tier
 from identity.models import User
 
@@ -113,8 +113,8 @@ class Project(models.Model):
 
         :param tier: Tier the user thinks the project is
         :param by_user: User object
-        :param questions: Sequence of (str, bool) items representing the
-            user's classification answers
+        :param questions: Sequence of (ClassificationQuestion, bool) items
+            representing the user's classification answers
 
         :return: `ClassificationOpinion` object
         """
@@ -136,6 +136,7 @@ class Project(models.Model):
                     opinion=classification,
                     order=i,
                     question=q[0],
+                    question_version=q[0].history.latest().history_id,
                     answer=q[1],
                 )
 
@@ -235,8 +236,13 @@ class ClassificationOpinion(models.Model):
 class ClassificationOpinionQuestion(models.Model):
     opinion = models.ForeignKey(ClassificationOpinion, on_delete=models.CASCADE, related_name='questions')
     order = models.SmallIntegerField()
-    question = models.TextField()
+    question = models.ForeignKey(ClassificationQuestion, on_delete=models.PROTECT, related_name='+')
+    question_version = models.IntegerField()
     answer = models.BooleanField()
+
+    @property
+    def question_at_time(self):
+        return self.question.history.get(history_id=self.question_version)
 
 
 class PolicyGroup(models.Model):
