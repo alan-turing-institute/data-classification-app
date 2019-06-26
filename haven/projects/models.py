@@ -70,14 +70,22 @@ class Project(models.Model):
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             ProjectRole.INVESTIGATOR.value,
         }
+        required_users = {
+            p.user
+            for p in self.participant_set.all()
+            if p.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
+        }
+
         roles = set()
+        users = set()
 
         for c in self.classifications.all():
             roles.add(c.role)
+            users.add(c.user)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
 
-        return roles >= required_roles
+        return roles >= required_roles and users >= required_users
 
     @property
     def tier_conflict(self):
@@ -210,7 +218,7 @@ class Participant(models.Model):
 
 class ClassificationOpinion(models.Model):
     """
-    Represents a user's opinion about the data tier classificaiton of a project
+    Represents a user's opinion about the data tier classification of a project
     """
     project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)

@@ -63,6 +63,11 @@ class TestProject:
         project.classify_as(0, investigator.user)
         project.classify_as(0, data_rep.user)
 
+        assert not project.is_classification_ready
+        assert not project.has_tier
+
+        project.classify_as(0, data_rep2.user)
+
         assert project.is_classification_ready
         assert not project.tier_conflict
         assert project.has_tier
