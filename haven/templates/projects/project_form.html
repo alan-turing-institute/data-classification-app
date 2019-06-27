@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block h1_title %}Create Project{% endblock %}
+{% block h1_title %}
+  {% if project %}
+    Edit Project
+  {% else %}
+    Create Project
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <form method="POST">
@@ -15,5 +21,10 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item active" aria-current="page">New</li>
+  {% if project %}
+    <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Edit</li>
+  {% else %}
+    <li class="breadcrumb-item active" aria-current="page">New</li>
+  {% endif %}
 {% endblock crumbs %}
