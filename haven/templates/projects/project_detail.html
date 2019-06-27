@@ -17,6 +17,12 @@ Role: {{ participant.get_role_display }}
 </p>
 
 <div class="my-3" role="group">
+  {% if project_role.can_edit %}
+    <a class="btn btn-primary btn-lg" href="{% url 'projects:edit' project.id %}">Edit</a>
+  {% endif %}
+</div>
+
+<div class="my-3" role="group">
   {% if project_role.can_list_participants %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:list_participants' project.id %}">Participants</a>
   {% endif %}

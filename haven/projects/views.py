@@ -10,18 +10,19 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, FormMixin
+from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from django_tables2 import SingleTableMixin
 from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
-from core.forms import InlineFormSetHelper
 from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
-from projects.forms import UsersForProjectInlineFormSet, \
-    ParticipantInlineFormSetHelper
+from projects.forms import (
+    ParticipantInlineFormSetHelper,
+    UsersForProjectInlineFormSet,
+)
 
 from .forms import (
     ProjectAddDatasetForm,
@@ -99,6 +100,21 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView, SingleTa
         return context
 
 
+class ProjectEdit(
+    LoginRequiredMixin, UserPassesTestMixin,
+    SingleProjectMixin, UserFormKwargsMixin, UpdateView
+):
+    model = Project
+    form_class = ProjectForm
+
+    def test_func(self):
+        return self.get_project_role().can_edit
+
+    def get_success_url(self):
+        obj = self.get_object()
+        return reverse('projects:detail', args=[obj.id])
+
+
 class ProjectAddUser(
     LoginRequiredMixin, UserPassesTestMixin,
     UserFormKwargsMixin, SingleProjectMixin, FormMixin, DetailView
@@ -173,7 +189,8 @@ class EditProjectListParticipants(
         return reverse('projects:list_participants', args=[self.get_object().id])
 
     def test_func(self):
-        return self.get_project_role().can_edit_participants and self.request.user.user_role.can_view_all_users
+        return (self.get_project_role().can_edit_participants
+                and self.request.user.user_role.can_view_all_users)
 
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
