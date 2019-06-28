@@ -1,12 +1,13 @@
 from braces.forms import UserKwargModelFormMixin
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from dal import autocomplete
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.urls import reverse
 
 from data.models import Dataset
-from django.urls import reverse
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
@@ -14,7 +15,12 @@ from .models import Participant, Project
 from .roles import ProjectRole
 
 
-from crispy_forms.helper import FormHelper
+class SaveCancelFormHelper(FormHelper):
+    def __init__(self, save_label='Save', save_class='btn-success', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(Submit('submit', save_label, css_class=save_class))
+        self.add_input(Submit('cancel', 'Cancel', css_class='btn-secondary',
+                              formnovalidate='formnovalidate'))
 
 
 class ParticipantInlineFormSetHelper(FormHelper):
@@ -25,6 +31,8 @@ class ParticipantInlineFormSetHelper(FormHelper):
 
 
 class ProjectForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Save Project')
+
     class Meta:
         model = Project
         fields = ['name', 'description']
@@ -60,12 +68,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         # Update user field with project ID
         self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
 
-    # Use crispy FormHelper to add submit and cancel buttons
-    helper = FormHelper()
-    helper.add_input(Submit('submit', 'Add Participant'))
-    helper.add_input(Submit('cancel', 'Cancel',
-                                 css_class='btn-secondary',
-                                 formnovalidate='formnovalidate'))
+    helper = SaveCancelFormHelper('Add Participant')
     helper.form_method = 'POST'
 
     username = ProjectUserAutocompleteChoiceField()
@@ -168,17 +171,12 @@ UsersForProjectInlineFormSet = inlineformset_factory(
 
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Create Dataset')
     class Meta:
         model = Dataset
         fields = ('name', 'description')
 
 
 class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
-    # Static crispy form helper for adding cancel and delete buttons
-    helper = FormHelper()
-    helper.add_input(Submit('cancel', 'Cancel',
-                            css_class='btn-secondary',
-                            formnovalidate='formnovalidate'))
-    helper.add_input(Submit('submit', 'Delete Classification',
-                            css_class='btn-danger'))
+    helper = SaveCancelFormHelper('Delete Classification', 'btn-danger')
     helper.form_method = 'POST'

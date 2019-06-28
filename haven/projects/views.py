@@ -71,6 +71,12 @@ class ProjectCreate(
     def get_success_url(self):
         return reverse('projects:list')
 
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        return super().post(request, *args, **kwargs)
+
 
 class ProjectList(LoginRequiredMixin, ListView):
     context_object_name = 'projects'
@@ -113,6 +119,12 @@ class ProjectEdit(
     def get_success_url(self):
         obj = self.get_object()
         return reverse('projects:detail', args=[obj.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        return super().post(request, *args, **kwargs)
 
 
 class ProjectAddUser(
@@ -256,6 +268,10 @@ class ProjectCreateDataset(
     form_class = ProjectAddDatasetForm
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
         form = self.get_form()
         self.object = self.get_object()
         if form.is_valid():
