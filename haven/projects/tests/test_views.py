@@ -175,7 +175,8 @@ class TestEditProject:
 
     def test_view_as_user(self, as_project_participant):
         project = recipes.project.make()
-        recipes.participant.make(project=project, user=as_project_participant._user)
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.RESEARCHER.value)
 
         response = as_project_participant.get('/projects/%d/edit' % project.id)
 
