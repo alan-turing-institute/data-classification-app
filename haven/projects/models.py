@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Case, When
 
-from data.models import Dataset
+from data.models import ClassificationQuestion, Dataset
 from data.tiers import TIER_CHOICES, Tier
 from identity.models import User
 
@@ -107,12 +107,14 @@ class Project(models.Model):
             self.tier = self.classifications.first().tier
             self.save()
 
-    def classify_as(self, tier, by_user):
+    def classify_as(self, tier, by_user, questions=None):
         """
         Add a user's opinion of the project classification
 
         :param tier: Tier the user thinks the project is
         :param by_user: User object
+        :param questions: Sequence of (ClassificationQuestion, bool) items
+            representing the user's classification answers
 
         :return: `ClassificationOpinion` object
         """
@@ -127,6 +129,16 @@ class Project(models.Model):
             role=role.value,
             tier=tier,
         )
+
+        if questions:
+            for i, q in enumerate(questions):
+                ClassificationOpinionQuestion.objects.create(
+                    opinion=classification,
+                    order=i,
+                    question=q[0],
+                    question_version=q[0].history.latest().history_id,
+                    answer=q[1],
+                )
 
         # This might qualify the project for classification, so try
         self.calculate_tier()
@@ -219,6 +231,18 @@ class ClassificationOpinion(models.Model):
 
     def __str__(self):
         return f'{self.user}: {self.project} (tier {self.tier})'
+
+
+class ClassificationOpinionQuestion(models.Model):
+    opinion = models.ForeignKey(ClassificationOpinion, on_delete=models.CASCADE, related_name='questions')
+    order = models.SmallIntegerField()
+    question = models.ForeignKey(ClassificationQuestion, on_delete=models.PROTECT, related_name='+')
+    question_version = models.IntegerField()
+    answer = models.BooleanField()
+
+    @property
+    def question_at_time(self):
+        return self.question.history.get(history_id=self.question_version)
 
 
 class PolicyGroup(models.Model):

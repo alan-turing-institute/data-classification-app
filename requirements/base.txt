@@ -18,6 +18,7 @@ django-debug-toolbar==1.10.1
 django-environ==0.4.5
 django-formtools==2.1
 django-phonenumber-field==2.1.0
+django-simple-history==2.7.2
 django-tables2==2.0.6
 django==2.1
 et-xmlfile==1.0.1         # via openpyxl
@@ -34,7 +35,7 @@ python3-openid==3.1.0     # via social-auth-core
 pytz==2018.5              # via babel, django
 requests-oauthlib==1.0.0
 requests==2.20.1          # via requests-oauthlib, social-auth-core
-six==1.11.0               # via cryptography, social-auth-app-django, social-auth-core
+six==1.11.0               # via cryptography, django-simple-history, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
 social-auth-core==2.0.0   # via social-auth-app-django
 sqlparse==0.2.4           # via django-debug-toolbar

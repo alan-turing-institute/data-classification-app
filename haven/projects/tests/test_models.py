@@ -143,6 +143,36 @@ class TestProject:
         assert project.has_tier
         assert project.tier == 0
 
+    def test_classify_project_store_questions(self):
+        insert_initial_questions(ClassificationQuestion)
+        project = recipes.project.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+
+        questions = []
+        q = ClassificationQuestion.objects.get_starting_question()
+        questions.append((q, True))
+        q = q.answer_yes()
+        questions.append((q, False))
+        q = q.answer_no()
+        questions.append((q, True))
+        tier = q.answer_yes()
+        project.classify_as(0, investigator.user, questions)
+
+        for q in ClassificationQuestion.objects.all():
+            q.name = q.name + '_v2'
+            q.save()
+
+        classification = project.classification_for(investigator.user).first()
+        expected = [
+            ('public_and_open', True),
+            ('open_identify_living', False),
+            ('open_publication', True),
+        ]
+
+        saved_questions = classification.questions.order_by('order')
+        assert expected == [(q.question_at_time.name, q.answer) for q in saved_questions]
+
     def test_ordered_questions(self):
         insert_initial_questions(ClassificationQuestion)
         questions = ClassificationQuestion.objects.get_ordered_questions()

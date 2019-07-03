@@ -11,7 +11,6 @@ from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
-from django_tables2 import SingleTableMixin
 from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
@@ -32,7 +31,7 @@ from .forms import (
 )
 from .models import ClassificationOpinion, Participant, Project
 from .roles import ProjectRole
-from .tables import PolicyTable
+from .tables import ClassificationOpinionQuestionTable, PolicyTable
 
 
 class SingleProjectMixin(SingleObjectMixin):
@@ -92,17 +91,21 @@ class ProjectList(LoginRequiredMixin, ListView):
             annotate(your_role=Subquery(participants.values('role')[:1]))
 
 
-class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView, SingleTableMixin):
-    table_class = PolicyTable
-
-    def get_table_data(self):
-        return self.get_object().get_policies()
-
+class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
     def get_context_data(self, **kwargs):
-        kwargs['participant'] = self.request.user.get_participant(self.get_object())
+        project = self.get_object()
+        kwargs['participant'] = self.request.user.get_participant(project)
         context = SingleProjectMixin.get_context_data(self, **kwargs)
-        table = self.get_table(**self.get_table_kwargs())
-        context[self.get_context_table_name(table)] = table
+
+        if project.has_tier:
+            # Don't show these until we have a tier, to avoid influencing anybody that
+            # hasn't classified yet
+            policies = project.get_policies()
+            context['policy_table'] = PolicyTable(policies)
+
+            classifications = project.classifications.all()
+            context['question_table'] = ClassificationOpinionQuestionTable(classifications)
+
         return context
 
 
@@ -359,12 +362,16 @@ class ProjectClassifyData(
         Record the user's classification and show results
         """
         tier = None
+        questions = []
         for form in form_list:
+            question = form.question_obj
+            answer = form.cleaned_data['question']
+            questions.append((question, answer))
             if 'tier' in form.cleaned_data:
                 tier = form.cleaned_data['tier']
                 break
 
-        classification = self.object.classify_as(tier, self.request.user)
+        classification = self.object.classify_as(tier, self.request.user, questions)
 
         return self.render_result(classification)
 
@@ -373,15 +380,20 @@ class ProjectClassifyData(
         Show the classification result, along with that of other users
         (and the project's final classification, if available yet)
         """
+        self.object.calculate_tier()
+
         other_classifications = self.object.classifications.exclude(
             user=self.request.user)
 
-        self.object.calculate_tier()
+        table = ClassificationOpinionQuestionTable(
+            [classification] + list(other_classifications)
+        )
 
         return render(self.request, 'projects/project_classify_results.html', {
             'classification': classification,
             'other_classifications': other_classifications,
             'project_tier': self.object.tier,
+            'questions_table': table,
         })
 
     def get_form(self, *args, **kwargs):
