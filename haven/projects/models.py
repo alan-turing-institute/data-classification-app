@@ -188,6 +188,22 @@ def validate_role(role):
         raise ValidationError('Not a valid ProjectRole string')
 
 
+class WorkPackage(models.Model):
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
+    name = models.CharField(max_length=256)
+    description = models.TextField()
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the work package was added to the project',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='+',
+        help_text='User who added this work package to the project',
+    )
+
 class Participant(models.Model):
     """
     Represents a user's participation in a project
