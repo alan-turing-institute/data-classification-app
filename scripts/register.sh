@@ -96,13 +96,19 @@ create_registration () {
 
     # Create app registration and add permissions defined in a manifest file
     local permissions_manifest="${CURRENT_DIR}/permissions.json"
-    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${OAUTH2_REDIRECT_URI}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${APP_URI}" --required-resource-accesses "${permissions_manifest}"
+    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${OAUTH2_REDIRECT_URI}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${APP_URI}"
+
+    local client_id=$(az ad app list --identifier-uri "${APP_URI}" --query "[].appId" -o tsv)
+
+    az ad app permission add --id "${client_id}" --api 00000003-0000-0000-c000-000000000000 --api-permissions e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope
+    az ad app permission add --id "${client_id}" --api 00000003-0000-0000-c000-000000000000 --api-permissions 06da0dbc-49e2-44d2-8312-53f166ab848a=Scope
+
+    az ad app permission grant --id "${client_id}" --api 00000003-0000-0000-c000-000000000000
 
     # Consent to permissions
     az ad app permission admin-consent --id "${APP_URI}"
 
     # Get the Application ID (Client ID)
-    local client_id=$(az ad app list --identifier-uri "${APP_URI}" --query "[].appId" -o tsv)
     local tenant_id="${REGISTRATION_TENANT}"
     local django_secret_key=$(generate_key)
 
