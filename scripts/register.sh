@@ -7,7 +7,7 @@
 set -e
 
 # Document usage for this script
-usage() {  
+usage() {
     echo "usage: $0 [-h] [-e envfile]"
     echo "  -h            display help"
     echo "  -e path to file containing environment variables"
@@ -15,7 +15,7 @@ usage() {
 }
 
 
-# See Format of env file: 
+# See Format of env file:
 # .env.example
 
 CURRENT_DIR=$(dirname "$0")
@@ -88,32 +88,29 @@ generate_key () {
 
 create_registration () {
 
+    # Tenant where the app registration will be created
+    local tenant_id="${REGISTRATION_TENANT}"
+
     # The tenant we use to register the app may not have a subscription, in which case we need to set it explicitly with
     # the --allow-no-subscriptions flag
-    az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+    az login --tenant "${tenant_id}" --allow-no-subscriptions
 
     local client_secret=$(generate_key)
 
-    # Create app registration and add permissions defined in a manifest file
-    local permissions_manifest="${CURRENT_DIR}/permissions.json"
-    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${OAUTH2_REDIRECT_URI}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${APP_URI}"
+    # Create app registration
+    local app_permissions='[{"resourceAppId": "00000003-0000-0000-c000-000000000000","resourceAccess": [{"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d","type": "Scope"},{"id": "06da0dbc-49e2-44d2-8312-53f166ab848a","type": "Scope"}]}]'
+    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${OAUTH2_REDIRECT_URI}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${APP_URI}" --required-resource-accesses "${app_permissions}"
 
+    # Get the Application ID (Client ID) which is set when the app is created
     local client_id=$(az ad app list --identifier-uri "${APP_URI}" --query "[].appId" -o tsv)
 
-    az ad app permission add --id "${client_id}" --api 00000003-0000-0000-c000-000000000000 --api-permissions e1fe6dd8-ba31-4d61-89e7-88639da4683d=Scope
-    az ad app permission add --id "${client_id}" --api 00000003-0000-0000-c000-000000000000 --api-permissions 06da0dbc-49e2-44d2-8312-53f166ab848a=Scope
-
-    az ad app permission grant --id "${client_id}" --api 00000003-0000-0000-c000-000000000000
-
     # Consent to permissions
-    az ad app permission admin-consent --id "${APP_URI}"
+    az ad app permission admin-consent --id "${client_id}"
 
-    # Get the Application ID (Client ID)
-    local tenant_id="${REGISTRATION_TENANT}"
     local django_secret_key=$(generate_key)
 
-    # The key vault may be in a different directory to the registration, so we need to change it back here.
-    # Using --subscription in az keyvault commands without changing the default subscription can result in a permissions error
+    # The key vault may be in a different tenant to the registration, so we need to change it back here.
+    # Using --subscription in az keyvault commands without changing the default tenant/subscription can result in a permissions error
     az account set --subscription "${SUBSCRIPTION}"
 
     az keyvault secret set --name "AZUREAD-OAUTH2-KEY" --vault-name "${KEYVAULT_NAME}" --value "${client_id}"
@@ -124,4 +121,3 @@ create_registration () {
 
 initialise
 create_registration
-
