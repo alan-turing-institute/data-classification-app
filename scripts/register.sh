@@ -45,28 +45,31 @@ else
     exit 1
 fi
 
-# Construct domain
+
+# Construct domain and URL for the Sfae Haven Management Webapp
 BASE_DOMAIN="${APP_NAME}.azurewebsites.net"
+BASE_URL="https://${BASE_DOMAIN}/"
+
+# This must be set to the URL to where the app's OAuth2 pipeline redirects after authentication
+OAUTH2_REDIRECT_URI="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
 
 # ALLOWED_HOSTS must not contain the protocol
 ALLOWED_HOSTS="${BASE_DOMAIN}"
-
-# The safe haven URL
-BASE_URL="https://${BASE_DOMAIN}/"
-
-DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 
 
 DJANGO_SETTINGS_MODULE='config.settings.dev'
 
 
-OAUTH2_REDIRECT_URI="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
 
 APP_URI="${BASE_URL}"
-
+PLAN_NAME="${APP_NAME}"
 KEYVAULT_NAME="${APP_NAME}"
+SQL_SERVER_NAME="${APP_NAME}"
 CONTAINER_REGISTRY_NAME=$(echo "${APP_NAME}" | sed 's/[^a-zA-Z0-9]//g')
-echo "cr = ${CONTAINER_REGISTRY_NAME}"
+
+DB_NAME=datasafehavendb
+DB_USERNAME=havenadmin
+
 
 generate_key () {
     openssl rand 32 -base64
