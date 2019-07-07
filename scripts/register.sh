@@ -54,19 +54,72 @@ ALLOWED_HOSTS="${BASE_DOMAIN}"
 # The safe haven URL
 BASE_URL="https://${BASE_DOMAIN}/"
 
+DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 
 
+DJANGO_SETTINGS_MODULE='config.settings.dev'
 
 
-
-#ToDo: verify if other redirect URIs are required
 OAUTH2_REDIRECT_URI="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
 
 APP_URI="${BASE_URL}"
 
 KEYVAULT_NAME="${APP_NAME}"
+CONTAINER_REGISTRY_NAME=$(echo "${APP_NAME}" | sed 's/[^a-zA-Z0-9]//g')
+echo "cr = ${CONTAINER_REGISTRY_NAME}"
 
+generate_key () {
+    openssl rand 32 -base64
+}
 
+function get_azure_secret() {
+    local SECRET_NAME="$1"
+    az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
+}
+
+create_app() {
+    echo "Creating App Service Plan"
+    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1
+
+    echo "Creating App Service"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}"
+
+    # Create a secret key for Django and store in keyvault
+    local django_secret_key=$(generate_key)
+    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+}
+
+create_resource_group() {
+    echo "Creating resource group"
+    az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+}
+
+create_keyvault() {
+    echo "Creating key vault"
+    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+}
+
+create_db() {
+    echo "Creating the DB server"
+    local db_username=${DB_USERNAME}
+    local db_password=$(generate_key)
+    az sql server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP"
+    az sql server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+
+    echo "Creating the database"
+    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
+
+    # Store DB credentials in keyvault
+    local database_url="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
+    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
+    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
+}
+
+create_container_registry() {
+    echo "Creating the container registry"
+    az acr create --resource-group "${RESOURCE_GROUP}" --name "${CONTAINER_REGISTRY_NAME}" --sku Basic --location "${LOCATION}"
+}
 
 initialise () {
     # We need to explicitly set the subscription in order to change the default tenant. Azure will create the keyvault
@@ -74,16 +127,15 @@ initialise () {
     az account set --subscription "${SUBSCRIPTION}"
 
     if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") != "true" ]]; then
-        echo "Creating resource group"
-        az group create --name ${RESOURCE_GROUP} --location ${LOCATION} --subscription "${SUBSCRIPTION}"
 
-        echo "Creating key vault"
-        az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+        create_resource_group
+        create_keyvault
+        create_app
+        create_db
+        create_container_registry
+    else
+        echo "Resource group already exists - has this app already been created?"
     fi
-}
-
-generate_key () {
-    openssl rand 32 -base64
 }
 
 create_registration () {
@@ -107,17 +159,48 @@ create_registration () {
     # Consent to permissions
     az ad app permission admin-consent --id "${client_id}"
 
-    local django_secret_key=$(generate_key)
-
     # The key vault may be in a different tenant to the registration, so we need to change it back here.
     # Using --subscription in az keyvault commands without changing the default tenant/subscription can result in a permissions error
     az account set --subscription "${SUBSCRIPTION}"
 
+    # Store authentication credentials in keyvault
     az keyvault secret set --name "AZUREAD-OAUTH2-KEY" --vault-name "${KEYVAULT_NAME}" --value "${client_id}"
     az keyvault secret set --name "AZUREAD-OAUTH2-SECRET" --vault-name "${KEYVAULT_NAME}" --value "${client_secret}"
     az keyvault secret set --name "AZUREAD-OAUTH2-TENANT-ID" --vault-name "${KEYVAULT_NAME}" --value "${tenant_id}"
 }
 
+deploy_settings () {
+    local secret_key=$(get_azure_secret  "SECRET-KEY")
+    local azuread_oauth2_key=$(get_azure_secret  "AZUREAD-OAUTH2-KEY")
+    local azuread_oauth2_secret=$(get_azure_secret  "AZUREAD-OAUTH2-SECRET")
+    local azuread_oauth2_tenant_id=$(get_azure_secret  "AZUREAD-OAUTH2-TENANT-ID")
+    local db_username=$(get_azure_secret  "DB-USERNAME")
+    local db_password=$(get_azure_secret  "DB-PASSWORD")
+    local database_url=$(get_azure_secret  "DB-URL")
+
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SECRET_KEY="${secret_key}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DATABASE_URL="${database_url}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_TENANT_ID="${azuread_oauth2_tenant_id}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings USE_LDAP="${USE_LDAP}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_SERVER="${LDAP_SERVER}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_USER="${LDAP_USER}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_PASSWORD="${LDAP_PASSWORD}"
+
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST="${EMAIL_HOST}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
+
+    az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings BASE_URL="${BASE_URL}"
+
+}
+
 
 initialise
+create_container_registry
 create_registration
+deploy_settings
