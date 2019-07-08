@@ -262,7 +262,8 @@ class ClassificationOpinion(models.Model):
 
 
 class ClassificationOpinionQuestion(models.Model):
-    opinion = models.ForeignKey(ClassificationOpinion, on_delete=models.CASCADE, related_name='questions')
+    opinion = models.ForeignKey(ClassificationOpinion, on_delete=models.CASCADE,
+                                related_name='questions')
     order = models.SmallIntegerField()
     question = models.ForeignKey(ClassificationQuestion, on_delete=models.PROTECT, related_name='+')
     question_version = models.IntegerField()

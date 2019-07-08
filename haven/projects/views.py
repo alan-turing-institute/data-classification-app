@@ -13,7 +13,6 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from formtools.wizard.views import SessionWizardView
 
-from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
@@ -290,6 +289,16 @@ class ProjectCreateDataset(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+
+class ProjectListWorkPackages(
+    LoginRequiredMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/work_package_list.html'
+
+    def get_context_data(self, **kwargs):
+        kwargs['work_packages'] = self.get_object().workpackage_set.order_by('created_at').all()
+        return super().get_context_data(**kwargs)
 
 
 class ProjectClassifyData(
