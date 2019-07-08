@@ -66,6 +66,10 @@ PLAN_NAME="${APP_NAME}"
 KEYVAULT_NAME="${APP_NAME}"
 SQL_SERVER_NAME="${APP_NAME}"
 CONTAINER_REGISTRY_NAME=$(echo "${APP_NAME}" | sed 's/[^a-zA-Z0-9]//g')
+DOCKER_TAG_PREFIX="dsh-web"
+DOCKER_TAG="${DOCKER_TAG_PREFIX}:v1"
+DOCKER_IMAGE_NAME="${CONTAINER_REGISTRY_NAME}.azurecr.io/${DOCKER_TAG}"
+DOCKER_IMAGE_URL="https://${DOCKER_IMAGE_NAME}"
 
 DB_NAME=datasafehavendb
 DB_USERNAME=havenadmin
@@ -82,10 +86,15 @@ function get_azure_secret() {
 
 create_app() {
     echo "Creating App Service Plan"
-    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1
+    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     echo "Creating App Service"
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
+
+    local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
+    local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
+
+    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${DOCKER_IMAGE_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
 
     # Create a secret key for Django and store in keyvault
     local django_secret_key=$(generate_key)
@@ -121,7 +130,12 @@ create_db() {
 
 create_container_registry() {
     echo "Creating the container registry"
-    az acr create --resource-group "${RESOURCE_GROUP}" --name "${CONTAINER_REGISTRY_NAME}" --sku Basic --location "${LOCATION}"
+    az acr create --resource-group "${RESOURCE_GROUP}" --name "${CONTAINER_REGISTRY_NAME}" --sku Basic --location "${LOCATION}" --admin-enabled true
+
+    local registry_username=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "username" -otsv)
+    local registry_password=$(az acr credential show --name "datasafehaventestreg" --query "passwords[?name=='password'].value" -otsv)
+    az keyvault secret set --name "REGISTRY-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${registry_username}"
+    az keyvault secret set --name "REGISTRY-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${registry_password}"
 }
 
 initialise () {
@@ -133,15 +147,16 @@ initialise () {
 
         create_resource_group
         create_keyvault
-        create_app
-        create_db
         create_container_registry
+        create_db
+        create_app
     else
         echo "Resource group already exists - has this app already been created?"
     fi
 }
 
 create_registration () {
+    echo "Creating app registration"
 
     # Tenant where the app registration will be created
     local tenant_id="${REGISTRATION_TENANT}"
@@ -160,6 +175,7 @@ create_registration () {
     local client_id=$(az ad app list --identifier-uri "${APP_URI}" --query "[].appId" -o tsv)
 
     # Consent to permissions
+    echo "Permissions consent"
     az ad app permission admin-consent --id "${client_id}"
 
     # The key vault may be in a different tenant to the registration, so we need to change it back here.
@@ -203,7 +219,6 @@ deploy_settings () {
 }
 
 
-initialise
-create_container_registry
+#initialise
 create_registration
 deploy_settings
