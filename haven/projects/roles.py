@@ -101,6 +101,14 @@ class UserProjectPermissions:
         ]
 
     @property
+    def can_add_work_packages(self):
+        """Is this role able to add new work packages to the project?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
+            ProjectRole.INVESTIGATOR,
+        ]
+
+    @property
     def can_list_participants(self):
         """Is this role able to list participants?"""
         return self.is_project_admin or self.role in [

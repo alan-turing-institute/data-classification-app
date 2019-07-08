@@ -11,7 +11,7 @@ from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project
+from .models import Participant, Project, WorkPackage
 from .roles import ProjectRole
 
 
@@ -174,6 +174,14 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper('Create Dataset')
     class Meta:
         model = Dataset
+        fields = ('name', 'description')
+
+
+class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Create Work Package')
+
+    class Meta:
+        model = WorkPackage
         fields = ('name', 'description')
 
 

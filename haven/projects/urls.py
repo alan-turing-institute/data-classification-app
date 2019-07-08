@@ -58,6 +58,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:pk>/work_packages/new',
+        views.ProjectCreateWorkPackage.as_view(),
+        name='add_work_package'
+    ),
+
+    path(
         '<int:pk>/classify',
         views.ProjectClassifyData.as_view(),
         name='classify_data'

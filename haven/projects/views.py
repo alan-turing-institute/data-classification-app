@@ -26,6 +26,7 @@ from projects.forms import (
 from .forms import (
     ProjectAddDatasetForm,
     ProjectAddUserForm,
+    ProjectAddWorkPackageForm,
     ProjectClassifyDeleteForm,
     ProjectForm,
 )
@@ -299,6 +300,37 @@ class ProjectListWorkPackages(
     def get_context_data(self, **kwargs):
         kwargs['work_packages'] = self.get_object().workpackage_set.order_by('created_at').all()
         return super().get_context_data(**kwargs)
+
+
+class ProjectCreateWorkPackage(
+    LoginRequiredMixin, UserPassesTestMixin, UserFormKwargsMixin,
+    FormMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_add_work_package.html'
+    form_class = ProjectAddWorkPackageForm
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
+        form = self.get_form()
+        self.object = self.get_object()
+        if form.is_valid():
+            work_package = form.save(commit=False)
+            work_package.created_by = form.user
+            work_package.project = self.object
+            work_package.save()
+            form.save_m2m()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def test_func(self):
+        return self.get_project_role().can_add_work_packages
+
+    def get_success_url(self):
+        return reverse('projects:detail', args=[self.get_object().id])
 
 
 class ProjectClassifyData(

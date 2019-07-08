@@ -432,6 +432,61 @@ class TestListDatasets:
 
 
 @pytest.mark.django_db
+class TestProjectAddWorkPackage:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/work_packages/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/work_packages/new' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/new' % project.id)
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_add_new_work_package_to_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'name': 'work package 1',
+            'description': 'Work Package One',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.workpackage_set.count() == 1
+        assert project.workpackage_set.first().name == 'work package 1'
+        assert project.workpackage_set.first().description == 'Work Package One'
+
+    def test_returns_404_for_invisible_project(self, as_programme_manager):
+        project = recipes.project.make()
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_programme_manager.get('/projects/%d/work_packages/new' % project.id)
+        assert response.status_code == 404
+
+        response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id)
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add work_packages, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get('/projects/%d/work_packages/new' % researcher.project.id)
+        assert response.status_code == 403
+
+        response = client.post('/projects/%d/work_packages/new' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestListWorkPackages:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()

@@ -33,6 +33,9 @@ Role: {{ participant.get_role_display }}
 
 <div class="my-3" role="group">
   <a class="btn btn-primary btn-lg" href="{% url 'projects:list_work_packages' project.id %}">Work Packages</a>
+  {% if project_role.can_add_work_packages %}
+    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_work_package' project.id %}">Add Work Package</a>
+  {% endif %}
 </div>
 
 <div class="my-3" role="group">
