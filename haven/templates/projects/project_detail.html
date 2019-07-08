@@ -32,6 +32,10 @@ Role: {{ participant.get_role_display }}
 </div>
 
 <div class="my-3" role="group">
+  <a class="btn btn-primary btn-lg" href="{% url 'projects:list_work_packages' project.id %}">Work Packages</a>
+</div>
+
+<div class="my-3" role="group">
   <a class="btn btn-primary btn-lg" href="{% url 'projects:list_datasets' project.id %}">Datasets</a>
   {% if project_role.can_add_datasets %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:add_dataset' project.id %}">Add Dataset</a>

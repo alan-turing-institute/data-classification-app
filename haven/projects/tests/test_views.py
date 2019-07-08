@@ -432,6 +432,34 @@ class TestListDatasets:
 
 
 @pytest.mark.django_db
+class TestListWorkPackages:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/work_packages/' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        wp1, wp2 = recipes.work_package.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.workpackage_set.add(wp1, wp2)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/' % project.id)
+
+        assert response.status_code == 200
+        assert list(response.context['work_packages']) == [wp1, wp2]
+
+    def test_returns_404_for_invisible_project(self, as_programme_manager):
+        project = recipes.project.make()
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_programme_manager.get('/projects/%d/work_packages/' % project.id)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
 class TestProjectClassifyData:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()

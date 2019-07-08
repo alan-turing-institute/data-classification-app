@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ project.name }}: Work Packages{% endblock %}
+{% block h1_title %}{{ project.name }}: Work Packages{% endblock %}
+
+{% block content %}
+
+<ul class="list-group">
+  {% for work_package in work_packages %}
+  <li class="list-group-item">
+    <div class="float-left">
+      <h4>{{ work_package.name }}</h4>
+      <p>{{ work_package.description }}</p>
+    </div>
+    <div class="float-right">
+      <small>{{ work_package.created_at }}</small>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
+
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Work Packages</li>
+{% endblock crumbs %}
