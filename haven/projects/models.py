@@ -18,15 +18,6 @@ class Project(models.Model):
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', blank=True)
 
-    # Classification occurs at the project level because combinations of individual
-    # datasets might have a different tier to their individual tiers
-    # None means tier is unknown
-    tier = models.PositiveSmallIntegerField(
-        null=True,
-        blank=True,
-        choices=TIER_CHOICES,
-    )
-
     objects = ProjectQuerySet.as_manager()
 
     def __str__(self):
@@ -61,6 +52,47 @@ class Project(models.Model):
         if user:
             self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
 
+    def ordered_participant_set(self):
+        """Order participants on this project by their ProjectRole"""
+        ordered_role_list = ProjectRole.ordered_display_role_list()
+        order = Case(*[When(role=role, then=pos) for pos, role in
+                       enumerate(ordered_role_list)])
+        return self.participant_set.filter(
+            role__in=ordered_role_list).order_by(order)
+
+
+def validate_role(role):
+    """Validator for assigning a participant's role in a project"""
+    if not ProjectRole.is_valid_assignable_participant_role(role):
+        raise ValidationError('Not a valid ProjectRole string')
+
+
+class WorkPackage(models.Model):
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE,
+                                related_name='work_packages')
+    name = models.CharField(max_length=256)
+    description = models.TextField()
+
+    # Classification occurs at the work package level because combinations of individual
+    # datasets might have a different tier to their individual tiers
+    # None means tier is unknown
+    tier = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=TIER_CHOICES,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the work package was added to the project',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='+',
+        help_text='User who added this work package to the project',
+    )
+
     @property
     def is_classification_ready(self):
         """
@@ -76,7 +108,7 @@ class Project(models.Model):
         }
         required_users = {
             p.user
-            for p in self.participant_set.all()
+            for p in self.project.participant_set.all()
             if p.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
         }
 
@@ -132,11 +164,11 @@ class Project(models.Model):
         """
         if not by_user:
             raise ValidationError("No user provided")
-        role = by_user.project_participation_role(self)
+        role = by_user.project_participation_role(self.project)
         if not role:
             raise ValidationError("User not a participant of project")
         classification = ClassificationOpinion.objects.create(
-            project=self,
+            work_package=self,
             user=by_user,
             role=role.value,
             tier=tier,
@@ -173,36 +205,9 @@ class Project(models.Model):
 
         return PolicyAssignment.objects.filter(tier=self.tier)
 
-    def ordered_participant_set(self):
-        """Order participants on this project by their ProjectRole"""
-        ordered_role_list = ProjectRole.ordered_display_role_list()
-        order = Case(*[When(role=role, then=pos) for pos, role in
-                       enumerate(ordered_role_list)])
-        return self.participant_set.filter(
-            role__in=ordered_role_list).order_by(order)
+    def __str__(self):
+        return f'{self.project} - {self.name}'
 
-
-def validate_role(role):
-    """Validator for assigning a participant's role in a project"""
-    if not ProjectRole.is_valid_assignable_participant_role(role):
-        raise ValidationError('Not a valid ProjectRole string')
-
-
-class WorkPackage(models.Model):
-    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
-    name = models.CharField(max_length=256)
-    description = models.TextField()
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the work package was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this work package to the project',
-    )
 
 class Participant(models.Model):
     """
@@ -238,9 +243,10 @@ class Participant(models.Model):
 
 class ClassificationOpinion(models.Model):
     """
-    Represents a user's opinion about the data tier classification of a project
+    Represents a user's opinion about the data tier classification of a work package
     """
-    project = models.ForeignKey(Project, related_name='classifications', on_delete=models.CASCADE)
+    work_package = models.ForeignKey(WorkPackage, related_name='classifications',
+                                     on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     role = models.CharField(
@@ -255,10 +261,10 @@ class ClassificationOpinion(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'project')
+        unique_together = ('user', 'work_package')
 
     def __str__(self):
-        return f'{self.user}: {self.project} (tier {self.tier})'
+        return f'{self.user}: {self.work_package} (tier {self.tier})'
 
 
 class ClassificationOpinionQuestion(models.Model):

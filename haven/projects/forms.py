@@ -185,6 +185,6 @@ class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ('name', 'description')
 
 
-class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper('Delete Classification', 'btn-danger')
     helper.form_method = 'POST'

@@ -64,14 +64,20 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/classify',
-        views.ProjectClassifyData.as_view(),
+        '<int:project_pk>/work_packages/<int:pk>',
+        views.WorkPackageDetail.as_view(),
+        name='work_package_detail'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/classify',
+        views.WorkPackageClassifyData.as_view(),
         name='classify_data'
     ),
 
     path(
-        '<int:pk>/classify_delete',
-        views.ProjectClassifyDelete.as_view(),
+        '<int:project_pk>/work_packages/<int:pk>/classify_delete',
+        views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'
     ),
 
