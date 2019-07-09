@@ -387,21 +387,38 @@ class TestProjectAddDataset:
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_add_new_dataset_to_project(self, as_programme_manager):
+    def test_add_new_dataset_to_project(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
 
         response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
-            'role': ProjectRole.RESEARCHER.value,
             'name': 'dataset 1',
             'description': 'Dataset One',
+            'default_representative': user1.pk,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d' % project.id
 
         assert project.datasets.count() == 1
-        assert project.datasets.first().name == 'dataset 1'
-        assert project.datasets.first().description == 'Dataset One'
+        dataset = project.datasets.first()
+        assert dataset.name == 'dataset 1'
+        assert dataset.description == 'Dataset One'
+        assert dataset.default_representative == user1
+
+        assert project.projectdataset_set.first().representative == user1
+
+    def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+        })
+
+        assert response.status_code == 200
+        assert project.datasets.count() == 0
 
     def test_returns_404_for_invisible_project(self, as_programme_manager):
         project = recipes.project.make()
@@ -432,13 +449,15 @@ class TestListDatasets:
         response = client.get('/projects/%d/datasets/' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_programme_manager):
+    def test_view_page(self, as_programme_manager, user1):
         ds1, ds2 = recipes.dataset.make(_quantity=2)
         project = recipes.project.make(
             created_by=as_programme_manager._user,
         )
-        project.add_dataset(ds1, as_programme_manager._user)
-        project.add_dataset(ds2, as_programme_manager._user)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
 
         response = as_programme_manager.get('/projects/%d/datasets/' % project.id)
 

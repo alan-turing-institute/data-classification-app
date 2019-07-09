@@ -47,11 +47,12 @@ class Project(models.Model):
         )
 
     @transaction.atomic
-    def add_dataset(self, dataset, creator):
-        ProjectDataset.objects.create(project=self, dataset=dataset, created_by=creator)
-        user = dataset.default_representative
-        if user:
-            self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+    def add_dataset(self, dataset, representative, creator):
+        participant = representative.get_participant(self)
+        if not participant or participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
+            raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
+        ProjectDataset.objects.create(project=self, dataset=dataset,
+                                      representative=representative, created_by=creator)
 
     def ordered_participant_set(self):
         """Order participants on this project by their ProjectRole"""
@@ -65,6 +66,7 @@ class Project(models.Model):
 class ProjectDataset(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
 
     created_at = models.DateTimeField(
         auto_now_add=True,

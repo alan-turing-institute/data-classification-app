@@ -29,14 +29,19 @@ class TestProject:
     def test_add_dataset(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make(default_representative=user1)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager)
 
-        project.add_dataset(dataset, programme_manager)
+        project.add_dataset(dataset, user1, programme_manager)
 
-        assert project.participant_set.count() == 1
-        part = project.participant_set.first()
-        assert part.user.username == 'user1@example.com'
-        assert part.role == 'data_provider_representative'
-        assert part.created_by == programme_manager
+        assert project.projectdataset_set.first().representative == user1
+
+    def test_add_dataset_wrong_role(self, programme_manager, user1):
+        project = recipes.project.make()
+        dataset = recipes.dataset.make(default_representative=user1)
+        project.add_user(user1, ProjectRole.INVESTIGATOR.value, programme_manager)
+
+        with pytest.raises(ValidationError):
+            project.add_dataset(dataset, user1, programme_manager)
 
 
 @pytest.mark.django_db

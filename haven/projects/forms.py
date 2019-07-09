@@ -172,9 +172,15 @@ UsersForProjectInlineFormSet = inlineformset_factory(
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper('Create Dataset')
+
     class Meta:
         model = Dataset
-        fields = ('name', 'description')
+        fields = ('name', 'description', 'default_representative')
+
+    def __init__(self, *args, **kwargs):
+        representative_qs = kwargs.pop('representative_qs')
+        super().__init__(*args, **kwargs)
+        self.fields['default_representative'].queryset = representative_qs
 
 
 class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):

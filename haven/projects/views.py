@@ -291,6 +291,14 @@ class ProjectCreateDataset(
     template_name = 'projects/project_add_dataset.html'
     form_class = ProjectAddDatasetForm
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        participants = self.get_object().participant_set
+        participants = participants.filter(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        users = User.objects.filter(id__in=participants.values_list('user', flat=True))
+        kwargs['representative_qs'] = users
+        return kwargs
+
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
@@ -300,7 +308,7 @@ class ProjectCreateDataset(
         self.object = self.get_object()
         if form.is_valid():
             dataset = form.save()
-            self.object.add_dataset(dataset, request.user)
+            self.object.add_dataset(dataset, dataset.default_representative, request.user)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
