@@ -137,22 +137,19 @@ class WorkPackage(models.Model):
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             ProjectRole.INVESTIGATOR.value,
         }
-        required_users = {
-            p.user
-            for p in self.project.participant_set.all()
-            if p.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        }
+        required_datasets = set(self.datasets.all())
 
         roles = set()
-        users = set()
+        datasets = set()
 
         for c in self.classifications.all():
             roles.add(c.role)
-            users.add(c.user)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
+            for d in c.datasets.all():
+                datasets.add(d.dataset)
 
-        return roles >= required_roles and users >= required_users
+        return roles >= required_roles and datasets >= required_datasets
 
     @property
     def tier_conflict(self):
@@ -205,6 +202,12 @@ class WorkPackage(models.Model):
             tier=tier,
         )
 
+        if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE:
+            for pd in ProjectDataset.objects.filter(project=self.project, representative=by_user):
+                for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=pd.dataset):
+                    wpd.opinion = classification
+                    wpd.save()
+
         if questions:
             for i, q in enumerate(questions):
                 ClassificationOpinionQuestion.objects.create(
@@ -243,6 +246,8 @@ class WorkPackage(models.Model):
 class WorkPackageDataset(models.Model):
     work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+    opinion = models.ForeignKey('ClassificationOpinion', null=True,
+                                related_name='datasets', on_delete=models.SET_NULL)
 
     created_at = models.DateTimeField(
         auto_now_add=True,

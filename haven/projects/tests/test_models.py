@@ -70,10 +70,14 @@ class TestWorkPackage:
     def test_classify_work_package(self):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
         investigator = recipes.participant.make(
             role=ProjectRole.INVESTIGATOR.value, project=project)
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
 
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_rep.user)
@@ -86,9 +90,38 @@ class TestWorkPackage:
     def test_classification_not_ready(self):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        work_package.classify_as(0, data_rep.user)
+
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+    def test_classification_not_ready_multiple_dprs(self):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+        dataset2 = recipes.dataset.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+        data_rep2 = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        project.add_dataset(dataset2, data_rep2.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+        work_package.add_dataset(dataset2, investigator.user)
+
+        work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_rep.user)
 
         assert not work_package.is_classification_ready
@@ -97,12 +130,19 @@ class TestWorkPackage:
     def test_classify_work_package_multiple_dprs(self):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+        dataset2 = recipes.dataset.make()
         investigator = recipes.participant.make(
             role=ProjectRole.INVESTIGATOR.value, project=project)
         data_rep = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        project.add_dataset(dataset2, data_rep2.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+        work_package.add_dataset(dataset2, investigator.user)
 
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_rep.user)
@@ -114,6 +154,57 @@ class TestWorkPackage:
 
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 0
+
+    def test_classification_uninvolved_dataset(self):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+        dataset2 = recipes.dataset.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+        data_rep2 = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        project.add_dataset(dataset2, data_rep2.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        work_package.classify_as(0, investigator.user)
+        work_package.classify_as(0, data_rep.user)
+
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 0
+
+    def test_classification_dpr_change(self):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+        investigator = recipes.participant.make(
+            role=ProjectRole.INVESTIGATOR.value, project=project)
+        data_rep = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        project.add_dataset(dataset, data_rep.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        work_package.classify_as(0, data_rep.user)
+
+        data_rep2 = recipes.participant.make(
+            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+
+        pd = project.projectdataset_set.first()
+        pd.representative = data_rep2.user
+        pd.save()
+
+        work_package.classify_as(0, investigator.user)
+
+        assert work_package.is_classification_ready
         assert work_package.has_tier
         assert work_package.tier == 0
 

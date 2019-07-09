@@ -1,6 +1,7 @@
 from model_mommy.recipe import Recipe
 
 
+user = Recipe('identity.User')
 project = Recipe('Project')
 participant = Recipe('Participant')
 researcher = participant.extend(role='researcher')
