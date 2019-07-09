@@ -57,7 +57,7 @@ OAUTH2_REDIRECT_URI="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
 ALLOWED_HOSTS="${BASE_DOMAIN}"
 
 
-DJANGO_SETTINGS_MODULE='config.settings.dev'
+DJANGO_SETTINGS_MODULE='config.settings.production'
 
 
 
