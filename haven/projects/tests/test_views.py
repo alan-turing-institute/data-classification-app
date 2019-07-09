@@ -437,7 +437,8 @@ class TestListDatasets:
         project = recipes.project.make(
             created_by=as_programme_manager._user,
         )
-        project.datasets.add(ds1, ds2)
+        project.add_dataset(ds1, as_programme_manager._user)
+        project.add_dataset(ds2, as_programme_manager._user)
 
         response = as_programme_manager.get('/projects/%d/datasets/' % project.id)
 

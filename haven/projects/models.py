@@ -16,7 +16,8 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
-    datasets = models.ManyToManyField(Dataset, related_name='projects', blank=True)
+    datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
+                                      blank=True)
 
     objects = ProjectQuerySet.as_manager()
 
@@ -47,7 +48,7 @@ class Project(models.Model):
 
     @transaction.atomic
     def add_dataset(self, dataset, creator):
-        self.datasets.add(dataset)
+        ProjectDataset.objects.create(project=self, dataset=dataset, created_by=creator)
         user = dataset.default_representative
         if user:
             self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
@@ -59,6 +60,22 @@ class Project(models.Model):
                        enumerate(ordered_role_list)])
         return self.participant_set.filter(
             role__in=ordered_role_list).order_by(order)
+
+
+class ProjectDataset(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the dataset was added to the project',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='+',
+        help_text='User who added this dataset to the project',
+    )
 
 
 def validate_role(role):
