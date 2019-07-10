@@ -84,21 +84,24 @@ function get_azure_secret() {
     az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
 }
 
-create_app() {
-    echo "Creating App Service Plan"
-    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
+error_if_already_deployed() {
+    if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") == "true" ]]; then
+        echo "This script is for crearing a new deployment, but the resource group already exists"
+        exit 1
+    fi
+}
 
-    echo "Creating App Service"
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
+set_app_tenant () {
+    # We need to explicitly set the subscription in order to change the default tenant.
+    # This is because Azure CLI does not already respect the --subscription argument.
+    az account set --subscription "${SUBSCRIPTION}"
+}
 
-    local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
-    local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
-
-    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${DOCKER_IMAGE_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
-
-    # Create a secret key for Django and store in keyvault
-    local django_secret_key=$(generate_key)
-    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+set_registration_tenant () {
+    # The tenant we use to register the app may not have a subscription, in which case we cannot use
+    # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
+    # the --allow-no-subscriptions flag.
+    az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
 }
 
 create_resource_group() {
@@ -106,23 +109,63 @@ create_resource_group() {
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
 }
 
+create_app() {
+    echo "Creating the webapp="
+
+    # App service plan
+    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
+
+    # Webapp
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
+
+    # Give the webapp credentials to access the container registry
+    local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
+    local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
+    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${DOCKER_IMAGE_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
+
+    # Create a secret key for Django and store in keyvault
+    local django_secret_key=$(generate_key)
+    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+}
+
 create_keyvault() {
-    echo "Creating key vault"
+    echo "Creating keyvault"
     az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
 }
 
-create_db() {
-    echo "Creating the DB server"
+#create_db() {
+#    echo "Creating the DB server"
+#    local db_username=${DB_USERNAME}
+#    local db_password=$(generate_key)
+#    az sql server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP"
+#    az sql server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+#
+#    echo "Creating the database"
+#    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
+#
+#    # Store DB credentials in keyvault
+#    local database_url="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+#    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
+#    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
+#    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
+#}
+
+create_postgresql_db() {
+    echo "Creating the database"
     local db_username=${DB_USERNAME}
     local db_password=$(generate_key)
-    az sql server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP"
-    az sql server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
 
-    echo "Creating the database"
-    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
+    # Create the postgresql server
+    az postgres server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP" --sku-name B_Gen5_1
+
+    # Configure the firewall
+    az postgres server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+
+    # Create the database
+    az postgres db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
 
     # Store DB credentials in keyvault
-    local database_url="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+    local database_url="postgresql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.postgres.database.windows.net:5432/$DB_NAME"
     az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
     az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
     az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
@@ -138,32 +181,14 @@ create_container_registry() {
     az keyvault secret set --name "REGISTRY-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${registry_password}"
 }
 
-initialise () {
-    # We need to explicitly set the subscription in order to change the default tenant. Azure will create the keyvault
-    # in the default tenant regardless of the --subscription setting
-    az account set --subscription "${SUBSCRIPTION}"
-
-    if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") != "true" ]]; then
-
-        create_resource_group
-        create_keyvault
-        create_container_registry
-        create_db
-        create_app
-    else
-        echo "Resource group already exists - has this app already been created?"
-    fi
-}
-
 create_registration () {
     echo "Creating app registration"
 
     # Tenant where the app registration will be created
     local tenant_id="${REGISTRATION_TENANT}"
 
-    # The tenant we use to register the app may not have a subscription, in which case we need to set it explicitly with
-    # the --allow-no-subscriptions flag
-    az login --tenant "${tenant_id}" --allow-no-subscriptions
+    # The tenant we use to register the app may not be the tenant used to create the app
+    set_registration_tenant
 
     local client_secret=$(generate_key)
 
@@ -175,12 +200,11 @@ create_registration () {
     local client_id=$(az ad app list --identifier-uri "${APP_URI}" --query "[].appId" -o tsv)
 
     # Consent to permissions
-    echo "Permissions consent"
     az ad app permission admin-consent --id "${client_id}"
 
     # The key vault may be in a different tenant to the registration, so we need to change it back here.
-    # Using --subscription in az keyvault commands without changing the default tenant/subscription can result in a permissions error
-    az account set --subscription "${SUBSCRIPTION}"
+    # If we don't do this, the keyvault commands may return permission errors, even with the --subscription parameter.
+    set_app_tenant
 
     # Store authentication credentials in keyvault
     az keyvault secret set --name "AZUREAD-OAUTH2-KEY" --vault-name "${KEYVAULT_NAME}" --value "${client_id}"
@@ -215,10 +239,13 @@ deploy_settings () {
     az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
 
     az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings BASE_URL="${BASE_URL}"
-
 }
 
-
-#initialise
+error_if_already_deployed
+create_resource_group
+create_keyvault
+create_container_registry
+create_postgresql_db
+create_app
 create_registration
 deploy_settings
