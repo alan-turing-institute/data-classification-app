@@ -137,8 +137,14 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
 
 class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single project/role assignment for a user"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, assignable_roles=None, *args, **kwargs):
         super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+        if assignable_roles:
+            self.fields['role'].choices = [
+                (role, name)
+                for role, name in self.fields['role'].choices
+                if not role or role in assignable_roles
+            ]
 
     class Meta:
         model = Participant

@@ -229,6 +229,14 @@ class EditProjectListParticipants(
         return (self.get_project_role().can_edit_participants
                 and self.request.user.user_role.can_view_all_users)
 
+    def get_assignable_roles(self):
+        project_role = self.request.user.project_role(self.get_object())
+        return [r.value for r in project_role.assignable_roles]
+
+    def get_participants(self):
+        roles = self.get_assignable_roles()
+        return self.get_object().ordered_participant_set().filter(role__in=roles)
+
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
         # Use crispy FormHelper to add submit and cancel buttons
@@ -239,26 +247,29 @@ class EditProjectListParticipants(
         helper.form_method = 'POST'
         kwargs['helper'] = helper
 
-        kwargs['participants'] = self.get_object().ordered_participant_set()
+        kwargs['participants'] = self.get_participants()
         kwargs['project'] = self.get_object()
         if 'formset' not in kwargs:
             kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
 
     def get_formset(self, **kwargs):
-        form_kwargs = {'user': self.request.user}
+        form_kwargs = {
+            'user': self.request.user,
+            'assignable_roles': self.get_assignable_roles(),
+        }
         if self.request.method == 'POST':
             return UsersForProjectInlineFormSet(
                 self.request.POST,
                 instance=self.get_object(),
                 form_kwargs=form_kwargs,
-                queryset=self.get_object().ordered_participant_set()
+                queryset=self.get_participants()
             )
         else:
             return UsersForProjectInlineFormSet(
                 instance=self.get_object(),
                 form_kwargs=form_kwargs,
-                queryset=self.get_object().ordered_participant_set()
+                queryset=self.get_participants()
             )
 
     def post(self, request, *args, **kwargs):
