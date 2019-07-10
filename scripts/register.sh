@@ -66,6 +66,7 @@ PLAN_NAME="${APP_NAME}"
 KEYVAULT_NAME="${APP_NAME}"
 SQL_SERVER_NAME="${APP_NAME}"
 CONTAINER_REGISTRY_NAME=$(echo "${APP_NAME}" | sed 's/[^a-zA-Z0-9]//g')
+CONTAINER_REGISTRY_URL="https://${CONTAINER_REGISTRY_NAME}.azurecr.io"
 DOCKER_TAG_PREFIX="dsh-web"
 DOCKER_TAG="${DOCKER_TAG_PREFIX}:v1"
 DOCKER_IMAGE_NAME="${CONTAINER_REGISTRY_NAME}.azurecr.io/${DOCKER_TAG}"
@@ -109,6 +110,11 @@ create_resource_group() {
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
 }
 
+create_keyvault() {
+    echo "Creating keyvault"
+    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+}
+
 create_app() {
     echo "Creating the webapp="
 
@@ -116,21 +122,16 @@ create_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}"
 
     # Give the webapp credentials to access the container registry
     local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
     local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
-    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${DOCKER_IMAGE_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
+    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${CONTAINER_REGISTRY_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
 
     # Create a secret key for Django and store in keyvault
     local django_secret_key=$(generate_key)
     az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
-}
-
-create_keyvault() {
-    echo "Creating keyvault"
-    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
 }
 
 #create_db() {
@@ -173,10 +174,16 @@ create_postgresql_db() {
 
 create_container_registry() {
     echo "Creating the container registry"
+
+    # Create the container registry using admin-enabled
     az acr create --resource-group "${RESOURCE_GROUP}" --name "${CONTAINER_REGISTRY_NAME}" --sku Basic --location "${LOCATION}" --admin-enabled true
 
-    local registry_username=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "username" -otsv)
-    local registry_password=$(az acr credential show --name "datasafehaventestreg" --query "passwords[?name=='password'].value" -otsv)
+#     Alternative approach: disable admin and create a service principal
+#    local registry_id=$(az acr show --name ${CONTAINER_REGISTRY_NAME} --query id --output tsv)
+#    local acr_service_principal="${APP_NAME}"
+#    local registry_username=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "username" -otsv)
+#    local registry_password=$(az ad sp create-for-rbac --name http://${acr_service_principal} --scopes ${registry_id} --role acrpull --query password --output tsv)
+
     az keyvault secret set --name "REGISTRY-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${registry_username}"
     az keyvault secret set --name "REGISTRY-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${registry_password}"
 }
