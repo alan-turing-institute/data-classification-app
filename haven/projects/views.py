@@ -28,6 +28,7 @@ from .forms import (
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
     ProjectForm,
+    WorkPackageAddDatasetForm,
     WorkPackageClassifyDeleteForm,
 )
 from .models import ClassificationOpinion, Participant, Project, WorkPackage
@@ -379,6 +380,48 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
             context['question_table'] = ClassificationOpinionQuestionTable(classifications)
 
         return context
+
+
+class WorkPackageListDatasets(
+    LoginRequiredMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_dataset_list.html'
+
+    def get_context_data(self, **kwargs):
+        kwargs['datasets'] = self.get_object().datasets.all()
+        return super().get_context_data(**kwargs)
+
+
+class WorkPackageAddDataset(
+    LoginRequiredMixin, UserPassesTestMixin,
+    UserFormKwargsMixin, SingleWorkPackageMixin, FormMixin, DetailView
+):
+    template_name = 'projects/work_package_add_dataset.html'
+    form_class = WorkPackageAddDatasetForm
+
+    def get_success_url(self):
+        return reverse('projects:work_package_detail',
+                       args=[self.object.project.id, self.object.id])
+
+    def test_func(self):
+        return self.get_project_role().can_add_work_packages
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.setdefault('work_package', self.get_object())
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        self.object = self.get_object()
+        if form.is_valid():
+            form.save()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 
 class WorkPackageClassifyData(

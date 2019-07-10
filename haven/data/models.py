@@ -15,6 +15,9 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
+    def __str__(self):
+        return self.name
+
 
 class ClassificationQuestion(models.Model):
     name = models.CharField(max_length=256, unique=True)

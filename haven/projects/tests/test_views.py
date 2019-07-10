@@ -474,6 +474,60 @@ class TestListDatasets:
 
 
 @pytest.mark.django_db
+class TestWorkPackageListDatasets:
+    def test_view_page(self, as_programme_manager, user1):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
+        work_package.add_dataset(ds1, as_programme_manager._user)
+        work_package.add_dataset(ds2, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/datasets/'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+        assert list(response.context['datasets']) == [ds1, ds2]
+
+
+@pytest.mark.django_db
+class TestWorkPackageAddDataset:
+    def test_add_dataset(self, as_programme_manager, user1):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/datasets/new'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/datasets/new' % (project.id, work_package.id),
+            {
+                'dataset': ds1.pk,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
+
+        assert work_package.datasets.count() == 1
+        assert ds1 == work_package.datasets.first()
+
+
+@pytest.mark.django_db
 class TestProjectAddWorkPackage:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()

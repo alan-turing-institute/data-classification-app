@@ -92,6 +92,9 @@ class WorkPackage(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
 
+    datasets = models.ManyToManyField(Dataset, related_name='work_packages',
+                                      through='WorkPackageDataset', blank=True)
+
     # Classification occurs at the work package level because combinations of individual
     # datasets might have a different tier to their individual tiers
     # None means tier is unknown
@@ -111,6 +114,15 @@ class WorkPackage(models.Model):
         related_name='+',
         help_text='User who added this work package to the project',
     )
+
+    @transaction.atomic
+    def add_dataset(self, dataset, creator):
+        # Verify if dataset exists on project
+        if not ProjectDataset.objects.filter(project=self.project, dataset=dataset).exists():
+            raise ValidationError('Dataset not assigned to project')
+
+        WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
+                                          created_by=creator)
 
     @property
     def is_classification_ready(self):
@@ -226,6 +238,22 @@ class WorkPackage(models.Model):
 
     def __str__(self):
         return f'{self.project} - {self.name}'
+
+
+class WorkPackageDataset(models.Model):
+    work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Time the dataset was added to the work package',
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='+',
+        help_text='User who added this dataset to the work package',
+    )
 
 
 class Participant(models.Model):

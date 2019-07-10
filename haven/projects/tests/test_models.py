@@ -46,6 +46,27 @@ class TestProject:
 
 @pytest.mark.django_db
 class TestWorkPackage:
+    def test_add_dataset(self, programme_manager, user1):
+        project = recipes.project.make()
+        dataset = recipes.dataset.make()
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        project.add_dataset(dataset, user1, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        assert work_package.datasets.count() == 1
+        assert dataset == work_package.datasets.first()
+
+    def test_add_dataset_not_on_project(self, programme_manager, user1):
+        project = recipes.project.make()
+        dataset = recipes.dataset.make()
+        work_package = recipes.work_package.make(project=project)
+
+        with pytest.raises(ValidationError):
+            work_package.add_dataset(dataset, programme_manager)
+
     def test_classify_work_package(self):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)

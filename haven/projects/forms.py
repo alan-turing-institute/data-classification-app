@@ -11,7 +11,7 @@ from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project, WorkPackage
+from .models import Participant, Project, WorkPackage, WorkPackageDataset
 from .roles import ProjectRole
 
 
@@ -189,6 +189,19 @@ class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
     class Meta:
         model = WorkPackage
         fields = ('name', 'description')
+
+
+class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Add Dataset')
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ('dataset',)
+
+    def __init__(self, work_package, *args, **kwargs):
+        kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
+        super().__init__(*args, **kwargs)
+        self.fields['dataset'].queryset = work_package.project.datasets
 
 
 class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
