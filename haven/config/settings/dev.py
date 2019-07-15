@@ -3,6 +3,8 @@ from .base import *  # noqa
 
 SECURE_SSL_REDIRECT = True
 
+DATABASES['default']['OPTIONS'] = {'sslmode':'require'}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
