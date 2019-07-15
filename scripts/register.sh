@@ -123,7 +123,7 @@ create_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
 
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
@@ -131,7 +131,7 @@ create_app() {
     # Give the webapp credentials to access the container registry
     local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
     local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
-    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-custom-image-name "${DOCKER_IMAGE_NAME}" --docker-registry-server-url "${CONTAINER_REGISTRY_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
+    az webapp config container set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --docker-registry-server-url "${CONTAINER_REGISTRY_URL}" --docker-registry-server-user "${registry_username}" --docker-registry-server-password "${registry_password}"
 
     # Create a secret key for Django and store in keyvault
     local django_secret_key=$(generate_key)
