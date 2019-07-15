@@ -158,7 +158,7 @@ create_postgresql_db() {
     local db_password=$(generate_key)
 
     # Create the postgresql server
-    az postgres server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP" --sku-name B_Gen5_1
+    az postgres server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP" --sku-name B_Gen5_1
 
     # Configure the firewall
     az postgres server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
