@@ -170,7 +170,7 @@ create_postgresql_db() {
     az postgres db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
 
     # Store DB credentials in keyvault
-    local database_url="postgresql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.postgres.database.windows.net:5432/$DB_NAME"
+    local database_url="postgresql://${db_username}@$SQL_SERVER_NAME:${db_password}@$SQL_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
     az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
     az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
     az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
