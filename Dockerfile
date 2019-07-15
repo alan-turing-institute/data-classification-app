@@ -1,8 +1,8 @@
 FROM tiangolo/uwsgi-nginx:python3.7
 
 # Specify the port
-ENV LISTEN_PORT=8000
-EXPOSE 8000
+ENV LISTEN_PORT=80
+EXPOSE 80
 
 # Indicate where uwsgi.ini lives
 ENV UWSGI_INI uwsgi.ini
