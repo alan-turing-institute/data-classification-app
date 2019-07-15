@@ -3,5 +3,4 @@
 set -e
 
 
-
-docker run --rm -it -p 8000:8000 dsh-web
+docker run --rm -it -p 80:80 dsh-web
