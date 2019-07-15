@@ -125,6 +125,9 @@ create_app() {
     # Webapp
     az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}"
 
+    # Configure webapp logging
+    az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
+
     # Give the webapp credentials to access the container registry
     local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
     local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
