@@ -116,7 +116,7 @@ create_keyvault() {
 }
 
 create_app() {
-    echo "Creating the webapp="
+    echo "Creating the webapp"
 
     # App service plan
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
