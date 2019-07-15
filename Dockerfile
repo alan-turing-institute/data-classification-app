@@ -19,7 +19,6 @@ COPY haven /app
 RUN apt-get update && apt-get install -y unixodbc-dev
 
 # Install dependencies
-# ToDo: change to production
-COPY requirements/local.txt /app/requirements-local.txt
-RUN python3 -m pip install -r /app/requirements-local.txt
+COPY requirements/production.txt /app/requirements.txt
+RUN python3 -m pip install -r /app/requirements.txt
 
