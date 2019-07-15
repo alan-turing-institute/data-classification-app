@@ -139,14 +139,14 @@ create_app() {
 #    echo "Creating the DB server"
 #    local db_username=${DB_USERNAME}
 #    local db_password=$(generate_key)
-#    az sql server create --admin-user="${DB_USERNAME}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP"
+#    az sql server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --location="${LOCATION}" --resource-group="$RESOURCE_GROUP"
 #    az sql server firewall-rule create --server "${SQL_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
 #
 #    echo "Creating the database"
 #    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${SQL_SERVER_NAME}"
 #
 #    # Store DB credentials in keyvault
-#    local database_url="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+#    local database_url="mssql://${db_username}:${db_password}@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 #    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
 #    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
 #    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
