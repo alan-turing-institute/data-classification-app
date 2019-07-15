@@ -251,6 +251,20 @@ deploy_settings () {
     az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings BASE_URL="${BASE_URL}"
 }
 
+change_db_password() {
+    echo "Creating the database"
+    local db_username=${DB_USERNAME}
+    local db_password="password-here"
+
+    # Create the postgresql server
+    az postgres server update --admin-password="${db_password}" --name="${SQL_SERVER_NAME}" --resource-group="$RESOURCE_GROUP"
+
+    # Store DB credentials in keyvault
+    local database_url="postgresql://${db_username}@$SQL_SERVER_NAME:${db_password}@$SQL_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
+    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
+    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
+}
+
 error_if_already_deployed
 create_resource_group
 create_keyvault
@@ -259,3 +273,6 @@ create_postgresql_db
 create_app
 create_registration
 deploy_settings
+
+#change_db_password
+#deploy_settings
