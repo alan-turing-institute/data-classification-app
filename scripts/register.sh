@@ -177,12 +177,14 @@ create_container_registry() {
 
     # Create the container registry using admin-enabled
     az acr create --resource-group "${RESOURCE_GROUP}" --name "${CONTAINER_REGISTRY_NAME}" --sku Basic --location "${LOCATION}" --admin-enabled true
+    local registry_username=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "username" -otsv)
+    local registry_password=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "passwords[?name=='password'].value" -otsv)
 
 #     Alternative approach: disable admin and create a service principal
 #    local registry_id=$(az acr show --name ${CONTAINER_REGISTRY_NAME} --query id --output tsv)
 #    local acr_service_principal="${APP_NAME}"
-#    local registry_username=$(az acr credential show --name "${CONTAINER_REGISTRY_NAME}" --query "username" -otsv)
 #    local registry_password=$(az ad sp create-for-rbac --name http://${acr_service_principal} --scopes ${registry_id} --role acrpull --query password --output tsv)
+#    local registry_username=$(az ad sp show --id http://${acr_service_principal} --query appId --output tsv)
 
     az keyvault secret set --name "REGISTRY-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${registry_username}"
     az keyvault secret set --name "REGISTRY-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${registry_password}"
