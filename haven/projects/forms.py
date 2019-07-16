@@ -11,7 +11,7 @@ from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project
+from .models import Participant, Project, WorkPackage, WorkPackageDataset
 from .roles import ProjectRole
 
 
@@ -137,8 +137,14 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
 
 class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single project/role assignment for a user"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, assignable_roles=None, *args, **kwargs):
         super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+        if assignable_roles:
+            self.fields['role'].choices = [
+                (role, name)
+                for role, name in self.fields['role'].choices
+                if not role or role in assignable_roles
+            ]
 
     class Meta:
         model = Participant
@@ -172,11 +178,38 @@ UsersForProjectInlineFormSet = inlineformset_factory(
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper('Create Dataset')
+
     class Meta:
         model = Dataset
+        fields = ('name', 'description', 'default_representative')
+
+    def __init__(self, *args, **kwargs):
+        representative_qs = kwargs.pop('representative_qs')
+        super().__init__(*args, **kwargs)
+        self.fields['default_representative'].queryset = representative_qs
+
+
+class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Create Work Package')
+
+    class Meta:
+        model = WorkPackage
         fields = ('name', 'description')
 
 
-class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Add Dataset')
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ('dataset',)
+
+    def __init__(self, work_package, *args, **kwargs):
+        kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
+        super().__init__(*args, **kwargs)
+        self.fields['dataset'].queryset = work_package.project.datasets
+
+
+class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper('Delete Classification', 'btn-danger')
     helper.form_method = 'POST'

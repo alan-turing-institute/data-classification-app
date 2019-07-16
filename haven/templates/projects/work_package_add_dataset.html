@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ work_package.name }}: Add Dataset{% endblock %}
+{% block h1_title %}{{ work_package.name }}: Add Dataset{% endblock %}
+
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+{% endblock %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:work_package_detail' work_package.project.id work_package.id %}">{{ work_package.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:work_package_list_datasets' work_package.project.id work_package.id %}">Datasets</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Add</li>
+{% endblock crumbs %}

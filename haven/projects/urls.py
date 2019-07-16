@@ -52,15 +52,45 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/classify',
-        views.ProjectClassifyData.as_view(),
+        '<int:pk>/work_packages/',
+        views.ProjectListWorkPackages.as_view(),
+        name='list_work_packages'
+    ),
+
+    path(
+        '<int:pk>/work_packages/new',
+        views.ProjectCreateWorkPackage.as_view(),
+        name='add_work_package'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>',
+        views.WorkPackageDetail.as_view(),
+        name='work_package_detail'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/classify',
+        views.WorkPackageClassifyData.as_view(),
         name='classify_data'
     ),
 
     path(
-        '<int:pk>/classify_delete',
-        views.ProjectClassifyDelete.as_view(),
+        '<int:project_pk>/work_packages/<int:pk>/classify_delete',
+        views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/datasets/',
+        views.WorkPackageListDatasets.as_view(),
+        name='work_package_list_datasets'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/datasets/new',
+        views.WorkPackageAddDataset.as_view(),
+        name='work_package_add_dataset'
     ),
 
     path('<int:pk>/new_participant_autocomplete/',
