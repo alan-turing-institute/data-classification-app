@@ -2,6 +2,8 @@
 
 set -e
 
-docker build -f "./Dockerfile" -t dsh-web "."
+CONTAINER_REGISTRY_NAME=datasafehaventestreg
+DOCKER_TAG_PREFIX="dsh-web"
+DOCKER_TAG="${DOCKER_TAG_PREFIX}:v1"
 
-docker push datasafehaventestreg.azurecr.io/dsh-web:v1
+az acr build --registry ${CONTAINER_REGISTRY_NAME} --image ${DOCKER_TAG} .
