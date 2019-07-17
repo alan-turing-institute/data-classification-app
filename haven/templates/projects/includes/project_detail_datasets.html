@@ -1,0 +1,14 @@
+{% extends "includes/section.html" %}
+{% load django_tables2 %}
+
+{% block name %}<a href="{% url 'projects:list_datasets' project.id %}">Datasets</a>{% endblock %}
+
+{% block actions %}
+  {% if project_role.can_add_datasets %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:add_dataset' project.id %}">Add Dataset</a>
+  {% endif %}
+{% endblock %}
+
+{% block details %}
+  {% render_table datasets_table %}
+{% endblock %}

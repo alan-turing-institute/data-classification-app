@@ -1,0 +1,15 @@
+{% extends "includes/section.html" %}
+{% load django_tables2 %}
+
+{% block name %}<a href="{% url 'projects:list_participants' project.id %}">Participants</a>{% endblock %}
+
+{% block actions %}
+  {% if project_role.can_add_participants %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit_participants' project.id %}">Edit Participants</a>
+  {% endif %}
+{% endblock %}
+
+{% block details %}
+  {% render_table participants_table %}
+{% endblock %}
