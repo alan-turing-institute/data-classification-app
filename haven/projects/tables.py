@@ -8,7 +8,6 @@ class ParticipantTable(tables.Table):
     role = tables.Column('Role', accessor='role')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
         empty_text = 'No participants to display'
 
@@ -18,7 +17,6 @@ class WorkPackageTable(tables.Table):
     tier = tables.Column('Tier')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
         empty_text = 'No work packages to display'
 
@@ -27,7 +25,6 @@ class DatasetTable(tables.Table):
     name = tables.Column('Name')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
         empty_text = 'No datasets to display'
 
@@ -37,7 +34,6 @@ class PolicyTable(tables.Table):
     policy = tables.Column('Description', accessor='policy.description')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
 
 
@@ -45,7 +41,6 @@ class ClassificationOpinionQuestionTable(tables.Table):
     question = tables.Column('Question')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
 
     def __init__(self, classifications, *args, **kwargs):
