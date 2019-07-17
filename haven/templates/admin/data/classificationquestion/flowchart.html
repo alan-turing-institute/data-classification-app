@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+<script src="{% static "build/js/main.js" %}"></script>
+{{ media }}
+{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; {% if has_view_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+&rsaquo; {{ object|truncatewords:"18" }}
+</div>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+<div id="content-main">
+    <div id="flowchart"></div>
+    <script type="text/javascript">
+        var Graph = Dracula.Graph
+        var Renderer = Dracula.Renderer.Raphael
+        // Can't get other layouts to work, need to add graph.nodes as a constructor parameter, but that still results in error
+        var Layout = Dracula.Layout.Spring
+
+        var graph = new Graph()
+
+        {% for q in questions %}
+            graph.addNode("{{ q.name }}", { label: "{{ q.question | wordwrap:20 | escapejs }}"})
+        {% endfor %}
+        {% for t in tiers %}
+            graph.addNode("{{ t }}")
+        {% endfor %}
+        {% for e in edges %}
+            graph.addEdge("{{ e.0 }}", "{{ e.1 }}", { directed: true, label: "{{ e.2 }}"})
+        {% endfor %}
+
+        var layout = new Layout(graph)
+        var renderer = new Renderer('#flowchart', graph, 1280, 768)
+        renderer.draw()
+    </script>
+</div>
+{% endblock %}

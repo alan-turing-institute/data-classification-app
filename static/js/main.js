@@ -5,6 +5,8 @@ require('django-formset');
 require('bootstrap-checkbox');
 require('bootstrap/js/dist/collapse');
 require('bootstrap/js/dist/dropdown');
+var Dracula = require('graphdracula');
+global.Dracula = Dracula;
 
 global.formset = function(selector, prefix, addText){
   $(function() {
