@@ -14,7 +14,7 @@ from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
-from data.models import ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
@@ -510,7 +510,7 @@ class WorkPackageClassifyData(
 
     def show_step(self, question, first_step):
         def f(wizard):
-            # The condition needs to be true not just for the form to show, but
+            # The condition needs to be true not just for the current step, but
             # also all the steps leading up to it. However, you can't just check
             # whether a step already has data, because that interferes with the
             # ability to go backwards, so you need to follow the chain of
@@ -527,6 +527,11 @@ class WorkPackageClassifyData(
                     break
             return question.name in chain
         return f
+
+    def get_context_data(self, form, **kwargs):
+        context = super().get_context_data(form=form, **kwargs)
+        context['guidance'] = ClassificationGuidance.objects.all()
+        return context
 
     def test_func(self):
         role = self.get_project_role()

@@ -7,21 +7,30 @@
 <p>Step {{ wizard.steps.step1 }}</p>
 <form action="" method="post">{% csrf_token %}
   {{ wizard.management_form }}
-<table class="table table-sm">
-  <tbody>
-    {% for field in wizard.form %}
-    <tr>
-      <td>{{ field.label }}</td>
-      <td>{{ field }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% if wizard.steps.prev %}
-<button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">Start Again</button>
-<button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Back </button>
+  <table class="table table-sm">
+    <tbody>
+      {% for field in wizard.form %}
+      <tr>
+        <td>{{ field.label }}</td>
+        <td>{{ field }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if wizard.steps.prev %}
+  <button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">Start Again</button>
+  <button class="btn" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Back </button>
+  {% endif %}
+
+  <input type="submit" value="Continue " class="btn btn-primary" />
+</form>
+
+{% if guidance %}
+  <h3 class="mt-4">Additional Guidance</h5>
+  {% for g in guidance %}
+    <p>{{ g }}</p>
+  {% endfor %}
 {% endif %}
 
-<input type="submit" value="Continue " class="btn btn-primary" />
-</form>
 {% endblock content %}

@@ -2,7 +2,7 @@ import pytest
 
 from core import recipes
 from data.classification import insert_initial_questions
-from data.models import ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.models import User
 from projects.models import Policy, PolicyAssignment, PolicyGroup, Project
 from projects.policies import insert_initial_policies
@@ -642,7 +642,7 @@ class TestWorkPackageClassifyData:
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
@@ -699,7 +699,7 @@ class TestWorkPackageClassifyData:
         assert 'wizard' not in response.context
 
     def test_delete_classification(self, client, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
@@ -720,7 +720,7 @@ class TestWorkPackageClassifyData:
         assert b'Delete My Classification' not in response.content
 
     def test_classify_as_tier(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
@@ -753,7 +753,7 @@ class TestWorkPackageClassifyData:
         assert work_package.classifications.get().tier == 3
 
     def test_classify_backwards(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
@@ -786,3 +786,38 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 200
         assert response.context['classification'].tier == 1
         assert work_package.classifications.get().tier == 1
+
+    def test_classify_guidance(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(user=as_project_participant._user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+
+        response = as_project_participant.get(self.url(work_package))
+        assert 'wizard' in response.context
+        assert response.context['wizard']['steps'].current == 'open_generate_new'
+        assert [g.name for g in response.context['guidance']] == ['commercial_data', 'personal_data', 'living_individual', 'pseudonymized_data']
+
+        def classify(current, answer, next, guidance=None):
+            data = {}
+            data['work_package_classify_data-current_step'] = current
+            if answer:
+                data[f"{current}-question"] = 'on'
+            response = as_project_participant.post(self.url(work_package), data)
+            if next:
+                assert 'wizard' in response.context
+                assert response.context['wizard']['steps'].current == next
+                assert [g.name for g in response.context['guidance']] == ['commercial_data', 'personal_data', 'living_individual', 'pseudonymized_data']
+            return response
+
+        response = classify('open_generate_new', False, 'closed_personal')
+        response = classify('closed_personal', True, 'public_and_open')
+        response = classify('public_and_open', False, 'no_reidentify')
+        response = classify('no_reidentify', False, 'substantial_threat')
+        response = classify('substantial_threat', True, None)
+
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 4
+        assert work_package.classifications.get().tier == 4

@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from core import recipes
 from data.classification import insert_initial_questions
-from data.models import ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion
 from projects.models import Policy, PolicyAssignment, PolicyGroup
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
@@ -307,7 +307,7 @@ class TestWorkPackage:
         assert work_package.tier == 0
 
     def test_classify_work_package_store_questions(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
         investigator = recipes.participant.make(
@@ -341,7 +341,7 @@ class TestWorkPackage:
         assert expected == [(q.question_at_time.name, q.answer) for q in saved_questions]
 
     def test_ordered_questions(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         questions = ClassificationQuestion.objects.get_ordered_questions()
         assert len(questions) == 14
 
@@ -364,7 +364,7 @@ class TestWorkPackage:
         assert [q.name for q in questions] == ordered
 
     def test_classify_questions_tier0(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == 'open_generate_new'
         q = q.answer_no()
@@ -377,7 +377,7 @@ class TestWorkPackage:
         assert tier == 0
 
     def test_classify_questions_tier1(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == 'open_generate_new'
         q = q.answer_no()
@@ -394,7 +394,7 @@ class TestWorkPackage:
         assert tier == 1
 
     def test_classify_questions_tier2(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == 'open_generate_new'
         q = q.answer_no()
@@ -415,7 +415,7 @@ class TestWorkPackage:
         assert tier == 2
 
     def test_classify_questions_tier3(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == 'open_generate_new'
         q = q.answer_no()
@@ -430,7 +430,7 @@ class TestWorkPackage:
         assert tier == 3
 
     def test_classify_questions_tier4(self):
-        insert_initial_questions(ClassificationQuestion)
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == 'open_generate_new'
         q = q.answer_yes()

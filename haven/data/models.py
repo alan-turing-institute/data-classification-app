@@ -33,7 +33,6 @@ class ClassificationQuestion(models.Model):
     hidden = models.BooleanField(default=False)
 
     history = HistoricalRecords()
-
     objects = ClassificationQuestionQuerySet.as_manager()
 
     def __str__(self):
@@ -44,3 +43,11 @@ class ClassificationQuestion(models.Model):
 
     def answer_no(self):
         return self.no_question or self.no_tier
+
+
+class ClassificationGuidance(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    guidance = models.TextField()
+
+    def __str__(self):
+        return self.guidance
