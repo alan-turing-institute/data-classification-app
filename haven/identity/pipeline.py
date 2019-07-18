@@ -48,7 +48,14 @@ def determine_role(backend, user, response, *args, **kwargs):
     graph = user_client(user)
     graph_response = graph.get_my_memberships()
 
-    role = UserRole(user.role) if user.role else UserRole.NONE
+    # Default user role to none
+    role = UserRole.NONE
+
+    # Preserve previous role unless System Manager
+    if user.role and user.role != UserRole.SYSTEM_MANAGER.value:
+        role = user.role
+
+    # System Manager is only set by beiong a member of the appropriate group
     if graph_response.ok:
         groups = graph_response.json().get('value', [])
         for group in groups:
