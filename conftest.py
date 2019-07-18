@@ -51,6 +51,16 @@ def programme_manager():
 
 
 @pytest.fixture
+def standard_user():
+    return User.objects.create_user(
+        username='user@example.com',
+        email='user@example.com',
+        role=UserRole.NONE.value,
+        password=DUMMY_PASSWORD,
+    )
+
+
+@pytest.fixture
 def project_participant():
     return User.objects.create_user(
         first_name='Angela',
@@ -111,6 +121,11 @@ def as_system_manager(client, system_manager):
 @pytest.fixture
 def as_programme_manager(client, programme_manager):
     return client_login(client, programme_manager)
+
+
+@pytest.fixture
+def as_standard_user(client, standard_user):
+    return client_login(client, standard_user)
 
 
 @pytest.fixture

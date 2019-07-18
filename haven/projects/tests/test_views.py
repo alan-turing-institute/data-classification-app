@@ -48,11 +48,11 @@ class TestListProjects:
         response = client.get('/projects/')
         helpers.assert_login_redirect(response)
 
-    def test_list_owned_projects(self, as_programme_manager, system_manager):
-        my_project = recipes.project.make(created_by=as_programme_manager._user)
+    def test_list_owned_projects(self, as_standard_user, system_manager):
+        my_project = recipes.project.make(created_by=as_standard_user._user)
         recipes.project.make(created_by=system_manager)
 
-        response = as_programme_manager.get('/projects/')
+        response = as_standard_user.get('/projects/')
 
         assert list(response.context['projects']) == [my_project]
 
@@ -97,10 +97,10 @@ class TestViewProject:
         assert response.status_code == 200
         assert response.context['project'] == project1
 
-    def test_cannot_view_other_project(self, as_programme_manager):
+    def test_cannot_view_other_project(self, as_standard_user):
         project = recipes.project.make()
 
-        response = as_programme_manager.get('/projects/%d' % project.id)
+        response = as_standard_user.get('/projects/%d' % project.id)
 
         assert response.status_code == 404
 
@@ -137,11 +137,11 @@ class TestViewWorkPackage:
 
         assert response.status_code == 404
 
-    def test_cannot_view_other_project(self, as_programme_manager):
+    def test_cannot_view_other_project(self, as_standard_user):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
 
-        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+        response = as_standard_user.get('/projects/%d/work_packages/%d'
                                             % (project.id, work_package.id))
 
         assert response.status_code == 404
@@ -303,15 +303,15 @@ class TestAddUserToProject:
 
         assert project.participant_set.count() == 0
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/participants/add' % project.id)
+        response = as_standard_user.get('/projects/%d/participants/add' % project.id)
         assert response.status_code == 404
 
-        response = as_programme_manager.post('/projects/%d/participants/add' % project.id)
+        response = as_standard_user.post('/projects/%d/participants/add' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
@@ -355,12 +355,12 @@ class TestListParticipants:
         assert response.status_code == 200
         assert list(response.context['ordered_participants']) == [investigator, researcher]
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/participants/' % project.id)
+        response = as_standard_user.get('/projects/%d/participants/' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_for_unauthorised_user(self, client, researcher):
@@ -420,15 +420,15 @@ class TestProjectAddDataset:
         assert response.status_code == 200
         assert project.datasets.count() == 0
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/datasets/new' % project.id)
+        response = as_standard_user.get('/projects/%d/datasets/new' % project.id)
         assert response.status_code == 404
 
-        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id)
+        response = as_standard_user.post('/projects/%d/datasets/new' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
@@ -464,12 +464,12 @@ class TestListDatasets:
         assert response.status_code == 200
         assert list(response.context['datasets']) == [ds1, ds2]
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Programme manager shouldn't have visibility of this other project at all
+        # Regular user shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/datasets/' % project.id)
+        response = as_standard_user.get('/projects/%d/datasets/' % project.id)
         assert response.status_code == 404
 
 
@@ -560,15 +560,15 @@ class TestProjectAddWorkPackage:
         assert project.work_packages.first().name == 'work package 1'
         assert project.work_packages.first().description == 'Work Package One'
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/work_packages/new' % project.id)
+        response = as_standard_user.get('/projects/%d/work_packages/new' % project.id)
         assert response.status_code == 404
 
-        response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id)
+        response = as_standard_user.post('/projects/%d/work_packages/new' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
@@ -601,12 +601,12 @@ class TestListWorkPackages:
         assert response.status_code == 200
         assert list(response.context['work_packages']) == [wp1, wp2]
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get('/projects/%d/work_packages/' % project.id)
+        response = as_standard_user.get('/projects/%d/work_packages/' % project.id)
         assert response.status_code == 404
 
 
@@ -637,16 +637,16 @@ class TestWorkPackageClassifyData:
         assert response.context['work_package'] == work_package
         assert 'wizard' in response.context
 
-    def test_returns_404_for_invisible_project(self, as_programme_manager):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_programme_manager.get(self.url(work_package))
+        response = as_standard_user.get(self.url(work_package))
         assert response.status_code == 404
 
-        response = as_programme_manager.post(self.url(work_package))
+        response = as_standard_user.post(self.url(work_package))
         assert response.status_code == 404
 
     def test_returns_403_for_researcher(self, client, researcher):
