@@ -31,7 +31,9 @@ def user_fields(backend, user, response, *args, **kwargs):
     graph = user_client(user)
     graph_response = graph.get_me()
     if graph_response.ok:
-        user.email = graph_response.json().get('mail', '')
+        remote_email = graph_response.json().get('mail', '')
+        if remote_email:
+            user.email = remote_email
 
     user.save()
 
@@ -46,7 +48,7 @@ def determine_role(backend, user, response, *args, **kwargs):
     graph = user_client(user)
     graph_response = graph.get_my_memberships()
 
-    role = UserRole.NONE
+    role = UserRole(user.role) if user.role else UserRole.NONE
     if graph_response.ok:
         groups = graph_response.json().get('value', [])
         for group in groups:
