@@ -19,9 +19,11 @@ class TestUserRoleCreatableRoles:
     def test_superuser_can_create_any_roles(self):
         assert UserRole.SUPERUSER.can_create(UserRole.SYSTEM_MANAGER)
         assert UserRole.SUPERUSER.can_create(UserRole.PROGRAMME_MANAGER)
+        assert UserRole.SUPERUSER.can_create(UserRole.NONE)
 
     def test_system_manager_creatable_roles(self):
         assert UserRole.SYSTEM_MANAGER.can_create(UserRole.PROGRAMME_MANAGER)
+        assert UserRole.SYSTEM_MANAGER.can_create(UserRole.NONE)
         assert not UserRole.SYSTEM_MANAGER.can_create(UserRole.SYSTEM_MANAGER)
 
     def test_programme_manager_creatable_roles(self):

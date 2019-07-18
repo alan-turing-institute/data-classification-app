@@ -51,10 +51,12 @@ class UserRole(Enum):
             return [
                 self.SYSTEM_MANAGER,
                 self.PROGRAMME_MANAGER,
+                self.NONE,
             ]
         elif self is self.SYSTEM_MANAGER:
             return [
                 self.PROGRAMME_MANAGER,
+                self.NONE,
             ]
         return []
 
