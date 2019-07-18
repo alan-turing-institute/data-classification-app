@@ -58,6 +58,7 @@ THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
     'django_tables2',
+    'easyaudit',
     'simple_history',
     'social_django',
 ]
@@ -82,6 +83,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -217,3 +219,6 @@ DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/error/'
 
 PHONENUMBER_DEFAULT_REGION = "GB"
+
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
