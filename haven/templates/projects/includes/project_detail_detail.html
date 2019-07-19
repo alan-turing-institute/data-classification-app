@@ -1,0 +1,21 @@
+{% extends "includes/section.html" %}
+
+{% block name %}Details{% endblock %}
+
+{% block actions %}
+  {% if project_role.can_edit %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit' project.id %}">Edit Project</a>
+  {% endif %}
+{% endblock %}
+
+{% block details %}
+  {% if participant %}
+  <p>
+  Role: {{ participant.get_role_display }}
+  </p>
+  {% endif %}
+
+  <p>
+  {{ project.description }}
+  </p>
+{% endblock %}

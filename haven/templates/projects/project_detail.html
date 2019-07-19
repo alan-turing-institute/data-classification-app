@@ -6,54 +6,15 @@
 
 {% block content %}
 
-{% if participant %}
-<p>
-Role: {{ participant.get_role_display }}
-</p>
-{% endif %}
+<div class="container">
 
-<p>
-{{ project.description }}
-</p>
-
-<div class="my-3" role="group">
-  {% if project_role.can_edit %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:edit' project.id %}">Edit</a>
-  {% endif %}
-</div>
-
-<div class="my-3" role="group">
+  {% include "projects/includes/project_detail_detail.html" %}
   {% if project_role.can_list_participants %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:list_participants' project.id %}">Participants</a>
+    {% include "projects/includes/project_detail_participants.html" %}
   {% endif %}
-  {% if project_role.can_add_participants %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
-  {% endif %}
+  {% include "projects/includes/project_detail_work_packages.html" %}
+  {% include "projects/includes/project_detail_datasets.html" %}
 </div>
-
-<div class="my-3" role="group">
-  <a class="btn btn-primary btn-lg" href="{% url 'projects:list_work_packages' project.id %}">Work Packages</a>
-  {% if project_role.can_add_work_packages %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_work_package' project.id %}">Add Work Package</a>
-  {% endif %}
-</div>
-
-<div class="my-3" role="group">
-  <a class="btn btn-primary btn-lg" href="{% url 'projects:list_datasets' project.id %}">Datasets</a>
-  {% if project_role.can_add_datasets %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_dataset' project.id %}">Add Dataset</a>
-  {% endif %}
-</div>
-
-{% if policy_table %}
-  <h2>Project Policies</h2>
-  {% render_table policy_table %}
-{% endif %}
-
-{% if question_table %}
-  <h2>Data Classification</h2>
-  {% render_table question_table %}
-{% endif %}
 
 {% endblock content %}
 

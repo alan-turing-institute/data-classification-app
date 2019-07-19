@@ -3,12 +3,37 @@ from operator import attrgetter
 import django_tables2 as tables
 
 
+class ParticipantTable(tables.Table):
+    username = tables.Column('Username', accessor='user.display_name')
+    role = tables.Column('Role', accessor='role')
+
+    class Meta:
+        orderable = False
+        empty_text = 'No participants to display'
+
+
+class WorkPackageTable(tables.Table):
+    name = tables.Column('Name')
+    tier = tables.Column('Tier')
+
+    class Meta:
+        orderable = False
+        empty_text = 'No work packages to display'
+
+
+class DatasetTable(tables.Table):
+    name = tables.Column('Name')
+
+    class Meta:
+        orderable = False
+        empty_text = 'No datasets to display'
+
+
 class PolicyTable(tables.Table):
     group = tables.Column('Policy', accessor='policy.group.description')
     policy = tables.Column('Description', accessor='policy.description')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
 
 
@@ -16,7 +41,6 @@ class ClassificationOpinionQuestionTable(tables.Table):
     question = tables.Column('Question')
 
     class Meta:
-        attrs = {'class': 'table'}
         orderable = False
 
     def __init__(self, classifications, *args, **kwargs):

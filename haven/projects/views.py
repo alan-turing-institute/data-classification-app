@@ -33,7 +33,13 @@ from .forms import (
 )
 from .models import ClassificationOpinion, Participant, Project, WorkPackage
 from .roles import ProjectRole
-from .tables import ClassificationOpinionQuestionTable, PolicyTable
+from .tables import (
+    ClassificationOpinionQuestionTable,
+    DatasetTable,
+    ParticipantTable,
+    PolicyTable,
+    WorkPackageTable,
+)
 
 
 class SingleProjectMixin(SingleObjectMixin):
@@ -128,6 +134,12 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
     def get_context_data(self, **kwargs):
         project = self.get_object()
         kwargs['participant'] = self.request.user.get_participant(project)
+        participants = project.participant_set.all()
+        kwargs['participants_table'] = ParticipantTable(participants)
+        work_packages = project.work_packages.all()
+        kwargs['work_packages_table'] = WorkPackageTable(work_packages)
+        datasets = project.datasets.all()
+        kwargs['datasets_table'] = DatasetTable(datasets)
         return SingleProjectMixin.get_context_data(self, **kwargs)
 
 

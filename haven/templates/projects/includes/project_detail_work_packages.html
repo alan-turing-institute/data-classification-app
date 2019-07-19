@@ -1,0 +1,14 @@
+{% extends "includes/section.html" %}
+{% load django_tables2 %}
+
+{% block name %}<a href="{% url 'projects:list_work_packages' project.id %}">Work Packages</a>{% endblock %}
+
+{% block actions %}
+  {% if project_role.can_add_work_packages %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:add_work_package' project.id %}">Add Work Package</a>
+  {% endif %}
+{% endblock %}
+
+{% block details %}
+  {% render_table work_packages_table %}
+{% endblock %}
