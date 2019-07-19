@@ -123,7 +123,7 @@ class TestViewWorkPackage:
                                             % (work_package.project.id, work_package.id))
 
         assert response.status_code == 200
-        table = list(response.context['table'].as_values())
+        table = list(response.context['policy_table'].as_values())
         assert len(table) == 16
         assert table[0] == ['Policy', 'Description']
         assert table[1] == ['Tier', '0']

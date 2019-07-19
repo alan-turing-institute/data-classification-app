@@ -393,6 +393,9 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         kwargs['participant'] = self.request.user.get_participant(work_package.project)
         context = SingleWorkPackageMixin.get_context_data(self, **kwargs)
 
+        datasets = work_package.datasets.all()
+        context['datasets_table'] = DatasetTable(datasets)
+
         if work_package.has_tier:
             # Don't show these until we have a tier, to avoid influencing anybody that
             # hasn't classified yet

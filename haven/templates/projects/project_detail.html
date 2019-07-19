@@ -5,18 +5,30 @@
 {% block h1_title %}{{ project.name }}{% endblock %}
 
 {% block content %}
+  {% if participant %}
+  <p>
+  Role: {{ participant.get_role_display }}
+  </p>
+  {% endif %}
 
-<div class="container">
+  <p>
+  {{ project.description }}
+  </p>
+{% endblock content %}
 
-  {% include "projects/includes/project_detail_detail.html" %}
+{% block actions %}
+  {% if project_role.can_edit %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit' project.id %}">Edit Project</a>
+  {% endif %}
+{% endblock %}
+
+{% block extra_sections %}
   {% if project_role.can_list_participants %}
     {% include "projects/includes/project_detail_participants.html" %}
   {% endif %}
   {% include "projects/includes/project_detail_work_packages.html" %}
   {% include "projects/includes/project_detail_datasets.html" %}
-</div>
-
-{% endblock content %}
+{% endblock extra_sections %}
 
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>

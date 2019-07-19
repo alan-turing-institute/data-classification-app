@@ -69,9 +69,27 @@
       {% include 'includes/messages.html' %}
       <div class="row">
         <div class="col-lg mt-4">
-          <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>
-          {% block content %}
-          {% endblock %}
+          <div class="container">
+            <div class="my-3" role="group">
+              <div class="row my-1">
+                  <div class="col-md-auto">
+                    <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>
+                  </div>
+                  <div class="col-md text-md-right">
+                    {% block actions %}
+                    {% endblock %}
+                  </div>
+              </div>
+              <div class="row my-1">
+                  <div class="col">
+                    {% block content %}
+                    {% endblock %}
+                  </div>
+              </div>
+            </div>
+            {% block extra_sections %}
+            {% endblock %}
+          </div>
         </div>
       </div>
     </main>

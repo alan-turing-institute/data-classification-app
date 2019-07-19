@@ -1,0 +1,8 @@
+{% extends "includes/section.html" %}
+{% load django_tables2 %}
+
+{% block name %}Data Classification{% endblock %}
+
+{% block details %}
+  {% render_table questions_table %}
+{% endblock %}

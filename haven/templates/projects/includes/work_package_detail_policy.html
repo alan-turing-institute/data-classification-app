@@ -1,0 +1,8 @@
+{% extends "includes/section.html" %}
+{% load django_tables2 %}
+
+{% block name %}Work Package Policies{% endblock %}
+
+{% block details %}
+  {% render_table policy_table %}
+{% endblock %}
