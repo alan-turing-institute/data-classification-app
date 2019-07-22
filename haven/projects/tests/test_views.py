@@ -71,7 +71,7 @@ class TestListProjects:
 
         response = as_system_manager.get('/projects/')
 
-        assert list(response.context['projects']) == [my_project, other_project]
+        assert list(response.context['projects']) == [other_project, my_project]
 
 
 @pytest.mark.django_db
