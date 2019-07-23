@@ -14,3 +14,4 @@ echo Running DSH migrations...
 python3 /app/manage.py migrate
 
 gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi
+
