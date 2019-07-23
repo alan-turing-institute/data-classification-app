@@ -22,6 +22,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:pk>/history',
+        views.ProjectHistory.as_view(),
+        name='history'
+    ),
+
+    path(
         '<int:pk>/participants/',
         views.ProjectListParticipants.as_view(),
         name='list_participants'

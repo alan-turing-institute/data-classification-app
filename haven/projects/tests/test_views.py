@@ -114,6 +114,23 @@ class TestViewProject:
 
 
 @pytest.mark.django_db
+class TestViewProjectHistory:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/history')
+        helpers.assert_login_redirect(response)
+
+    def test_view_owned_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/history' % project.id)
+
+        assert response.status_code == 200
+        table = list(response.context['history_table'].as_values())
+        assert len(table) >= 2
+        assert table[0] == ['Timestamp', 'Type', 'User', 'Subject', 'Details', 'Changes']
+
+
+@pytest.mark.django_db
 class TestViewWorkPackage:
     def test_view_work_package_policy_tier0(self, as_programme_manager, classified_work_package):
         insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)

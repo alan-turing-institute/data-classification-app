@@ -93,6 +93,13 @@ class UserProjectPermissions:
         ]
 
     @property
+    def can_view_history(self):
+        """Is this role able to view audit history?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
+        ]
+
+    @property
     def can_add_datasets(self):
         """Is this role able to add new datasets to the project?"""
         return self.is_project_admin or self.role in [
