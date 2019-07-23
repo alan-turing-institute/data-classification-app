@@ -4,7 +4,6 @@
 {% block h1_title %}{{ project.name }}: Datasets{% endblock %}
 
 {% block content %}
-
 <ul class="list-group">
   {% for dataset in datasets %}
   <li class="list-group-item">
@@ -18,13 +17,12 @@
   </li>
   {% endfor %}
 </ul>
+{% endblock %}
 
-<div class="my-3" role="group">
+{% block actions %}
   {% if project_role.can_add_datasets %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:add_dataset' project.id %}">Add Dataset</a>
   {% endif %}
-</div>
-
 {% endblock %}
 
 

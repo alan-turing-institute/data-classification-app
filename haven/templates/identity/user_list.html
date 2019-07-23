@@ -42,33 +42,26 @@
     {% endif %}
   </tbody>
 </table>
-
-<div class='container'>
-  <div class="row">
-    <div class="form-group" role="group">
-      {% if user.user_role.can_create_users %}
-        <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:add_user' %}">Create user</a>
-      {% endif %}
-    </div>
-    <div class="form-group" role="group">
-      {% if user.user_role.can_import_users %}
-      <form method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
-      {% csrf_token %}
-      <label class="btn btn-primary btn-lg mx-2">
-        Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
-      </label>
-      </form>
-      {% endif %}
-    </div>
-    <div class="form-group" role="group">
-      {% if user.user_role.can_export_users %}
-        <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:export_users' %}">Export UserCreate.csv</a>
-      {% endif %}
-    </div>
-  </div>
-</div>
-
 {% endblock content %}
+
+{% block actions %}
+  {% if user.user_role.can_create_users %}
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{% url 'identity:add_user' %}">Create user</a>
+  {% endif %}
+
+  {% if user.user_role.can_import_users %}
+  <form style="display: contents" method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="btn btn-primary btn-lg mx-2 my-1">
+      Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+    </label>
+  </form>
+  {% endif %}
+
+  {% if user.user_role.can_export_users %}
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{% url 'identity:export_users' %}">Export UserCreate.csv</a>
+  {% endif %}
+{% endblock actions %}
 
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>

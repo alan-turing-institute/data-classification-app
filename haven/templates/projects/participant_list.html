@@ -34,16 +34,14 @@
     {% endif %}
   </tbody>
 </table>
+{% endblock content %}
 
-
-<div class="my-3" role="group">
+{% block actions %}
   {% if project_role.can_add_participants %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
     <a class="btn btn-primary btn-lg" href="{% url 'projects:edit_participants' project.id %}">Edit Participants</a>
   {% endif %}
-</div>
-
-{% endblock %}
+{% endblock actions%}
 
 
 {% block crumbs %}

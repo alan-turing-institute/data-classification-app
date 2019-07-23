@@ -4,7 +4,7 @@ from braces.views import UserFormKwargsMixin
 from crispy_forms.layout import Submit
 from dal import autocomplete
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import OuterRef, Subquery
+from django.db.models import F, FilteredRelation, Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -31,7 +31,7 @@ from .forms import (
     WorkPackageAddDatasetForm,
     WorkPackageClassifyDeleteForm,
 )
-from .models import ClassificationOpinion, Participant, Project, WorkPackage
+from .models import ClassificationOpinion, Project, WorkPackage
 from .roles import ProjectRole
 from .tables import (
     ClassificationOpinionQuestionTable,
@@ -122,12 +122,15 @@ class ProjectList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Store the user's project role on each participant
-        participants = Participant.objects.filter(
-            user=self.request.user, project=OuterRef('pk')
-        )
         return super().get_queryset().\
             get_visible_projects(self.request.user).\
-            annotate(your_role=Subquery(participants.values('role')[:1]))
+            annotate(you=FilteredRelation(
+                'participant',
+                condition=Q(participant__user=self.request.user))
+            ).\
+            annotate(your_role=F('you__role')).\
+            annotate(add_time=F('you__created_at')).\
+            order_by(F('add_time').desc(nulls_last=True), '-created_at')
 
 
 class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
@@ -392,6 +395,9 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         work_package = self.get_object()
         kwargs['participant'] = self.request.user.get_participant(work_package.project)
         context = SingleWorkPackageMixin.get_context_data(self, **kwargs)
+
+        datasets = work_package.datasets.all()
+        context['datasets_table'] = DatasetTable(datasets)
 
         if work_package.has_tier:
             # Don't show these until we have a tier, to avoid influencing anybody that

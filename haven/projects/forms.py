@@ -198,7 +198,7 @@ class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
 
 
 class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper('Add Dataset')
+    helper = SaveCancelFormHelper('Add Dataset to Work Package')
 
     class Meta:
         model = WorkPackageDataset
