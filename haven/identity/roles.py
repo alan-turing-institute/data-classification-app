@@ -65,6 +65,7 @@ class UserRole(Enum):
         """Can a user with this role view all projects?"""
         return self in [
             self.SUPERUSER,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 
@@ -73,6 +74,7 @@ class UserRole(Enum):
         """Can a user with this role edit all projects?"""
         return self in [
             self.SUPERUSER,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 
@@ -90,6 +92,7 @@ class UserRole(Enum):
         """Can a user with this role create other users?"""
         return self in [
             self.SUPERUSER,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 
@@ -107,6 +110,7 @@ class UserRole(Enum):
         """Can a user with this role export a user list?"""
         return self in [
             self.SUPERUSER,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 
@@ -115,6 +119,7 @@ class UserRole(Enum):
         """Can a user with this role create users from an imported file?"""
         return self in [
             self.SUPERUSER,
+            self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
 

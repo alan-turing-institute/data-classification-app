@@ -57,11 +57,11 @@ class TestUser:
         assert programme_manager.get_participant(project).user == programme_manager
         assert programme_manager.project_participation_role(project) is ProjectRole.INVESTIGATOR
 
-    def test_project_owner_does_not_get_admin_on_other_project_when_not_participating(self, programme_manager):
-        recipes.project.make(created_by=programme_manager)
+    def test_project_owner_does_not_get_admin_on_other_project_when_not_participating(self, standard_user):
+        recipes.project.make(created_by=standard_user)
         project = recipes.project.make()
-        assert not programme_manager.project_role(project).is_project_admin
-        assert programme_manager.project_participation_role(project) is None
+        assert not standard_user.project_role(project).is_project_admin
+        assert standard_user.project_participation_role(project) is None
 
     def test_project_owner_does_not_get_role_on_other_project_when_not_participating(self, programme_manager):
         recipes.project.make(created_by=programme_manager)
@@ -69,11 +69,11 @@ class TestUser:
         assert programme_manager.get_participant(project) is None
         assert programme_manager.project_participation_role(project) is None
 
-    def test_project_owner_does_not_get_admin_on_other_project_when_participating(self, programme_manager):
-        recipes.project.make(created_by=programme_manager)
+    def test_project_owner_does_not_get_admin_on_other_project_when_participating(self, standard_user):
+        recipes.project.make(created_by=standard_user)
         project = recipes.project.make()
-        project.add_user(user=programme_manager, role=ProjectRole.INVESTIGATOR.value, creator=programme_manager)
-        assert not programme_manager.project_role(project).is_project_admin
+        project.add_user(user=standard_user, role=ProjectRole.INVESTIGATOR.value, creator=standard_user)
+        assert not standard_user.project_role(project).is_project_admin
 
     def test_project_role_is_None_for_non_involved_project(self, researcher):
         assert researcher.user.project_role(recipes.project.make()).role is None
