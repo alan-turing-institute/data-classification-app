@@ -8,10 +8,10 @@ echo STARTUP SCRIPT
 
 # Collect static files
 mkdir -p /app/staticfiles
-python3 /app/manage.py collectstatic --noinput --clear
+python3 haven/manage.py collectstatic --noinput --clear
 
 echo Running DSH migrations...
-python3 /app/manage.py migrate
+python3 haven/manage.py migrate
 
 gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi
 
