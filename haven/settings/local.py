@@ -7,6 +7,8 @@ from haven.settings.base import *  # noqa
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+BASE_URL = 'http://127.0.0.1:43000'
+
 # Enable debug toolbar
 INSTALLED_APPS.extend([
     'debug_toolbar',

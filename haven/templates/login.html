@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p>Please login to continue:</p>
+  <ul>
+    {% for backend in supported_login_backends %}
+      <li>
+        <a href="{{ backend.url }}">Login with {{ backend.name }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock content %}

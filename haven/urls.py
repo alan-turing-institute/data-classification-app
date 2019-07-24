@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.urls import include, path
 from django.views.generic import TemplateView
+
 from haven.core import views as core_views
 
 
@@ -24,6 +25,7 @@ urlpatterns = [
 
     path('projects/', include('haven.projects.urls', namespace='projects')),
 
+    path('login/', core_views.login, name='login'),
     path('logout/', core_views.logout, name='logout'),
 
     # Externally-driven single sign out

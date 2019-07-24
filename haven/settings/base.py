@@ -100,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'identity.context_processors.login_backends',
                 'sourcerevision.context_processors.source_revision',
             ],
             'libraries': {
@@ -170,7 +171,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 LOGIN_REDIRECT_URL = '/projects'
 LOGOUT_REDIRECT_URL = 'home'
-LOGIN_URL = '/auth/login/azuread-tenant-oauth2/'
+LOGIN_URL = '/login'
 
 
 # Internationalization

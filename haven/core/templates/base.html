@@ -63,19 +63,33 @@
             {% endif %}
         </ul>
 
-        <span class="navbar-text">
+        <ul class="navbar-nav">
           {% if request.user.is_authenticated %}
-            Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
+            <li class="navbar-text">
+                Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+            </li>
           {% else %}
-          <a class="nav-link" href="{% url "social:begin" "azuread-tenant-oauth2" %}">Log In</a>
-          {% endif %}
-        </span>
+            {% if default_login_backend %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{{ default_login_backend.url }}">Login</a>
+              </li>
+            {% endif %}
 
-        {% if request.user.is_authenticated %}
-          <span class="navbar-text">
-            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-          </span>
-        {% endif %}
+            {% if supported_login_backends|length > 1 %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarLoginDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Login with</a>
+                <div class="dropdown-menu" aria-labelledby="navbarLoginDropdown">
+                  {% for backend in supported_login_backends %}
+                    <a class="dropdown-item" href="{{ backend.url }}">{{ backend.name }}</a>
+                  {% endfor %}
+                </div>
+              </li>
+            {% endif %}
+          {% endif %}
+        </ul>
       </div>
     </nav>
 
