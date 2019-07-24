@@ -36,6 +36,7 @@ from .roles import ProjectRole
 from .tables import (
     ClassificationOpinionQuestionTable,
     DatasetTable,
+    HistoryTable,
     ParticipantTable,
     PolicyTable,
     WorkPackageTable,
@@ -165,6 +166,20 @@ class ProjectEdit(
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         return super().post(request, *args, **kwargs)
+
+
+class ProjectHistory(
+    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_history.html'
+
+    def test_func(self):
+        return self.get_project_role().can_view_history
+
+    def get_context_data(self, **kwargs):
+        history = self.get_object().get_audit_history()
+        kwargs['history_table'] = HistoryTable(history)
+        return super().get_context_data(**kwargs)
 
 
 class ProjectAddUser(

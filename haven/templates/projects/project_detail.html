@@ -20,6 +20,9 @@
   {% if project_role.can_edit %}
     <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit' project.id %}">Edit Project</a>
   {% endif %}
+  {% if project_role.can_view_history %}
+    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:history' project.id %}">History</a>
+  {% endif %}
 {% endblock %}
 
 {% block extra_sections %}

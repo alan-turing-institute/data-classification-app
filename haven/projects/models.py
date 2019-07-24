@@ -1,6 +1,8 @@
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Case, When
+from django.db.models import Case, Q, When
+from easyaudit.models import CRUDEvent
 
 from data.models import ClassificationQuestion, Dataset
 from data.tiers import TIER_CHOICES, Tier
@@ -61,6 +63,16 @@ class Project(models.Model):
                        enumerate(ordered_role_list)])
         return self.participant_set.filter(
             role__in=ordered_role_list).order_by(order)
+
+    def get_audit_history(self):
+        this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
+        # This is a bit of a hack - if the model uses a different field name for example, it
+        # won't be picked up, it doesn't catch transitive relationships,
+        # and it relies on how the json has been formatted
+        # A more robust approach would involve basing decisions on the content type, and possibly
+        # storing the data as actual JSON and using the JSON operators, but that's database-specific
+        related = Q(object_json_repr__regex=f'"project": {self.pk}[,}}]')
+        return CRUDEvent.objects.filter(this_object | related)
 
 
 class ProjectDataset(models.Model):

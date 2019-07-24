@@ -15,6 +15,7 @@ django-autocomplete-light==3.3.0
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
+django-easy-audit==1.1
 django-environ==0.4.5
 django-formtools==2.1
 django-phonenumber-field==2.1.0

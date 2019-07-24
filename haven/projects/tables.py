@@ -29,6 +29,18 @@ class DatasetTable(tables.Table):
         empty_text = 'No datasets to display'
 
 
+class HistoryTable(tables.Table):
+    datetime = tables.Column('Timestamp')
+    event_type = tables.Column('Type')
+    user = tables.Column('User')
+    object_repr = tables.Column('Subject')
+    object_json_repr = tables.Column('Details')
+    changed_fields = tables.Column('Changes')
+
+    class Meta:
+        orderable = False
+
+
 class PolicyTable(tables.Table):
     group = tables.Column('Policy', accessor='policy.group.description')
     policy = tables.Column('Description', accessor='policy.description')
