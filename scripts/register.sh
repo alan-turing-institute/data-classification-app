@@ -136,6 +136,16 @@ create_app() {
     # Configure startup file
     az webapp config set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --startup-file "/home/site/repository/haven_start.sh"
 
+    # Configure deployment user (Note: this is global for all apps)
+    local deployment_user="SH_DEPLOYMENT_USER"
+    local deployment_pw=$(generate_key)
+    local deployment_url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}")
+    echo deployment_url = ${deployment_url}
+    az webapp deployment user set --user-name "${deployment_user}" --password "${deployment_pw}"
+    az keyvault secret set --name "DEPLOYMENT-USER" --vault-name "${KEYVAULT_NAME}" --value "${deployment_user}"
+    az keyvault secret set --name "DEPLOYMENT-PW" --vault-name "${KEYVAULT_NAME}" --value "${deployment_pw}"
+        az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
+
     # Give the webapp credentials to access the container registry
     local registry_username=$(get_azure_secret  "REGISTRY-USERNAME")
     local registry_password=$(get_azure_secret  "REGISTRY-PASSWORD")
