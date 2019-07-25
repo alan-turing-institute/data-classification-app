@@ -10,7 +10,7 @@ echo STARTUP SCRIPT
 mkdir -p /home/site/repository/staticfiles
 
 cd /home/site/repository
-pip3 install -r requirements.txt
+#pip3 install -r requirements.txt
 python3 haven/manage.py collectstatic --noinput --clear
 
 echo Running DSH migrations...
