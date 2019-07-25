@@ -130,6 +130,9 @@ create_app() {
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
 
+    # Force the proxy to redirect non-https traffic to https
+    az webapp update --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --https-only true
+
     # Configure startup file
     az webapp config set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --startup-file "/home/site/repository/haven_start.sh"
 
