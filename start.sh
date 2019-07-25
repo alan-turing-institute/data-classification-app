@@ -7,7 +7,7 @@ echo STARTUP SCRIPT
 #/usr/sbin/sshd
 
 # Collect static files
-mkdir -p /app/staticfiles
+mkdir -p /home/site/repository/staticfiles
 python3 haven/manage.py collectstatic --noinput --clear
 
 echo Running DSH migrations...
