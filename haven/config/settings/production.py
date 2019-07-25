@@ -1,7 +1,8 @@
 from .base import *  # noqa
 
 
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
+# SECURE_SSL_REDIRECT = True
 
 DEBUG = False
 
