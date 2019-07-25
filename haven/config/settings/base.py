@@ -196,7 +196,7 @@ DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap4.html'
 SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='dsgroupdev.co.uk')
 
 
-USE_LDAP = env.bool('USE_LDAP', default=True)
+USE_LDAP = env.bool('USE_LDAP', default=False)
 LDAP_SERVER = env.str('LDAP_SERVER', default='')
 LDAP_USER = env.str('LDAP_USER', default='')
 LDAP_PASSWORD = env.str('LDAP_PASSWORD', default='')
