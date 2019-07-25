@@ -34,7 +34,7 @@ psycopg2==2.8.3
 pyasn1==0.4.5
 pycparser==2.19
 pyjwt==1.7.1
-pyodbc==4.0.26            # via django-pyodbc-azure
+pyodbc==4.0.27            # via django-pyodbc-azure
 python3-openid==3.1.0
 pytz==2019.1
 requests-oauthlib==1.0.0
