@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #
 # Requires the Azure CLI:
 #
@@ -123,7 +125,7 @@ create_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --deployment-container-image-name "${DOCKER_IMAGE_NAME}"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.7"  --deployment-local-git
 
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
