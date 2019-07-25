@@ -43,6 +43,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 THIRD_PARTY_PRE_APPS = [
     'dal',
     'dal_select2',
+    'whitenoise.runserver_nostatic',  # Let WhiteNoise handle static files in local development instead of Django, for consistency with production
 ]
 
 DJANGO_APPS = [
@@ -180,10 +181,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = str(BASE_DIR / 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     str(BASE_DIR / 'static'),
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 
