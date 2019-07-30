@@ -5,6 +5,26 @@ from simple_history.models import HistoricalRecords
 from data.tiers import Tier
 
 
+# Classification questions are stored in the database, but since they are important we want them
+# to be a) managed through migrations, b) tested and c) versioned
+# The combination of these three things turns out be quite tricky, since in a migration,
+# you don't have access to the actual model class, just a historical version of it, which
+# doesn't have non-field attributes. This means that ClassificationQuestion.history isn't set,
+# and changes to the question aren't captured in the history table.
+# In addition, you can't share code with a migration, since the migration may not be run until a
+# later time, at which point the code may have diverged. You also have to account for the fact that
+# different databases may not be in the same state.
+#
+# The best way to make changes to the flowchart is therefore:
+# * Update various tests to match how you expect the flowchart to work
+# * Change the constants and initial_questions method to match the new flowchart
+# * If you've had to change the schema, run `haven/manage.py makemigrations`
+# * Run `haven/manage.py makemigrations --empty data`
+# * Once you're happy with the tests, copy and paste all of this class into your new migration
+# * Update the migrate_questions method
+# * Add `migrations.RunPython(migrate_questions)` into the list of operations
+
+
 CLOSED_PERSONAL = 'Will any project input be personal data?'
 FINANCIAL_LOW = (
     'Do you have high confidence that the commercial, legal, '
@@ -174,7 +194,7 @@ def insert_initial_questions(model_cls):
 def verify_initial_questions(apps):
     ClassificationQuestion = apps.get_model('data', 'ClassificationQuestion')
     stored = ClassificationQuestion.objects.filter(hidden=False)
-    initial = { q['name']: q for q in initial_questions() }
+    initial = {q['name']: q for q in initial_questions()}
     if len(stored) != len(initial):
         raise RuntimeError(f"Expected {len(initial)} questions but there were {len(stored)}")
     for q in stored:
@@ -195,12 +215,6 @@ def verify_initial_questions(apps):
         if q != q2:
             raise RuntimeError(f"Expected {q['name']} to be {q2} but was {q}")
 
-
-# In a migration, you don't have access to the actual model class, just a historical version
-# of it, which doesn't have non-field attributes. This means that
-# ClassificationQuestion.history isn't set, and changes to the question aren't captured in the
-# history table. This is a set of methods which allows you to write migrations that capture the
-# history
 
 def migrate_question(apps, name, kwargs):
     ClassificationQuestion = apps.get_model('data', 'ClassificationQuestion')
@@ -248,3 +262,25 @@ def _attach_history(apps, q):
     history.manager_name = 'history'
     history.cls = ClassificationQuestion.__class__
     return history
+
+
+def migrate_questions(apps, schema_editor):
+    # Template method for use in migrations
+
+    # Hide any no longer used questions
+    hide_question_if_present(apps, 'question1')
+    hide_question_if_present(apps, 'question2')
+
+    # Add any brand-new questions
+    insert_blank_question_if_necessary(apps, 'question8')
+    insert_blank_question_if_necessary(apps, 'question9')
+
+    # Update any questions that need to change (including any new questions)
+    questions = {q['name']: q for q in initial_questions()}
+    migrate_question(apps, 'question1', questions['question1'])
+    migrate_question(apps, 'question2', questions['question2'])
+    migrate_question(apps, 'question8', questions['question8'])
+    migrate_question(apps, 'question9', questions['question9'])
+
+    # Check the database looks as expected
+    verify_initial_questions(apps)
