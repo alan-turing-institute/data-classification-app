@@ -315,8 +315,10 @@ class TestWorkPackage:
 
         questions = []
         q = ClassificationQuestion.objects.get_starting_question()
-        questions.append((q, True))
-        q = q.answer_yes()
+        questions.append((q, False))
+        q = q.answer_no()
+        questions.append((q, False))
+        q = q.answer_no()
         questions.append((q, False))
         q = q.answer_no()
         questions.append((q, True))
@@ -329,8 +331,9 @@ class TestWorkPackage:
 
         classification = work_package.classification_for(investigator.user).first()
         expected = [
-            ('public_and_open', True),
-            ('open_identify_living', False),
+            ('open_generate_new', False),
+            ('closed_personal', False),
+            ('include_commercial', False),
             ('open_publication', True),
         ]
 
@@ -340,21 +343,22 @@ class TestWorkPackage:
     def test_ordered_questions(self):
         insert_initial_questions(ClassificationQuestion)
         questions = ClassificationQuestion.objects.get_ordered_questions()
-        assert len(questions) == 13
+        assert len(questions) == 14
 
         ordered = [
-            'public_and_open',
-            'open_identify_living',
-            'publishable',
             'open_generate_new',
             'closed_personal',
-            'open_publication',
-            'closed_identify_living',
-            'substantial_threat',
+            'public_and_open',
+            'no_reidentify',
             'no_reidentify_absolute',
+            'substantial_threat',
             'include_commercial',
             'no_reidentify_strong',
             'financial_low',
+            'open_publication',
+            'include_commercial_personal',
+            'publishable',
+            'financial_low_personal',
             'sophisticated_attack',
         ]
         assert [q.name for q in questions] == ordered
@@ -362,50 +366,58 @@ class TestWorkPackage:
     def test_classify_questions_tier0(self):
         insert_initial_questions(ClassificationQuestion)
         q = ClassificationQuestion.objects.get_starting_question()
-        assert q.name == 'public_and_open'
+        assert q.name == 'open_generate_new'
         q = q.answer_no()
-        assert q.name == 'publishable'
-        q = q.answer_yes()
+        assert q.name == 'closed_personal'
+        q = q.answer_no()
+        assert q.name == 'include_commercial'
+        q = q.answer_no()
         assert q.name == 'open_publication'
-        tier = q.answer_yes()
+        tier = q.answer_no()
         assert tier == 0
 
     def test_classify_questions_tier1(self):
         insert_initial_questions(ClassificationQuestion)
         q = ClassificationQuestion.objects.get_starting_question()
-        assert q.name == 'public_and_open'
-        q = q.answer_yes()
-        assert q.name == 'open_identify_living'
-        q = q.answer_yes()
         assert q.name == 'open_generate_new'
         q = q.answer_no()
-        assert q.name == 'open_publication'
-        tier = q.answer_no()
+        assert q.name == 'closed_personal'
+        q = q.answer_yes()
+        assert q.name == 'public_and_open'
+        q = q.answer_yes()
+        assert q.name == 'include_commercial'
+        q = q.answer_yes()
+        assert q.name == 'financial_low'
+        q = q.answer_yes()
+        assert q.name == 'publishable'
+        tier = q.answer_yes()
         assert tier == 1
 
     def test_classify_questions_tier2(self):
         insert_initial_questions(ClassificationQuestion)
         q = ClassificationQuestion.objects.get_starting_question()
-        assert q.name == 'public_and_open'
-        q = q.answer_no()
-        assert q.name == 'publishable'
+        assert q.name == 'open_generate_new'
         q = q.answer_no()
         assert q.name == 'closed_personal'
         q = q.answer_yes()
-        assert q.name == 'closed_identify_living'
+        assert q.name == 'public_and_open'
         q = q.answer_no()
+        assert q.name == 'no_reidentify'
+        q = q.answer_yes()
         assert q.name == 'no_reidentify_absolute'
         q = q.answer_no()
         assert q.name == 'no_reidentify_strong'
+        q = q.answer_yes()
+        assert q.name == 'include_commercial_personal'
+        q = q.answer_yes()
+        assert q.name == 'financial_low_personal'
         tier = q.answer_yes()
         assert tier == 2
 
     def test_classify_questions_tier3(self):
         insert_initial_questions(ClassificationQuestion)
         q = ClassificationQuestion.objects.get_starting_question()
-        assert q.name == 'public_and_open'
-        q = q.answer_no()
-        assert q.name == 'publishable'
+        assert q.name == 'open_generate_new'
         q = q.answer_no()
         assert q.name == 'closed_personal'
         q = q.answer_no()
@@ -420,10 +432,6 @@ class TestWorkPackage:
     def test_classify_questions_tier4(self):
         insert_initial_questions(ClassificationQuestion)
         q = ClassificationQuestion.objects.get_starting_question()
-        assert q.name == 'public_and_open'
-        q = q.answer_yes()
-        assert q.name == 'open_identify_living'
-        q = q.answer_yes()
         assert q.name == 'open_generate_new'
         q = q.answer_yes()
         assert q.name == 'substantial_threat'

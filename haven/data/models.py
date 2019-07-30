@@ -30,6 +30,8 @@ class ClassificationQuestion(models.Model):
         null=True, blank=True)
     yes_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
     no_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
+    hidden = models.BooleanField(default=False)
+
     history = HistoricalRecords()
 
     objects = ClassificationQuestionQuerySet.as_manager()

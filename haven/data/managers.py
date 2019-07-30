@@ -18,7 +18,7 @@ class ClassificationQuestionQuerySet(models.QuerySet):
         '''
         incoming = defaultdict(list)
         ordered = []
-        for q in self.all():
+        for q in self.filter(hidden=False):
             incoming.setdefault(q, [])
             if q.yes_question:
                 incoming[q.yes_question].append(q)
