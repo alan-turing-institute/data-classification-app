@@ -11,17 +11,17 @@
 
 # This script must have a .sh extension for the Azure container to recognise as a shell script.
 
-echo Running SH deployment script
+echo "Running Safe Haven deployment script:"
 
 cd /home/site/repository
 
-echo Collecting static files...
+echo "Collecting static files..."
 mkdir -p /home/site/repository/staticfiles
 python3 haven/manage.py collectstatic --noinput --clear
 
-echo Running DSH migrations...
+echo "Running Safe Haven migrations..."
 python3 haven/manage.py migrate
 
-echo Running web server...
+echo "Running gunicorn web server..."
 # Log to stdout so it will be picked up zy Azure log stream
 gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi --error-logfile '-' --log-level 'warning'
