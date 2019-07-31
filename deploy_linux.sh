@@ -23,4 +23,5 @@ echo Running DSH migrations...
 python3 haven/manage.py migrate
 
 echo Running web server...
-gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi --error-logfile '-' --log-level 'debug'
+# Log to stdout so it will be picked up zy Azure log stream
+gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi --error-logfile '-' --log-level 'warning'
