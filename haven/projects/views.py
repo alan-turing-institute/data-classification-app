@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
@@ -530,7 +531,25 @@ class WorkPackageClassifyData(
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
-        context['guidance'] = ClassificationGuidance.objects.all()
+
+        # Use a regex to identify links to guidance
+        # Some form of HTML parser might be better, but we're looking for a very limited
+        # pattern so is hopefully unnecessary
+        pattern = re.compile('href="#([^"]+)"')
+        matches = [m for m in pattern.finditer(form.question_obj.question)]
+        if matches:
+            guidance = []
+            all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
+            while matches:
+                match = matches.pop(0)
+                name = match.group(1)
+                g = all_guidance.get(name)
+                if g and g not in guidance:
+                    guidance.append(g)
+                    matches.extend([m for m in pattern.finditer(g.guidance)])
+
+            context['guidance'] = guidance
+
         return context
 
     def test_func(self):

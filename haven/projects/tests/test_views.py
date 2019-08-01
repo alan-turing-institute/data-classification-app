@@ -798,7 +798,8 @@ class TestWorkPackageClassifyData:
         response = as_project_participant.get(self.url(work_package))
         assert 'wizard' in response.context
         assert response.context['wizard']['steps'].current == 'open_generate_new'
-        assert [g.name for g in response.context['guidance']] == ['commercial_data', 'personal_data', 'living_individual', 'pseudonymized_data']
+        guidance = ['personal_data', 'living_individual']
+        assert [g.name for g in response.context['guidance']] == guidance
 
         def classify(current, answer, next, guidance=None):
             data = {}
@@ -809,12 +810,16 @@ class TestWorkPackageClassifyData:
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
-                assert [g.name for g in response.context['guidance']] == ['commercial_data', 'personal_data', 'living_individual', 'pseudonymized_data']
+            if guidance:
+                assert [g.name for g in response.context['guidance']] == guidance
             return response
 
-        response = classify('open_generate_new', False, 'closed_personal')
-        response = classify('closed_personal', True, 'public_and_open')
-        response = classify('public_and_open', False, 'no_reidentify')
+        response = classify('open_generate_new', False, 'closed_personal',
+                            guidance=['personal_data', 'living_individual'])
+        response = classify('closed_personal', True, 'public_and_open',
+                            guidance=['personal_data', 'living_individual'])
+        response = classify('public_and_open', False, 'no_reidentify',
+                            guidance=['personal_data', 'pseudonymized_data', 'living_individual'])
         response = classify('no_reidentify', False, 'substantial_threat')
         response = classify('substantial_threat', True, None)
 
