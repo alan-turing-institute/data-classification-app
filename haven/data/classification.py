@@ -50,62 +50,82 @@ from data.tiers import Tier
 #   migration
 
 
-CLOSED_PERSONAL = 'Will any project input be personal data?'
-FINANCIAL_LOW = (
+COMMERCIAL_DATA = 'commercial_data'
+LIVING_INDIVIDUAL = 'living_individual'
+PERSONAL_DATA = 'personal_data'
+PSEUDONYMIZED_DATA = 'pseudonymized_data'
+
+CLOSED_PERSONAL = 'closed_personal'
+FINANCIAL_LOW = 'financial_low'
+FINANCIAL_LOW_PERSONAL = 'financial_low_personal'
+INCLUDE_COMMERCIAL = 'include_commercial'
+INCLUDE_COMMERCIAL_PERSONAL = 'include_commercial_personal'
+NO_REIDENTIFY = 'no_reidentify'
+NO_REIDENTIFY_ABSOLUTE = 'no_reidentify_absolute'
+NO_REIDENTIFY_STRONG = 'no_reidentify_strong'
+OPEN_GENERATE_NEW = 'open_generate_new'
+OPEN_PUBLICATION = 'open_publication'
+PUBLIC_AND_OPEN = 'public_and_open'
+PUBLISHABLE = 'publishable'
+SOPHISTICATED_ATTACK = 'sophisticated_attack'
+SUBSTANTIAL_THREAT = 'substantial_threat'
+
+CLOSED_PERSONAL_TEXT = 'Will any project input be personal data?'
+FINANCIAL_LOW_TEXT = (
     'Do you have high confidence that the commercial, legal, '
     'reputational or political consequences of unauthorised '
     'disclosure of this data will be low?')
-FINANCIAL_LOW_PERSONAL = (
+FINANCIAL_LOW_PERSONAL_TEXT = (
     'Do you have high confidence that the commercial, legal, '
     'reputational or political consequences of unauthorised '
     'disclosure of this data will be low?')
-INCLUDE_COMMERCIAL = (
+INCLUDE_COMMERCIAL_TEXT = (
     'Will you be working with commercial-in-confidence '
     'information or private third-party intellectual property, '
     'or legally or politically sensitive data?')
-INCLUDE_COMMERCIAL_PERSONAL = (
+INCLUDE_COMMERCIAL_PERSONAL_TEXT = (
     'Will you also be working with commercial-in-confidence '
     'information or private third-party intellectual property, '
     'or legally or politically sensitive data?')
-NO_REIDENTIFY = 'Is that personal data pseudonymized?'
-NO_REIDENTIFY_ABSOLUTE = (
+NO_REIDENTIFY_TEXT = 'Is that personal data pseudonymized?'
+NO_REIDENTIFY_ABSOLUTE_TEXT = (
     'Do you have absolute confidence that it is not possible '
     'to identify individuals from the data, either at the '
     'point of entry or as a result of any analysis that may '
     'be carried out?')
-NO_REIDENTIFY_STRONG = (
+NO_REIDENTIFY_STRONG_TEXT = (
     'Do you have strong confidence that it is not possible to '
     'identify individuals from the data, either at the point of '
     'entry or as a result of any analysis that may be carried '
     'out?')
-OPEN_GENERATE_NEW = (
+OPEN_GENERATE_NEW_TEXT = (
     'Will the research generate (including by selecting, or '
     'sorting or combining) any personal data?')
-OPEN_PUBLICATION = (
+OPEN_PUBLICATION_TEXT = (
     'Will releasing any of the datasets or results impact on '
     'the competitive advantage of the research team?')
-PUBLIC_AND_OPEN = (
+PUBLIC_AND_OPEN_TEXT = (
     'Is that personal data legally accessible by the general '
     'public with no restrictions on use?')
-PUBLISHABLE = (
+PUBLISHABLE_TEXT = (
     'Do you have high confidence that the commercial, legal, '
     'reputational or political consequences of unauthorised '
     'disclosure of this data will be so low as to be trivial?')
-SOPHISTICATED_ATTACK = (
+SOPHISTICATED_ATTACK_TEXT = (
     'Do likely attackers include sophisticated, '
     'well-resourced and determined threats, such as highly '
     'capable serious organised crime groups and state '
     'actors?')
-SUBSTANTIAL_THREAT = (
+SUBSTANTIAL_THREAT_TEXT = (
     'Would disclosure pose a substantial threat to the '
     'personal safety, health or security of the data '
     'subjects?')
 
 
-COMMERCIAL_DATA = (
+COMMERCIAL_DATA_TEXT = (
     'Commercial-in-confidence data is information which, if disclosed, may result in damage to a '
     'party’s commercial interest, intellectual property, or trade secrets.')
-PERSONAL_DATA = (
+PERSONAL_DATA_TEXT = (
     'Personal data is any information relating to an identified or identifiable living individual '
     '(see below); an \'identifiable\' living individual is one who can be identified, directly '
     'or indirectly, in particular by reference to an identifier such as a name, an '
@@ -114,7 +134,7 @@ PERSONAL_DATA = (
     'identity of that natural person. The term \'indirectly\' here indicates that this includes '
     'data where identification is made possible by combining one or more sets of data, including '
     'synthetic data or trained models.')
-PSEUDONYMIZED_DATA = (
+PSEUDONYMIZED_DATA_TEXT = (
     'Pseudonymised data is personal data that has been processed in such a manner that it can '
     'no longer be attributed to a specific living individual without the use of additional '
     'information, which is kept separately and subject to technical and organisational measures '
@@ -134,7 +154,7 @@ PSEUDONYMIZED_DATA = (
     'confidence, where no doubt is involved, strong confidence, or weak confidence. Classifiers '
     'should give sufficient thought to this question to ensure they are classifying data to the '
     'appropriate sensitivity.')
-LIVING_INDIVIDUAL = (
+LIVING_INDIVIDUAL_TEXT = (
     'A Living individual is an individual for whom you do not have reasonable evidence that they '
     'are deceased. If you’re unsure if the data subject is alive or dead, assume they have a '
     'lifespan of 100 years and act accordingly. If you’re unsure of their age, assume 16 for any '
@@ -145,20 +165,20 @@ LIVING_INDIVIDUAL = (
 def initial_guidance():
     guidance = [
         {
-            'name': 'commercial_data',
-            'guidance': COMMERCIAL_DATA,
+            'name': COMMERCIAL_DATA,
+            'guidance': COMMERCIAL_DATA_TEXT,
         },
         {
-            'name': 'personal_data',
-            'guidance': PERSONAL_DATA,
+            'name': PERSONAL_DATA,
+            'guidance': PERSONAL_DATA_TEXT,
         },
         {
-            'name': 'living_individual',
-            'guidance': LIVING_INDIVIDUAL,
+            'name': LIVING_INDIVIDUAL,
+            'guidance': LIVING_INDIVIDUAL_TEXT,
         },
         {
-            'name': 'pseudonymized_data',
-            'guidance': PSEUDONYMIZED_DATA,
+            'name': PSEUDONYMIZED_DATA,
+            'guidance': PSEUDONYMIZED_DATA_TEXT,
         },
     ]
     return guidance
@@ -170,88 +190,88 @@ def initial_questions():
     # list
     questions = [
         {
-            'name': 'sophisticated_attack',
-            'question': SOPHISTICATED_ATTACK,
+            'name': SOPHISTICATED_ATTACK,
+            'question': SOPHISTICATED_ATTACK_TEXT,
             'yes_tier': Tier.FOUR,
             'no_tier': Tier.THREE,
         },
         {
-            'name': 'financial_low_personal',
-            'question': FINANCIAL_LOW_PERSONAL,
+            'name': FINANCIAL_LOW_PERSONAL,
+            'question': FINANCIAL_LOW_PERSONAL_TEXT,
             'yes_tier': Tier.TWO,
-            'no_question': 'sophisticated_attack',
+            'no_question': SOPHISTICATED_ATTACK,
         },
         {
-            'name': 'include_commercial_personal',
-            'question': INCLUDE_COMMERCIAL_PERSONAL,
-            'yes_question': 'financial_low_personal',
+            'name': INCLUDE_COMMERCIAL_PERSONAL,
+            'question': INCLUDE_COMMERCIAL_PERSONAL_TEXT,
+            'yes_question': FINANCIAL_LOW_PERSONAL,
             'no_tier': Tier.TWO,
         },
         {
-            'name': 'no_reidentify_strong',
-            'question': NO_REIDENTIFY_STRONG,
-            'yes_question': 'include_commercial_personal',
-            'no_question': 'sophisticated_attack',
+            'name': NO_REIDENTIFY_STRONG,
+            'question': NO_REIDENTIFY_STRONG_TEXT,
+            'yes_question': INCLUDE_COMMERCIAL_PERSONAL,
+            'no_question': SOPHISTICATED_ATTACK,
         },
         {
-            'name': 'publishable',
-            'question': PUBLISHABLE,
+            'name': PUBLISHABLE,
+            'question': PUBLISHABLE_TEXT,
             'yes_tier': Tier.ONE,
             'no_tier': Tier.TWO,
         },
         {
-            'name': 'financial_low',
-            'question': FINANCIAL_LOW,
-            'yes_question': 'publishable',
-            'no_question': 'sophisticated_attack',
+            'name': FINANCIAL_LOW,
+            'question': FINANCIAL_LOW_TEXT,
+            'yes_question': PUBLISHABLE,
+            'no_question': SOPHISTICATED_ATTACK,
         },
         {
-            'name': 'substantial_threat',
-            'question': SUBSTANTIAL_THREAT,
+            'name': SUBSTANTIAL_THREAT,
+            'question': SUBSTANTIAL_THREAT_TEXT,
             'yes_tier': Tier.FOUR,
             'no_tier': Tier.THREE,
         },
         {
-            'name': 'open_publication',
-            'question': OPEN_PUBLICATION,
+            'name': OPEN_PUBLICATION,
+            'question': OPEN_PUBLICATION_TEXT,
             'yes_tier': Tier.ONE,
             'no_tier': Tier.ZERO,
         },
         {
-            'name': 'include_commercial',
-            'question': INCLUDE_COMMERCIAL,
-            'yes_question': 'financial_low',
-            'no_question': 'open_publication',
+            'name': INCLUDE_COMMERCIAL,
+            'question': INCLUDE_COMMERCIAL_TEXT,
+            'yes_question': FINANCIAL_LOW,
+            'no_question': OPEN_PUBLICATION,
         },
         {
-            'name': 'no_reidentify_absolute',
-            'question': NO_REIDENTIFY_ABSOLUTE,
-            'yes_question': 'include_commercial',
-            'no_question': 'no_reidentify_strong',
+            'name': NO_REIDENTIFY_ABSOLUTE,
+            'question': NO_REIDENTIFY_ABSOLUTE_TEXT,
+            'yes_question': INCLUDE_COMMERCIAL,
+            'no_question': NO_REIDENTIFY_STRONG,
         },
         {
-            'name': 'no_reidentify',
-            'question': NO_REIDENTIFY,
-            'yes_question': 'no_reidentify_absolute',
-            'no_question': 'substantial_threat',
+            'name': NO_REIDENTIFY,
+            'question': NO_REIDENTIFY_TEXT,
+            'yes_question': NO_REIDENTIFY_ABSOLUTE,
+            'no_question': SUBSTANTIAL_THREAT,
         },
         {
-            'name': 'public_and_open',
-            'question': PUBLIC_AND_OPEN,
-            'yes_question': 'include_commercial',
-            'no_question': 'no_reidentify',
+            'name': PUBLIC_AND_OPEN,
+            'question': PUBLIC_AND_OPEN_TEXT,
+            'yes_question': INCLUDE_COMMERCIAL,
+            'no_question': NO_REIDENTIFY,
         },
         {
-            'name': 'closed_personal',
-            'question': CLOSED_PERSONAL,
-            'yes_question': 'public_and_open',
-            'no_question': 'include_commercial',
+            'name': CLOSED_PERSONAL,
+            'question': CLOSED_PERSONAL_TEXT,
+            'yes_question': PUBLIC_AND_OPEN,
+            'no_question': INCLUDE_COMMERCIAL,
         },
         {
-            'name': 'open_generate_new',
-            'question': OPEN_GENERATE_NEW,
-            'yes_question': 'substantial_threat',
-            'no_question': 'closed_personal',
+            'name': OPEN_GENERATE_NEW,
+            'question': OPEN_GENERATE_NEW_TEXT,
+            'yes_question': SUBSTANTIAL_THREAT,
+            'no_question': CLOSED_PERSONAL,
         }
     ]
 
@@ -291,27 +311,27 @@ def migrate_questions(apps, schema_editor):
     # Template method for use in migrations
 
     # Add any brand-new guidance
-    # insert_blank_guidance_if_necessary(apps, 'guidance2')
+    # insert_blank_guidance_if_necessary(apps, GUIDANCE2)
 
     # Update any guidance that need to change (including any new guidance)
     # guidance = {g['name']: g for g in classification.initial_guidance()}
-    # migrate_guidance(apps, 'guidance1', guidance['guidance1'])
-    # migrate_guidance(apps, 'guidance2', guidance['guidance2'])
+    # migrate_guidance(apps, GUIDANCE1, guidance[GUIDANCE1])
+    # migrate_guidance(apps, GUIDANCE2, guidance[GUIDANCE2])
 
     # Hide any no longer used questions
-    # hide_question_if_present(apps, 'question1')
-    # hide_question_if_present(apps, 'question2')
+    # hide_question_if_present(apps, QUESTION1)
+    # hide_question_if_present(apps, QUESTION2)
 
     # Add any brand-new questions
-    # insert_blank_question_if_necessary(apps, 'question8')
-    # insert_blank_question_if_necessary(apps, 'question9')
+    # insert_blank_question_if_necessary(apps, QUESTION8)
+    # insert_blank_question_if_necessary(apps, QUESTION9)
 
     # Update any questions that need to change (including any new questions)
     # questions = {q['name']: q for q in classification.initial_questions()}
-    # migrate_question(apps, 'question1', questions['question1'])
-    # migrate_question(apps, 'question2', questions['question2'])
-    # migrate_question(apps, 'question8', questions['question8'])
-    # migrate_question(apps, 'question9', questions['question9'])
+    # migrate_question(apps, QUESTION1, questions[QUESTION1])
+    # migrate_question(apps, QUESTION2, questions[QUESTION2])
+    # migrate_question(apps, QUESTION8, questions[QUESTION8])
+    # migrate_question(apps, QUESTION9, questions[QUESTION9])
 
     # Check the database looks as expected
     # verify_initial_questions(apps)
