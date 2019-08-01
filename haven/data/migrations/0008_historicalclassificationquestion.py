@@ -4,6 +4,16 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import simple_history.models
+from simple_history.manager import HistoryManager
+from simple_history.models import HistoricalRecords
+
+
+def insert_history(apps, schema_editor):
+    ClassificationQuestion = apps.get_model('data', 'ClassificationQuestion')
+
+    for q in ClassificationQuestion.objects.all():
+        history = _attach_history(apps, q)
+        history.post_save(q, created=True)
 
 
 class Migration(migrations.Migration):
@@ -37,4 +47,15 @@ class Migration(migrations.Migration):
             },
             bases=(simple_history.models.HistoricalChanges, models.Model),
         ),
+        migrations.RunPython(insert_history, migrations.RunPython.noop),
     ]
+
+def _attach_history(apps, q):
+    ClassificationQuestion = apps.get_model('data', 'ClassificationQuestion')
+    HistoricalClassificationQuestion = apps.get_model('data', 'HistoricalClassificationQuestion')
+    manager = HistoryManager(HistoricalClassificationQuestion)
+    q.history = manager
+    history = HistoricalRecords()
+    history.manager_name = 'history'
+    history.cls = ClassificationQuestion.__class__
+    return history
