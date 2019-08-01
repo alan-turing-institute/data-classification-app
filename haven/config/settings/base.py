@@ -43,6 +43,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 THIRD_PARTY_PRE_APPS = [
     'dal',
     'dal_select2',
+    'whitenoise.runserver_nostatic',  # Let WhiteNoise handle static files in local development instead of Django, for consistency with production
 ]
 
 DJANGO_APPS = [
@@ -180,10 +181,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = str(BASE_DIR / 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     str(BASE_DIR / 'static'),
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 INTERNAL_IPS = env.list('INTERNAL_IPS', default=['127.0.0.1'])  # noqa
 
@@ -193,7 +196,7 @@ DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap4.html'
 SAFE_HAVEN_DOMAIN = env.str('SAFE_HAVEN_DOMAIN', default='dsgroupdev.co.uk')
 
 
-USE_LDAP = env.bool('USE_LDAP', default=True)
+USE_LDAP = env.bool('USE_LDAP', default=False)
 LDAP_SERVER = env.str('LDAP_SERVER', default='')
 LDAP_USER = env.str('LDAP_USER', default='')
 LDAP_PASSWORD = env.str('LDAP_PASSWORD', default='')
