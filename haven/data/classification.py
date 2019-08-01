@@ -19,17 +19,35 @@ from data.tiers import Tier
 # * Update various tests to match how you expect the flowchart to work
 # * Change the constants, initial_guidance and initial_questions to match the new flowchart
 # * Once you're happy with the tests, create the migrations
-# * If you've had to change the schema, run `haven/manage.py makemigrations`
 # * Run `haven/manage.py makemigrations --empty data`
-# * Copy the imports, constants, initial_guidance, initial_questions and migrate_questions into the new migration
+# * Copy the contents of this module into the migration
 # * Add `migrations.RunPython(migrate_questions)` into the list of operations
 # * Update the migrate_questions method accordingly
 # * Run and test the migration
-# * Once you're happy with the migration, copy the remaining methods from this class into the migration
+#
+# For more complicated changes, you may need to adapt these instructions.
+#
+# If you've had to change the schema
+# * Run `haven/manage.py makemigrations` before creating your empty migration (so that you have
+#   two separate migrations, one schema & one data)
+#
+# If you have to change anything in this module other than the question definitions (e.g. because
+# you changed the schema):
+# * Initially copy only the imports, constants, initial_guidance, initial_questions and
+#   migrate_questions into the new migration
+# * Edit the migrate_questions as above
+# * Add a `from data import classification`, and change all method calls in migrate_questions to
+#   reference this module, e.g. change `do_something()` to `classification.do_something()`
+# * Run and test the migration
+# * Once you're happy with the migration, copy the remaining methods from this class into the
+#   migration
 # * Delete the references to this class, e.g. delete `from data import classification` and change
 #   `classification.do_something()` to just `do_something()`
-# * Fake a rollback of the migration: `haven/manage.py migrate --fake data <previous_migration_name>`
+# * Fake rollback of the migration: `haven/manage.py migrate --fake data <previous_migration_name>`
 # * Rerun your migration
+# * This process is convoluted, but is designed to ensure you don't make a change only in the
+#   migration, and not this module, which would cause problems next time we try to write another
+#   migration
 
 
 CLOSED_PERSONAL = 'Will any project input be personal data?'
@@ -269,6 +287,37 @@ def insert_initial_questions(ClassificationQuestion, ClassificationGuidance):
         questions[q.name] = q
 
 
+def migrate_questions(apps, schema_editor):
+    # Template method for use in migrations
+
+    # Add any brand-new guidance
+    # insert_blank_guidance_if_necessary(apps, 'guidance2')
+
+    # Update any guidance that need to change (including any new guidance)
+    # guidance = {g['name']: g for g in classification.initial_guidance()}
+    # migrate_guidance(apps, 'guidance1', guidance['guidance1'])
+    # migrate_guidance(apps, 'guidance2', guidance['guidance2'])
+
+    # Hide any no longer used questions
+    # hide_question_if_present(apps, 'question1')
+    # hide_question_if_present(apps, 'question2')
+
+    # Add any brand-new questions
+    # insert_blank_question_if_necessary(apps, 'question8')
+    # insert_blank_question_if_necessary(apps, 'question9')
+
+    # Update any questions that need to change (including any new questions)
+    # questions = {q['name']: q for q in classification.initial_questions()}
+    # migrate_question(apps, 'question1', questions['question1'])
+    # migrate_question(apps, 'question2', questions['question2'])
+    # migrate_question(apps, 'question8', questions['question8'])
+    # migrate_question(apps, 'question9', questions['question9'])
+
+    # Check the database looks as expected
+    # verify_initial_questions(apps)
+    pass
+
+
 def verify_initial_questions(apps):
     ClassificationQuestion = apps.get_model('data', 'ClassificationQuestion')
     stored = ClassificationQuestion.objects.filter(hidden=False)
@@ -367,36 +416,3 @@ def migrate_guidance(apps, name, kwargs):
 def insert_blank_guidance_if_necessary(apps, name):
     ClassificationGuidance = apps.get_model('data', 'ClassificationGuidance')
     g, created = ClassificationGuidance.objects.get_or_create(name=name)
-
-
-def migrate_questions(apps, schema_editor):
-    # Template method for use in migrations
-
-    # from data import classification
-
-    # Add any brand-new guidance
-    # classification.insert_blank_guidance_if_necessary(apps, 'guidance2')
-
-    # Update any guidance that need to change (including any new guidance)
-    # guidance = {g['name']: g for g in classification.initial_guidance()}
-    # classification.migrate_guidance(apps, 'guidance1', guidance['guidance1'])
-    # classification.migrate_guidance(apps, 'guidance2', guidance['guidance2'])
-
-    # Hide any no longer used questions
-    # classification.hide_question_if_present(apps, 'question1')
-    # classification.hide_question_if_present(apps, 'question2')
-
-    # Add any brand-new questions
-    # classification.insert_blank_question_if_necessary(apps, 'question8')
-    # classification.insert_blank_question_if_necessary(apps, 'question9')
-
-    # Update any questions that need to change (including any new questions)
-    # questions = {q['name']: q for q in classification.initial_questions()}
-    # classification.migrate_question(apps, 'question1', questions['question1'])
-    # classification.migrate_question(apps, 'question2', questions['question2'])
-    # classification.migrate_question(apps, 'question8', questions['question8'])
-    # classification.migrate_question(apps, 'question9', questions['question9'])
-
-    # Check the database looks as expected
-    # classification.verify_initial_questions(apps)
-    pass
