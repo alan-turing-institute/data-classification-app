@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bleach_tags %}
 {% load crispy_forms_tags %}
 
 {% block h1_title %}Data Classification for {{ work_package.name }}{% endblock %}
@@ -11,7 +12,7 @@
     <tbody>
       {% for field in wizard.form %}
       <tr>
-        <td>{{ field.label }}</td>
+        <td>{{ field.label | bleach }}</td>
         <td>{{ field }}</td>
       </tr>
       {% endfor %}
@@ -29,7 +30,8 @@
 {% if guidance %}
   <h3 class="mt-4">Additional Guidance</h5>
   {% for g in guidance %}
-    <p>{{ g }}</p>
+    <a name="{{ g.name }}"></a>
+    {{ g.guidance | bleach }}
   {% endfor %}
 {% endif %}
 
