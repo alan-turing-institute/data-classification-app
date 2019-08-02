@@ -172,7 +172,7 @@ LIVING_INDIVIDUAL_TEXT = (
     'lifespan of 100 years and act accordingly. If you’re unsure of their age, assume 16 for any '
     'adult and 0 for any child, unless you have contextual evidence that allows you to make a '
     'reasonable assumption otherwise '
-    '(<a href="http://www.nationalarchives.gov.uk/documents/information-management/'
+    '(<a href="https://www.nationalarchives.gov.uk/documents/information-management/'
     'guide-to-archiving-personal-data.pdf">National Archives, 2018</a>).</p>')
 
 
