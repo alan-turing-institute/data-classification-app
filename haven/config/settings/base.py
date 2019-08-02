@@ -58,6 +58,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'crispy_forms',
     'debug_toolbar',
+    'django_bleach',
     'django_tables2',
     'easyaudit',
     'simple_history',
@@ -222,6 +223,8 @@ DEFAULT_FROM_MAIL = env.str('FROM_MAIL', default='noreply@dsgroupdev.co.uk')
 SOCIAL_AUTH_LOGIN_ERROR_URL = '/error/'
 
 PHONENUMBER_DEFAULT_REGION = "GB"
+
+BLEACH_ALLOWED_TAGS  = ['a', 'em', 'li', 'ol', 'p', 'strong', 'ul']
 
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False

@@ -1,3 +1,4 @@
+import re
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
@@ -14,7 +15,7 @@ from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from formtools.wizard.views import SessionWizardView
 
 from data.forms import SingleQuestionForm
-from data.models import ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
@@ -510,7 +511,7 @@ class WorkPackageClassifyData(
 
     def show_step(self, question, first_step):
         def f(wizard):
-            # The condition needs to be true not just for the form to show, but
+            # The condition needs to be true not just for the current step, but
             # also all the steps leading up to it. However, you can't just check
             # whether a step already has data, because that interferes with the
             # ability to go backwards, so you need to follow the chain of
@@ -527,6 +528,29 @@ class WorkPackageClassifyData(
                     break
             return question.name in chain
         return f
+
+    def get_context_data(self, form, **kwargs):
+        context = super().get_context_data(form=form, **kwargs)
+
+        # Use a regex to identify links to guidance
+        # Some form of HTML parser might be better, but we're looking for a very limited
+        # pattern so is hopefully unnecessary
+        pattern = re.compile('href="#([^"]+)"')
+        matches = [m for m in pattern.finditer(form.question_obj.question)]
+        if matches:
+            guidance = []
+            all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
+            while matches:
+                match = matches.pop(0)
+                name = match.group(1)
+                g = all_guidance.get(name)
+                if g and g not in guidance:
+                    guidance.append(g)
+                    matches.extend([m for m in pattern.finditer(g.guidance)])
+
+            context['guidance'] = guidance
+
+        return context
 
     def test_func(self):
         role = self.get_project_role()

@@ -8,6 +8,7 @@ asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.3.0       # via pytest
 attrs==19.1.0             # via pytest
 babel==2.7.0              # via django-phonenumber-field
+bleach==3.1.0             # via django-bleach
 certifi==2019.6.16        # via requests
 cffi==1.12.3              # via cryptography
 chardet==3.0.4            # via requests
@@ -15,6 +16,7 @@ coverage==4.5.4           # via pytest-cov
 cryptography==2.4.1
 defusedxml==0.6.0         # via python3-openid, social-auth-core
 django-autocomplete-light==3.3.0
+django-bleach==0.5.3
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
@@ -47,11 +49,12 @@ python3-openid==3.1.0     # via social-auth-core
 pytz==2019.1              # via babel, django
 requests-oauthlib==1.0.0
 requests==2.22.0          # via requests-oauthlib, social-auth-core
-six==1.12.0               # via cryptography, django-simple-history, model-mommy, pytest, social-auth-app-django, social-auth-core
+six==1.12.0               # via bleach, cryptography, django-simple-history, model-mommy, pytest, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0   # via social-auth-app-django
 sqlparse==0.3.0           # via django-debug-toolbar
 urllib3==1.25.3           # via requests
+webencodings==0.5.1       # via bleach
 whitenoise==4.1.1
 zipp==0.5.2               # via importlib-metadata
 
