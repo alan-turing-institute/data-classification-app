@@ -278,5 +278,5 @@ create_keyvault
 create_postgresql_db
 create_app
 create_registration
-deploy_settings
 deploy_code
+deploy_settings
