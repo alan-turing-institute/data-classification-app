@@ -2,6 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Case, Q, When
+from django.urls import reverse
 from easyaudit.models import CRUDEvent
 
 from data.models import ClassificationQuestion, Dataset
@@ -250,6 +251,9 @@ class WorkPackage(models.Model):
             return []
 
         return PolicyAssignment.objects.filter(tier=self.tier)
+
+    def get_absolute_url(self):
+        return reverse('projects:work_package_detail', args=[self.project.id, self.id])
 
     def __str__(self):
         return f'{self.project} - {self.name}'
