@@ -78,7 +78,7 @@ class Project(models.Model):
 class ProjectDataset(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=True)
+    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
 
     created_at = models.DateTimeField(
         auto_now_add=True,
