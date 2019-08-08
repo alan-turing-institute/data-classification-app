@@ -445,8 +445,7 @@ class WorkPackageAddDataset(
     form_class = WorkPackageAddDatasetForm
 
     def get_success_url(self):
-        return reverse('projects:work_package_detail',
-                       args=[self.object.project.id, self.object.id])
+        return self.object.get_absolute_url()
 
     def test_func(self):
         return self.get_project_role().can_add_work_packages
@@ -632,8 +631,7 @@ class WorkPackageClassifyDelete(
         return self.object.classification_for(self.request.user).exists()
 
     def get_success_url(self):
-        return reverse('projects:work_package_detail',
-                       args=[self.object.project.id, self.object.id])
+        return self.object.get_absolute_url()
 
 
 class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):

@@ -13,7 +13,7 @@ class ParticipantTable(tables.Table):
 
 
 class WorkPackageTable(tables.Table):
-    name = tables.Column('Name')
+    name = tables.Column('Name', linkify=True)
     tier = tables.Column('Tier')
 
     class Meta:
