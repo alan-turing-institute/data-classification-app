@@ -1,0 +1,10 @@
+language: python
+dist: bionic
+python:
+  - "3.7"
+env:
+  - PYTHONPATH=haven/
+install:
+  - pip install -r requirements/test.txt
+script:
+  - pytest
