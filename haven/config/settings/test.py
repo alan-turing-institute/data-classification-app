@@ -13,3 +13,6 @@ from .base import *  # noqa
 
 USE_LDAP = False
 SAFE_HAVEN_DOMAIN = 'example.com'
+# This should prevent Whitenoise from looking in a non-existent directory and raising a warning 
+# during every test
+WHITENOISE_AUTOREFRESH = True
