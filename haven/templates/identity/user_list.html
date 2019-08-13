@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load identity_tags %}
 
 {% block page_title %}Users{% endblock %}
 {% block h1_title %}Users{% endblock %}
@@ -7,66 +8,60 @@
 <table class="table table-sm">
   <tbody>
     <tr>
-      <th>ID</th>
-      <th>Username</th>
-      <th>Email</th>
-      <th>First name</th>
-      <th>Last name</th>
+      <th>User</th>
       <th>Mobile</th>
-      <th>Date added</th>
-      <th>Added by</th>
+      <th>Personal email</th>
+      <th>Created</th>
     </tr>
     {% if users %}
-    {% for next_user in users %}
-    <tr>
-      <td>{{ next_user.id }}</td>
+      {% for next_user in ordered_user_list %}
+          <tr>
+            <td>
 
-      <td>
-        {% if user.user_role.can_edit_users %}
-          <a href="{% url 'identity:edit_user' next_user.id %}">{{ next_user.username }}</a>
-        {% else %}
-          {{ next_user.username }}
-        {% endif %}
-      </td>
+              {% if user.user_role.can_edit_users %}
+              <a href="{% url 'identity:edit_user' next_user.id %}">
+                {% endif %}
 
-      <td>{{ next_user.email }}</td>
-      <td>{{ next_user.first_name }}</td>
-      <td>{{ next_user.last_name }}</td>
-      <td>{{ next_user.mobile }}</td>
-      <td>{{ next_user.date_joined }}</td>
-      <td>{{ next_user.created_by }}</td>
-    </tr>
-    {% endfor %}
+                {{ next_user.display_name }}
+
+                {% if user.user_role.can_edit_users %}
+              </a>
+              {% endif %}
+              <br/>
+              {{ next_user.role|role_display }}
+            </td>
+
+            <td>{{ next_user.mobile }}</td>
+            <td>{{ next_user.email }}</td>
+            <td>
+              <small>{{ next_user.date_joined|date:'d M Y H:i' }}
+                <br/>
+                by {{ next_user.created_by }}</small></td>
+          </tr>
+      {% endfor %}
     {% endif %}
   </tbody>
 </table>
-
-<div class='container'>
-  <div class="row">
-    <div class="form-group" role="group">
-      {% if user.user_role.can_create_users %}
-        <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:add_user' %}">Create user</a>
-      {% endif %}
-    </div>
-    <div class="form-group" role="group">
-      {% if user.user_role.can_import_users %}
-      <form method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
-      {% csrf_token %}
-      <label class="btn btn-primary btn-lg mx-2">
-        Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
-      </label>
-      </form>
-      {% endif %}
-    </div>
-    <div class="form-group" role="group">
-      {% if user.user_role.can_export_users %}
-        <a class="btn btn-primary btn-lg mx-2" href="{% url 'identity:export_users' %}">Export UserCreate.csv</a>
-      {% endif %}
-    </div>
-  </div>
-</div>
-
 {% endblock content %}
+
+{% block actions %}
+  {% if user.user_role.can_create_users %}
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{% url 'identity:add_user' %}">Create user</a>
+  {% endif %}
+
+  {% if user.user_role.can_import_users %}
+  <form style="display: contents" method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="btn btn-primary btn-lg mx-2 my-1">
+      Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+    </label>
+  </form>
+  {% endif %}
+
+  {% if user.user_role.can_export_users %}
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{% url 'identity:export_users' %}">Export UserCreate.csv</a>
+  {% endif %}
+{% endblock actions %}
 
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>

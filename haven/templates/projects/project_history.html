@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load django_tables2 %}
+
+{% block h1_title %}{{ project.name }} History{% endblock %}
+
+{% block content %}
+  {% render_table history_table %}
+{% endblock %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">History</li>
+{% endblock crumbs %}

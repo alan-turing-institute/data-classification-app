@@ -31,21 +31,31 @@ def superuser():
 
 
 @pytest.fixture
-def system_controller():
+def system_manager():
     return User.objects.create_user(
         username='controller@example.com',
         email='controller@example.com',
-        role=UserRole.SYSTEM_CONTROLLER.value,
+        role=UserRole.SYSTEM_MANAGER.value,
         password=DUMMY_PASSWORD,
     )
 
 
 @pytest.fixture
-def research_coordinator():
+def programme_manager():
     return User.objects.create_user(
         username='coordinator@example.com',
         email='coordinator@example.com',
-        role=UserRole.RESEARCH_COORDINATOR.value,
+        role=UserRole.PROGRAMME_MANAGER.value,
+        password=DUMMY_PASSWORD,
+    )
+
+
+@pytest.fixture
+def standard_user():
+    return User.objects.create_user(
+        username='user@example.com',
+        email='user@example.com',
+        role=UserRole.NONE.value,
         password=DUMMY_PASSWORD,
     )
 
@@ -53,9 +63,13 @@ def research_coordinator():
 @pytest.fixture
 def project_participant():
     return User.objects.create_user(
+        first_name='Angela',
+        last_name='Zala',
         username='project_participant@example.com',
         email='project_participant@example.com',
         password=DUMMY_PASSWORD,
+        role=UserRole.NONE.value,
+        mobile='+441234567890'
     )
 
 
@@ -100,13 +114,18 @@ def as_superuser(client, superuser):
 
 
 @pytest.fixture
-def as_system_controller(client, system_controller):
-    return client_login(client, system_controller)
+def as_system_manager(client, system_manager):
+    return client_login(client, system_manager)
 
 
 @pytest.fixture
-def as_research_coordinator(client, research_coordinator):
-    return client_login(client, research_coordinator)
+def as_programme_manager(client, programme_manager):
+    return client_login(client, programme_manager)
+
+
+@pytest.fixture
+def as_standard_user(client, standard_user):
+    return client_login(client, standard_user)
 
 
 @pytest.fixture
@@ -120,21 +139,22 @@ def as_project_participant(client, project_participant):
 
 
 @pytest.fixture
-def classified_project(research_coordinator, investigator, data_provider_representative, referee):
-    def _classified_project(tier):
-        project = recipes.project.make(created_by=research_coordinator)
+def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
+    def _classified_work_package(tier):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
-                         creator=research_coordinator)
+                         creator=programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-        project.classify_as(tier, investigator.user)
-        project.classify_as(tier, data_provider_representative.user)
+                         creator=programme_manager)
+        work_package.classify_as(tier, investigator.user)
+        work_package.classify_as(tier, data_provider_representative.user)
         if tier >= Tier.TWO:
             project.add_user(user=referee.user,
                              role=ProjectRole.REFEREE.value,
-                             creator=research_coordinator)
-            project.classify_as(tier, referee.user)
-        return project
-    return _classified_project
+                             creator=programme_manager)
+            work_package.classify_as(tier, referee.user)
+        return work_package
+    return _classified_work_package

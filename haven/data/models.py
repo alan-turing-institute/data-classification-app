@@ -1,4 +1,5 @@
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from data import tiers
 from identity.models import User
@@ -9,8 +10,13 @@ from .managers import ClassificationQuestionQuerySet
 class Dataset(models.Model):
     name = models.CharField(max_length=256)
     description = models.TextField()
+    default_representative = models.ForeignKey(User, on_delete=models.PROTECT, null=True,
+                                               related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return self.name
 
 
 class ClassificationQuestion(models.Model):
@@ -24,7 +30,9 @@ class ClassificationQuestion(models.Model):
         null=True, blank=True)
     yes_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
     no_tier = models.IntegerField(choices=tiers.TIER_CHOICES, null=True, blank=True)
+    hidden = models.BooleanField(default=False)
 
+    history = HistoricalRecords()
     objects = ClassificationQuestionQuerySet.as_manager()
 
     def __str__(self):
@@ -35,3 +43,11 @@ class ClassificationQuestion(models.Model):
 
     def answer_no(self):
         return self.no_question or self.no_tier
+
+
+class ClassificationGuidance(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    guidance = models.TextField()
+
+    def __str__(self):
+        return self.guidance

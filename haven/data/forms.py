@@ -13,6 +13,7 @@ class SingleQuestionForm(forms.Form):
     def subclass_for_question(cls, question):
         name = question.name + 'SingleQuestionForm'
         attrs = {
+            'question_obj': question,
             'question_label': question.question,
             'yes_tier': question.yes_tier,
             'no_tier': question.no_tier,

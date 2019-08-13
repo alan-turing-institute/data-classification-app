@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Case, When
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -66,6 +67,14 @@ class User(AbstractUser):
     # Use a custom UserManager with our own QuerySet methods
     objects = CustomUserManager()
 
+    @classmethod
+    def ordered_participant_set(cls):
+        """Order Users by their UserRole"""
+        ordered_role_list = UserRole.ordered_display_role_list()
+        order = Case(*[When(role=role, then=pos) for pos, role in
+                       enumerate(ordered_role_list)])
+        return User.objects.filter(role__in=ordered_role_list).order_by(order)
+
     @property
     def user_role(self):
         if self.is_superuser:
@@ -124,9 +133,10 @@ class User(AbstractUser):
         project_role = ProjectRole(participant.role) if participant else None
 
         is_project_admin = self.is_superuser or \
-            self.user_role is UserRole.SYSTEM_CONTROLLER or \
+            self.user_role is UserRole.SYSTEM_MANAGER or \
+            self.user_role is UserRole.PROGRAMME_MANAGER or \
             self == project.created_by
-        return UserProjectPermissions(project_role, is_project_admin)
+        return UserProjectPermissions(project_role, self.user_role, is_project_admin)
 
     def project_participation_role(self, project):
         """
@@ -140,3 +150,18 @@ class User(AbstractUser):
         """
         participant = self.get_participant(project)
         return ProjectRole(participant.role) if participant else None
+
+    def display_name(self):
+        """
+        Return a combined name and username for display
+
+        :return:string combining the user's full name and username
+        """
+
+        full_name = self.get_full_name()
+        username = self.username
+        if full_name:
+            return "{full_name}: {username}".format(
+                full_name=full_name, username=username)
+        else:
+            return username

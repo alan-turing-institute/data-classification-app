@@ -28,3 +28,9 @@ openpyxl==2.6.1
 django-autocomplete-light==3.3.0
 
 django-tables2==2.0.6
+
+django-simple-history==2.7.2
+
+django-easy-audit==1.1
+
+django-bleach==0.5.3

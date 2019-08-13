@@ -1,8 +1,10 @@
 from django.contrib import admin
 
-from .models import ClassificationOpinion, Participant, Project
+from . import models
 
 
-admin.site.register(Project)
-admin.site.register(Participant)
-admin.site.register(ClassificationOpinion)
+admin.site.register(models.Project)
+admin.site.register(models.Participant)
+admin.site.register(models.ClassificationOpinion)
+admin.site.register(models.ClassificationOpinionQuestion)
+admin.site.register(models.WorkPackage)

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ work_package.name }}{% endblock %}
+{% block h1_title %}{{ work_package.name }}{% endblock %}
+
+{% block content %}
+  {% if participant %}
+  <p>
+  Role: {{ participant.get_role_display }}
+  </p>
+  {% endif %}
+
+  <p>
+  {{ work_package.description }}
+  </p>
+{% endblock content %}
+
+{% block extra_sections %}
+  {% include "projects/includes/work_package_detail_datasets.html" %}
+
+  {% if policy_table %}
+    {% include "projects/includes/work_package_detail_policy.html" %}
+  {% endif %}
+
+  {% if questions_table %}
+    {% include "projects/includes/work_package_detail_questions.html" %}
+  {% endif %}
+{% endblock extra_sections %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ work_package.name }}</li>
+{% endblock crumbs %}

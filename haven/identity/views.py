@@ -2,35 +2,46 @@ import csv
 
 import openpyxl
 from braces.views import UserFormKwargsMixin
+from crispy_forms.layout import Submit
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
 from core.forms import InlineFormSetHelper
 from projects.forms import ProjectsForUserInlineFormSet
 
-from .forms import CreateUserForm
+from .forms import CreateUserForm, EditUserForm
 from .mixins import UserRoleRequiredMixin
 from .models import User
 from .roles import UserRole
+
 
 class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
                  UserRoleRequiredMixin,
                  CreateView):
+    """View for creating a new user"""
+
     form_class = CreateUserForm
     model = User
-    success_url = '/'
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER]
+    user_roles = [UserRole.SYSTEM_MANAGER]
+
+    def get_success_url(self):
+        return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
-        kwargs['helper'] = InlineFormSetHelper()
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Add User'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+        kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = False
         return super().get_context_data(**kwargs)
@@ -43,6 +54,10 @@ class UserCreate(LoginRequiredMixin,
             return ProjectsForUserInlineFormSet(form_kwargs=form_kwargs)
 
     def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
         formset = self.get_formset()
         form = self.get_form()
         self.object = None
@@ -56,18 +71,27 @@ class UserCreate(LoginRequiredMixin,
 
 
 class UserEdit(LoginRequiredMixin,
+               UserFormKwargsMixin,
                UserRoleRequiredMixin,
-               DetailView):
+               UpdateView):
+    """View for modifying an existing user"""
+
+    form_class = EditUserForm
     model = User
     template_name = 'identity/user_form.html'
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER]
+    user_roles = [UserRole.SYSTEM_MANAGER]
 
     def get_success_url(self):
-        return reverse('identity:edit_user', args=[self.get_object().id])
+        return reverse('identity:list')
 
     def get_context_data(self, **kwargs):
-        kwargs['helper'] = InlineFormSetHelper()
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Save Changes'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+        kwargs['helper'] = helper
         if 'formset' not in kwargs:
             kwargs['formset'] = self.get_formset()
         kwargs['subject_user'] = self.get_object()
@@ -89,13 +113,20 @@ class UserEdit(LoginRequiredMixin,
             )
 
     def post(self, request, *args, **kwargs):
-        formset = self.get_formset()
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+
         self.object = self.get_object()
-        if formset.is_valid():
+        formset = self.get_formset()
+        form = self.get_form()
+        if form.is_valid() and formset.is_valid():
+            response = self.form_valid(form)
+            formset.instance = self.object
             formset.save()
-            return HttpResponseRedirect(self.get_success_url())
+            return response
         else:
-            return self.render_to_response(self.get_context_data(formset=formset))
+            return self.form_invalid(form)
 
 
 class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
@@ -104,10 +135,14 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
     context_object_name = 'users'
     model = User
 
-    user_roles = [UserRole.SYSTEM_CONTROLLER, UserRole.RESEARCH_COORDINATOR]
+    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        kwargs['ordered_user_list'] = User.ordered_participant_set()
+        return super().get_context_data(**kwargs)
 
 
 def export_users(request):

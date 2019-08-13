@@ -8,7 +8,7 @@ class ProjectRole(Enum):
 
     # Roles which are assignable to users on a project
     REFEREE = 'referee'
-    RESEARCH_COORDINATOR = 'research_coordinator'
+    PROJECT_MANAGER = 'project_manager'
     INVESTIGATOR = 'investigator'
     RESEARCHER = 'researcher'
     DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
@@ -25,10 +25,26 @@ class ProjectRole(Enum):
         """Dropdown choices for project roles"""
         return [
             (cls.REFEREE.value, 'Referee'),
-            (cls.RESEARCH_COORDINATOR.value, 'Research Coordinator'),
+            (cls.PROJECT_MANAGER.value, 'Project Manager'),
             (cls.INVESTIGATOR.value, 'Investigator'),
             (cls.RESEARCHER.value, 'Researcher'),
             (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
+        ]
+
+    @classmethod
+    def display_name(cls, role):
+        """User-visible string describing the role"""
+        return dict(cls.choices())[role]
+
+    @classmethod
+    def ordered_display_role_list(cls):
+        """List of roles in a suitable display order"""
+        return [
+            ProjectRole.INVESTIGATOR.value,
+            ProjectRole.PROJECT_MANAGER.value,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+            ProjectRole.REFEREE.value,
+            ProjectRole.RESEARCHER.value,
         ]
 
 
@@ -37,7 +53,8 @@ class UserProjectPermissions:
     Determine the permissions a User has on a particular project.
     """
 
-    def __init__(self, project_role, is_project_admin):
+    def __init__(self, project_role, system_role, is_project_admin):
+        self.system_role = system_role
         self.role = project_role
         self.is_project_admin = is_project_admin
 
@@ -48,10 +65,11 @@ class UserProjectPermissions:
 
         :return: list of `ProjectRole` objects
         """
-        if self.is_project_admin or self.role is ProjectRole.RESEARCH_COORDINATOR:
-            return [ProjectRole.RESEARCH_COORDINATOR,
+        if self.is_project_admin or self.role is ProjectRole.PROJECT_MANAGER:
+            return [ProjectRole.PROJECT_MANAGER,
                     ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
                     ProjectRole.INVESTIGATOR,
+                    ProjectRole.REFEREE,
                     ProjectRole.RESEARCHER]
         elif self.role is ProjectRole.INVESTIGATOR:
             return [ProjectRole.RESEARCHER]
@@ -60,16 +78,40 @@ class UserProjectPermissions:
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
+
+        # To add a new participant, the user must also have system-level access to view users
+        return self.system_role.can_view_all_users and (self.is_project_admin or self.role in [
+                    ProjectRole.PROJECT_MANAGER,
+                    ProjectRole.INVESTIGATOR,
+                ])
+
+    @property
+    def can_edit(self):
+        """Is this role able to edit participants?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
-            ProjectRole.INVESTIGATOR,
+            ProjectRole.PROJECT_MANAGER,
+        ]
+
+    @property
+    def can_view_history(self):
+        """Is this role able to view audit history?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
         ]
 
     @property
     def can_add_datasets(self):
         """Is this role able to add new datasets to the project?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.PROJECT_MANAGER,
+            ProjectRole.INVESTIGATOR,
+        ]
+
+    @property
+    def can_add_work_packages(self):
+        """Is this role able to add new work packages to the project?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
             ProjectRole.INVESTIGATOR,
         ]
 
@@ -77,7 +119,15 @@ class UserProjectPermissions:
     def can_list_participants(self):
         """Is this role able to list participants?"""
         return self.is_project_admin or self.role in [
-            ProjectRole.RESEARCH_COORDINATOR,
+            ProjectRole.PROJECT_MANAGER,
+            ProjectRole.INVESTIGATOR,
+        ]
+
+    @property
+    def can_edit_participants(self):
+        """Is this role able to edit participants?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
             ProjectRole.INVESTIGATOR,
         ]
 

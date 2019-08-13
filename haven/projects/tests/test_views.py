@@ -2,7 +2,7 @@ import pytest
 
 from core import recipes
 from data.classification import insert_initial_questions
-from data.models import ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.models import User
 from projects.models import Policy, PolicyAssignment, PolicyGroup, Project
 from projects.policies import insert_initial_policies
@@ -27,8 +27,8 @@ class TestCreateProject:
         response = as_project_participant.post('/projects/new')
         assert response.status_code == 403
 
-    def test_create_project(self, as_research_coordinator):
-        response = as_research_coordinator.post(
+    def test_create_project(self, as_programme_manager):
+        response = as_programme_manager.post(
             '/projects/new',
             {'name': 'my project', 'description': 'a new project'},
         )
@@ -39,7 +39,7 @@ class TestCreateProject:
         project = Project.objects.get()
         assert project.name == 'my project'
         assert project.description == 'a new project'
-        assert project.created_by == as_research_coordinator._user
+        assert project.created_by == as_programme_manager._user
 
 
 @pytest.mark.django_db
@@ -48,11 +48,11 @@ class TestListProjects:
         response = client.get('/projects/')
         helpers.assert_login_redirect(response)
 
-    def test_list_owned_projects(self, as_research_coordinator, system_controller):
-        my_project = recipes.project.make(created_by=as_research_coordinator._user)
-        recipes.project.make(created_by=system_controller)
+    def test_list_owned_projects(self, as_standard_user, system_manager):
+        my_project = recipes.project.make(created_by=as_standard_user._user)
+        recipes.project.make(created_by=system_manager)
 
-        response = as_research_coordinator.get('/projects/')
+        response = as_standard_user.get('/projects/')
 
         assert list(response.context['projects']) == [my_project]
 
@@ -65,13 +65,13 @@ class TestListProjects:
 
         assert list(response.context['projects']) == [project1]
 
-    def test_list_all_projects(self, research_coordinator, as_system_controller):
-        my_project = recipes.project.make(created_by=as_system_controller._user)
-        other_project = recipes.project.make(created_by=research_coordinator)
+    def test_list_all_projects(self, programme_manager, as_system_manager):
+        my_project = recipes.project.make(created_by=as_system_manager._user)
+        other_project = recipes.project.make(created_by=programme_manager)
 
-        response = as_system_controller.get('/projects/')
+        response = as_system_manager.get('/projects/')
 
-        assert list(response.context['projects']) == [my_project, other_project]
+        assert list(response.context['projects']) == [other_project, my_project]
 
 
 @pytest.mark.django_db
@@ -80,10 +80,10 @@ class TestViewProject:
         response = client.get('/projects/1')
         helpers.assert_login_redirect(response)
 
-    def test_view_owned_project(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_view_owned_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_research_coordinator.get('/projects/%d' % project.id)
+        response = as_programme_manager.get('/projects/%d' % project.id)
 
         assert response.status_code == 200
         assert response.context['project'] == project
@@ -97,32 +97,137 @@ class TestViewProject:
         assert response.status_code == 200
         assert response.context['project'] == project1
 
-    def test_cannot_view_other_project(self, as_research_coordinator):
+    def test_cannot_view_other_project(self, as_standard_user):
         project = recipes.project.make()
 
-        response = as_research_coordinator.get('/projects/%d' % project.id)
+        response = as_standard_user.get('/projects/%d' % project.id)
 
         assert response.status_code == 404
 
-    def test_view_as_system_controller(self, as_system_controller):
+    def test_view_as_system_manager(self, as_system_manager):
         project = recipes.project.make()
 
-        response = as_system_controller.get('/projects/%d' % project.id)
+        response = as_system_manager.get('/projects/%d' % project.id)
 
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_view_project_policy_tier0(self, as_research_coordinator, classified_project):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
-        project = classified_project(0)
 
-        response = as_research_coordinator.get('/projects/%d' % project.id)
+@pytest.mark.django_db
+class TestViewProjectHistory:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/history')
+        helpers.assert_login_redirect(response)
+
+    def test_view_owned_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/history' % project.id)
 
         assert response.status_code == 200
-        table = list(response.context['table'].as_values())
+        table = list(response.context['history_table'].as_values())
+        assert len(table) >= 2
+        assert table[0] == ['Timestamp', 'Type', 'User', 'Subject', 'Details', 'Changes']
+
+
+@pytest.mark.django_db
+class TestViewWorkPackage:
+    def test_view_work_package_policy_tier0(self, as_programme_manager, classified_work_package):
+        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        work_package = classified_work_package(0)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+                                            % (work_package.project.id, work_package.id))
+
+        assert response.status_code == 200
+        table = list(response.context['policy_table'].as_values())
         assert len(table) == 16
         assert table[0] == ['Policy', 'Description']
         assert table[1] == ['Tier', '0']
+
+    def test_cannot_view_for_wrong_project(self, as_programme_manager, classified_work_package):
+        wp1 = classified_work_package(0)
+        wp2 = classified_work_package(0)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+                                            % (wp1.project.id, wp2.id))
+
+        assert response.status_code == 404
+
+    def test_cannot_view_other_project(self, as_standard_user):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_standard_user.get('/projects/%d/work_packages/%d'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestEditProject:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/edit')
+        helpers.assert_login_redirect(response)
+
+    def test_edit(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+        response = as_project_participant.post('/projects/%d/edit' % project.id, {
+            'name': 'my updated project',
+            'description': 'a different project',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        response = as_project_participant.get('/projects/%d' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'].name == 'my updated project'
+        assert response.context['project'].description == 'a different project'
+
+    def test_view_owned_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_view_as_manager(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_view_as_user(self, as_project_participant):
+        project = recipes.project.make()
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.RESEARCHER.value)
+
+        response = as_project_participant.get('/projects/%d/edit' % project.id)
+
+        assert response.status_code == 403
+
+    def test_view_as_system_manager(self, as_system_manager):
+        project = recipes.project.make()
+
+        response = as_system_manager.get('/projects/%d' % project.id)
+
+        assert response.status_code == 200
+        assert response.context['project'] == project
 
 
 @pytest.mark.django_db
@@ -135,17 +240,17 @@ class TestAddUserToProject:
         response = client.post('/projects/%d/participants/add' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_research_coordinator.get('/projects/%d/participants/add' % project.id)
+        response = as_programme_manager.get('/projects/%d/participants/add' % project.id)
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_add_new_user_to_project(self, as_research_coordinator, project_participant):
+    def test_add_new_user_to_project(self, as_programme_manager, project_participant):
 
-        project = recipes.project.make(created_by=as_research_coordinator._user)
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': project_participant.pk,
         })
@@ -156,10 +261,10 @@ class TestAddUserToProject:
         assert project.participant_set.count() == 1
         assert project.participant_set.first().user.username == project_participant.username
 
-    def test_cancel_add_new_user_to_project(self, as_research_coordinator, project_participant):
+    def test_cancel_add_new_user_to_project(self, as_programme_manager, project_participant):
 
-        project = recipes.project.make(created_by=as_research_coordinator._user)
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': project_participant.pk,
             'cancel': 'Cancel',
@@ -170,13 +275,13 @@ class TestAddUserToProject:
 
         assert project.participant_set.count() == 0
 
-    def test_add_user_without_domain_to_project(self, as_research_coordinator):
+    def test_add_user_without_domain_to_project(self, as_programme_manager):
         """Check that domain will not be added to entered username if the username exists as it is"""
 
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
         new_user = User.objects.create_user(username='newuser')
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': new_user.pk,
         })
@@ -187,13 +292,13 @@ class TestAddUserToProject:
         assert project.participant_set.count() == 1
         assert project.participant_set.first().user.username == 'newuser'
 
-    def test_cannot_add_existing_user_to_project(self, as_research_coordinator, project_participant):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_cannot_add_existing_user_to_project(self, as_programme_manager, project_participant):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        project.add_user(project_participant, ProjectRole.RESEARCHER, as_research_coordinator._user)
+        project.add_user(project_participant, ProjectRole.RESEARCHER, as_programme_manager._user)
         assert project.participant_set.count() == 1
 
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': project_participant.pk,
         })
@@ -202,10 +307,10 @@ class TestAddUserToProject:
         assert response.context['project'] == project
         assert project.participant_set.count() == 1
 
-    def test_cannot_add_nonexisting_user_to_project(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_cannot_add_nonexisting_user_to_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id, {
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'username': 12345,
         })
@@ -215,15 +320,15 @@ class TestAddUserToProject:
 
         assert project.participant_set.count() == 0
 
-    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Research coordinator shouldn't have visibility of this other project at all
+        # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_research_coordinator.get('/projects/%d/participants/add' % project.id)
+        response = as_standard_user.get('/projects/%d/participants/add' % project.id)
         assert response.status_code == 404
 
-        response = as_research_coordinator.post('/projects/%d/participants/add' % project.id)
+        response = as_standard_user.post('/projects/%d/participants/add' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
@@ -237,7 +342,8 @@ class TestAddUserToProject:
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, investigator, researcher):
-        # An investigator cannot create another investigator on the project
+        # An investigator cannot add a user because they cannot see a list of users outside their
+        # project
         client.force_login(investigator.user)
         response = client.post(
             '/projects/%d/participants/add' % investigator.project.id,
@@ -246,19 +352,7 @@ class TestAddUserToProject:
                 'role': ProjectRole.INVESTIGATOR.value,
             })
 
-        assert response.status_code == 200
-        assert 'role' in response.context['form'].errors
-        assert investigator.project.participant_set.count() == 1
-
-    def test_roles_are_restricted_in_dropdown(self, client, investigator):
-        # An investigator should not see 'investigator' as an option
-        client.force_login(investigator.user)
-
-        response = client.get('/projects/%d/participants/add' % investigator.project.id)
-
-        assert response.status_code == 200
-        role_field = response.context['form']['role'].field
-        assert not role_field.valid_value(ProjectRole.INVESTIGATOR.value)
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -268,22 +362,22 @@ class TestListParticipants:
         response = client.get('/projects/%d/participants/' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
         researcher = recipes.researcher.make(project=project)
         investigator = recipes.investigator.make(project=project)
 
-        response = as_research_coordinator.get('/projects/%d/participants/' % project.id)
+        response = as_programme_manager.get('/projects/%d/participants/' % project.id)
 
         assert response.status_code == 200
-        assert list(response.context['participants']) == [researcher, investigator]
+        assert list(response.context['ordered_participants']) == [investigator, researcher]
 
-    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Research coordinator shouldn't have visibility of this other project at all
+        # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_research_coordinator.get('/projects/%d/participants/' % project.id)
+        response = as_standard_user.get('/projects/%d/participants/' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_for_unauthorised_user(self, client, researcher):
@@ -303,38 +397,55 @@ class TestProjectAddDataset:
         response = client.post('/projects/%d/datasets/new' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        response = as_programme_manager.get('/projects/%d/datasets/new' % project.id)
         assert response.status_code == 200
         assert response.context['project'] == project
 
-    def test_add_new_dataset_to_project(self, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_add_new_dataset_to_project(self, as_programme_manager, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
 
-        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id, {
-            'role': ProjectRole.RESEARCHER.value,
+        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
             'name': 'dataset 1',
             'description': 'Dataset One',
+            'default_representative': user1.pk,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d' % project.id
 
         assert project.datasets.count() == 1
-        assert project.datasets.first().name == 'dataset 1'
-        assert project.datasets.first().description == 'Dataset One'
+        dataset = project.datasets.first()
+        assert dataset.name == 'dataset 1'
+        assert dataset.description == 'Dataset One'
+        assert dataset.default_representative == user1
 
-    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+        assert project.projectdataset_set.first().representative == user1
+
+    def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+        })
+
+        assert response.status_code == 200
+        assert project.datasets.count() == 0
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Research coordinator shouldn't have visibility of this other project at all
+        # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_research_coordinator.get('/projects/%d/datasets/new' % project.id)
+        response = as_standard_user.get('/projects/%d/datasets/new' % project.id)
         assert response.status_code == 404
 
-        response = as_research_coordinator.post('/projects/%d/datasets/new' % project.id)
+        response = as_standard_user.post('/projects/%d/datasets/new' % project.id)
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
@@ -355,365 +466,363 @@ class TestListDatasets:
         response = client.get('/projects/%d/datasets/' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_research_coordinator):
+    def test_view_page(self, as_programme_manager, user1):
         ds1, ds2 = recipes.dataset.make(_quantity=2)
         project = recipes.project.make(
-            created_by=as_research_coordinator._user,
+            created_by=as_programme_manager._user,
         )
-        project.datasets.add(ds1, ds2)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
 
-        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+        response = as_programme_manager.get('/projects/%d/datasets/' % project.id)
 
         assert response.status_code == 200
         assert list(response.context['datasets']) == [ds1, ds2]
 
-    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Research coordinator shouldn't have visibility of this other project at all
+        # Regular user shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_research_coordinator.get('/projects/%d/datasets/' % project.id)
+        response = as_standard_user.get('/projects/%d/datasets/' % project.id)
         assert response.status_code == 404
 
 
 @pytest.mark.django_db
-class TestProjectClassifyData:
+class TestWorkPackageListDatasets:
+    def test_view_page(self, as_programme_manager, user1):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
+        work_package.add_dataset(ds1, as_programme_manager._user)
+        work_package.add_dataset(ds2, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/datasets/'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+        assert list(response.context['datasets']) == [ds1, ds2]
+
+
+@pytest.mark.django_db
+class TestWorkPackageAddDataset:
+    def test_add_dataset(self, as_programme_manager, user1):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/datasets/new'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/datasets/new' % (project.id, work_package.id),
+            {
+                'dataset': ds1.pk,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
+
+        assert work_package.datasets.count() == 1
+        assert ds1 == work_package.datasets.first()
+
+
+@pytest.mark.django_db
+class TestProjectAddWorkPackage:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
-        response = client.get('/projects/%d/classify' % project.id)
+        response = client.get('/projects/%d/work_packages/new' % project.id)
         helpers.assert_login_redirect(response)
 
-        response = client.post('/projects/%d/classify' % project.id, {})
+        response = client.post('/projects/%d/work_packages/new' % project.id)
         helpers.assert_login_redirect(response)
 
-    def test_view_page(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_project_participant.get('/projects/%d/classify' % project.id)
+        response = as_programme_manager.get('/projects/%d/work_packages/new' % project.id)
         assert response.status_code == 200
         assert response.context['project'] == project
-        assert 'wizard' in response.context
 
-    def test_returns_404_for_invisible_project(self, as_research_coordinator):
+    def test_add_new_work_package_to_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'name': 'work package 1',
+            'description': 'Work Package One',
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.work_packages.count() == 1
+        assert project.work_packages.first().name == 'work package 1'
+        assert project.work_packages.first().description == 'Work Package One'
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
 
-        # Research coordinator shouldn't have visibility of this other project at all
+        # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        response = as_standard_user.get('/projects/%d/work_packages/new' % project.id)
         assert response.status_code == 404
 
-        response = as_research_coordinator.post('/projects/%d/classify' % project.id)
+        response = as_standard_user.post('/projects/%d/work_packages/new' % project.id)
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add work packages, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get('/projects/%d/work_packages/new' % researcher.project.id)
+        assert response.status_code == 403
+
+        response = client.post('/projects/%d/work_packages/new' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestListWorkPackages:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/work_packages/' % project.id)
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        wp1, wp2 = recipes.work_package.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.work_packages.add(wp1, wp2)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/' % project.id)
+
+        assert response.status_code == 200
+        assert list(response.context['work_packages']) == [wp1, wp2]
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get('/projects/%d/work_packages/' % project.id)
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
+class TestWorkPackageClassifyData:
+    def url(self, work_package, page='classify'):
+        return '/projects/%d/work_packages/%d/%s' % (work_package.project.id, work_package.id, page)
+
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        response = client.get(self.url(work_package))
+        helpers.assert_login_redirect(response)
+
+        response = client.post(self.url(work_package), {})
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(user=as_project_participant._user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+
+        response = as_project_participant.get(self.url(work_package))
+        assert response.status_code == 200
+        assert response.context['work_package'] == work_package
+        assert 'wizard' in response.context
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(self.url(work_package))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(self.url(work_package))
         assert response.status_code == 404
 
     def test_returns_403_for_researcher(self, client, researcher):
+        work_package = recipes.work_package.make(project=researcher.project)
         # Researchers can't classify, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get('/projects/%d/classify' % researcher.project.id)
+        response = client.get(self.url(work_package))
         assert response.status_code == 403
 
-        response = client.post('/projects/%d/classify' % researcher.project.id)
+        response = client.post(self.url(work_package))
         assert response.status_code == 403
 
-    def test_returns_403_for_research_coordinator(self, as_research_coordinator):
-        # Research Coordinators can't classify data
-        project = recipes.project.make(created_by=as_research_coordinator._user)
+    def test_returns_403_for_programme_manager(self, as_programme_manager):
+        # Programme managers can't classify data
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
 
-        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        response = as_programme_manager.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_do_not_show_form_if_user_already_classified(self, client, as_research_coordinator):
-        project = recipes.project.make(created_by=as_research_coordinator._user)
-        project.classify_as(0, as_research_coordinator._user)
+    def test_do_not_show_form_if_user_already_classified(self, client, as_project_participant,
+                                                         programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(user=as_project_participant._user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+        work_package.classify_as(0, as_project_participant._user)
 
-        response = as_research_coordinator.get('/projects/%d/classify' % project.id)
+        response = as_project_participant.get(self.url(work_package))
 
         assert 'wizard' not in response.context
 
-    def test_delete_classification(self, client, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_delete_classification(self, client, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-        project.classify_as(0, as_project_participant._user)
+                         creator=programme_manager)
+        work_package.classify_as(0, as_project_participant._user)
 
-        response = as_project_participant.get('/projects/%d/classify' % project.id)
+        response = as_project_participant.get(self.url(work_package))
         assert b'Delete My Classification' in response.content
 
-        response = as_project_participant.get('/projects/%d/classify_delete' % project.id)
+        response = as_project_participant.get(self.url(work_package, 'classify_delete'))
         assert b'Delete Classification' in response.content
 
-        response = as_project_participant.post('/projects/%d/classify_delete' % project.id, {})
+        response = as_project_participant.post(self.url(work_package, 'classify_delete'))
 
-        response = as_project_participant.get('/projects/%d/classify' % project.id)
+        response = as_project_participant.get(self.url(work_package))
         assert 'wizard' in response.context
         assert b'Delete My Classification' not in response.content
 
-
-    def test_classify_as_tier_0(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_classify_as_tier(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
+                         creator=programme_manager)
 
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'public_and_open-question': 'on',
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_identify_living'
+        def classify(current, answer, next):
+            data = {}
+            data['work_package_classify_data-current_step'] = current
+            if answer:
+                data[f"{current}-question"] = 'on'
+            response = as_project_participant.post(self.url(work_package), data)
+            if next:
+                assert 'wizard' in response.context
+                assert response.context['wizard']['steps'].current == next
+            return response
 
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'open_identify_living',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_publication'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'open_publication-question': 'on',
-            'project_classify_data-current_step': 'open_publication',
-        })
-
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 0
-        assert project.classifications.get().tier == 0
-
-    def test_classify_as_tier_1(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'publishable'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'publishable',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'closed_personal'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'closed_personal',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'include_commercial'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'include_commercial',
-        })
-
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 1
-        assert project.classifications.get().tier == 1
-
-    def test_classify_as_tier_2(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'publishable'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'publishable',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'closed_personal'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'closed_personal-question': 'on',
-            'project_classify_data-current_step': 'closed_personal',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'closed_identify_living'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'closed_identify_living',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'no_reidentify_absolute'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'no_reidentify_absolute-question': 'on',
-            'project_classify_data-current_step': 'no_reidentify_absolute',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'include_commercial'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'include_commercial-question': 'on',
-            'project_classify_data-current_step': 'include_commercial',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'financial_low'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'financial_low-question': 'on',
-            'project_classify_data-current_step': 'financial_low',
-        })
-
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 2
-        assert project.classifications.get().tier == 2
-
-    def test_classify_as_tier_3(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'public_and_open-question': 'on',
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_identify_living'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'open_identify_living-question': 'on',
-            'project_classify_data-current_step': 'open_identify_living',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_generate_new'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'open_generate_new-question': 'on',
-            'project_classify_data-current_step': 'open_generate_new',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'substantial_threat'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'substantial_threat',
-        })
+        response = classify('open_generate_new', False, 'closed_personal')
+        response = classify('closed_personal', True, 'public_and_open')
+        response = classify('public_and_open', False, 'no_reidentify')
+        response = classify('no_reidentify', True, 'no_reidentify_absolute')
+        response = classify('no_reidentify_absolute', False, 'no_reidentify_strong')
+        response = classify('no_reidentify_strong', True, 'include_commercial_personal')
+        response = classify('include_commercial_personal', True, 'financial_low_personal')
+        response = classify('financial_low_personal', False, 'sophisticated_attack')
+        response = classify('sophisticated_attack', False, None)
 
         assert response.status_code == 200
         assert response.context['classification'].tier == 3
-        assert project.classifications.get().tier == 3
+        assert work_package.classifications.get().tier == 3
 
-    def test_classify_as_tier_4(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
+    def test_classify_backwards(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
+                         creator=programme_manager)
 
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'public_and_open',
-        })
+        def classify(current, answer, goto, next):
+            data = {}
+            data['work_package_classify_data-current_step'] = current
+            if answer:
+                data[f"{current}-question"] = 'on'
+            if goto:
+                data['wizard_goto_step'] = goto,
+            response = as_project_participant.post(self.url(work_package), data)
+            if next:
+                assert 'wizard' in response.context
+                assert response.context['wizard']['steps'].current == next
+            return response
+
+        response = classify('open_generate_new', False, None, 'closed_personal')
+        response = classify('closed_personal', True, None, 'public_and_open')
+        response = classify('public_and_open', False, 'open_generate_new', 'open_generate_new')
+        response = classify('open_generate_new', False, None, 'closed_personal')
+        response = classify('closed_personal', False, None, 'include_commercial')
+        response = classify('include_commercial', True, None, 'financial_low')
+        response = classify('financial_low', False, 'include_commercial', 'include_commercial')
+        response = classify('include_commercial', False, None, 'open_publication')
+        response = classify('open_publication', True, None, None)
+
+        assert response.status_code == 200
+        assert response.context['classification'].tier == 1
+        assert work_package.classifications.get().tier == 1
+
+    def test_classify_guidance(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(user=as_project_participant._user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+
+        response = as_project_participant.get(self.url(work_package))
         assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'publishable'
+        assert response.context['wizard']['steps'].current == 'open_generate_new'
+        guidance = ['personal_data', 'living_individual']
+        assert [g.name for g in response.context['guidance']] == guidance
 
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'publishable',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'closed_personal'
+        def classify(current, answer, next, guidance=None):
+            data = {}
+            data['work_package_classify_data-current_step'] = current
+            if answer:
+                data[f"{current}-question"] = 'on'
+            response = as_project_participant.post(self.url(work_package), data)
+            if next:
+                assert 'wizard' in response.context
+                assert response.context['wizard']['steps'].current == next
+            if guidance:
+                assert [g.name for g in response.context['guidance']] == guidance
+            return response
 
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'closed_personal',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'include_commercial'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'include_commercial-question': 'on',
-            'project_classify_data-current_step': 'include_commercial',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'financial_low'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'financial_low',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'sophisticated_attack'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'sophisticated_attack-question': 'on',
-            'project_classify_data-current_step': 'sophisticated_attack',
-        })
+        response = classify('open_generate_new', False, 'closed_personal',
+                            guidance=['personal_data', 'living_individual'])
+        response = classify('closed_personal', True, 'public_and_open',
+                            guidance=['personal_data', 'living_individual'])
+        response = classify('public_and_open', False, 'no_reidentify',
+                            guidance=['personal_data', 'pseudonymized_data', 'living_individual'])
+        response = classify('no_reidentify', False, 'substantial_threat')
+        response = classify('substantial_threat', True, None)
 
         assert response.status_code == 200
         assert response.context['classification'].tier == 4
-        assert project.classifications.get().tier == 4
-
-    def test_classify_backwards(self, as_project_participant, research_coordinator):
-        insert_initial_questions(ClassificationQuestion)
-        project = recipes.project.make(created_by=research_coordinator)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=research_coordinator)
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'public_and_open-question': 'on',
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_identify_living'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'open_identify_living-question': 'on',
-            'project_classify_data-current_step': 'open_identify_living',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_generate_new'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'wizard_goto_step': 'public_and_open',
-            'project_classify_data-current_step': 'open_generate_new',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'public_and_open'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'public_and_open',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'publishable'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'project_classify_data-current_step': 'publishable',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'closed_personal'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'wizard_goto_step': 'publishable',
-            'project_classify_data-current_step': 'closed_personal',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'publishable'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'publishable-question': 'on',
-            'project_classify_data-current_step': 'publishable',
-        })
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_publication'
-
-        response = as_project_participant.post('/projects/%d/classify' % project.id, {
-            'open_publication-question': 'on',
-            'project_classify_data-current_step': 'open_publication',
-        })
-
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 0
-        assert project.classifications.get().tier == 0
+        assert work_package.classifications.get().tier == 4

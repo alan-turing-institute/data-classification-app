@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load project_tags %}
+{% load django_tables2 %}
+
+
+{% block h1_title %}Data Classification for {{ classification.work_package.name }}{% endblock %}
+
+{% block content %}
+
+{% with classification.work_package as work_package %}
+<p>You ({{ classification.user }}, {{classification.role|project_role_display}}) have classified this project as Tier {{ classification.tier }}</p>
+
+{% if not work_package.has_tier %}
+  <p><a class="btn btn-primary btn-lg" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
+{% endif %}
+
+{% if other_classifications.exists %}
+  <ul>
+  {% for cl in other_classifications %}
+    <li>{{ cl.user }} ({{cl.role|project_role_display}}) classified the project as Tier {{ cl.tier }}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+
+<h2>Overall classification</h2>
+{% if work_package.has_tier %}
+  Work package is tier {{ work_package.tier }}
+{% elif not work_package.is_classification_ready %}
+<p>Classification incomplete</p>
+{% elif work_package.tier_conflict %}
+<p>Users disagree on data tier</p>
+{% endif %}
+
+{% if questions_table %}
+  <h2>Classification answers</h2>
+  {% render_table questions_table %}
+{% endif %}
+
+{% endwith %}
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' classification.work_package.project.id %}">{{ classification.work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' classification.work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item"><a href="{{ classification.work_package.get_absolute_url }}">{{ classification.work_package.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
+{% endblock crumbs %}

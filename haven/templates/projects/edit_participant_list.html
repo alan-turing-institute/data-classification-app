@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block page_title %}{{ project.name }}: Edit Participants{% endblock %}
+{% block h1_title %}{{ project.name }}: Edit Participants{% endblock %}
+
+{% block content %}
+<p>
+  If the user you wish to edit is not present below, they have not yet been added to the project.
+  {% if project_role.can_add_participants %}
+    Please <a href="{% url 'projects:add_user' project.id %}">add the user to the project</a> first.
+  {% else %}
+    Please contact someone with the appropriate credentials to add the user to the project.
+  {% endif %}
+</p>
+
+<!-- remove-add-button prevents JQuery from adding the "Add more" button -->
+<form method="POST" action="" class="remove-add-button">
+  {% csrf_token %}
+  <div id="participants-formset">
+  {% crispy formset helper %}
+  </div>
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Participants</li>
+{% endblock crumbs %}

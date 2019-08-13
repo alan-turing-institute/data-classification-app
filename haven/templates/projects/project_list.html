@@ -18,20 +18,17 @@
       </div>
       <div class="float-right">
         <small>{{ project.created_at }}</small>
-        <br>
-        <small>Tier: {{ project.tier|tier }}</small>
       </div>
   </li>
   {% endfor %}
 </ul>
+{% endblock content %}
 
-<div class="btn-group my-3" role="group">
+{% block actions %}
   {% if user.user_role.can_create_projects %}
     <a class="btn btn-primary btn-lg" href="{% url 'projects:create' %}">Create Project</a>
   {% endif %}
-</div>
-
-{% endblock content %}
+{% endblock actions %}
 
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>

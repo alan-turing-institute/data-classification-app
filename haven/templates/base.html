@@ -25,9 +25,22 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           {% if request.user.is_authenticated %}
-            {% if request.user.user_role.can_create_users %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'identity:add_user' %}">Create User</a>
+            {% if request.user.user_role.can_create_users or request.user.user_role.can_import_users %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Create User</a>
+              <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+                {% if request.user.user_role.can_create_users %}
+                  <a class="dropdown-item" href="{% url 'identity:add_user' %}">Create Single User</a>
+                {% endif %}
+                {% if user.user_role.can_import_users %}
+                <form style="display: contents" method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <label class="dropdown-item">
+                    Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+                  </label>
+                </form>
+                {% endif %}
+              </div>
             </li>
             {% endif %}
             {% if request.user.user_role.can_view_all_users %}
@@ -44,7 +57,7 @@
 
         <span class="navbar-text">
           {% if request.user.is_authenticated %}
-            Logged in as {{ request.user.get_full_name }}
+            Logged in as {{ request.user.display_name }}
           {% else %}
           <a class="nav-link" href="{% url "social:begin" "azuread-tenant-oauth2" %}">Log In</a>
           {% endif %}
@@ -69,9 +82,27 @@
       {% include 'includes/messages.html' %}
       <div class="row">
         <div class="col-lg mt-4">
-          <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>
-          {% block content %}
-          {% endblock %}
+          <div class="container">
+            <div class="my-3" role="group">
+              <div class="row my-1">
+                  <div class="col-md-auto">
+                    <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>
+                  </div>
+                  <div class="col-md text-md-right">
+                    {% block actions %}
+                    {% endblock %}
+                  </div>
+              </div>
+              <div class="row my-1">
+                  <div class="col">
+                    {% block content %}
+                    {% endblock %}
+                  </div>
+              </div>
+            </div>
+            {% block extra_sections %}
+            {% endblock %}
+          </div>
         </div>
       </div>
     </main>

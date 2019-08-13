@@ -21,6 +21,6 @@ class ProjectQuerySet(models.QuerySet):
             return self.filter(
                 Q(created_by=user) |
                 Q(participant__user=user, participant__role__in=[
-                    ProjectRole.RESEARCH_COORDINATOR.value,
+                    ProjectRole.PROJECT_MANAGER.value,
                     ProjectRole.INVESTIGATOR.value,
                 ]))

@@ -25,3 +25,4 @@ def tier(tier):
 def project_participation_role(user, project):
     role = user.project_participation_role(project)
     return  project_role_display(role.value if role else None)
+

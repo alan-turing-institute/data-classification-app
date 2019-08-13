@@ -5,17 +5,34 @@ from dal import autocomplete
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.urls import reverse
 
 from data.models import Dataset
-from django.urls import reverse
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project
+from .models import Participant, Project, WorkPackage, WorkPackageDataset
 from .roles import ProjectRole
 
 
+class SaveCancelFormHelper(FormHelper):
+    def __init__(self, save_label='Save', save_class='btn-success', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(Submit('submit', save_label, css_class=save_class))
+        self.add_input(Submit('cancel', 'Cancel', css_class='btn-secondary',
+                              formnovalidate='formnovalidate'))
+
+
+class ParticipantInlineFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form_tag = False
+        self.template = 'projects/participants_inline_formset.html'
+
+
 class ProjectForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Save Project')
+
     class Meta:
         model = Project
         fields = ['name', 'description']
@@ -51,12 +68,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         # Update user field with project ID
         self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
 
-    # Use crispy FormHelper to add submit and cancel buttons
-    helper = FormHelper()
-    helper.add_input(Submit('submit', 'Add user'))
-    helper.add_input(Submit('cancel', 'Cancel',
-                                 css_class='btn-secondary',
-                                 formnovalidate='formnovalidate'))
+    helper = SaveCancelFormHelper('Add Participant')
     helper.form_method = 'POST'
 
     username = ProjectUserAutocompleteChoiceField()
@@ -94,6 +106,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
 
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single user/role assignment on a project"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['project'].queryset = Project.objects.get_editable_projects(self.user)
@@ -108,6 +121,7 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
             role = ProjectRole(self.cleaned_data['role'])
             if not self.user.project_role(project).can_assign_role(role):
                 raise ValidationError("You cannot assign the role on this project")
+        return self.cleaned_data
 
 
 ProjectsForUserInlineFormSet = inlineformset_factory(
@@ -121,18 +135,81 @@ ProjectsForUserInlineFormSet = inlineformset_factory(
 )
 
 
+class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single project/role assignment for a user"""
+    def __init__(self, assignable_roles=None, *args, **kwargs):
+        super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+        if assignable_roles:
+            self.fields['role'].choices = [
+                (role, name)
+                for role, name in self.fields['role'].choices
+                if not role or role in assignable_roles
+            ]
+
+    class Meta:
+        model = Participant
+        fields = ('role',)
+
+    def project_user(self):
+        return self.instance.user
+
+    def clean_role(self):
+        role = self.cleaned_data['role']
+        if 'role' in self.changed_data:
+            project = self.instance.project
+            role_model = ProjectRole(self.cleaned_data['role'])
+            if not self.user.project_role(project).can_assign_role(role_model):
+                raise ValidationError("You cannot assign role " +
+                                      ProjectRole.display_name(role) +
+                                      " for this project")
+        return role
+
+
+UsersForProjectInlineFormSet = inlineformset_factory(
+    Project,
+    Participant,
+    form=UserForProjectInlineForm,
+    fk_name='project',
+    extra=0,
+    can_delete=True,
+    help_texts={'role': None},
+)
+
+
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Create Dataset')
+
     class Meta:
         model = Dataset
+        fields = ('name', 'description', 'default_representative')
+
+    def __init__(self, *args, **kwargs):
+        representative_qs = kwargs.pop('representative_qs')
+        super().__init__(*args, **kwargs)
+        self.fields['default_representative'].queryset = representative_qs
+
+
+class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Create Work Package')
+
+    class Meta:
+        model = WorkPackage
         fields = ('name', 'description')
 
 
-class ProjectClassifyDeleteForm(SaveCreatorMixin, forms.Form):
-    # Static crispy form helper for adding cancel and delete buttons
-    helper = FormHelper()
-    helper.add_input(Submit('cancel', 'Cancel',
-                            css_class='btn-secondary',
-                            formnovalidate='formnovalidate'))
-    helper.add_input(Submit('submit', 'Delete Classification',
-                            css_class='btn-danger'))
+class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Add Dataset to Work Package')
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ('dataset',)
+
+    def __init__(self, work_package, *args, **kwargs):
+        kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
+        super().__init__(*args, **kwargs)
+        self.fields['dataset'].queryset = work_package.project.datasets
+
+
+class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+    helper = SaveCancelFormHelper('Delete Classification', 'btn-danger')
     helper.form_method = 'POST'

@@ -6,3 +6,8 @@ body {
 main {
   padding: 1rem 1.5rem;
 }
+
+/* Adjust Select2 entry field height to match Bootstrap */
+span.select2-selection.select2-selection--single {
+  height: 38px;
+}

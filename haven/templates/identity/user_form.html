@@ -2,25 +2,29 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block h1_title %}{% if editing %}Edit{% else %}Create{% endif %} User{% endblock %}
+{% block h1_title %}
+
+  {% if editing %}
+    Edit User
+    <h3>{{ subject_user.display_name }}</h3>
+  {% else %}
+    Create User
+  {% endif %}
+
+{% endblock %}
 
 {% block content %}
 <form method="POST" action="">
   {% csrf_token %}
   
-  {% if editing %}
-    {{ subject_user.get_full_name }}
-  {% else %}
-    {{ form|crispy }}
-  {% endif %}
+
+  {{ form|crispy }}
 
   <h2>Projects</h2>
   <div id="project-formset">
   {% crispy formset helper %}
   </div>
 
-  <br />
-  <button type="submit" class="btn btn-success">Save User</button>
 </form>
 
 {% endblock content %}
