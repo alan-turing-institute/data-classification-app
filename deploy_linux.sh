@@ -20,6 +20,7 @@ mkdir -p /home/site/repository/staticfiles
 python3 haven/manage.py collectstatic --noinput --clear
 
 echo "Running Safe Haven migrations..."
+python3 haven/manage.py migrate easyaudit
 python3 haven/manage.py migrate
 
 echo "Running gunicorn web server..."
