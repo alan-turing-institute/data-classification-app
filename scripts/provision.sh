@@ -1,20 +1,34 @@
+#!/usr/bin/env bash
+
 #
-# Requires the Azure CLI:
+# Script for deploying the Data Safe Haven management application on Azure.
 #
-# https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+# Requires:
+#  1. The Azure CLI to be installed:
+#      https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+#
+#  2. An environment file (.env) to be configured for your deployment.
+#      See .env.example for more information
+#
+#  3. git installed and configured to push the code
+#
+# To run this script:
+#   provision.sh -e ENV_FILENAME
+#
+#     where ENV_FILENAME is the path and name of your .env file.
 #
 
+
+
+set -e
+
 # Document usage for this script
-usage() {  
+usage() {
     echo "usage: $0 [-h] [-e envfile]"
     echo "  -h            display help"
     echo "  -e path to file containing environment variables"
     exit 1
 }
-
-
-# See Format of env file: 
-# .env.example
 
 CURRENT_DIR=$(dirname "$0")
 ENVFILE="${CURRENT_DIR}/.env"
@@ -43,77 +57,207 @@ else
     exit 1
 fi
 
-# Construct domain
-BASE_DOMAIN="${APP_NAME}.azurewebsites.net"
 
-# ALLOWED_HOSTS must not contain the protocol
-ALLOWED_HOSTS="${BASE_DOMAIN}"
 
-# The safe haven URL
-BASE_URL="https://${BASE_DOMAIN}/"
+generate_key () {
+    openssl rand 32 -base64
+}
 
-# Must have called `az login` by this point
+# Fetch a secret from the Azure keyvault
+function get_azure_secret() {
+    local SECRET_NAME="$1"
+    az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
+}
 
-# Set the default Azure subscription
-az account set --subscription "$SUBSCRIPTION"
+# Exit if a deployment already exists
+error_if_already_deployed() {
+    if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") == "true" ]]; then
+        echo "This script is for crearing a new deployment, but the resource group already exists"
+        exit 1
+    fi
+}
 
-# Create resource group if it does not already exist, then create appservice and webapp inside it
-if [ "$(az group exists --name $RESOURCE_GROUP)" != "true" ]; then
+azure_login() {
+    az login --subscription "${SUBSCRIPTION}"
+}
+
+# Switch Azure CLI to the tenant used for app creation
+set_app_tenant () {
+    # We need to explicitly set the subscription in order to change the default tenant.
+    # This is because Azure CLI does not already respect the --subscription argument.
+    az account set --subscription "${SUBSCRIPTION}"
+}
+
+# Switch Azure CLI to the tenant used for app registration
+set_registration_tenant () {
+    # The tenant we use to register the app may not have a subscription, in which case we cannot use
+    # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
+    # the --allow-no-subscriptions flag.
+    az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+}
+
+create_resource_group() {
     echo "Creating resource group"
-    az group create --name $RESOURCE_GROUP --location $LOCATION
-fi
-echo "Creating webapp..."
-az appservice plan create --name $PLAN_NAME --resource-group $RESOURCE_GROUP --sku S1
-az webapp create --name $APP_NAME --resource-group $RESOURCE_GROUP --plan $PLAN_NAME
+    az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+}
 
-# Set up the database server
-echo "Setting up the database server"
-az sql server create --admin-user=$DB_USERNAME --admin-password=$DB_PASSWORD --name=$SQL_SERVER_NAME --location=$LOCATION --resource-group=$RESOURCE_GROUP
-az sql server firewall-rule create --server $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+create_keyvault() {
+    echo "Creating keyvault"
+    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+}
 
-# Create the database
-echo "Creating the database"
-az sql db create --name=$DB_NAME --resource-group=$RESOURCE_GROUP --server=$SQL_SERVER_NAME
-DATABASE_URL="mssql://$DB_USERNAME:$DB_PASSWORD@$SQL_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+create_app() {
+    echo "Creating the webapp"
 
-echo "Setting up the server"
-# Settings for dev server
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SECRET_KEY="${SECRET_KEY}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DATABASE_URL="${DATABASE_URL}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings DJANGO_SETTINGS_MODULE='config.settings.dev'
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_KEY="${AZUREAD_OAUTH2_KEY}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_SECRET="${AZUREAD_OAUTH2_SECRET}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings AZUREAD_OAUTH2_TENANT_ID="${AZUREAD_OAUTH2_TENANT_ID}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings USE_LDAP="${USE_LDAP}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_SERVER="${LDAP_SERVER}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_USER="${LDAP_USER}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings LDAP_PASSWORD="${LDAP_PASSWORD}"
+    # App service plan
+    az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST="${EMAIL_HOST}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
+    # Webapp
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.7"  --deployment-local-git
 
-az webapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings BASE_URL="${BASE_URL}"
+    # Configure webapp logging
+    az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --application-logging true --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
 
-# (Adding site extensions can't be done with az: see https://github.com/Azure/azure-cli/issues/7617)
-cat <<EOF
-To complete the deployment:
+    # Force the proxy to redirect non-https traffic to https
+    az webapp update --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --https-only true
 
-1. Set up Python 3.6 site extension
-* Browse to Azure Portal -> App Services / $APP_NAME / Extensions
-* Click Add, then Choose Extension and select Python 3.6.4 x86. Accept the terms and install.
+    # Configure startup file
+    az webapp config set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --startup-file "/home/site/repository/deploy_linux.sh"
 
-2. Set up GitHub deployment - note this requires a user with admin access to the repository
-* Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
-* Select GitHub and click Authorize
-* In the 'Configure' step, select:
-  - Organization: 'alan-turing-institute'
-  - repository: 'data-safe-haven-webapp'
-  - branch: whatever is appropriate
+    local deployment_url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url" -otsv)
+     az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
-3. Register the webapp using the Azure Portal and update the OAUTH2 settings if necessary
+    # Create a secret key for Django and store in keyvault
+    local django_secret_key=$(generate_key)
+    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+}
 
-4. The webapp should now be accessible at: ${BASE_URL}
-EOF
+create_mssql_db() {
+    echo "Creating the DB server"
+    local db_username=${DB_USERNAME}
+    local db_password=${DB_PASSWORD}
+    local database_url="mssql://${db_username}:${db_password}@$DB_SERVER_NAME.database.windows.net:1433/$DB_NAME"
+
+    # Create the db server
+    az sql server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}"
+
+    # Configure the firewall
+    az sql server firewall-rule create --server "${DB_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+
+    # Create the database
+    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${DB_SERVER_NAME}"
+
+    # Store DB credentials in keyvault
+    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
+    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
+    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
+}
+
+create_postgresql_db() {
+    echo "Creating the DB server"
+
+    local db_username=${DB_USERNAME}
+    local db_password=${DB_PASSWORD}
+    local database_url="postgresql://${db_username}@$DB_SERVER_NAME:${db_password}@$DB_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
+
+    # Create the postgresql server
+    az postgres server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}" --sku-name B_Gen5_1 --ssl-enforcement Enabled
+
+    # Configure the firewall
+    az postgres server firewall-rule create --server "${DB_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+
+    # Create the database
+    az postgres db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${DB_SERVER_NAME}"
+
+    # Store DB credentials in keyvault
+    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
+    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
+    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
+}
+
+create_registration () {
+    echo "Creating app registration"
+
+    # OAuth2 - must be set to the URL to where the app's OAuth2 pipeline redirects after authentication
+    local oauth2_redirect_uri="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
+
+    # Microsoft Graph permissions
+    local app_permissions='[{"resourceAppId": "00000003-0000-0000-c000-000000000000","resourceAccess": [{"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d","type": "Scope"},{"id": "06da0dbc-49e2-44d2-8312-53f166ab848a","type": "Scope"}]}]'
+
+    # Tenant where the app registration will be created
+    local tenant_id="${REGISTRATION_TENANT}"
+
+    # Azure URI for this app registration
+    local app_uri="${BASE_URL}"
+
+    # A client secret used in the OAuth2 call
+    local client_secret=$(generate_key)
+
+    # The tenant we use to register the app may not be the tenant used to create the app
+    set_registration_tenant
+
+    # Create app registration
+    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${oauth2_redirect_uri}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${app_uri}" --required-resource-accesses "${app_permissions}"
+
+    # Get the Application ID (Client ID) which is set when the app is created
+    local client_id=$(az ad app list --identifier-uri "${app_uri}" --query "[].appId" -o tsv)
+
+    # Consent to permissions
+    az ad app permission admin-consent --id "${client_id}"
+
+    # The key vault may be in a different tenant to the registration, so we need to change it back here.
+    # If we don't do this, the keyvault commands may return permission errors, even with the --subscription parameter.
+    set_app_tenant
+
+    # Store authentication credentials in keyvault
+    az keyvault secret set --name "AZUREAD-OAUTH2-KEY" --vault-name "${KEYVAULT_NAME}" --value "${client_id}"
+    az keyvault secret set --name "AZUREAD-OAUTH2-SECRET" --vault-name "${KEYVAULT_NAME}" --value "${client_secret}"
+    az keyvault secret set --name "AZUREAD-OAUTH2-TENANT-ID" --vault-name "${KEYVAULT_NAME}" --value "${tenant_id}"
+}
+
+# Set or update settings for a deployed webapp
+deploy_settings () {
+
+    local secret_key=$(get_azure_secret  "SECRET-KEY")
+    local azuread_oauth2_key=$(get_azure_secret  "AZUREAD-OAUTH2-KEY")
+    local azuread_oauth2_secret=$(get_azure_secret  "AZUREAD-OAUTH2-SECRET")
+    local azuread_oauth2_tenant_id=$(get_azure_secret  "AZUREAD-OAUTH2-TENANT-ID")
+    local db_username=$(get_azure_secret  "DB-USERNAME")
+    local db_password=$(get_azure_secret  "DB-PASSWORD")
+    local database_url=$(get_azure_secret  "DB-URL")
+
+    # Domains that Django can serve for. NB. must not contain the protocol
+    local allowed_hosts="${BASE_DOMAIN},127.0.0.1"
+
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECRET_KEY="${secret_key}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DATABASE_URL="${database_url}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings ALLOWED_HOSTS="${allowed_hosts}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_TENANT_ID="${azuread_oauth2_tenant_id}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings USE_LDAP="${USE_LDAP}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_SERVER="${LDAP_SERVER}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_USER="${LDAP_USER}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_PASSWORD="${LDAP_PASSWORD}"
+
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST="${EMAIL_HOST}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
+
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings BASE_URL="${BASE_URL}"
+
+    # Prevent App Service for Linux from maintaining storage between deployments, which causes problems with the startup command not being found
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE="False"
+}
+
+
+azure_login
+error_if_already_deployed
+create_resource_group
+create_keyvault
+create_postgresql_db
+create_app
+create_registration
+deploy_settings

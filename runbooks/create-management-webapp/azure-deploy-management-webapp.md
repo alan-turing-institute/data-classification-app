@@ -1,60 +1,51 @@
-# Deploying the Data Safe Haven web management application
+# Data Safe Haven web management application: set up production server
+
+These instructions for for deploying a production instance of the management web application using local git deployment.
+
 
 ## Prerequisites
 
 You will need
 
- * The app to have been registrered
- * Access to the keyvault containing the deployment keys
- * Azure access to create and deploy webapps
-
-
-## Deployment to Azure
-
-Azure deployment requires you to configure an `.env` file, run a deployment script, and perform certain actions on the Azure Portal.
-
-To deploy a development instance at the ATI, you will need access to the Alan Turing Institute active directory (where the resource groups and apps will be created) and the Data Study Group Development active directory (where the app is registered with Azure and test users can be created).
+ * The Azure CLI installed on your machine
+ * Azure tenant and subscription access to create and register webapps
+ * The subscription names and tenant IDs of the Azure Active Directories where you will install and register the app
 
 
 ### Configure your environment settings
 
-Copy the template file `scripts/.env.example` to `scripts/.env`. Set all the parameters in `scripts/.env` for your environment and deployment.
-You may use a custom filename/location by adding a parameter to the `provision.sh` script as described below. The script will set variables
-in the Azure app. These variables can be modified later using the Azure CLI or the Azure Portal.
-
-The AD/OAuth2 parameters are set as follows:
- * `AZUREAD_OAUTH2_KEY` is the Application ID for your application registration created above.
- * `AZUREAD_OAUTH2_SECRET` is the App key created above.
- * `AZUREAD_OAUTH2_TENANT_ID` is the Directory ID for the Data Study Group Development AD, which can be found under Azure Active Directory/Properties.
+Copy the template file `scripts/.env.example` to a custom file for your deplyment, eg. `scripts/.env.production`. Set the required parameters in `scripts/.env.production` for your environment and deployment.
+You use this environment file by adding a parameter to the `provision.sh` script as described below. The script will set environment variables
+in the Azure Django app. These variables can be modified later using the Azure CLI or the Azure Portal.
 
 
-### Run the deployment script
+### Run the provisioning script
 
 Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 
 Use `az login` to log in on the command line.
 
-Check that the values in your `.env` file are correct.
+Check that the values in your `.env.production` file are correct.
 
-Then run `scripts/provision.sh` to create the webapp and relevant resources.
-Use the `-e` parameter to choose an environment file; otherwise the default is `scripts/.env`
-
-Instructions are given at the end of the script to run some manual steps that need to be performed through the Azure portal.
-These instructions will also give you the URL at which the site is hosted.
+Then run `scripts/provision.sh -e scripts/.production.env` to create the webapp and relevant resources.
+The path after `-e` describes the location of your custom environment file (if you omit `-e` and the following filename, it will look for `scripts/.env`).
 
 
-### To complete the deployment on Azure Portal
+* If deployment fails immediately with a subscription error, you may be logged into a different tenant or subscription.
+   Go to the Azure portal and switch to the tenant where you want your app to be created and re-run the provisioning script.
 
-1. Set up Python 3.6 site extension
-* Browse to Azure Portal -> App Services / $APP_NAME / Extensions
-* Click Add, then Choose Extension and select Python 3.6.4 x86. Accept the terms and install.
 
-2. Set up GitHub deployment - note this requires a user with admin access to the repository
-* Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
-* Select GitHub and click Authorize
-* In the 'Configure' step, select:
-  - Organization: 'alan-turing-institute'
-  - repository: 'data-safe-haven-webapp'
-  - branch: whatever is appropriate
 
-3. The webapp should now be accessible at your configured domain
+### Set up a deployment password 
+
+* Browse to Azure Portal -> App Services / (YOUR APP NAME) / Deployment Center
+* Click the Deployment Credentials button
+* Under USER CREDENTIALS choose a password for the deployment user
+
+
+### Deploy/update code using local deployment
+
+Run `scripts/deploy_code.sh -e scripts/.production.env` to deploy the code for the webapp.
+As above, the path after `-e` describes the location of your custom environment file and must match the file you used for provisioning.
+
+If prompted, enter the deployment password you configured above.

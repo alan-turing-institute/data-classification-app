@@ -7,7 +7,7 @@ These instructions are for running a local test instance of the management web a
 
 ### Install system requirements
 
-* Python 3.6+
+* Python 3.7+
 * Postgres 10+ (with dev headers)
 
 ### Install requirements into virtualenv
