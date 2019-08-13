@@ -653,9 +653,12 @@ class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
             qs = User.objects.all()
 
         if self.q:
-            qs = qs.filter(username__istartswith=self.q) | \
-                 qs.filter(first_name__istartswith=self.q) | \
-                 qs.filter(last_name__istartswith=self.q)
+            for term in self.q.split():
+                qs = qs.filter(
+                    Q(first_name__icontains=term) |
+                    Q(last_name__icontains=term) |
+                    Q(username__icontains=term)
+                )
 
         return qs
 
