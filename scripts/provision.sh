@@ -252,24 +252,6 @@ deploy_settings () {
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE="False"
 }
 
-# Set or update the codebase for a deployed webapp
-deploy_code () {
-    # Set or update the remote
-    local deployment_url=$(get_azure_secret "DEPLOYMENT-URL")
-    local remote_name="azure_deployment"
-    if git remote get-url ${remote_name} > /dev/null 2> /dev/null
-    then
-        echo "Updating remote definition ${remote_name}: ${deployment_url}"
-        git remote set-url "${remote_name}" "${deployment_url}"
-    else
-        echo "Adding remote definition ${remote_name}: ${deployment_url}"
-        git remote add "${remote_name}" "${deployment_url}"
-    fi
-
-    # Push current branch to master on the remote container
-    echo "Pushing head branch to remote"
-    git push "${remote_name}" HEAD:master
-}
 
 azure_login
 error_if_already_deployed
@@ -278,5 +260,4 @@ create_keyvault
 create_postgresql_db
 create_app
 create_registration
-deploy_code
 deploy_settings
