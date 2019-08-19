@@ -67,6 +67,19 @@ class TestWorkPackage:
         with pytest.raises(ValidationError):
             work_package.add_dataset(dataset, programme_manager)
 
+    def test_classify_work_package_no_dataset(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+        work_package.datasets.clear()
+
+        work_package.classify_as(0, investigator.user)
+        work_package.classify_as(0, data_provider_representative.user)
+
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 0
+
     def test_classify_work_package(self, classified_work_package,
                                    investigator, data_provider_representative):
         work_package = classified_work_package(None)
