@@ -4,6 +4,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment files
+scripts/.env*
+!scripts/.env.example
+
 # C extensions
 *.so
 
