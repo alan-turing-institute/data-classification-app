@@ -208,6 +208,9 @@ class WorkPackage(models.Model):
         role = by_user.project_participation_role(self.project)
         if not role:
             raise ValidationError("User not a participant of project")
+        if not self.has_datasets:
+            raise ValidationError("No datasets in work package")
+
         classification = ClassificationOpinion.objects.create(
             work_package=self,
             user=by_user,
@@ -245,6 +248,10 @@ class WorkPackage(models.Model):
     def has_tier(self):
         """Has this project's data been classified?"""
         return self.tier is not None
+
+    @property
+    def has_datasets(self):
+        return self.datasets.exists()
 
     def get_policies(self):
         if not self.has_tier:
