@@ -254,7 +254,7 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         })
 
         assert response.status_code == 302
@@ -268,7 +268,7 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
             'cancel': 'Cancel',
         })
 
@@ -285,7 +285,7 @@ class TestAddUserToProject:
         new_user = User.objects.create_user(username='newuser')
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': new_user.pk,
+            'user': new_user.pk,
         })
 
         assert response.status_code == 302
@@ -302,7 +302,7 @@ class TestAddUserToProject:
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         })
 
         assert response.status_code == 200
@@ -314,7 +314,7 @@ class TestAddUserToProject:
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 12345,
+            'user': 12345,
         })
 
         assert response.status_code == 200

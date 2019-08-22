@@ -13,7 +13,7 @@
 <form method="POST">
   {% csrf_token %}
   {{ form.media }}
-  {% crispy form %}
+  {{ form|crispy }}
 </form>
 
 {% endblock content %}

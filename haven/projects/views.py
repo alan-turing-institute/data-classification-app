@@ -14,6 +14,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from formtools.wizard.views import SessionWizardView
 
+from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserRoleRequiredMixin
@@ -32,7 +33,7 @@ from .forms import (
     WorkPackageAddDatasetForm,
     WorkPackageClassifyDeleteForm,
 )
-from .models import ClassificationOpinion, Project, WorkPackage
+from .models import ClassificationOpinion, Participant, Project, WorkPackage
 from .roles import ProjectRole
 from .tables import (
     ClassificationOpinionQuestionTable,
@@ -44,54 +45,60 @@ from .tables import (
 )
 
 
-class SingleProjectMixin(SingleObjectMixin):
-    model = Project
+class ProjectMixin:
+    def get_project_queryset(self, qs=None):
+        if not qs:
+            qs = Project.objects
+        return qs.get_visible_projects(self.request.user)
 
-    def get_queryset(self):
-        return super().get_queryset().get_visible_projects(self.request.user)
+    def get_project(self):
+        try:
+            projects = self.get_project_queryset()
+            return projects.get(id=self.kwargs[self.get_project_url_kwarg()])
+        except Project.DoesNotExist:
+            raise Http404("No project found matching the query")
+
+    def get_project_url_kwarg(self):
+        return 'pk'
 
     def get_project_role(self):
         """Return the logged in user's administrative role on the project"""
-        return self.request.user.project_role(self.get_object())
+        return self.request.user.project_role(self.get_project())
 
     def get_project_participation_role(self):
         """Return the logged in user's assigned role on the project"""
-        return self.request.user.project_participation_role(self.get_object())
+        return self.request.user.project_participation_role(self.get_project())
 
     def get_context_data(self, **kwargs):
+        kwargs['project'] = self.get_project()
         kwargs['project_role'] = self.get_project_role()
         return super().get_context_data(**kwargs)
 
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)
-        form.project = self.get_object()
+        form.project = self.get_project()
         return form
 
 
-class SingleWorkPackageMixin(SingleObjectMixin):
+class SingleProjectMixin(ProjectMixin, SingleObjectMixin):
+    model = Project
+
+    def get_queryset(self):
+        return self.get_project_queryset(super().get_queryset())
+
+    def get_project(self):
+        return self.get_object()
+
+
+class SingleWorkPackageMixin(ProjectMixin, SingleObjectMixin):
     model = WorkPackage
     context_object_name = 'work_package'
 
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
     def get_queryset(self):
-        try:
-            projects = Project.objects.get_visible_projects(self.request.user)
-            project = projects.get(id=self.kwargs['project_pk'])
-        except Project.DoesNotExist:
-            raise Http404("No project found matching the query")
-
-        return project.work_packages
-
-    def get_project_role(self):
-        """Return the logged in user's administrative role on the project"""
-        return self.request.user.project_role(self.get_object().project)
-
-    def get_project_participation_role(self):
-        """Return the logged in user's assigned role on the project"""
-        return self.request.user.project_participation_role(self.get_object().project)
-
-    def get_context_data(self, **kwargs):
-        kwargs['project_role'] = self.get_project_role()
-        return super().get_context_data(**kwargs)
+        return self.get_project().work_packages
 
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)
@@ -185,10 +192,22 @@ class ProjectHistory(
 
 class ProjectAddUser(
     LoginRequiredMixin, UserPassesTestMixin,
-    UserFormKwargsMixin, SingleProjectMixin, FormMixin, DetailView
+    UserFormKwargsMixin, ProjectMixin, CreateView
 ):
+    model = Participant
     template_name = 'projects/project_add_user.html'
     form_class = ProjectAddUserForm
+
+    def get_context_data(self, **kwargs):
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Add Participant'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+
+        kwargs['helper'] = helper
+        kwargs['editing'] = False
+        return super().get_context_data(**kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(ProjectAddUser, self).get_form_kwargs()
@@ -209,7 +228,7 @@ class ProjectAddUser(
         return form
 
     def get_success_url(self):
-        obj = self.get_object()
+        obj = self.get_project()
         if self.get_project_role().can_list_participants:
             return reverse('projects:list_participants', args=[obj.id])
         else:
@@ -223,9 +242,8 @@ class ProjectAddUser(
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
-        self.object = self.get_object()
+        self.object = None
         if form.is_valid():
-            form.save()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
