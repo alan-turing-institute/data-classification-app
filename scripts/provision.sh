@@ -101,6 +101,9 @@ switch_to_registration_tenant () {
 create_resource_group() {
     echo "Creating resource group"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
+
+    # Create a lock to prevent accidental deletion of the resource group and the resources it contains
+    az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
 }
 
 create_keyvault() {
