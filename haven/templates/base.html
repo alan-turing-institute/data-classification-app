@@ -109,6 +109,8 @@
 
     {% block js %}
       <script src="{% static "build/js/main.js" %}"></script>
+      {% block extra_js %}
+      {% endblock %}
     {% endblock %}
   </body>
 </html>

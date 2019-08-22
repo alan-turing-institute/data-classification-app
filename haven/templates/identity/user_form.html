@@ -16,15 +16,19 @@
 {% block content %}
 <form method="POST" action="">
   {% csrf_token %}
-  
+
 
   {{ form|crispy }}
 
   <h2>Projects</h2>
   <div id="project-formset">
-  {% crispy formset helper %}
+    {% crispy formset helper %}
   </div>
 
 </form>
 
 {% endblock content %}
+
+{% block extra_js %}
+  <script type="text/javascript">formset('#project-formset', '{{ formset.prefix | escapejs }}', true)</script>
+{% endblock %}
