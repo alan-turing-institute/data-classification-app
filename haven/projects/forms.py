@@ -108,6 +108,28 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         return self.project.add_user(user, role, self.user)
 
 
+class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single user/role assignment on a work package"""
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['work_package'].queryset = project.work_packages
+
+    class Meta:
+        model = WorkPackageParticipant
+        fields = ('work_package',)
+
+
+WorkPackagesForParticipantInlineFormSet = inlineformset_factory(
+    Participant,
+    WorkPackageParticipant,
+    form=WorkPackageForParticipantInlineForm,
+    fk_name='participant',
+    extra=1,
+    can_delete=True,
+    help_texts={'work_package': None},
+)
+
+
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a project"""
     def __init__(self, *args, **kwargs):

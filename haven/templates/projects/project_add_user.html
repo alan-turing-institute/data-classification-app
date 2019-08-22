@@ -15,6 +15,12 @@
   {% csrf_token %}
   {{ form.media }}
   {{ form|crispy }}
+
+  <h2>Work Packages</h2>
+  <div id="project-formset">
+    {% crispy formset helper %}
+  </div>
+
 </form>
 
 {% endblock content %}
@@ -32,3 +38,7 @@
   {% endif %}
   <li class="breadcrumb-item active" aria-current="page">Add</li>
 {% endblock crumbs %}
+
+{% block extra_js %}
+  <script type="text/javascript">formset('#project-formset', '{{ formset.prefix | escapejs }}', true)</script>
+{% endblock %}

@@ -31,6 +31,7 @@ from .forms import (
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
     WorkPackageClassifyDeleteForm,
+    WorkPackagesForParticipantInlineFormSet,
 )
 from .models import (
     ClassificationOpinion,
@@ -233,6 +234,7 @@ class ProjectAddUser(
                                 formnovalidate='formnovalidate'))
 
         kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
         kwargs['editing'] = False
         return super().get_context_data(**kwargs)
 
@@ -254,6 +256,19 @@ class ProjectAddUser(
         ]
         return form
 
+    def get_formset(self, **kwargs):
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'prefix': 'work_packages',
+        }
+
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        return WorkPackagesForParticipantInlineFormSet(**options)
+
     def get_success_url(self):
         obj = self.get_project()
         if self.get_project_role().can_list_participants:
@@ -269,9 +284,14 @@ class ProjectAddUser(
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
+        formset = self.get_formset()
         self.object = None
-        if form.is_valid():
-            return self.form_valid(form)
+        if form.is_valid() and formset.is_valid():
+            response = self.form_valid(form)
+            participant = self.object
+            formset.instance = participant
+            formset.save()
+            return response
         else:
             return self.form_invalid(form)
 
