@@ -46,6 +46,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/participants/<int:pk>/edit',
+        views.EditParticipant.as_view(),
+        name='edit_participant'
+    ),
+
+    path(
         '<int:pk>/datasets/',
         views.ProjectListDatasets.as_view(),
         name='list_datasets'

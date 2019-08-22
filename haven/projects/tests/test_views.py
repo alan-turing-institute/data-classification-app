@@ -464,6 +464,92 @@ class TestListParticipants:
 
 
 @pytest.mark.django_db
+class TestEditParticipant:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+        response = client.get('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+
+        response = as_programme_manager.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_participant(self, as_programme_manager):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+        response = as_programme_manager.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
+            {
+                'role': ProjectRole.RESEARCHER.value,
+                'work_packages-TOTAL_FORMS': 1,
+                'work_packages-MAX_NUM_FORMS': 1,
+                'work_packages-MIN_NUM_FORMS': 0,
+                'work_packages-INITIAL_FORMS': 0,
+                'work_packages-0-work_package': work_package.id,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+        participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == investigator.user.username
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add participants, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+    def test_restricts_creation_based_on_role(self, client, referee, researcher):
+        client.force_login(referee.user)
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (referee.project.id, researcher.id),
+            {
+                'role': ProjectRole.INVESTIGATOR.value,
+            })
+
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestProjectAddDataset:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()

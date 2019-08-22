@@ -108,6 +108,19 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         return self.project.add_user(user, role, self.user)
 
 
+class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Form template for editing participants on a project"""
+
+    role = forms.ChoiceField(
+        choices=ProjectRole.choices(),
+        help_text='Role on this project'
+    )
+
+    class Meta:
+        model = Participant
+        fields = ('role',)
+
+
 class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a work package"""
     def __init__(self, *args, project=None, **kwargs):

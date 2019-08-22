@@ -14,7 +14,7 @@
           <tr>
             <td>
 
-              {% url_check 'identity:edit_user' participant.user.id as edit_user_href %}
+              {% url_check 'projects:edit_participant' project.id participant.id as edit_user_href %}
               {% if edit_user_href %}
                 <a href="{{ edit_user_href}}">
               {% endif %}

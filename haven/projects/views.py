@@ -22,6 +22,7 @@ from identity.models import User
 from identity.roles import UserRole
 
 from .forms import (
+    ParticipantForm,
     ParticipantInlineFormSetHelper,
     ProjectAddDatasetForm,
     ProjectAddUserForm,
@@ -374,6 +375,83 @@ class EditProjectListParticipants(
             return HttpResponseRedirect(self.get_success_url())
         else:
             return self.render_to_response(self.get_context_data(formset=formset))
+
+
+class EditParticipant(
+    LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView
+):
+    model = Participant
+    template_name = 'projects/edit_participant.html'
+    form_class = ParticipantForm
+
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
+    def get_context_data(self, **kwargs):
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Edit Participant'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+
+        kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_form(self):
+        form = super().get_form()
+
+        project_role = self.get_project_role()
+
+        # Restrict form dropdown to roles this user is allowed to assign on the project
+        form.fields['role'].choices = [
+            (role, name)
+            for (role, name) in form.fields['role'].choices
+            if project_role.can_assign_role(ProjectRole(role))
+        ]
+        return form
+
+    def get_formset(self, **kwargs):
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'instance': self.get_object(),
+            'prefix': 'work_packages',
+        }
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        return WorkPackagesForParticipantInlineFormSet(**options)
+
+    def get_success_url(self):
+        obj = self.get_project()
+        if self.get_project_role().can_list_participants:
+            return reverse('projects:list_participants', args=[obj.id])
+        else:
+            return reverse('projects:detail', args=[obj.id])
+
+    def test_func(self):
+        return self.get_project_role().can_edit_participants
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        self.object = self.get_object()
+        form = self.get_form()
+        formset = self.get_formset()
+        if form.is_valid() and formset.is_valid():
+            response = self.form_valid(form)
+            participant = self.object
+            formset.instance = participant
+            formset.save()
+            return response
+        else:
+            return self.form_invalid(form)
+
+
 
 
 class ProjectListDatasets(
