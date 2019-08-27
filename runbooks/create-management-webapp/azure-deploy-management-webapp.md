@@ -36,6 +36,13 @@ The path after `-e` describes the location of your custom environment file (if y
 
 
 
+### Set up IP restrictions for the App Service
+
+* Browse to Azure Portal -> App Services / (YOUR APP NAME) / Networking / Configure Access Restrictions
+* Under (YOUR APP NAME).azurewebsites.net, add a rule under for each IP range to enable
+* Under (YOUR APP NAME).scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
+
+
 ### Set up a deployment password 
 
 * Browse to Azure Portal -> App Services / (YOUR APP NAME) / Deployment Center

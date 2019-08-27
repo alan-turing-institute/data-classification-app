@@ -101,6 +101,9 @@ switch_to_registration_tenant () {
 create_resource_group() {
     echo "Creating resource group"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
+
+    # Create a lock to prevent accidental deletion of the resource group and the resources it contains
+    az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
 }
 
 create_keyvault() {
@@ -265,3 +268,33 @@ create_postgresql_db
 create_app
 create_registration
 deploy_settings
+
+# At time of writing, the following steps must be done on the Azure Portal
+cat <<EOF
+
+To complete the deployment:
+
+1. Set up IP restrictions for the App Service
+* Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
+* Under ${APP_NAME}.azurewebsites.net, add a rule under for each IP range to enable
+* Under ${APP_NAME}.scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
+
+2. Choose a method to deploy the code
+
+  2A. Continuous deployment using GitHub
+    * Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
+    * If there is an existing deployment you will need to disable this using the Disconnect button
+    * Select GitHub and click Authorize
+    * In the 'Configure' step, select:
+      - Organization: 'alan-turing-institute'
+      - repository: 'data-safe-haven-webapp'
+      - branch: the branch you wish to continuously deploy (eg master, development)
+
+  2B. Local git deployment
+    * Browse to Azure Portal -> App Services / $APP_NAME  / Deployment Center
+    * Click the FTP/Credentials button
+    * Under USER CREDENTIALS set username as DSH_DEPLOYMENT_USER and choose a password
+    * To deploy your current head branch, run the script "deploy_code.sh -e $ENVFILE"
+    * Enter the deployment password when prompted
+
+EOF

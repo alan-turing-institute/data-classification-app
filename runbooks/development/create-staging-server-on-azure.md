@@ -36,6 +36,13 @@ The path after `-e` describes the location of your custom environment file (if y
    Go to the Azure portal and switch to the tenant where you want your app to be created and re-run the provisioning script.
 
 
+### Set up IP restrictions for the App Service
+
+* Browse to Azure Portal -> App Services / (YOUR APP NAME) / Networking / Configure Access Restrictions
+* Under (YOUR APP NAME).azurewebsites.net, add a rule under for each IP range to enable
+* Under (YOUR APP NAME).scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
+
+
 ### Set up GitHub continuous deployment - note this requires a user with appropriate GitHub permissions
 
 * Browse to Azure Portal -> App Services / (YOUR APP NAME) / Deployment Center
@@ -44,6 +51,4 @@ The path after `-e` describes the location of your custom environment file (if y
 * In the 'Configure' step, select:
   - Organization: 'alan-turing-institute'
   - repository: 'data-safe-haven-webapp'
-  - branch: whatever is appropriate
-
-
+  - branch: the branch to deploy (eg master, development)
