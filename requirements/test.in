@@ -1,6 +1,6 @@
 -r base.in
 
-pytest==3.8.2
-pytest-cov==2.6.0
-pytest-django==3.4.3
+pytest==5.1.0
+pytest-cov==2.7.1
+pytest-django==3.5.1
 model-mommy==1.6.0

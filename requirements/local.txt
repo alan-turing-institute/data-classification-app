@@ -46,11 +46,12 @@ model-mommy==1.6.0
 more-itertools==7.2.0
 oauthlib==3.0.2
 openpyxl==2.6.1
+packaging==19.1
 parso==0.5.1              # via jedi
 pexpect==4.7.0            # via ipython
 phonenumbers==8.10.1
 pickleshare==0.7.5        # via ipython
-pip-tools==3.5.0
+pip-tools==4.1.0
 pluggy==0.12.0
 prompt-toolkit==2.0.9     # via ipython
 psycopg2==2.8.3
@@ -62,9 +63,10 @@ pycparser==2.19
 pyflakes==1.6.0           # via flake8
 pygments==2.4.2           # via ipython
 pyjwt==1.7.1
-pytest-cov==2.6.0
-pytest-django==3.4.3
-pytest==3.8.2
+pyparsing==2.4.2
+pytest-cov==2.7.1
+pytest-django==3.5.1
+pytest==5.1.0
 python3-openid==3.1.0
 pytz==2019.1
 requests-oauthlib==1.0.0
@@ -75,10 +77,10 @@ social-auth-core==3.2.0
 sqlparse==0.3.0
 traitlets==4.3.2          # via ipython
 urllib3==1.25.3
-wcwidth==0.1.7            # via prompt-toolkit
+wcwidth==0.1.7
 webencodings==0.5.1
 whitenoise==4.1.1
 zipp==0.5.2
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==41.0.1
+setuptools==41.0.1        # via ipdb, ipython
