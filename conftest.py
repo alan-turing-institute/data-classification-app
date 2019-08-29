@@ -170,3 +170,18 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
                 work_package.classify_as(tier, referee.user)
         return work_package
     return _classified_work_package
+
+
+@pytest.fixture
+def hide_audit_warnings(caplog):
+    '''
+    Filters out most (but not all) warnings from easyaudit.
+
+    No tests use this by default, it's mostly useful to temporarily add to a
+    failing test to reduce the noise.
+    '''
+    def filter(record):
+        if record.name in ['easyaudit.signals.model_signals', 'model_signals.py']:
+            return False
+        return True
+    caplog.handler.addFilter(filter)
