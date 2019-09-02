@@ -84,6 +84,18 @@ class TestDetermineRole:
         user1.refresh_from_db()
         assert user1.role == 'system_manager'
 
+    def test_detects_programme_manager(self, mock_client, azure_backend, user1):
+        response = mock_client.return_value.get_my_memberships.return_value
+        response.ok = True
+        response.json.return_value = {'value': [{
+            'displayName': settings.PROG_MANAGER_GROUP_NAME,
+        }]}
+
+        determine_role(azure_backend, user1, {})
+
+        user1.refresh_from_db()
+        assert user1.role == 'programme_manager'
+
     def test_detects_no_role(self, mock_client, azure_backend, system_manager):
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
@@ -104,6 +116,16 @@ class TestDetermineRole:
         system_manager.refresh_from_db()
         assert system_manager.role == ''
 
+    def test_programme_manager_role_preserved(self, mock_client, azure_backend, programme_manager):
+        response = mock_client.return_value.get_my_memberships.return_value
+        response.ok = True
+        response.json.return_value = {'value': []}
+
+        determine_role(azure_backend, programme_manager, {})
+
+        programme_manager.refresh_from_db()
+        assert programme_manager.role == 'programme_manager'
+
     def test_does_nothing_if_backend_mismatch(self, mock_client, system_manager):
         backend = Mock()
         backend.configure_mock(name='some-other-backend')
@@ -112,17 +134,6 @@ class TestDetermineRole:
 
         system_manager.refresh_from_db()
         assert system_manager.role == 'system_manager'
-
-    def programme_manager_role_preserved(self, mock_client, azure_backend, programme_manager):
-        response = mock_client.return_value.get_my_memberships.return_value
-        response.ok = True
-        response.json.return_value = {'value': [{
-        }]}
-
-        determine_role(azure_backend, programme_manager, {})
-
-        programme_manager.refresh_from_db()
-        assert programme_manager.role == 'programme_manager'
 
 
 @pytest.mark.django_db

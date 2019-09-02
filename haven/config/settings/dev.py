@@ -18,6 +18,7 @@ DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 
 # Name of the Azure security group for System Managers
 SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
+PROG_MANAGER_GROUP_NAME = 'SG SHM Programme Managers'
 
 # Log to the console so it will be captured by Azure's log stream
 LOGGING = {
