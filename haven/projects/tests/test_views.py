@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from core import recipes
@@ -826,3 +828,106 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 200
         assert response.context['classification'].tier == 4
         assert work_package.classifications.get().tier == 4
+
+
+@pytest.mark.django_db
+class TestNewParticipantAutocomplete:
+    def test_visit(self, as_programme_manager):
+
+        user0 = as_programme_manager._user
+        project = recipes.project.make(created_by=user0)
+
+        # Create some test users
+        user1 = User.objects.create_user(
+            first_name='Katherine',
+            last_name='Johnson',
+            username='kathyjohnson@example.com',
+        )
+        user2 = User.objects.create_user(
+            first_name='Dorothy',
+            last_name='Vaughan',
+            username='dorothyvaughan@example.com',
+        )
+        user3 = User.objects.create_user(
+            first_name='Mary',
+            last_name='Jackson',
+            username='mj@example.com',
+        )
+        user4 = User.objects.create_user(
+            first_name='Margaret',
+            last_name='Hamilton',
+            username='mham@example.com',
+        )
+        user5 = User.objects.create_user(
+            first_name='Judith',
+            last_name='Cohen',
+            username='jcohen@example.com',
+        )
+
+        def assert_autocomplete_result(query_string, expected_users):
+            response = as_programme_manager.get(
+                f'/projects/{project.id}/new_participant_autocomplete/?q={query_string}')
+            assert response.status_code == 200
+            output = json.loads(response.content.decode('UTF-8'))
+            output_set = {d['text'] for d in output['results']}
+
+            expected_set = {f'{u.first_name}{" " if u.first_name and u.last_name else ""}{u.last_name}{": " if u.first_name or u.last_name else ""}{u.username}' for u in expected_users}
+            assert expected_set == output_set
+
+        # Test all users returned with no query string
+        assert_autocomplete_result('', {user0, user1, user2, user3, user4, user5})
+
+        # Test various combinations
+        assert_autocomplete_result('d', {user0, user2, user5})
+        assert_autocomplete_result('Mar', {user3, user4})
+        assert_autocomplete_result('Mart', {})
+        assert_autocomplete_result('Cohen', {user5})
+        assert_autocomplete_result('mj@exampl', {user3})
+        assert_autocomplete_result('j@example.', {user3})
+        assert_autocomplete_result('example.com', {user0, user1, user2, user3, user4, user5})
+        assert_autocomplete_result('Dor Va', {user2})
+        assert_autocomplete_result('Dor Va example', {user2})
+        assert_autocomplete_result('Dott Va', {})
+        assert_autocomplete_result('K Johnson', {user1})
+        assert_autocomplete_result('D Vaughan', {user2})
+        assert_autocomplete_result('M Jackson', {user3})
+        assert_autocomplete_result('M Hamilton', {user4})
+        assert_autocomplete_result('J Cohen', {user5})
+        assert_autocomplete_result('son', {user1, user3})
+
+        # Test last names
+        assert_autocomplete_result('Johnson', {user1})
+        assert_autocomplete_result('Vaughan', {user2})
+        assert_autocomplete_result('Jackson', {user3})
+        assert_autocomplete_result('Hamilton', {user4})
+        assert_autocomplete_result('Cohen', {user5})
+
+        # Test first names
+        assert_autocomplete_result('Katherine', {user1})
+        assert_autocomplete_result('Dorothy', {user2})
+        assert_autocomplete_result('Mary', {user3})
+        assert_autocomplete_result('Margaret', {user4})
+        assert_autocomplete_result('Judith', {user5})
+
+        # Test full names
+        assert_autocomplete_result('Katherine Johnson', {user1})
+        assert_autocomplete_result('Dorothy Vaughan', {user2})
+        assert_autocomplete_result('Mary Jackson', {user3})
+        assert_autocomplete_result('Margaret Hamilton', {user4})
+        assert_autocomplete_result('Judith Cohen', {user5})
+
+        # Test emails
+        assert_autocomplete_result('coordinator@example.com', {user0})
+        assert_autocomplete_result('kathyjohnson@example.com', {user1})
+        assert_autocomplete_result('dorothyvaughan@example.com', {user2})
+        assert_autocomplete_result('mj@example.com', {user3})
+        assert_autocomplete_result('mham@example.com', {user4})
+        assert_autocomplete_result('jcohen@example.com', {user5})
+
+        # Check autocomplete does not return users who are already in a project
+        project.add_user(user=user1,
+                         role=ProjectRole.RESEARCHER.value,
+                         creator=user0)
+        assert_autocomplete_result('', {user0, user2, user3, user4, user5})
+        assert_autocomplete_result('K Johnson', {})
+        assert_autocomplete_result('son', {user3})
