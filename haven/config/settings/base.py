@@ -205,8 +205,6 @@ LDAP_PASSWORD = env.str('LDAP_PASSWORD', default='')
 
 BASE_URL = env.str('BASE_URL', default='http://localhost:8000/')
 
-SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
-
 AD_RESEARCH_USER_DN = 'CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk'
 
 AD_USER_OBJECT_CLASSES = ['user', 'organizationalPerson', 'person', 'top']

@@ -12,6 +12,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Don't make life difficult for ourselves with password restrictions on dev
 AUTH_PASSWORD_VALIDATORS = []
 
+# Name of the Azure security group for System Managers
+SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
 
 LOGGING = {
     'version': 1,

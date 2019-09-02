@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from django.conf import settings
 
 from identity.pipeline import determine_role, find_existing_user, user_fields
 
@@ -75,7 +76,7 @@ class TestDetermineRole:
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {'value': [{
-            'displayName': 'SG System Controllers',
+            'displayName': settings.SYS_CONTROLLER_GROUP_NAME,
         }]}
 
         determine_role(azure_backend, user1, {})
