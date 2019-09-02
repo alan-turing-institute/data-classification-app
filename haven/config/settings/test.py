@@ -13,6 +13,7 @@ from .base import *  # noqa
 
 # Name of the Azure security group for System Managers
 SYS_CONTROLLER_GROUP_NAME = 'SG SHM System Managers'
+PROG_MANAGER_GROUP_NAME = 'SG SHM Programme Managers'
 
 USE_LDAP = False
 SAFE_HAVEN_DOMAIN = 'example.com'
