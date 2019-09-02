@@ -6,15 +6,21 @@ require('bootstrap-checkbox');
 require('bootstrap/js/dist/collapse');
 require('bootstrap/js/dist/dropdown');
 
+global.formset = function(selector, prefix, show_add_button){
+  $(function() {
+    var options = {};
+
+    options.prefix = prefix;
+
+    if (show_add_button) {
+      options.addText = '<i class="fas fa-plus"></i> Add more';
+      options.addCssClass = 'add-row btn btn-sm btn-outline-secondary';
+    }
+
+    $(selector).find(".formset tbody tr").formset(options);
+  });
+}
+
 $(function() {
-  $("form:not(.remove-add-button) .formset tbody tr").formset({
-    addText: '<i class="fas fa-plus"></i> Add more',
-    addCssClass: 'add-row btn btn-sm btn-outline-secondary',
-  });
-
-  // If the form is of class remove-add-button then we do not add the "Add more" button
-  $("form.remove-add-button .formset tbody tr").formset({
-  });
-
-  $(":checkbox").checkboxpicker();
+  $(":checkbox").not(".formset :checkbox").checkboxpicker();
 });

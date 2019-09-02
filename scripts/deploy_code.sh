@@ -69,7 +69,8 @@ function get_azure_secret() {
 }
 
 azure_login() {
-    az login --subscription "${SUBSCRIPTION}"
+    az login
+    az account set --subscription "${SUBSCRIPTION}"
 }
 
 # Set or update the codebase for a deployed webapp

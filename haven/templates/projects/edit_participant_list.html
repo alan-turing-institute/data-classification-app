@@ -15,8 +15,7 @@
   {% endif %}
 </p>
 
-<!-- remove-add-button prevents JQuery from adding the "Add more" button -->
-<form method="POST" action="" class="remove-add-button">
+<form method="POST" action="">
   {% csrf_token %}
   <div id="participants-formset">
   {% crispy formset helper %}
@@ -31,3 +30,7 @@
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
   <li class="breadcrumb-item active" aria-current="page">Participants</li>
 {% endblock crumbs %}
+
+{% block extra_js %}
+  <script type="text/javascript">formset('#participants-formset', '{{ formset.prefix | escapejs }}', false)</script>
+{% endblock %}
