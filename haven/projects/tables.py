@@ -1,6 +1,9 @@
 from operator import attrgetter
 
+import bleach
 import django_tables2 as tables
+from django.utils.html import format_html
+from django_bleach.utils import get_bleach_default_options
 
 
 class ParticipantTable(tables.Table):
@@ -127,3 +130,14 @@ class ClassificationOpinionQuestionTable(tables.Table):
                     pending.append(row)
             data.extend(pending)
         return data
+
+    def render_question(self, value):
+        kwargs = dict(get_bleach_default_options())
+        value = bleach.clean(value, **kwargs)
+
+        # We don't want any of the links to be displayed, so we'll strip them out entirely
+        kwargs['tags'] = [t for t in kwargs['tags'] if t != 'a']
+        kwargs['strip'] = True
+        value = bleach.clean(value, **kwargs)
+        value = format_html(value)
+        return value

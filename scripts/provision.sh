@@ -78,18 +78,20 @@ error_if_already_deployed() {
 }
 
 azure_login() {
-    az login --subscription "${SUBSCRIPTION}"
+    az login
+    switch_to_app_tenant
 }
 
 # Switch Azure CLI to the tenant used for app creation
-set_app_tenant () {
+switch_to_app_tenant () {
     # We need to explicitly set the subscription in order to change the default tenant.
     # This is because Azure CLI does not already respect the --subscription argument.
+    echo "Preparing to switch to $SUBSCRIPTION"
     az account set --subscription "${SUBSCRIPTION}"
 }
 
 # Switch Azure CLI to the tenant used for app registration
-set_registration_tenant () {
+switch_to_registration_tenant () {
     # The tenant we use to register the app may not have a subscription, in which case we cannot use
     # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
     # the --allow-no-subscriptions flag.
@@ -98,12 +100,15 @@ set_registration_tenant () {
 
 create_resource_group() {
     echo "Creating resource group"
-    az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+    az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
+
+    # Create a lock to prevent accidental deletion of the resource group and the resources it contains
+    az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
 }
 
 create_keyvault() {
     echo "Creating keyvault"
-    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}" --subscription "${SUBSCRIPTION}"
+    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}"
 }
 
 create_app() {
@@ -194,22 +199,25 @@ create_registration () {
     local client_secret=$(generate_key)
 
     # The tenant we use to register the app may not be the tenant used to create the app
-    set_registration_tenant
+    switch_to_registration_tenant
 
     # Create app registration
+    echo "... registering app"
     az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${oauth2_redirect_uri}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${app_uri}" --required-resource-accesses "${app_permissions}"
 
     # Get the Application ID (Client ID) which is set when the app is created
     local client_id=$(az ad app list --identifier-uri "${app_uri}" --query "[].appId" -o tsv)
 
     # Consent to permissions
+    echo "... setting app permissions"
     az ad app permission admin-consent --id "${client_id}"
 
     # The key vault may be in a different tenant to the registration, so we need to change it back here.
     # If we don't do this, the keyvault commands may return permission errors, even with the --subscription parameter.
-    set_app_tenant
+    switch_to_app_tenant
 
     # Store authentication credentials in keyvault
+    echo "... storing credentials in the keyvault"
     az keyvault secret set --name "AZUREAD-OAUTH2-KEY" --vault-name "${KEYVAULT_NAME}" --value "${client_id}"
     az keyvault secret set --name "AZUREAD-OAUTH2-SECRET" --vault-name "${KEYVAULT_NAME}" --value "${client_secret}"
     az keyvault secret set --name "AZUREAD-OAUTH2-TENANT-ID" --vault-name "${KEYVAULT_NAME}" --value "${tenant_id}"
@@ -252,7 +260,6 @@ deploy_settings () {
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE="False"
 }
 
-
 azure_login
 error_if_already_deployed
 create_resource_group
@@ -261,3 +268,33 @@ create_postgresql_db
 create_app
 create_registration
 deploy_settings
+
+# At time of writing, the following steps must be done on the Azure Portal
+cat <<EOF
+
+To complete the deployment:
+
+1. Set up IP restrictions for the App Service
+* Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
+* Under ${APP_NAME}.azurewebsites.net, add a rule under for each IP range to enable
+* Under ${APP_NAME}.scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
+
+2. Choose a method to deploy the code
+
+  2A. Continuous deployment using GitHub
+    * Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
+    * If there is an existing deployment you will need to disable this using the Disconnect button
+    * Select GitHub and click Authorize
+    * In the 'Configure' step, select:
+      - Organization: 'alan-turing-institute'
+      - repository: 'data-safe-haven-webapp'
+      - branch: the branch you wish to continuously deploy (eg master, development)
+
+  2B. Local git deployment
+    * Browse to Azure Portal -> App Services / $APP_NAME  / Deployment Center
+    * Click the FTP/Credentials button
+    * Under USER CREDENTIALS set username as DSH_DEPLOYMENT_USER and choose a password
+    * To deploy your current head branch, run the script "deploy_code.sh -e $ENVFILE"
+    * Enter the deployment password when prompted
+
+EOF
