@@ -14,7 +14,6 @@ AUTH_PASSWORD_VALIDATORS = []
 
 # Name of the Azure security group for System Managers
 SYS_CONTROLLER_GROUP_NAME = 'SG System Controllers'
-PROG_MANAGER_GROUP_NAME = 'SG SHM Programme Managers'
 
 LOGGING = {
     'version': 1,
