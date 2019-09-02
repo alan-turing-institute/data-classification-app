@@ -75,7 +75,7 @@ class TestDetermineRole:
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {'value': [{
-            'displayName': 'SG System Controllers',
+            'displayName': 'SG SHM System Managers',
         }]}
 
         determine_role(azure_backend, user1, {})
