@@ -507,7 +507,7 @@ class WorkPackageClassifyData(
 
             classification = ClassificationOpinion.objects.filter(
                 work_package=self.object,
-                user=self.request.user
+                created_by=self.request.user
             ).first()
             if classification:
                 return self.render_result(classification)
@@ -601,7 +601,7 @@ class WorkPackageClassifyData(
         self.object.calculate_tier()
 
         other_classifications = self.object.classifications.exclude(
-            user=self.request.user)
+            created_by=self.request.user)
 
         table = ClassificationOpinionQuestionTable(
             [classification] + list(other_classifications)

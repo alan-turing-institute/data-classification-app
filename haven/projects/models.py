@@ -13,11 +13,17 @@ from .managers import ProjectQuerySet
 from .roles import ProjectRole
 
 
-class Project(models.Model):
+class CreatedByModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
+
+    class Meta:
+        abstract = True
+
+
+class Project(CreatedByModel):
     name = models.CharField(max_length=256)
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
                                       blank=True)
@@ -76,21 +82,10 @@ class Project(models.Model):
         return CRUDEvent.objects.filter(this_object | related)
 
 
-class ProjectDataset(models.Model):
+class ProjectDataset(CreatedByModel):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
     representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the dataset was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this dataset to the project',
-    )
 
 
 def validate_role(role):
@@ -99,7 +94,7 @@ def validate_role(role):
         raise ValidationError('Not a valid ProjectRole string')
 
 
-class WorkPackage(models.Model):
+class WorkPackage(CreatedByModel):
     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE,
                                 related_name='work_packages')
     name = models.CharField(max_length=256)
@@ -115,17 +110,6 @@ class WorkPackage(models.Model):
         null=True,
         blank=True,
         choices=TIER_CHOICES,
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the work package was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this work package to the project',
     )
 
     @transaction.atomic
@@ -213,7 +197,7 @@ class WorkPackage(models.Model):
 
         classification = ClassificationOpinion.objects.create(
             work_package=self,
-            user=by_user,
+            created_by=by_user,
             role=role.value,
             tier=tier,
         )
@@ -241,7 +225,7 @@ class WorkPackage(models.Model):
 
     def classification_for(self, user):
         return self.classifications.filter(
-            user=user
+            created_by=user
         )
 
     @property
@@ -266,25 +250,14 @@ class WorkPackage(models.Model):
         return f'{self.project} - {self.name}'
 
 
-class WorkPackageDataset(models.Model):
+class WorkPackageDataset(CreatedByModel):
     work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
                                 related_name='datasets', on_delete=models.SET_NULL)
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the dataset was added to the work package',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this dataset to the work package',
-    )
 
-
-class Participant(models.Model):
+class Participant(CreatedByModel):
     """
     Represents a user's participation in a project
     """
@@ -298,31 +271,19 @@ class Participant(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the user was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this user to the project',
-    )
-
-    class Meta:
+    class Meta(CreatedByModel.Meta):
         unique_together = ('user', 'project')
 
     def __str__(self):
         return f'{self.user} ({self.get_role_display()} on {self.project})'
 
 
-class ClassificationOpinion(models.Model):
+class ClassificationOpinion(CreatedByModel):
     """
     Represents a user's opinion about the data tier classification of a work package
     """
     work_package = models.ForeignKey(WorkPackage, related_name='classifications',
                                      on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     role = models.CharField(
         max_length=50,
@@ -330,16 +291,12 @@ class ClassificationOpinion(models.Model):
         validators=[validate_role],
         help_text="The participant's role on this project at the time classification was made"
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the classification was made',
-    )
 
-    class Meta:
-        unique_together = ('user', 'work_package')
+    class Meta(CreatedByModel.Meta):
+        unique_together = ('created_by', 'work_package')
 
     def __str__(self):
-        return f'{self.user}: {self.work_package} (tier {self.tier})'
+        return f'{self.created_by}: {self.work_package} (tier {self.tier})'
 
 
 class ClassificationOpinionQuestion(models.Model):
