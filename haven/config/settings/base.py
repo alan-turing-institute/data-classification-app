@@ -30,7 +30,7 @@ environ.Env.read_env(str(BASE_DIR / '.env'))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)
@@ -147,9 +147,9 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'identity.User'
 
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY')
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET')
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str('AZUREAD_OAUTH2_KEY', default='')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET', default='')
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID', default='')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = 'https://graph.microsoft.com'
 
 SOCIAL_AUTH_PIPELINE = (
@@ -217,8 +217,8 @@ AD_USER_OBJECT_CLASSES = ['user', 'organizationalPerson', 'person', 'top']
 
 EMAIL_HOST = env.str('EMAIL_HOST', default='')
 if EMAIL_HOST:
-    EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
+    EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='')
     EMAIL_PORT = env.int('EMAIL_PORT', default=587)
     EMAIL_USE_TLS = env.int('EMAIL_USE_TLS', default=True)
 
