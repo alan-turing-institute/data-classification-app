@@ -1,7 +1,8 @@
 matrix:
   dist: bionic
   include:
-    - language: python
+    - name: run unit tests
+      language: python
       python:
         - "3.7"
       env:
@@ -10,7 +11,8 @@ matrix:
         - pip install -r requirements/test.txt
       script:
         - pytest --cov-config=haven/.coveragerc --cov-report term-missing --cov haven
-    - language: node_js
+    - name: verify built JS files are up to date
+      language: node_js
       node_js:
         - 10
       before_script:
@@ -20,3 +22,18 @@ matrix:
         - npm install
         - gulp
         - git diff --exit-code --numstat
+    - name: run deployment checks
+      language: python
+      python:
+        - "3.7"
+      env:
+        - PYTHONPATH=haven/
+        - SECRET_KEY='notasecret'
+      addons:
+        apt:
+          packages:
+            - unixodbc-dev
+      install:
+        - pip install -r requirements/production.txt
+      script:
+        - haven/manage.py check --deploy --settings=config.settings.production
