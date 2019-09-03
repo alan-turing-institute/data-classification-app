@@ -303,23 +303,17 @@ class EditProjectListParticipants(
         return super().get_context_data(**kwargs)
 
     def get_formset(self, **kwargs):
-        form_kwargs = {
-            'user': self.request.user,
-            'assignable_roles': self.get_assignable_roles(),
+        options = {
+            'form_kwargs': {
+                'user': self.request.user,
+                'assignable_roles': self.get_assignable_roles(),
+            },
+            'instance': self.get_object(),
+            'queryset': self.get_participants(),
         }
         if self.request.method == 'POST':
-            return UsersForProjectInlineFormSet(
-                self.request.POST,
-                instance=self.get_object(),
-                form_kwargs=form_kwargs,
-                queryset=self.get_participants()
-            )
-        else:
-            return UsersForProjectInlineFormSet(
-                instance=self.get_object(),
-                form_kwargs=form_kwargs,
-                queryset=self.get_participants()
-            )
+            options['data'] = self.request.POST
+        return UsersForProjectInlineFormSet(**options)
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
