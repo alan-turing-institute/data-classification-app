@@ -237,3 +237,9 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
+# Choose which Django system checks to silence
+SILENCED_SYSTEM_CHECKS = ["security.W004", "security.W008", "security.W009", "security.W020"]
+# security.W004: Disable HSTS with Azure domain; should enable for custom domain
+# security.W008: SSL termination and redirection by Azure
+# security.W009: SECRET_KEY is set in deployment
+# security.W020: ALLOWED_HOSTS is set in deployment
