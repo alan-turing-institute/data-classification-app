@@ -186,6 +186,9 @@ class WorkPackage(CreatedByModel):
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             missing_requirements.append(f"Not classified by {role} for dataset: {d}")
 
+        if not self.has_datasets:
+            missing_requirements.append('No datasets in work package')
+
         return missing_requirements
 
     @property
