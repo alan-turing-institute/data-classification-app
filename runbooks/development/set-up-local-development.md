@@ -41,6 +41,7 @@ DATABASE_URL='postgres://haven:haven@localhost/haven'
 ### Apply migrations
 
 ```bash
+haven/manage.py migrate easyaudit
 haven/manage.py migrate
 ```
 

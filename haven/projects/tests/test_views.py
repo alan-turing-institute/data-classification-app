@@ -254,7 +254,7 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         })
 
         assert response.status_code == 302
@@ -268,7 +268,7 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
             'cancel': 'Cancel',
         })
 
@@ -285,7 +285,7 @@ class TestAddUserToProject:
         new_user = User.objects.create_user(username='newuser')
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': new_user.pk,
+            'user': new_user.pk,
         })
 
         assert response.status_code == 302
@@ -302,7 +302,7 @@ class TestAddUserToProject:
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         })
 
         assert response.status_code == 200
@@ -314,7 +314,7 @@ class TestAddUserToProject:
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 12345,
+            'user': 12345,
         })
 
         assert response.status_code == 200
@@ -687,54 +687,44 @@ class TestWorkPackageClassifyData:
         response = as_programme_manager.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_do_not_show_form_if_user_already_classified(self, client, as_project_participant,
-                                                         programme_manager):
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
-        work_package.classify_as(0, as_project_participant._user)
+    def test_do_not_show_form_if_user_already_classified(
+            self, classified_work_package, as_investigator):
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
+        work_package.classify_as(0, as_investigator._user)
+
+        response = as_investigator.get(self.url(work_package))
 
         assert 'wizard' not in response.context
 
-    def test_delete_classification(self, client, as_project_participant, programme_manager):
+    def test_delete_classification(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
-        work_package.classify_as(0, as_project_participant._user)
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
+        work_package.classify_as(0, as_investigator._user)
+
+        response = as_investigator.get(self.url(work_package))
         assert b'Delete My Classification' in response.content
 
-        response = as_project_participant.get(self.url(work_package, 'classify_delete'))
+        response = as_investigator.get(self.url(work_package, 'classify_delete'))
         assert b'Delete Classification' in response.content
 
-        response = as_project_participant.post(self.url(work_package, 'classify_delete'))
+        response = as_investigator.post(self.url(work_package, 'classify_delete'))
 
-        response = as_project_participant.get(self.url(work_package))
+        response = as_investigator.get(self.url(work_package))
         assert 'wizard' in response.context
         assert b'Delete My Classification' not in response.content
 
-    def test_classify_as_tier(self, as_project_participant, programme_manager):
+    def test_classify_as_tier(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
         def classify(current, answer, next):
             data = {}
             data['work_package_classify_data-current_step'] = current
             if answer:
                 data[f"{current}-question"] = 'on'
-            response = as_project_participant.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
@@ -754,13 +744,9 @@ class TestWorkPackageClassifyData:
         assert response.context['classification'].tier == 3
         assert work_package.classifications.get().tier == 3
 
-    def test_classify_backwards(self, as_project_participant, programme_manager):
+    def test_classify_backwards(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
         def classify(current, answer, goto, next):
             data = {}
@@ -769,7 +755,7 @@ class TestWorkPackageClassifyData:
                 data[f"{current}-question"] = 'on'
             if goto:
                 data['wizard_goto_step'] = goto,
-            response = as_project_participant.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
@@ -789,15 +775,11 @@ class TestWorkPackageClassifyData:
         assert response.context['classification'].tier == 1
         assert work_package.classifications.get().tier == 1
 
-    def test_classify_guidance(self, as_project_participant, programme_manager):
+    def test_classify_guidance(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
+        response = as_investigator.get(self.url(work_package))
         assert 'wizard' in response.context
         assert response.context['wizard']['steps'].current == 'open_generate_new'
         guidance = ['personal_data', 'living_individual']
@@ -808,7 +790,7 @@ class TestWorkPackageClassifyData:
             data['work_package_classify_data-current_step'] = current
             if answer:
                 data[f"{current}-question"] = 'on'
-            response = as_project_participant.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next

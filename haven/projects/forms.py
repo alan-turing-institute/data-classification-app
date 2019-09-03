@@ -41,7 +41,7 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
     """Autocomplete field for adding users"""
 
-    def __init__(self, project_id=None):
+    def __init__(self, project_id=None, *args, **kwargs):
         """User choice should be restricted to users not yet in this project"""
 
         if project_id:
@@ -55,10 +55,10 @@ class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
                 'data-placeholder': 'Search for user',
             },
         )
-        super().__init__(queryset=User.objects.all(), widget=widget)
+        super().__init__(queryset=User.objects.all(), widget=widget, *args, **kwargs)
 
 
-class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
+class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 
     def __init__(self, *args, **kwargs):
@@ -66,12 +66,9 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         super(ProjectAddUserForm, self).__init__(*args, **kwargs)
 
         # Update user field with project ID
-        self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
+        self.fields['user'] = ProjectUserAutocompleteChoiceField(project_id, label='Username')
 
-    helper = SaveCancelFormHelper('Add Participant')
-    helper.form_method = 'POST'
-
-    username = ProjectUserAutocompleteChoiceField()
+    user = ProjectUserAutocompleteChoiceField(label='Username')
 
     role = forms.ChoiceField(
         choices=ProjectRole.choices(),
@@ -79,11 +76,11 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
     )
 
     class Meta:
-        model = User
-        fields = ('__all__')
+        model = Participant
+        fields = ('user', 'role')
 
-    def clean_username(self):
-        username = self.cleaned_data['username']
+    def clean_user(self):
+        username = self.cleaned_data['user']
 
         # Verify if user already exists on project
         if self.project.participant_set.filter(
@@ -101,7 +98,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
     def save(self, **kwargs):
         role = self.cleaned_data['role']
-        user = self.cleaned_data['username']
+        user = self.cleaned_data['user']
         return self.project.add_user(user, role, self.user)
 
 
