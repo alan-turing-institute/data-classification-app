@@ -10,7 +10,10 @@ register = template.Library()
 @register.filter
 @stringfilter
 def project_role_display(role):
-    return dict(ProjectRole.choices()).get(role, '')
+    try:
+        return ProjectRole.display_name(role)
+    except KeyError:
+        return ''
 
 
 @register.filter
@@ -25,4 +28,3 @@ def tier(tier):
 def project_participation_role(user, project):
     role = user.project_participation_role(project)
     return  project_role_display(role.value if role else None)
-

@@ -87,6 +87,7 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
@@ -97,6 +98,8 @@ class TestWorkPackage:
 
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == [
+            'Not classified by Investigator']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -105,7 +108,7 @@ class TestWorkPackage:
         work_package = classified_work_package(None)
 
         project = work_package.project
-        dataset2 = recipes.dataset.make()
+        dataset2 = recipes.dataset.make(name='Dataset 2')
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
@@ -115,6 +118,8 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == [
+            'Not classified by representative for Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -123,7 +128,7 @@ class TestWorkPackage:
         work_package = classified_work_package(None)
 
         project = work_package.project
-        dataset2 = recipes.dataset.make()
+        dataset2 = recipes.dataset.make(name='Dataset 2')
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
@@ -133,11 +138,14 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == [
+            'Not classified by representative for Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
         work_package.classify_as(0, data_rep2.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
@@ -157,6 +165,7 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
@@ -178,6 +187,7 @@ class TestWorkPackage:
 
         work_package.classify_as(0, investigator.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert work_package.has_tier
         assert work_package.tier == 0
@@ -190,6 +200,7 @@ class TestWorkPackage:
         work_package.classify_as(2, data_provider_representative.user)
         work_package.classify_as(2, referee.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
@@ -202,6 +213,7 @@ class TestWorkPackage:
         work_package.classify_as(2, investigator.user)
         work_package.classify_as(2, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == ['Not classified by Referee']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -213,6 +225,7 @@ class TestWorkPackage:
         work_package.classify_as(1, data_provider_representative.user)
         work_package.classify_as(1, referee.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert work_package.tier_conflict
         assert not work_package.has_tier
@@ -233,6 +246,7 @@ class TestWorkPackage:
 
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
@@ -247,6 +261,7 @@ class TestWorkPackage:
 
         work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier

@@ -146,6 +146,19 @@ class WorkPackage(CreatedByModel):
 
         :return: True if ready for classification, False otherwise.
         """
+
+        return self.missing_classification_requirements == []
+
+    @property
+    def missing_classification_requirements(self):
+        """
+        What conditions need to be fulfilled before the work package is ready for classification?
+
+        i.e. have all the required users been through the classification process
+
+        :return: List (possibly empty) of required changes
+        """
+
         required_roles = {
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             ProjectRole.INVESTIGATOR.value,
@@ -162,7 +175,17 @@ class WorkPackage(CreatedByModel):
             for d in c.datasets:
                 datasets.add(d)
 
-        return roles >= required_roles and datasets >= required_datasets
+        missing_requirements = []
+        missing_roles = required_roles - roles
+        for r in missing_roles:
+            role = ProjectRole.display_name(r)
+            missing_requirements.append(f"Not classified by {role}")
+
+        missing_datasets = required_datasets - datasets
+        for d in missing_datasets:
+            missing_requirements.append(f"Not classified by representative for {d}")
+
+        return missing_requirements
 
     @property
     def tier_conflict(self):
