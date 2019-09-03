@@ -13,6 +13,12 @@ from .managers import ProjectQuerySet
 from .roles import ProjectRole
 
 
+def validate_role(role):
+    """Validator for assigning a participant's role in a project"""
+    if not ProjectRole.is_valid_assignable_participant_role(role):
+        raise ValidationError('Not a valid ProjectRole string')
+
+
 class CreatedByModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
@@ -80,18 +86,6 @@ class Project(CreatedByModel):
         # storing the data as actual JSON and using the JSON operators, but that's database-specific
         related = Q(object_json_repr__regex=f'"project": {self.pk}[,}}]')
         return CRUDEvent.objects.filter(this_object | related)
-
-
-class ProjectDataset(CreatedByModel):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
-
-
-def validate_role(role):
-    """Validator for assigning a participant's role in a project"""
-    if not ProjectRole.is_valid_assignable_participant_role(role):
-        raise ValidationError('Not a valid ProjectRole string')
 
 
 class WorkPackage(CreatedByModel):
@@ -250,13 +244,6 @@ class WorkPackage(CreatedByModel):
         return f'{self.project} - {self.name}'
 
 
-class WorkPackageDataset(CreatedByModel):
-    work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    opinion = models.ForeignKey('ClassificationOpinion', null=True,
-                                related_name='datasets', on_delete=models.SET_NULL)
-
-
 class Participant(CreatedByModel):
     """
     Represents a user's participation in a project
@@ -326,3 +313,16 @@ class Policy(models.Model):
 class PolicyAssignment(models.Model):
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     policy = models.ForeignKey(Policy, on_delete=models.PROTECT)
+
+
+class ProjectDataset(CreatedByModel):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
+
+
+class WorkPackageDataset(CreatedByModel):
+    work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+    opinion = models.ForeignKey('ClassificationOpinion', null=True,
+                                related_name='datasets', on_delete=models.SET_NULL)
