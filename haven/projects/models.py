@@ -77,8 +77,20 @@ class Project(CreatedByModel):
         return self.participants.filter(
             role__in=ordered_role_list).order_by(order)
 
+    def get_datasets(self, representative):
+        return [pd.dataset for pd in self.get_project_datasets(representative=representative)]
+
     def get_representative(self, dataset):
-        return ProjectDataset.objects.filter(project=self).first().representative
+        dataset = self.get_project_datasets(dataset=dataset).first()
+        if dataset:
+            return dataset.representative
+        return None
+
+    def has_dataset(self, dataset):
+        return self.get_project_datasets(dataset=dataset).exists()
+
+    def get_project_datasets(self, **kwargs):
+        return ProjectDataset.objects.filter(project=self, **kwargs)
 
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
@@ -112,11 +124,18 @@ class WorkPackage(CreatedByModel):
     @transaction.atomic
     def add_dataset(self, dataset, creator):
         # Verify if dataset exists on project
-        if not ProjectDataset.objects.filter(project=self.project, dataset=dataset).exists():
+        if not self.project.has_dataset(dataset):
             raise ValidationError('Dataset not assigned to project')
 
         WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
                                           created_by=creator)
+
+    def get_work_package_datasets(self, representative):
+        datasets = []
+        for dataset in self.project.get_datasets(representative):
+            for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=dataset):
+                datasets.append(wpd)
+        return datasets
 
     @property
     def is_classification_ready(self):
@@ -200,10 +219,9 @@ class WorkPackage(CreatedByModel):
         )
 
         if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE:
-            for pd in ProjectDataset.objects.filter(project=self.project, representative=by_user):
-                for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=pd.dataset):
-                    wpd.opinion = classification
-                    wpd.save()
+            for wpd in self.get_work_package_datasets(by_user):
+                wpd.opinion = classification
+                wpd.save()
 
         if questions:
             for i, q in enumerate(questions):
