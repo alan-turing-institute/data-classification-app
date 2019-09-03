@@ -130,7 +130,7 @@ def as_standard_user(client, standard_user):
 
 @pytest.fixture
 def as_data_provider_representative(client, data_provider_representative):
-    return client_login(client, data_provider_representative)
+    return client_login(client, data_provider_representative.user)
 
 
 @pytest.fixture
