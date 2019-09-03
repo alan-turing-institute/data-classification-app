@@ -24,6 +24,7 @@ from identity.roles import UserRole
 from .forms import (
     ParticipantForm,
     ParticipantInlineFormSetHelper,
+    ParticipantsForWorkPackageInlineFormSet,
     ProjectAddDatasetForm,
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
@@ -48,22 +49,30 @@ from .tables import (
     HistoryTable,
     ParticipantTable,
     PolicyTable,
+    WorkPackageParticipantTable,
     WorkPackageTable,
 )
 
 
 class ProjectMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._project = None
+
     def get_project_queryset(self, qs=None):
         if not qs:
             qs = Project.objects
         return qs.get_visible_projects(self.request.user)
 
     def get_project(self):
-        try:
-            projects = self.get_project_queryset()
-            return projects.get(pk=self.kwargs[self.get_project_url_kwarg()])
-        except Project.DoesNotExist:
-            raise Http404("No project found matching the query")
+        if self._project is None:
+            try:
+                projects = self.get_project_queryset()
+                self._project = projects.get(pk=self.kwargs[self.get_project_url_kwarg()])
+            except Project.DoesNotExist:
+                raise Http404("No project found matching the query")
+
+        return self._project
 
     def get_project_url_kwarg(self):
         return 'pk'
@@ -452,8 +461,6 @@ class EditParticipant(
             return self.form_invalid(form)
 
 
-
-
 class ProjectListDatasets(
     LoginRequiredMixin, SingleProjectMixin, DetailView
 ):
@@ -552,8 +559,9 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         datasets = work_package.datasets.all()
         context['datasets_table'] = DatasetTable(datasets)
 
-        participants = work_package.participants.all()
-        context['participants_table'] = ParticipantTable(participants)
+        participants = work_package.get_participants_with_approval(self.request.user)
+        context['participants_table'] = WorkPackageParticipantTable(
+            participants, work_package=work_package, user=self.request.user)
 
         context['can_classify'] =  work_package.has_datasets and not work_package.has_tier
         context['has_classified'] = work_package.has_user_classified(self.request.user)
@@ -567,6 +575,8 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
             classifications = work_package.classifications.all()
             context['question_table'] = ClassificationOpinionQuestionTable(classifications)
 
+        context['show_approve_participants'] = work_package.show_approve_participants(
+            self.request.user)
         return context
 
 
@@ -609,6 +619,61 @@ class WorkPackageAddDataset(
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
+
+
+class WorkPackageApproveParticipants(
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_participant_approve.html'
+
+    def test_func(self):
+        return self.get_project_role().can_approve_participants
+
+    def get_context_data(self, **kwargs):
+        helper = InlineFormSetHelper()
+        helper.add_input(Submit('submit', 'Approve Participants'))
+        helper.add_input(Submit('cancel', 'Cancel',
+                                css_class='btn-secondary',
+                                formnovalidate='formnovalidate'))
+
+        kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        work_package = self.get_object()
+        user = self.request.user
+        options = {
+            'form_kwargs': {
+                'user': user,
+            },
+            'instance': work_package,
+            'prefix': 'participants',
+            'queryset': work_package.get_work_package_participants_to_approve(user),
+        }
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        return ParticipantsForWorkPackageInlineFormSet(**options)
+
+    def get_success_url(self):
+        obj = self.get_project()
+        if self.get_project_role().can_list_participants:
+            return reverse('projects:list_participants', args=[obj.id])
+        else:
+            return reverse('projects:detail', args=[obj.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        self.object = self.get_object()
+        formset = self.get_formset()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data())
 
 
 class WorkPackageAddParticipant(

@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Case, Q, When
+from django.db.models import BooleanField, Case, Q, Value, When
 from django.urls import reverse
 from easyaudit.models import CRUDEvent
 
@@ -77,8 +77,18 @@ class Project(CreatedByModel):
         return self.participants.filter(
             role__in=ordered_role_list).order_by(order)
 
+    def get_participant(self, role):
+        return self.get_all_participants(role).first()
+
+    def get_all_participants(self, role):
+        return self.participants.filter(role=role)
+
     def get_datasets(self, representative):
-        return [pd.dataset for pd in self.get_project_datasets(representative=representative)]
+        project_datasets = (
+            self.get_project_datasets(representative=representative)
+            .select_related('dataset')
+        )
+        return [pd.dataset for pd in project_datasets]
 
     def get_representative(self, dataset):
         dataset = self.get_project_datasets(dataset=dataset).first()
@@ -152,12 +162,11 @@ class WorkPackage(CreatedByModel):
 
         return qs.create(work_package=self, participant=participant, created_by=creator)
 
-    def get_work_package_datasets(self, representative):
-        datasets = []
-        for dataset in self.project.get_datasets(representative):
-            for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=dataset):
-                datasets.append(wpd)
-        return datasets
+    def get_work_package_datasets(self, representative=None):
+        qs = WorkPackageDataset.objects.filter(work_package=self)
+        if representative:
+            qs = qs.filter(dataset__in=self.project.get_datasets(representative))
+        return qs
 
     @property
     def is_classification_ready(self):
@@ -186,21 +195,38 @@ class WorkPackage(CreatedByModel):
             ProjectRole.INVESTIGATOR.value,
         }
         required_datasets = set(self.datasets.all())
+        require_approval = False
 
         roles = set()
+        pending_classifications = set()
         datasets = set()
 
         for c in self.classifications.all():
-            roles.add(c.role)
+            if c.role != ProjectRole.REFEREE.value:
+                roles.add(c.role)
+            else:
+                pending_classifications.add(c)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
+                if c.tier >= Tier.THREE:
+                    require_approval = True
             for d in c.datasets:
                 datasets.add(d)
+
+        for c in pending_classifications:
+            if require_approval:
+                participant = c.created_by.get_participant(self.project)
+                if self.is_participant_approved(participant):
+                    roles.add(c.role)
+            else:
+                roles.add(c.role)
 
         missing_requirements = []
         missing_roles = required_roles - roles
         for r in missing_roles:
             role = ProjectRole.display_name(r)
+            if require_approval:
+                role = 'approved ' + role
             missing_requirements.append(f"Not classified by {role}")
 
         missing_datasets = required_datasets - datasets
@@ -292,6 +318,98 @@ class WorkPackage(CreatedByModel):
             created_by=user
         )
 
+    def show_approve_participants(self, approver):
+        participant = approver.get_participant(self.project)
+        if not participant:
+            return False
+        if not participant.permissions.can_approve_participants:
+            return False
+        return self.get_work_package_participants_to_approve(approver).exists()
+
+    def get_work_package_participants_to_approve(self, approver=None):
+        '''
+        Find users who are not yet approved for this work package
+
+        Users must be approved by a DPR for every dataset in the work package
+
+        Returns a QuerySet of WorkPackageParticipant objects
+        Will be empty if this work package is classified as low tier, or there are no datasets
+        '''
+        if self.has_tier and self.tier <= Tier.TWO:
+            # Low-tier work packages don't require anyone to be approved
+            return WorkPackageParticipant.objects.none()
+
+        q = None
+        for d in self.get_work_package_datasets(representative=approver):
+            # Find anyone who is not approved for this dataset
+            q2 = ~Q(approvals__dataset=d.dataset)
+            if q is None:
+                q = q2
+            else:
+                # If there's multiple datasets, we want anyone who is not approved for at least
+                # one of them
+                q = q | q2
+
+        if q is None:
+            # If there are no datasets, nobody can be approved
+            return WorkPackageParticipant.objects.none()
+
+        return WorkPackageParticipant.objects.filter(
+            q,
+            work_package=self,
+            participant__role__in=ProjectRole.non_approved_roles(),
+        )
+
+    def is_participant_approved(self, participant):
+        wpp = participant.get_work_package_participant(self)
+        if not wpp:
+            return False
+
+        participants_to_approve = self.get_work_package_participants_to_approve()
+        return not participants_to_approve.filter(participant=participant).exists()
+
+    def get_participants_with_approval(self, approver):
+        '''
+        Find all users on this work package, and their approval status
+
+        Returns a QuerySet of WorkPackageParticipant objects
+        Will be annotated with an 'approved' field if they are approved (see
+        get_work_package_participants_to_approve for definition)
+        If an 'approver' params is provided, will also be annotated with an
+        'approved_by_you' field indicating if they are approved for all the datasets relevant
+        to that user
+        '''
+
+        has_datasets = self.datasets.exists()
+
+        def approved_annotation(user=None):
+            if self.has_tier and self.tier <= Tier.TWO:
+                return Value(True, output_field=BooleanField())
+            participants_to_approve = self.get_work_package_participants_to_approve(approver=user)
+            ids = [p.id for p in participants_to_approve]
+            return Case(
+                When(participant__role__in=ProjectRole.approved_roles(), then=Value(True)),
+                When(id__in=ids, then=Value(False)),
+                default=Value(has_datasets),
+                output_field=BooleanField()
+            )
+
+        qs = WorkPackageParticipant.objects.filter(work_package=self)
+        qs = qs.annotate(approved=approved_annotation())
+
+        if approver:
+            participant = approver.get_participant(self.project)
+            if participant and participant.permissions.can_approve_participants:
+                qs = qs.annotate(approved_by_you=approved_annotation(approver))
+        return qs
+
+    def get_users_to_approve(self, approver):
+        work_package_participants = (
+            self.get_work_package_participants_to_approve(approver)
+                .select_related('participant__user')
+        )
+        return [p.participant.user for p in work_package_participants]
+
     @property
     def has_tier(self):
         """Has this project's data been classified?"""
@@ -336,6 +454,16 @@ class Participant(CreatedByModel):
 
     def __str__(self):
         return f'{self.user} ({self.get_role_display()} on {self.project})'
+
+    @property
+    def permissions(self):
+        return self.user.project_role(self.project, participant=self)
+
+    def get_work_package_participant(self, work_package):
+        qs = WorkPackageParticipant.objects.filter(participant=self, work_package=work_package)
+        if qs.exists():
+            return qs.first()
+        return None
 
 
 class ClassificationOpinion(CreatedByModel):
@@ -408,3 +536,27 @@ class WorkPackageDataset(CreatedByModel):
 class WorkPackageParticipant(CreatedByModel):
     work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, related_name='+', on_delete=models.CASCADE)
+
+    def approve(self, approver):
+        approver_participant = approver.get_participant(self.work_package.project)
+
+        if approver_participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
+            raise ValidationError('Only Data Provider Representatives can approve users')
+
+        for pd in ProjectDataset.objects.filter(project=self.work_package.project,
+                                                representative=approver):
+            for wpd in WorkPackageDataset.objects.filter(work_package=self.work_package,
+                                                         dataset=pd.dataset):
+                WorkPackageParticipantApproval.objects.create(
+                    work_package_participant=self,
+                    dataset=pd.dataset,
+                    created_by=approver,
+                )
+
+        self.work_package.calculate_tier()
+
+
+class WorkPackageParticipantApproval(CreatedByModel):
+    work_package_participant = models.ForeignKey(WorkPackageParticipant, on_delete=models.CASCADE,
+                                                 related_name='approvals')
+    dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.CASCADE)

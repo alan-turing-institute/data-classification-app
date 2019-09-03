@@ -187,9 +187,9 @@ class TestViewWorkPackage:
         assert response.status_code == 200
         table = response.context['participants_table'].as_values()
         assert list(table) == [
-            ['Username', 'Role'],
-            [user2.display_name(), 'Researcher'],
-            [user3.display_name(), 'Researcher'],
+            ['Username', 'Role', 'Approved'],
+            [user2.display_name(), 'Researcher', 'False'],
+            [user3.display_name(), 'Researcher', 'False'],
         ]
 
 
@@ -701,6 +701,72 @@ class TestWorkPackageAddParticipant:
 
         assert work_package.participants.count() == 1
         assert p1 == work_package.participants.first()
+
+
+@pytest.mark.django_db
+class TestWorkPackageApproveParticipants:
+    def test_anonymous_cannot_access_page(self, client, helpers, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = client.get(url)
+        helpers.assert_login_redirect(response)
+
+    def test_unprivileged_user_cannot_access_page(self, as_investigator, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_investigator.get(url)
+        assert response.status_code == 404
+
+    def test_view_page(self, as_data_provider_representative, referee, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        p1 = project.add_user(as_data_provider_representative._user,
+                              ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              programme_manager)
+        p2 = project.add_user(referee.user,
+                              ProjectRole.REFEREE.value,
+                              programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(as_data_provider_representative._user, programme_manager)
+        work_package.add_user(referee.user, programme_manager)
+        dataset = recipes.dataset.make()
+        project.add_dataset(dataset, as_data_provider_representative._user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'False', 'False'],
+        ]
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_data_provider_representative.post(url, {
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 1,
+            'participants-0-id': p2.get_work_package_participant(work_package).id,
+            'participants-0-approved': 'on',
+        })
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'True', 'True'],
+        ]
 
 
 @pytest.mark.django_db

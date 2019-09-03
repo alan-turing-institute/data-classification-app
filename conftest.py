@@ -170,6 +170,15 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
             work_package.classify_as(tier, referee.user)
+            if tier >= Tier.THREE:
+                p = referee.user.get_participant(project)
+                p = p.get_work_package_participant(work_package)
+                p.approve(data_provider_representative.user)
+                work_package = p.work_package
+
+            assert [] == work_package.missing_classification_requirements
+            assert work_package.has_tier
+            assert tier == work_package.tier
         return work_package
     return _classified_work_package
 

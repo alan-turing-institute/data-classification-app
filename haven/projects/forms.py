@@ -29,6 +29,18 @@ class SaveCancelFormHelper(FormHelper):
                               formnovalidate='formnovalidate'))
 
 
+class ShowValue(forms.Widget):
+    '''
+    Dummy widget that simply displays the relevant value.
+
+    This is only necessary for forms used in inline formsets - for others, it's better to use
+    the Layout object to display any text.
+
+    Should only be used with disabled fields, since it won't actually submit a value.
+    '''
+    template_name = 'includes/show_value_widget.html'
+
+
 class ParticipantInlineFormSetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -211,6 +223,37 @@ UsersForProjectInlineFormSet = inlineformset_factory(
     extra=0,
     can_delete=True,
     help_texts={'role': None},
+)
+
+
+class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment for a user"""
+
+    username = forms.CharField(disabled=True, widget=ShowValue)
+    approved = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            self.fields['username'].initial = instance.participant.user.username
+
+    class Meta:
+        model = Participant
+        fields = ()
+
+    def save(self, **kwargs):
+        if self.cleaned_data['approved']:
+            self.instance.approve(self.user)
+
+
+ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageParticipant,
+    form=ParticipantForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=False,
 )
 
 
