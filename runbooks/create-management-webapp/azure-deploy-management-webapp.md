@@ -53,3 +53,10 @@ There are two ways to do this:
  * or, run `scripts/update_code.sh -e scripts/.production.env`.
 As above, the path after `-e` describes the location of your custom environment file and must match the file you used for provisioning.
 
+### Add a VNet integration to the App Service
+
+* Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / VNet Integration / Click here to configure
+* Click Add VNet (preview)
+* From the Virtual Network drop-down, select ${VNET_NAME}
+* Under Subnet, choose Select Existing and select ${SUBNET_NAME} from the drop-down
+* Click OK

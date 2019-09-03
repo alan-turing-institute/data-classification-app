@@ -151,6 +151,19 @@ create_keyvault() {
     az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}"
 }
 
+create_vnet() {
+    echo "Creating vnet"
+
+    # Create VNET
+    az network vnet create --name "${VNET_NAME}" --resource-group "${RESOURCE_GROUP}" --address-prefixes 10.0.0.0/16 --location "${LOCATION}"
+
+    # Create a service endpoint
+    az network vnet subnet create --resource-group "${RESOURCE_GROUP}" --name "${SUBNET_NAME}" --vnet-name "${VNET_NAME}"  --address-prefix 10.0.0.0/24 --service-endpoints Microsoft.SQL --delegations "Microsoft.Web/serverFarms"
+
+    # Create VNet rule on the DB sever to secure it to the subnet.
+    az postgres server vnet-rule create -n "${DB_VNET_RULE_NAME}" --resource-group "${RESOURCE_GROUP}" -s "${DB_SERVER_NAME}" --vnet-name "${VNET_NAME}" --subnet "${SUBNET_NAME}"
+}
+
 create_app() {
     echo "Creating the webapp"
 
@@ -224,9 +237,6 @@ create_mssql_db() {
     # Create the db server
     az sql server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}"
 
-    # Configure the firewall
-    az sql server firewall-rule create --server "${DB_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
-
     # Create the database
     az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${DB_SERVER_NAME}"
 
@@ -245,10 +255,7 @@ create_postgresql_db() {
     local database_url="postgresql://${db_username}@$DB_SERVER_NAME:${db_password}@$DB_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
 
     # Create the postgresql server
-    az postgres server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}" --sku-name B_Gen5_1 --ssl-enforcement Enabled
-
-    # Configure the firewall
-    az postgres server firewall-rule create --server "${DB_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
+    az postgres server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}" --sku-name GP_Gen5_2 --ssl-enforcement Enabled
 
     # Create the database
     az postgres db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${DB_SERVER_NAME}"
@@ -343,6 +350,7 @@ azure_login
 create_resource_group
 create_keyvault
 create_postgresql_db
+create_vnet
 create_app
 create_registration
 deploy_settings
@@ -353,10 +361,18 @@ cat <<EOF
 
 To complete the deployment:
 
-Set up IP restrictions for the SCM repository
+1. Set up IP restrictions for the SCM repository
 * Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
 * Select the ${APP_NAME}.scm.azurewebsites.net tab
 * Add a rule for each IP range to enable.
   * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
   * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
+
+2. Add a VNet integration to the App Service
+* Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / VNet Integration / Click here to configure
+* Click Add VNet (preview)
+* From the Virtual Network drop-down, select ${VNET_NAME}
+* Under Subnet, choose Select Existing and select ${SUBNET_NAME} from the drop-down
+* Click OK
+
 EOF
