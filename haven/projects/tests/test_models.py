@@ -4,7 +4,12 @@ from django.core.exceptions import ValidationError
 from core import recipes
 from data.classification import insert_initial_questions
 from data.models import ClassificationGuidance, ClassificationQuestion
-from projects.models import Policy, PolicyAssignment, PolicyGroup
+from projects.models import (
+    Policy,
+    PolicyAssignment,
+    PolicyGroup,
+    ProjectDataset,
+)
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
 
@@ -20,8 +25,8 @@ class TestProject:
             programme_manager
         )
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first() == part
+        assert project.participants.count() == 1
+        assert project.participants.first() == part
         assert part.user.username == 'project_participant@example.com'
         assert part.role == 'researcher'
         assert part.created_by == programme_manager
@@ -33,7 +38,7 @@ class TestProject:
 
         project.add_dataset(dataset, user1, programme_manager)
 
-        assert project.projectdataset_set.first().representative == user1
+        assert project.get_representative(dataset) == user1
 
     def test_add_dataset_wrong_role(self, programme_manager, user1):
         project = recipes.project.make()
@@ -167,7 +172,7 @@ class TestWorkPackage:
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        pd = project.projectdataset_set.first()
+        pd = ProjectDataset.objects.filter(project=project).first()
         pd.representative = data_rep2.user
         pd.save()
 

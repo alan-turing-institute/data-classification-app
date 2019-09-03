@@ -134,8 +134,8 @@ class ProjectList(LoginRequiredMixin, ListView):
         return super().get_queryset().\
             get_visible_projects(self.request.user).\
             annotate(you=FilteredRelation(
-                'participant',
-                condition=Q(participant__user=self.request.user))
+                'participants',
+                condition=Q(participants__user=self.request.user))
             ).\
             annotate(your_role=F('you__role')).\
             annotate(add_time=F('you__created_at')).\
@@ -146,7 +146,7 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
     def get_context_data(self, **kwargs):
         project = self.get_object()
         kwargs['participant'] = self.request.user.get_participant(project)
-        participants = project.participant_set.all()
+        participants = project.participants.all()
         kwargs['participants_table'] = ParticipantTable(participants)
         work_packages = project.work_packages.all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
@@ -258,7 +258,7 @@ class ProjectListParticipants(
         return self.get_project_role().can_list_participants
 
     def get_context_data(self, **kwargs):
-        kwargs['ordered_participants'] = self.get_object().ordered_participant_set()
+        kwargs['ordered_participants'] = self.get_object().ordered_participants()
         kwargs.update({"accessing_user": self.request.user})
         return super().get_context_data(**kwargs)
 
@@ -284,7 +284,7 @@ class EditProjectListParticipants(
 
     def get_participants(self):
         roles = self.get_assignable_roles()
-        return self.get_object().ordered_participant_set().filter(role__in=roles)
+        return self.get_object().ordered_participants().filter(role__in=roles)
 
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
@@ -348,7 +348,7 @@ class ProjectCreateDataset(
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        participants = self.get_object().participant_set
+        participants = self.get_object().participants
         participants = participants.filter(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         users = User.objects.filter(id__in=participants.values_list('user', flat=True))
         kwargs['representative_qs'] = users
@@ -659,7 +659,7 @@ class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
         if 'pk' in self.kwargs:
             # Autocomplete suggestions are users not already participating in this project
             project_id = self.kwargs['pk']
-            existing_users = Project.objects.get(pk=project_id).participant_set.values('user')
+            existing_users = Project.objects.get(pk=project_id).participants.values('user')
             qs = User.objects.exclude(pk__in=existing_users)
         else:
             qs = User.objects.all()

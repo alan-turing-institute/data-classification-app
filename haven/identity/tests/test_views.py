@@ -29,10 +29,10 @@ class TestCreateUser:
             'first_name': 'Test',
             'last_name': 'User',
             'mobile': '+443338888888',
-            'participant_set-TOTAL_FORMS': 1,
-            'participant_set-MAX_NUM_FORMS': 1,
-            'participant_set-MIN_NUM_FORMS': 0,
-            'participant_set-INITIAL_FORMS': 0,
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 0,
         }, follow=True)
 
         assert response.status_code == 200
@@ -45,12 +45,12 @@ class TestCreateUser:
             'first_name': 'Test',
             'last_name': 'User',
             'mobile': '+443338888888',
-            'participant_set-TOTAL_FORMS': 1,
-            'participant_set-MAX_NUM_FORMS': 1,
-            'participant_set-MIN_NUM_FORMS': 0,
-            'participant_set-INITIAL_FORMS': 0,
-            'participant_set-0-project': project.id,
-            'participant_set-0-role': 'researcher',
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 0,
+            'participants-0-project': project.id,
+            'participants-0-role': 'researcher',
         }, follow=True)
 
         assert response.status_code == 200
@@ -92,12 +92,12 @@ class TestEditUser:
                 'mobile': project_participant.mobile,
                 'first_name': project_participant.first_name,
                 'last_name': project_participant.last_name,
-                'participant_set-TOTAL_FORMS': 1,
-                'participant_set-MAX_NUM_FORMS': 1,
-                'participant_set-MIN_NUM_FORMS': 0,
-                'participant_set-INITIAL_FORMS': 0,
-                'participant_set-0-project': project.id,
-                'participant_set-0-role': 'researcher',
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 0,
+                'participants-0-project': project.id,
+                'participants-0-role': 'researcher',
             }, follow=True)
         assert response.status_code == 200
         assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
@@ -112,14 +112,14 @@ class TestEditUser:
                 'mobile': '+441234567890',
                 'first_name': 'E',
                 'last_name': 'F',
-                'participant_set-TOTAL_FORMS': 1,
-                'participant_set-MAX_NUM_FORMS': 1,
-                'participant_set-MIN_NUM_FORMS': 0,
-                'participant_set-INITIAL_FORMS': 1,
-                'participant_set-0-project': project.id,
-                'participant_set-0-role': 'researcher',
-                'participant_set-0-id': researcher.id,
-                'participant_set-0-DELETE': 'on',
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 1,
+                'participants-0-project': project.id,
+                'participants-0-role': 'researcher',
+                'participants-0-id': researcher.id,
+                'participants-0-DELETE': 'on',
             }, follow=True)
         assert response.status_code == 200
         assert user.project_participation_role(project) is None

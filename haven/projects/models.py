@@ -69,13 +69,16 @@ class Project(CreatedByModel):
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
 
-    def ordered_participant_set(self):
+    def ordered_participants(self):
         """Order participants on this project by their ProjectRole"""
         ordered_role_list = ProjectRole.ordered_display_role_list()
         order = Case(*[When(role=role, then=pos) for pos, role in
                        enumerate(ordered_role_list)])
-        return self.participant_set.filter(
+        return self.participants.filter(
             role__in=ordered_role_list).order_by(order)
+
+    def get_representative(self, dataset):
+        return ProjectDataset.objects.filter(project=self).first().representative
 
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
@@ -137,8 +140,8 @@ class WorkPackage(CreatedByModel):
             roles.add(c.role)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
-            for d in c.datasets.all():
-                datasets.add(d.dataset)
+            for d in c.datasets:
+                datasets.add(d)
 
         return roles >= required_roles and datasets >= required_datasets
 
@@ -255,8 +258,8 @@ class Participant(CreatedByModel):
         help_text="The participant's role on this project"
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='participants', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='participants', on_delete=models.CASCADE)
 
     class Meta(CreatedByModel.Meta):
         unique_together = ('user', 'project')
@@ -284,6 +287,10 @@ class ClassificationOpinion(CreatedByModel):
 
     def __str__(self):
         return f'{self.created_by}: {self.work_package} (tier {self.tier})'
+
+    @property
+    def datasets(self):
+        return [wpd.dataset for wpd in WorkPackageDataset.objects.filter(opinion=self)]
 
 
 class ClassificationOpinionQuestion(models.Model):
@@ -316,13 +323,13 @@ class PolicyAssignment(models.Model):
 
 
 class ProjectDataset(CreatedByModel):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
+    project = models.ForeignKey(Project, related_name='+', on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
+    representative = models.ForeignKey(User, related_name='+', on_delete=models.PROTECT, null=False)
 
 
 class WorkPackageDataset(CreatedByModel):
-    work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
+    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
-                                related_name='datasets', on_delete=models.SET_NULL)
+                                related_name='+', on_delete=models.SET_NULL)

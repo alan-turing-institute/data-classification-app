@@ -260,8 +260,8 @@ class TestAddUserToProject:
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == project_participant.username
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == project_participant.username
 
     def test_cancel_add_new_user_to_project(self, as_programme_manager, project_participant):
 
@@ -275,7 +275,7 @@ class TestAddUserToProject:
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 0
+        assert project.participants.count() == 0
 
     def test_add_user_without_domain_to_project(self, as_programme_manager):
         """Check that domain will not be added to entered username if the username exists as it is"""
@@ -291,14 +291,14 @@ class TestAddUserToProject:
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == 'newuser'
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == 'newuser'
 
     def test_cannot_add_existing_user_to_project(self, as_programme_manager, project_participant):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         project.add_user(project_participant, ProjectRole.RESEARCHER, as_programme_manager._user)
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
@@ -307,7 +307,7 @@ class TestAddUserToProject:
 
         assert response.status_code == 200
         assert response.context['project'] == project
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
     def test_cannot_add_nonexisting_user_to_project(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
@@ -320,7 +320,7 @@ class TestAddUserToProject:
         assert response.status_code == 200
         assert response.context['project'] == project
 
-        assert project.participant_set.count() == 0
+        assert project.participants.count() == 0
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
@@ -426,7 +426,7 @@ class TestProjectAddDataset:
         assert dataset.description == 'Dataset One'
         assert dataset.default_representative == user1
 
-        assert project.projectdataset_set.first().representative == user1
+        assert project.get_representative(dataset) == user1
 
     def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
