@@ -88,9 +88,10 @@ class ClassificationOpinionQuestionTable(tables.Table):
 
     @staticmethod
     def _create_column(classification):
-        column_name = 'user_{}'.format(classification.user.id)
+        user = classification.created_by
+        column_name = 'user_{}'.format(user.id)
         column = tables.BooleanColumn(
-            verbose_name=classification.user.username,
+            verbose_name=user.username,
             null=True,
             # This maybe doesn't belong in the footer, but it can't be data because it's
             # not a boolean

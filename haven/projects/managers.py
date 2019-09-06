@@ -11,7 +11,7 @@ class ProjectQuerySet(models.QuerySet):
         else:
             return self.filter(
                 Q(created_by=user) |
-                Q(participant__user=user)
+                Q(participants__user=user)
             ).distinct()
 
     def get_editable_projects(self, user):
@@ -20,7 +20,7 @@ class ProjectQuerySet(models.QuerySet):
         else:
             return self.filter(
                 Q(created_by=user) |
-                Q(participant__user=user, participant__role__in=[
+                Q(participants__user=user, participants__role__in=[
                     ProjectRole.PROJECT_MANAGER.value,
                     ProjectRole.INVESTIGATOR.value,
                 ]))

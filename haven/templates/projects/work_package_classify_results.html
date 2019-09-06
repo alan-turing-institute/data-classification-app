@@ -26,7 +26,12 @@
 {% if work_package.has_tier %}
   Work package is tier {{ work_package.tier }}
 {% elif not work_package.is_classification_ready %}
-<p>Classification incomplete</p>
+  <p>Classification incomplete:</p>
+  <ul>
+    {% for reason in work_package.missing_classification_requirements %}
+      <li>{{ reason }}</li>
+    {% endfor %}
+  </ul>
 {% elif work_package.tier_conflict %}
 <p>Users disagree on data tier</p>
 {% endif %}

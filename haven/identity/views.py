@@ -6,7 +6,7 @@ from crispy_forms.layout import Submit
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, UpdateView
@@ -141,7 +141,7 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
         return User.objects.get_visible_users(self.request.user)
 
     def get_context_data(self, **kwargs):
-        kwargs['ordered_user_list'] = User.ordered_participant_set()
+        kwargs['ordered_user_list'] = User.ordered_participants()
         return super().get_context_data(**kwargs)
 
 

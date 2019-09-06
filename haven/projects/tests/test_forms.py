@@ -30,7 +30,7 @@ class TestProjectAddUserForm:
         assert form.is_valid()
 
         form.save()
-        participant = project.participant_set.get()
+        participant = project.participants.get()
 
         assert participant.user == project_participant
 
@@ -48,7 +48,7 @@ class TestProjectAddUserForm:
         assert not form.is_valid()
         assert 'user' in form.errors
 
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
 
 @pytest.mark.django_db

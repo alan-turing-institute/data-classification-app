@@ -83,7 +83,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         username = self.cleaned_data['user']
 
         # Verify if user already exists on project
-        if self.project.participant_set.filter(
+        if self.project.participants.filter(
             user__username=username
         ).exists():
             raise ValidationError("User is already on project")

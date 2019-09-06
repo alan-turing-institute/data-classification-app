@@ -13,11 +13,23 @@ from .managers import ProjectQuerySet
 from .roles import ProjectRole
 
 
-class Project(models.Model):
+def validate_role(role):
+    """Validator for assigning a participant's role in a project"""
+    if not ProjectRole.is_valid_assignable_participant_role(role):
+        raise ValidationError('Not a valid ProjectRole string')
+
+
+class CreatedByModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
+
+    class Meta:
+        abstract = True
+
+
+class Project(CreatedByModel):
     name = models.CharField(max_length=256)
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
                                       blank=True)
@@ -57,13 +69,28 @@ class Project(models.Model):
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
 
-    def ordered_participant_set(self):
+    def ordered_participants(self):
         """Order participants on this project by their ProjectRole"""
         ordered_role_list = ProjectRole.ordered_display_role_list()
         order = Case(*[When(role=role, then=pos) for pos, role in
                        enumerate(ordered_role_list)])
-        return self.participant_set.filter(
+        return self.participants.filter(
             role__in=ordered_role_list).order_by(order)
+
+    def get_datasets(self, representative):
+        return [pd.dataset for pd in self.get_project_datasets(representative=representative)]
+
+    def get_representative(self, dataset):
+        dataset = self.get_project_datasets(dataset=dataset).first()
+        if dataset:
+            return dataset.representative
+        return None
+
+    def has_dataset(self, dataset):
+        return self.get_project_datasets(dataset=dataset).exists()
+
+    def get_project_datasets(self, **kwargs):
+        return ProjectDataset.objects.filter(project=self, **kwargs)
 
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
@@ -76,30 +103,7 @@ class Project(models.Model):
         return CRUDEvent.objects.filter(this_object | related)
 
 
-class ProjectDataset(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    representative = models.ForeignKey(User, on_delete=models.PROTECT, null=False)
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the dataset was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this dataset to the project',
-    )
-
-
-def validate_role(role):
-    """Validator for assigning a participant's role in a project"""
-    if not ProjectRole.is_valid_assignable_participant_role(role):
-        raise ValidationError('Not a valid ProjectRole string')
-
-
-class WorkPackage(models.Model):
+class WorkPackage(CreatedByModel):
     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE,
                                 related_name='work_packages')
     name = models.CharField(max_length=256)
@@ -117,25 +121,21 @@ class WorkPackage(models.Model):
         choices=TIER_CHOICES,
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the work package was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this work package to the project',
-    )
-
     @transaction.atomic
     def add_dataset(self, dataset, creator):
         # Verify if dataset exists on project
-        if not ProjectDataset.objects.filter(project=self.project, dataset=dataset).exists():
+        if not self.project.has_dataset(dataset):
             raise ValidationError('Dataset not assigned to project')
 
         WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
                                           created_by=creator)
+
+    def get_work_package_datasets(self, representative):
+        datasets = []
+        for dataset in self.project.get_datasets(representative):
+            for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=dataset):
+                datasets.append(wpd)
+        return datasets
 
     @property
     def is_classification_ready(self):
@@ -146,6 +146,19 @@ class WorkPackage(models.Model):
 
         :return: True if ready for classification, False otherwise.
         """
+
+        return self.missing_classification_requirements == []
+
+    @property
+    def missing_classification_requirements(self):
+        """
+        What conditions need to be fulfilled before the work package is ready for classification?
+
+        i.e. have all the required users been through the classification process
+
+        :return: List (possibly empty) of required changes
+        """
+
         required_roles = {
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             ProjectRole.INVESTIGATOR.value,
@@ -159,10 +172,20 @@ class WorkPackage(models.Model):
             roles.add(c.role)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
-            for d in c.datasets.all():
-                datasets.add(d.dataset)
+            for d in c.datasets:
+                datasets.add(d)
 
-        return roles >= required_roles and datasets >= required_datasets
+        missing_requirements = []
+        missing_roles = required_roles - roles
+        for r in missing_roles:
+            role = ProjectRole.display_name(r)
+            missing_requirements.append(f"Not classified by {role}")
+
+        missing_datasets = required_datasets - datasets
+        for d in missing_datasets:
+            missing_requirements.append(f"Not classified by representative for {d}")
+
+        return missing_requirements
 
     @property
     def tier_conflict(self):
@@ -213,16 +236,15 @@ class WorkPackage(models.Model):
 
         classification = ClassificationOpinion.objects.create(
             work_package=self,
-            user=by_user,
+            created_by=by_user,
             role=role.value,
             tier=tier,
         )
 
         if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE:
-            for pd in ProjectDataset.objects.filter(project=self.project, representative=by_user):
-                for wpd in WorkPackageDataset.objects.filter(work_package=self, dataset=pd.dataset):
-                    wpd.opinion = classification
-                    wpd.save()
+            for wpd in self.get_work_package_datasets(by_user):
+                wpd.opinion = classification
+                wpd.save()
 
         if questions:
             for i, q in enumerate(questions):
@@ -241,7 +263,7 @@ class WorkPackage(models.Model):
 
     def classification_for(self, user):
         return self.classifications.filter(
-            user=user
+            created_by=user
         )
 
     @property
@@ -266,25 +288,7 @@ class WorkPackage(models.Model):
         return f'{self.project} - {self.name}'
 
 
-class WorkPackageDataset(models.Model):
-    work_package = models.ForeignKey(WorkPackage, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.PROTECT)
-    opinion = models.ForeignKey('ClassificationOpinion', null=True,
-                                related_name='datasets', on_delete=models.SET_NULL)
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the dataset was added to the work package',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this dataset to the work package',
-    )
-
-
-class Participant(models.Model):
+class Participant(CreatedByModel):
     """
     Represents a user's participation in a project
     """
@@ -295,34 +299,22 @@ class Participant(models.Model):
         help_text="The participant's role on this project"
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='participants', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='participants', on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the user was added to the project',
-    )
-    created_by = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        related_name='+',
-        help_text='User who added this user to the project',
-    )
-
-    class Meta:
+    class Meta(CreatedByModel.Meta):
         unique_together = ('user', 'project')
 
     def __str__(self):
         return f'{self.user} ({self.get_role_display()} on {self.project})'
 
 
-class ClassificationOpinion(models.Model):
+class ClassificationOpinion(CreatedByModel):
     """
     Represents a user's opinion about the data tier classification of a work package
     """
     work_package = models.ForeignKey(WorkPackage, related_name='classifications',
                                      on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     role = models.CharField(
         max_length=50,
@@ -330,16 +322,16 @@ class ClassificationOpinion(models.Model):
         validators=[validate_role],
         help_text="The participant's role on this project at the time classification was made"
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Time the classification was made',
-    )
 
-    class Meta:
-        unique_together = ('user', 'work_package')
+    class Meta(CreatedByModel.Meta):
+        unique_together = ('created_by', 'work_package')
 
     def __str__(self):
-        return f'{self.user}: {self.work_package} (tier {self.tier})'
+        return f'{self.created_by}: {self.work_package} (tier {self.tier})'
+
+    @property
+    def datasets(self):
+        return [wpd.dataset for wpd in WorkPackageDataset.objects.filter(opinion=self)]
 
 
 class ClassificationOpinionQuestion(models.Model):
@@ -369,3 +361,16 @@ class Policy(models.Model):
 class PolicyAssignment(models.Model):
     tier = models.PositiveSmallIntegerField(choices=TIER_CHOICES)
     policy = models.ForeignKey(Policy, on_delete=models.PROTECT)
+
+
+class ProjectDataset(CreatedByModel):
+    project = models.ForeignKey(Project, related_name='+', on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
+    representative = models.ForeignKey(User, related_name='+', on_delete=models.PROTECT, null=False)
+
+
+class WorkPackageDataset(CreatedByModel):
+    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
+    opinion = models.ForeignKey('ClassificationOpinion', null=True,
+                                related_name='+', on_delete=models.SET_NULL)
