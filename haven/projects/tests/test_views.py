@@ -165,6 +165,33 @@ class TestViewWorkPackage:
 
         assert response.status_code == 404
 
+    def test_list_participants(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        user2, user3 = recipes.user.make(_quantity=2)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_user(user2, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+        project.add_user(user3, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(user2, as_programme_manager._user)
+        work_package.add_user(user3, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+        table = response.context['participants_table'].as_values()
+        assert list(table) == [
+            ['Username', 'Role'],
+            [user2.display_name(), 'Researcher'],
+            [user3.display_name(), 'Researcher'],
+        ]
+
 
 @pytest.mark.django_db
 class TestEditProject:
@@ -512,6 +539,35 @@ class TestWorkPackageListDatasets:
 
         assert response.status_code == 200
         assert list(response.context['datasets']) == [ds1, ds2]
+
+
+@pytest.mark.django_db
+class TestWorkPackageAddParticipant:
+    def test_add_participant(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        p1 = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/participants/new'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/participants/new' % (project.id, work_package.id),
+            {
+                'participant': p1.pk,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
+
+        assert work_package.participants.count() == 1
+        assert p1 == work_package.participants.first()
 
 
 @pytest.mark.django_db

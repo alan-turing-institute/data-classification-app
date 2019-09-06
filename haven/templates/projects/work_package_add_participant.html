@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{{ work_package.name }}: Add Dataset{% endblock %}
+{% block h1_title %}{{ work_package.name }}: Add Dataset{% endblock %}
+
+{% block content %}
+<p>
+  If the user you wish to add is not present below, they have not yet been added to the project.
+  {% if project_role.can_add_participants %}
+    Please <a href="{% url 'projects:add_user' work_package.project.id %}">add the user to the project</a> first.
+  {% else %}
+    Please contact someone with the appropriate credentials to add the user to the project.
+  {% endif %}
+</p>
+
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+{% endblock %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
+  <li class="breadcrumb-item">Participants</li>
+  <li class="breadcrumb-item active" aria-current="page">Add</li>
+{% endblock crumbs %}

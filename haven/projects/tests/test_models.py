@@ -525,3 +525,24 @@ class TestWorkPackage:
         ]
         table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
+
+    def test_add_participant(self, programme_manager, user1):
+        project = recipes.project.make()
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        work_package.add_user(user1, programme_manager)
+
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
+    def test_add_participant_not_on_project(self, programme_manager, user1):
+        project1 = recipes.project.make()
+        project2 = recipes.project.make()
+        project1.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                          programme_manager)
+        work_package = recipes.work_package.make(project=project2)
+
+        with pytest.raises(ValidationError):
+            work_package.add_user(user1, programme_manager)

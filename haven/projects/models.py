@@ -109,6 +109,8 @@ class WorkPackage(CreatedByModel):
     name = models.CharField(max_length=256)
     description = models.TextField()
 
+    participants = models.ManyToManyField('Participant', related_name='work_packages',
+                                          through='WorkPackageParticipant', blank=True)
     datasets = models.ManyToManyField(Dataset, related_name='work_packages',
                                       through='WorkPackageDataset', blank=True)
 
@@ -127,8 +129,28 @@ class WorkPackage(CreatedByModel):
         if not self.project.has_dataset(dataset):
             raise ValidationError('Dataset not assigned to project')
 
-        WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
-                                          created_by=creator)
+        return WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
+                                                 created_by=creator)
+
+    @transaction.atomic
+    def add_user(self, user, creator):
+        """
+        Add user to this work package
+        User must already exist on project, and not on work package
+
+        :param user: user to add
+        :param creator: `User` who is doing the adding
+        """
+
+        participant = user.get_participant(self.project)
+        if participant is None:
+            raise ValidationError("User is not on project")
+
+        qs = WorkPackageParticipant.objects
+        if qs.filter(work_package=self, participant=participant).exists():
+            raise ValidationError("User is already on work package")
+
+        return qs.create(work_package=self, participant=participant, created_by=creator)
 
     def get_work_package_datasets(self, representative):
         datasets = []
@@ -381,3 +403,8 @@ class WorkPackageDataset(CreatedByModel):
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
                                 related_name='+', on_delete=models.SET_NULL)
+
+
+class WorkPackageParticipant(CreatedByModel):
+    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    participant = models.ForeignKey(Participant, related_name='+', on_delete=models.CASCADE)

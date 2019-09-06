@@ -20,20 +20,25 @@ from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserPermissionRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
-from projects.forms import (
-    ParticipantInlineFormSetHelper,
-    UsersForProjectInlineFormSet,
-)
 
 from .forms import (
+    ParticipantInlineFormSetHelper,
     ProjectAddDatasetForm,
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
     ProjectForm,
+    UsersForProjectInlineFormSet,
     WorkPackageAddDatasetForm,
+    WorkPackageAddParticipantForm,
     WorkPackageClassifyDeleteForm,
 )
-from .models import ClassificationOpinion, Participant, Project, WorkPackage
+from .models import (
+    ClassificationOpinion,
+    Participant,
+    Project,
+    WorkPackage,
+    WorkPackageParticipant,
+)
 from .roles import ProjectRole
 from .tables import (
     ClassificationOpinionQuestionTable,
@@ -54,7 +59,7 @@ class ProjectMixin:
     def get_project(self):
         try:
             projects = self.get_project_queryset()
-            return projects.get(id=self.kwargs[self.get_project_url_kwarg()])
+            return projects.get(pk=self.kwargs[self.get_project_url_kwarg()])
         except Project.DoesNotExist:
             raise Http404("No project found matching the query")
 
@@ -90,20 +95,43 @@ class SingleProjectMixin(ProjectMixin, SingleObjectMixin):
         return self.get_object()
 
 
-class SingleWorkPackageMixin(ProjectMixin, SingleObjectMixin):
-    model = WorkPackage
-    context_object_name = 'work_package'
+class WorkPackageMixin(ProjectMixin):
+    def get_work_package_queryset(self, qs=None):
+        if not qs:
+            qs = self.get_project().work_packages
+        return qs
+
+    def get_work_package(self):
+        try:
+            work_packages = self.get_work_package_queryset()
+            return work_packages.get(pk=self.kwargs[self.get_work_package_url_kwarg()])
+        except WorkPackage.DoesNotExist:
+            raise Http404("No work package found matching the query")
+
+    def get_work_package_url_kwarg(self):
+        return 'pk'
 
     def get_project_url_kwarg(self):
         return 'project_pk'
 
-    def get_queryset(self):
-        return self.get_project().work_packages
+    def get_context_data(self, **kwargs):
+        kwargs['work_package'] = self.get_work_package()
+        return super().get_context_data(**kwargs)
 
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)
-        form.work_package = self.get_object()
+        form.work_package = self.get_work_package()
         return form
+
+
+class SingleWorkPackageMixin(WorkPackageMixin, SingleObjectMixin):
+    model = WorkPackage
+
+    def get_queryset(self):
+        return self.get_work_package_queryset()
+
+    def get_work_package(self):
+        return self.get_object()
 
 
 class ProjectCreate(
@@ -426,6 +454,9 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         datasets = work_package.datasets.all()
         context['datasets_table'] = DatasetTable(datasets)
 
+        participants = work_package.participants.all()
+        context['participants_table'] = ParticipantTable(participants)
+
         context['can_classify'] =  work_package.has_datasets and not work_package.has_tier
         context['has_classified'] = work_package.has_user_classified(self.request.user)
 
@@ -475,6 +506,37 @@ class WorkPackageAddDataset(
             return HttpResponseRedirect(url)
         form = self.get_form()
         self.object = self.get_object()
+        if form.is_valid():
+            form.save()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+
+class WorkPackageAddParticipant(
+    LoginRequiredMixin, UserPassesTestMixin,
+    UserFormKwargsMixin, WorkPackageMixin, CreateView
+):
+    template_name = 'projects/work_package_add_participant.html'
+    model = WorkPackageParticipant
+    form_class = WorkPackageAddParticipantForm
+
+    def get_success_url(self):
+        return self.get_work_package().get_absolute_url()
+
+    def test_func(self):
+        return self.get_project_role().can_add_participants
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.setdefault('work_package', self.get_work_package())
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
         if form.is_valid():
             form.save()
             return self.form_valid(form)
