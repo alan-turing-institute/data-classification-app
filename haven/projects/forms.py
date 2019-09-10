@@ -27,7 +27,7 @@ class ParticipantInlineFormSetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.form_tag = False
-        self.template = 'projects/participants_inline_formset.html'
+        self.template = 'projects/includes/participants_inline_formset.html'
 
 
 class ProjectForm(SaveCreatorMixin, forms.ModelForm):

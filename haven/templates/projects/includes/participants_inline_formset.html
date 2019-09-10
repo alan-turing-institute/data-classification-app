@@ -1,0 +1,20 @@
+{% extends "includes/table_inline_formset.html" %}
+
+{% block extra_headings %}
+    <th>User</th>
+{% endblock %}
+
+{% block extra_values %}
+    <td class="form-group">
+
+        {% if user.user_role.can_edit_users %}
+            <a href="{% url 'identity:edit_user' form.project_user.id %}">
+        {% endif %}
+
+        {{ form.project_user.display_name }}
+
+        {% if user.user_role.can_edit_users %}
+            </a>
+        {% endif %}
+    </td>
+{% endblock %}
