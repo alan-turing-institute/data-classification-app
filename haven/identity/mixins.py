@@ -9,10 +9,13 @@ class UserRoleRequiredMixin(UserPassesTestMixin):
     user_roles = []
 
     def test_func(self):
-        return (
-            self.request.user.is_superuser or
-            self.request.user.user_role in self.user_roles
-        )
+        try:
+            return (
+                self.request.user.is_superuser or
+                self.request.user.user_role in self.user_roles
+            )
+        except AttributeError:
+            return False
 
 
 class SaveCreatorMixin(UserKwargModelFormMixin):

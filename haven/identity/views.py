@@ -5,10 +5,10 @@ from braces.views import UserFormKwargsMixin
 from crispy_forms.layout import Submit
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import ListView, View
 from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
@@ -23,14 +23,18 @@ from .roles import UserRole
 
 class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
-                 UserRoleRequiredMixin,
+                 UserPassesTestMixin,
                  CreateView):
     """View for creating a new user"""
 
     form_class = CreateUserForm
     model = User
 
-    user_roles = [UserRole.SYSTEM_MANAGER]
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_create_users
+        except AttributeError:
+            return False
 
     def get_success_url(self):
         return reverse('identity:list')
@@ -80,7 +84,11 @@ class UserEdit(LoginRequiredMixin,
     model = User
     template_name = 'identity/user_form.html'
 
-    user_roles = [UserRole.SYSTEM_MANAGER]
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_edit_users
+        except AttributeError:
+            return False
 
     def get_success_url(self):
         return reverse('identity:list')
@@ -129,13 +137,17 @@ class UserEdit(LoginRequiredMixin,
             return self.form_invalid(form)
 
 
-class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
+class UserList(LoginRequiredMixin, UserPassesTestMixin, ListView):
     """List of users"""
 
     context_object_name = 'users'
     model = User
 
-    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_view_all_users
+        except AttributeError:
+            return False
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
@@ -145,7 +157,12 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
         return super().get_context_data(**kwargs)
 
 
-class ExportUsers(View):
+class ExportUsers(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_export_users
+        except AttributeError:
+            return False
 
     def get(self, request):
         """Export list of users as a UserCreate.csv file"""
@@ -181,7 +198,12 @@ class ExportUsers(View):
         return response
 
 
-class ImportUsers(View):
+class ImportUsers(LoginRequiredMixin, UserPassesTestMixin, View):
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_import_users
+        except AttributeError:
+            return False
 
     def post(self, request):
         """Import list of users from an uploaded file"""
@@ -220,7 +242,7 @@ class ImportUsers(View):
 
             except Exception as e:
                 messages.error(request,
-                            "The file could not be processed. Error: " + repr(e))
+                               "The file could not be processed. Error: " + repr(e))
 
         return HttpResponseRedirect(reverse("identity:list"))
 

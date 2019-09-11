@@ -29,7 +29,9 @@ class TestCreateUser:
     def test_view_page_as_pm(self, as_programme_manager):
         response = as_programme_manager.get('/users/new')
 
-        assert response.status_code == 403
+        assert response.status_code == 200
+        assert response.context['form']
+        assert response.context['formset']
 
     def test_create_user(self, as_system_manager):
         response = as_system_manager.post('/users/new', {
@@ -94,7 +96,8 @@ class TestEditUser:
     def test_view_page_as_pm(self, as_programme_manager, project_participant):
         response = as_programme_manager.get(
             '/users/%d/edit' % project_participant.id)
-        assert response.status_code == 403
+        assert response.status_code == 200
+        assert response.context['formset']
 
     def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
@@ -153,17 +156,12 @@ class TestExportUsers:
         return list(reader)
 
     def test_export_as_anonymous(self, client, helpers):
-        with pytest.raises(AttributeError):
-            client.get('/users/export')
+        response = client.get('/users/export')
+        helpers.assert_login_redirect(response)
 
     def test_export_as_participant(self, as_project_participant):
         response = as_project_participant.get('/users/export')
-        assert response.status_code == 200
-        assert response['Content-Type'] == 'text/csv'
-        parsed = self.parse_csv_response(response)
-        assert parsed == [
-            ['SamAccountName', 'GivenName', 'Surname', 'Mobile', 'SecondaryEmail'],
-        ]
+        assert response.status_code == 403
 
     def test_export_as_pm(self, as_programme_manager):
         response = as_programme_manager.get('/users/export')
@@ -178,7 +176,7 @@ class TestExportUsers:
 
 @pytest.mark.django_db
 class TestImportUsers:
-    def post_csv(self, client):
+    def post_csv(self, client, follow=True):
         f = io.StringIO(
             'Email,Last Name,First Name,Mobile Phone,Other field\n'
             'em1@email.com,ln1,fn1,01234567890,other1\n'
@@ -188,11 +186,11 @@ class TestImportUsers:
         f.name = 'import.csv'
         return client.post('/users/import', {
             'upload_file': f,
-        }, follow=True)
+        }, follow=follow)
 
     def test_import_as_anonymous(self, client, helpers):
-        response = self.post_csv(client)
-        assert response.status_code == 400
+        response = self.post_csv(client, follow=False)
+        helpers.assert_login_redirect(response)
         assert [u.username for u in User.objects.all()] == []
 
     def test_import_as_participant(self, as_project_participant):
@@ -200,9 +198,6 @@ class TestImportUsers:
         assert response.status_code == 403
         assert [u.username for u in User.objects.all()] == [
             'project_participant@example.com',
-            'fn1.ln1@example.com',
-            'fn2.ln2@example.com',
-            'fn3.ln3@example.com',
         ]
 
     def test_import_as_pm(self, as_programme_manager):
