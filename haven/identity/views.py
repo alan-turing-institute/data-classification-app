@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, View
 from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
@@ -145,80 +145,84 @@ class UserList(LoginRequiredMixin, UserRoleRequiredMixin, ListView):
         return super().get_context_data(**kwargs)
 
 
-def export_users(request):
-    """Export list of users as a UserCreate.csv file"""
+class ExportUsers(View):
 
-    # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="UserCreate.csv"'
+    def get(self, request):
+        """Export list of users as a UserCreate.csv file"""
 
-    writer = csv.writer(response)
+        # Create the HttpResponse object with the appropriate CSV header.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="UserCreate.csv"'
 
-    writer.writerow([
-        'SamAccountName',
-        'GivenName',
-        'Surname',
-        'Mobile',
-        'SecondaryEmail'
-    ])
-
-    # Write out all users visible to the current user
-    for user in User.objects.get_visible_users(request.user):
-
-        # Remove the domain from the username
-        username = user.username.split('@')[0]
+        writer = csv.writer(response)
 
         writer.writerow([
-            username,
-            user.first_name,
-            user.last_name,
-            user.mobile,
-            user.email
+            'SamAccountName',
+            'GivenName',
+            'Surname',
+            'Mobile',
+            'SecondaryEmail'
         ])
 
-    return response
+        # Write out all users visible to the current user
+        for user in User.objects.get_visible_users(request.user):
+
+            # Remove the domain from the username
+            username = user.username.split('@')[0]
+
+            writer.writerow([
+                username,
+                user.first_name,
+                user.last_name,
+                user.mobile,
+                user.email
+            ])
+
+        return response
 
 
-def import_users(request):
-    """Import list of users from an uploaded file"""
+class ImportUsers(View):
 
-    if "POST" == request.method and request.FILES and request.FILES["upload_file"]:
-        try:
-            upload_file = request.FILES["upload_file"]
+    def post(self, request):
+        """Import list of users from an uploaded file"""
 
-            if upload_file.name.endswith('.xlsx'):
-                users = xlsx_users(upload_file)
+        if "POST" == request.method and request.FILES and request.FILES["upload_file"]:
+            try:
+                upload_file = request.FILES["upload_file"]
 
-            elif upload_file.name.endswith('.csv'):
-                users = csv_users(upload_file.read().decode("utf-8"))
+                if upload_file.name.endswith('.xlsx'):
+                    users = xlsx_users(upload_file)
 
-            else:
-                messages.error(request, 'Can only import .csv or .xlsx files')
-                return HttpResponseRedirect(reverse("identity:list"))
+                elif upload_file.name.endswith('.csv'):
+                    users = csv_users(upload_file.read().decode("utf-8"))
 
-            for new_user in users:
-
-                # Construct a string for displaying as a message
-                user_string = new_user.first_name + " " + new_user.last_name \
-                              + " (" + new_user.email + ")"
-
-                # Check whether a user with this name and email already exists
-                if User.objects.filter(
-                    email=new_user.email
-                ).exists():
-                    messages.info(request, "Email already exists:  " + user_string)
                 else:
-                    # Save the new user to the database
-                    new_user.generate_username()
-                    new_user.created_by = request.user
-                    new_user.save()
-                    messages.info(request, "Created user " + user_string)
+                    messages.error(request, 'Can only import .csv or .xlsx files')
+                    return HttpResponseRedirect(reverse("identity:list"))
 
-        except Exception as e:
-            messages.error(request,
-                           "The file could not be processed. Error: " + repr(e))
+                for new_user in users:
 
-    return HttpResponseRedirect(reverse("identity:list"))
+                    # Construct a string for displaying as a message
+                    user_string = new_user.first_name + " " + new_user.last_name \
+                                + " (" + new_user.email + ")"
+
+                    # Check whether a user with this name and email already exists
+                    if User.objects.filter(
+                        email=new_user.email
+                    ).exists():
+                        messages.info(request, "Email already exists:  " + user_string)
+                    else:
+                        # Save the new user to the database
+                        new_user.generate_username()
+                        new_user.created_by = request.user
+                        new_user.save()
+                        messages.info(request, "Created user " + user_string)
+
+            except Exception as e:
+                messages.error(request,
+                            "The file could not be processed. Error: " + repr(e))
+
+        return HttpResponseRedirect(reverse("identity:list"))
 
 
 def csv_users(lines):
