@@ -5,7 +5,7 @@ from braces.views import UserFormKwargsMixin
 from crispy_forms.layout import Submit
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import ListView, View
@@ -16,24 +16,20 @@ from core.forms import InlineFormSetHelper
 from projects.forms import ProjectsForUserInlineFormSet
 
 from .forms import CreateUserForm, EditUserForm
+from .mixins import UserPermissionRequiredMixin
 from .models import User
 from .roles import UserRole
 
 
 class UserCreate(LoginRequiredMixin,
                  UserFormKwargsMixin,
-                 UserPassesTestMixin,
+                 UserPermissionRequiredMixin,
                  CreateView):
     """View for creating a new user"""
 
     form_class = CreateUserForm
     model = User
-
-    def test_func(self):
-        try:
-            return self.request.user.user_role.can_create_users
-        except AttributeError:
-            return False
+    user_permissions = ['can_create_users']
 
     def get_success_url(self):
         return reverse('identity:list')
@@ -75,19 +71,14 @@ class UserCreate(LoginRequiredMixin,
 
 class UserEdit(LoginRequiredMixin,
                UserFormKwargsMixin,
-               UserPassesTestMixin,
+               UserPermissionRequiredMixin,
                UpdateView):
     """View for modifying an existing user"""
 
     form_class = EditUserForm
     model = User
     template_name = 'identity/user_form.html'
-
-    def test_func(self):
-        try:
-            return self.request.user.user_role.can_edit_users
-        except AttributeError:
-            return False
+    user_permissions = ['can_edit_users']
 
     def get_success_url(self):
         return reverse('identity:list')
@@ -136,17 +127,12 @@ class UserEdit(LoginRequiredMixin,
             return self.form_invalid(form)
 
 
-class UserList(LoginRequiredMixin, UserPassesTestMixin, ListView):
+class UserList(LoginRequiredMixin, UserPermissionRequiredMixin, ListView):
     """List of users"""
 
     context_object_name = 'users'
     model = User
-
-    def test_func(self):
-        try:
-            return self.request.user.user_role.can_view_all_users
-        except AttributeError:
-            return False
+    user_permissions = ['can_view_all_users']
 
     def get_queryset(self):
         return User.objects.get_visible_users(self.request.user)
@@ -156,12 +142,8 @@ class UserList(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return super().get_context_data(**kwargs)
 
 
-class ExportUsers(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        try:
-            return self.request.user.user_role.can_export_users
-        except AttributeError:
-            return False
+class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
+    user_permissions = ['can_export_users']
 
     def get(self, request):
         """Export list of users as a UserCreate.csv file"""
@@ -197,12 +179,8 @@ class ExportUsers(LoginRequiredMixin, UserPassesTestMixin, View):
         return response
 
 
-class ImportUsers(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        try:
-            return self.request.user.user_role.can_import_users
-        except AttributeError:
-            return False
+class ImportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
+    user_permissions = ['can_import_users']
 
     def post(self, request):
         """Import list of users from an uploaded file"""
