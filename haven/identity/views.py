@@ -16,7 +16,6 @@ from core.forms import InlineFormSetHelper
 from projects.forms import ProjectsForUserInlineFormSet
 
 from .forms import CreateUserForm, EditUserForm
-from .mixins import UserRoleRequiredMixin
 from .models import User
 from .roles import UserRole
 
@@ -76,7 +75,7 @@ class UserCreate(LoginRequiredMixin,
 
 class UserEdit(LoginRequiredMixin,
                UserFormKwargsMixin,
-               UserRoleRequiredMixin,
+               UserPassesTestMixin,
                UpdateView):
     """View for modifying an existing user"""
 

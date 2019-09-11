@@ -17,7 +17,6 @@ from formtools.wizard.views import SessionWizardView
 from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationGuidance, ClassificationQuestion
-from identity.mixins import UserRoleRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
 from projects.forms import (
@@ -107,13 +106,17 @@ class SingleWorkPackageMixin(ProjectMixin, SingleObjectMixin):
 
 
 class ProjectCreate(
-    LoginRequiredMixin, UserRoleRequiredMixin,
+    LoginRequiredMixin, UserPassesTestMixin,
     UserFormKwargsMixin, CreateView
 ):
     model = Project
     form_class = ProjectForm
 
-    user_roles = [UserRole.SYSTEM_MANAGER, UserRole.PROGRAMME_MANAGER]
+    def test_func(self):
+        try:
+            return self.request.user.user_role.can_create_projects
+        except AttributeError:
+            return False
 
     def get_success_url(self):
         return reverse('projects:list')
