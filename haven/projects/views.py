@@ -426,6 +426,9 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         datasets = work_package.datasets.all()
         context['datasets_table'] = DatasetTable(datasets)
 
+        context['can_classify'] =  work_package.has_datasets and not work_package.has_tier
+        context['has_classified'] = work_package.has_user_classified(self.request.user)
+
         if work_package.has_tier:
             # Don't show these until we have a tier, to avoid influencing anybody that
             # hasn't classified yet
