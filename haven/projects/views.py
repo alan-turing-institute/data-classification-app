@@ -503,7 +503,9 @@ class WorkPackageClassifyData(
                 created_by=self.request.user
             ).first()
             if classification:
-                return self.render_result(classification)
+                url = reverse('projects:classify_results',
+                              args=[self.object.project.id, self.object.id])
+                return HttpResponseRedirect(url)
 
         self.form_list = OrderedDict()
         self.condition_dict = {}
@@ -584,17 +586,36 @@ class WorkPackageClassifyData(
 
         classification = self.object.classify_as(tier, self.request.user, questions)
 
-        return self.render_result(classification)
-
-    def render_result(self, classification):
-        """
-        Show the classification result, along with that of other users
-        (and the project's final classification, if available yet)
-        """
         self.object.calculate_tier()
+        url = reverse('projects:classify_results', args=[self.object.project.id, self.object.id])
+        return HttpResponseRedirect(url)
 
-        other_classifications = self.object.classifications.exclude(
-            created_by=self.request.user)
+    def get_form(self, *args, **kwargs):
+        # Both SessionWizardView and SingleProjectMixin define a get_form function
+        # SessionWizardView calls it a *lot*, and the definition in SingleProjectMixin
+        # results in a database call that we really don't need
+        return SessionWizardView.get_form(self, *args, **kwargs)
+
+
+class WorkPackageClassifyResults(
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_classify_results.html'
+
+    def dispatch(self, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Before doing anything on this view, determine whether this user has already classified
+        # the work package. If they have not, then redirect them to the classification form.
+        classification = self.object.classification_for(self.request.user).first()
+        if not classification:
+            url = reverse('projects:classify_data', args=[self.object.project.id, self.object.id])
+            return HttpResponseRedirect(url)
+
+        # Show the classification result, along with that of other users (and the project's final
+        # classification, if available yet)
+
+        other_classifications = self.object.classifications.exclude(created_by=self.request.user)
 
         table = ClassificationOpinionQuestionTable(
             [classification] + list(other_classifications)
@@ -607,11 +628,9 @@ class WorkPackageClassifyData(
             'questions_table': table,
         })
 
-    def get_form(self, *args, **kwargs):
-        # Both SessionWizardView and SingleProjectMixin define a get_form function
-        # SessionWizardView calls it a *lot*, and the definition in SingleProjectMixin
-        # results in a database call that we really don't need
-        return SessionWizardView.get_form(self, *args, **kwargs)
+    def test_func(self):
+        role = self.get_project_role()
+        return role.can_classify_data if role else False
 
 
 class WorkPackageClassifyDelete(

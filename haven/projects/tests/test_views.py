@@ -693,7 +693,7 @@ class TestWorkPackageClassifyData:
 
         work_package.classify_as(0, as_investigator._user)
 
-        response = as_investigator.get(self.url(work_package))
+        response = as_investigator.get(self.url(work_package), follow=True)
 
         assert 'wizard' not in response.context
 
@@ -703,7 +703,7 @@ class TestWorkPackageClassifyData:
 
         work_package.classify_as(0, as_investigator._user)
 
-        response = as_investigator.get(self.url(work_package))
+        response = as_investigator.get(self.url(work_package), follow=True)
         assert b'Delete My Classification' in response.content
 
         response = as_investigator.get(self.url(work_package, 'classify_delete'))
@@ -711,7 +711,7 @@ class TestWorkPackageClassifyData:
 
         response = as_investigator.post(self.url(work_package, 'classify_delete'))
 
-        response = as_investigator.get(self.url(work_package))
+        response = as_investigator.get(self.url(work_package), follow=True)
         assert 'wizard' in response.context
         assert b'Delete My Classification' not in response.content
 
@@ -724,7 +724,7 @@ class TestWorkPackageClassifyData:
             data['work_package_classify_data-current_step'] = current
             if answer:
                 data[f"{current}-question"] = 'on'
-            response = as_investigator.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data, follow=True)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
@@ -755,7 +755,7 @@ class TestWorkPackageClassifyData:
                 data[f"{current}-question"] = 'on'
             if goto:
                 data['wizard_goto_step'] = goto,
-            response = as_investigator.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data, follow=True)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
@@ -790,7 +790,7 @@ class TestWorkPackageClassifyData:
             data['work_package_classify_data-current_step'] = current
             if answer:
                 data[f"{current}-question"] = 'on'
-            response = as_investigator.post(self.url(work_package), data)
+            response = as_investigator.post(self.url(work_package), data, follow=True)
             if next:
                 assert 'wizard' in response.context
                 assert response.context['wizard']['steps'].current == next
