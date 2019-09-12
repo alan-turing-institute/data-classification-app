@@ -4,6 +4,7 @@ from collections import OrderedDict
 from braces.views import UserFormKwargsMixin
 from crispy_forms.layout import Submit
 from dal import autocomplete
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import F, FilteredRelation, Q
 from django.http import Http404, HttpResponseRedirect
@@ -731,6 +732,10 @@ class WorkPackageClassifyData(
                 created_by=self.request.user
             ).first()
             if classification:
+                messages.error(
+                    self.request,
+                    'You have already completed classification. Please delete your classification '
+                    'if you wish to change any answers.')
                 url = reverse('projects:classify_results',
                               args=[self.object.project.id, self.object.id])
                 return HttpResponseRedirect(url)

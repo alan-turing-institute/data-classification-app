@@ -951,6 +951,10 @@ class TestWorkPackageClassifyData:
         response = as_investigator.get(self.url(work_package), follow=True)
 
         assert 'wizard' not in response.context
+        assert [m.message for m in response.context['messages']] == [
+            'You have already completed classification. Please delete your classification if you '
+            'wish to change any answers.'
+        ]
 
     def test_delete_classification(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
