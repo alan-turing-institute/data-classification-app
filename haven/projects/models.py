@@ -275,6 +275,9 @@ class WorkPackage(CreatedByModel):
     def has_datasets(self):
         return self.datasets.exists()
 
+    def has_user_classified(self, user):
+        return self.classification_for(user).exists()
+
     def get_policies(self):
         if not self.has_tier:
             return []
