@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+
+{% load haven %}
 {% load project_tags %}
 
 {% block page_title %}{{ project.name }}: Participants{% endblock %}
@@ -12,13 +14,14 @@
           <tr>
             <td>
 
-              {% if user.user_role.can_edit_users %}
-                <a href="{% url 'identity:edit_user' participant.user.id %}">
+              {% url_check 'identity:edit_user' participant.user.id as edit_user_href %}
+              {% if edit_user_href %}
+                <a href="{{ edit_user_href}}">
               {% endif %}
 
-                {{ participant.user.display_name }}
+              {{ participant.user.display_name }}
 
-              {% if user.user_role.can_edit_users %}
+              {% if edit_user_href %}
                 </a>
               {% endif %}
               <br/>
@@ -37,9 +40,13 @@
 {% endblock content %}
 
 {% block actions %}
-  {% if project_role.can_add_participants %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:edit_participants' project.id %}">Edit Participants</a>
+  {% url_check 'projects:add_user' project.id as add_user_href %}
+  {% if add_user_href %}
+    <a class="btn btn-primary btn-lg" href="{{ add_user_href }}">Add Participant</a>
+  {% endif %}
+  {% url_check 'projects:edit_participants' project.id as edit_user_href %}
+  {% if edit_user_href %}
+    <a class="btn btn-primary btn-lg" href="{{ edit_user_href }}">Edit Participants</a>
   {% endif %}
 {% endblock actions%}
 

@@ -1,12 +1,17 @@
 {% extends "includes/section.html" %}
 {% load django_tables2 %}
+{% load haven %}
 
 {% block name %}<a href="{% url 'projects:list_participants' project.id %}">Participants</a>{% endblock %}
 
 {% block actions %}
-  {% if project_role.can_add_participants %}
-    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:add_user' project.id %}">Add Participant</a>
-    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit_participants' project.id %}">Edit Participants</a>
+  {% url_check 'projects:add_user' project.id as add_user_href %}
+  {% if add_user_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ add_user_href }}">Add Participant</a>
+  {% endif %}
+  {% url_check 'projects:edit_participants' project.id as edit_user_href %}
+  {% if edit_user_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_user_href }}">Edit Participants</a>
   {% endif %}
 {% endblock %}
 

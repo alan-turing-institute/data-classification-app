@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+
+{% load haven %}
 {% load project_tags %}
 
 {% block page_title %}Projects{% endblock %}
@@ -25,8 +27,9 @@
 {% endblock content %}
 
 {% block actions %}
-  {% if user.user_role.can_create_projects %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:create' %}">Create Project</a>
+  {% url_check 'projects:create' as create_project_url %}
+  {% if create_project_url %}
+    <a class="btn btn-primary btn-lg" href="{{ create_project_url }}">Create Project</a>
   {% endif %}
 {% endblock actions %}
 

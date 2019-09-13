@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load django_tables2 %}
+{% load haven %}
 
 {% block page_title %}{{ project.name }}{% endblock %}
 {% block h1_title %}{{ project.name }}{% endblock %}
@@ -17,11 +18,13 @@
 {% endblock content %}
 
 {% block actions %}
-  {% if project_role.can_edit %}
-    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:edit' project.id %}">Edit Project</a>
+  {% url_check 'projects:edit' project.id as edit_project_href %}
+  {% if edit_project_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_project_href }}">Edit Project</a>
   {% endif %}
-  {% if project_role.can_view_history %}
-    <a class="btn btn-primary btn-lg my-1" href="{% url 'projects:history' project.id %}">History</a>
+  {% url_check 'projects:history' project.id as history_href %}
+  {% if history_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ history_href }}">History</a>
   {% endif %}
 {% endblock %}
 

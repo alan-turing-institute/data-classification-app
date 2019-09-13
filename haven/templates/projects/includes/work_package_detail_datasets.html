@@ -1,5 +1,6 @@
 {% extends "includes/section.html" %}
 {% load django_tables2 %}
+{% load haven %}
 
 {% block name %}
   <a href="{% url 'projects:work_package_list_datasets' work_package.project.id work_package.id %}">Datasets</a>
@@ -10,11 +11,13 @@
 {% endblock %}
 
 {% block actions %}
-  {% if project_role.can_add_datasets %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:work_package_add_dataset' work_package.project.id work_package.id %}">Add Dataset</a>
+  {% url_check 'projects:work_package_add_dataset' work_package.project.id work_package.id as add_dataset_href %}
+  {% if add_dataset_href %}
+    <a class="btn btn-primary btn-lg" href="{{ add_dataset_href }}">Add Dataset</a>
   {% endif %}
 
-  {% if project_role.can_classify_data and not work_package.has_tier and work_package.has_datasets %}
-    <a class="btn btn-primary btn-lg" href="{% url 'projects:classify_data' work_package.project.id work_package.id %}">Classify Data</a>
+  {% url_check 'projects:classify_data' work_package.project.id work_package.id as classify_data_href %}
+  {% if classify_data_href and not work_package.has_tier and work_package.has_datasets %}
+    <a class="btn btn-primary btn-lg" href="{{ classify_data_href }}">Classify Data</a>
   {% endif %}
 {% endblock actions %}
