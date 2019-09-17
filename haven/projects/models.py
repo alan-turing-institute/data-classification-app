@@ -183,7 +183,8 @@ class WorkPackage(CreatedByModel):
 
         missing_datasets = required_datasets - datasets
         for d in missing_datasets:
-            missing_requirements.append(f"Not classified by representative for {d}")
+            role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+            missing_requirements.append(f"Not classified by {role} for dataset: {d}")
 
         return missing_requirements
 
