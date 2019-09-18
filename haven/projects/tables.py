@@ -6,6 +6,16 @@ from django.utils.html import format_html
 from django_bleach.utils import get_bleach_default_options
 
 
+def bleach_no_links(value):
+    kwargs = dict(get_bleach_default_options())
+    value = bleach.clean(value, **kwargs)
+
+    kwargs['tags'] = [t for t in kwargs['tags'] if t != 'a']
+    kwargs['strip'] = True
+    value = bleach.clean(value, **kwargs)
+    return value
+
+
 class ParticipantTable(tables.Table):
     username = tables.Column('Username', accessor='user.display_name')
     role = tables.Column('Role', accessor='role')
@@ -157,12 +167,6 @@ class ClassificationOpinionQuestionTable(tables.Table):
         return data
 
     def render_question(self, value):
-        kwargs = dict(get_bleach_default_options())
-        value = bleach.clean(value, **kwargs)
-
-        # We don't want any of the links to be displayed, so we'll strip them out entirely
-        kwargs['tags'] = [t for t in kwargs['tags'] if t != 'a']
-        kwargs['strip'] = True
-        value = bleach.clean(value, **kwargs)
+        value = bleach_no_links(value)
         value = format_html(value)
         return value

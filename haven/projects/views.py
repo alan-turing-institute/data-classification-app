@@ -53,6 +53,7 @@ from .tables import (
     PolicyTable,
     WorkPackageParticipantTable,
     WorkPackageTable,
+    bleach_no_links,
 )
 
 
@@ -831,6 +832,11 @@ class WorkPackageClassifyData(
         self.clear_answers()
         return self.redirect_to_results()
 
+    def format_answer(self, answer):
+        if isinstance(answer, int):
+            return f"Classify as Tier {answer}"
+        return 'Next Question: ' + bleach_no_links(answer.question)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Use a regex to identify links to guidance
@@ -852,7 +858,10 @@ class WorkPackageClassifyData(
             context['guidance'] = guidance
 
         context['question'] = self.question
+        context['answer_yes'] = self.format_answer(self.question.answer_yes())
+        context['answer_no'] = self.format_answer(self.question.answer_no())
         context['starting_question'] = self.starting_question
+        context['question_number'] = self.get_question_number()
         if self.previous_question:
             context['previous_question'] = self.previous_question
         return context
@@ -903,6 +912,10 @@ class WorkPackageClassifyData(
             if answer[0] == question.name:
                 return answer[1]
         return None
+
+    def get_question_number(self):
+        answers = self.request.session.get(self.session_key, [])
+        return len(answers) + 1
 
     def clear_answers(self, after=None):
         '''
