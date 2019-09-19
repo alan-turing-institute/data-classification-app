@@ -890,18 +890,64 @@ class TestWorkPackageClassifyData:
     def url(self, work_package, page='classify'):
         return '/projects/%d/work_packages/%d/%s' % (work_package.project.id, work_package.id, page)
 
-    def classify(self, client, work_package, current, answer=None, goto=None, next=None,
-                 guidance=None):
-        data = {}
-        data['work_package_classify_data-current_step'] = current
-        if answer:
-            data[f"{current}-question"] = 'on'
+    def classify(self, client, work_package, response, current,
+                 answer=None, back=None, start=None,
+                 validate_goto=True, next=None, guidance=None):
+        '''
+        Posts data to answer a single classification question
+
+        Parameters are divided into three stages.
+        Defining the current page:
+        client - Test client instance
+        work_package - Work package to classify
+        response - Response object for current page
+        current - Name of the ClassificationQuestion being answered
+
+        Actions to take (optional, normally you should supply exactly one):
+        answer - boolean representing whether to answer Yes/No
+        back - Name of previous step to go back to (simulating the Back button)
+        start - Name of first step to go back to (simulating the Start Over button)
+
+        Expected results (optional, will not be verified if not provided):
+        validate_goto - Boolean indicating whether to check that back/start match what is
+                        displayed on page. If false, essentially simulates the user manually
+                        editing the URL
+        next - Name of the ClassificationQuestion you expect to be asked next
+        guidance - List of names of ClassificationGuidance you expect to be on the next page
+        '''
+        url = response.request['PATH_INFO']
+        response = client.get(url)
+        assert 'question' in response.context
+        assert response.context['question'].name == current
+
+        goto = back or start
         if goto:
-            data['wizard_goto_step'] = goto,
-        response = client.post(self.url(work_package), data, follow=True)
+            key = 'last_question' if back else 'starting_question'
+            if validate_goto:
+                assert key in response.context
+                assert response.context[key].name == goto
+                pk = response.context[key].pk
+            else:
+                pk = ClassificationQuestion.objects.get(name=goto).pk
+            url = self.url(work_package, f"classify/{pk}")
+            response = client.get(url)
+            assert 'question' in response.context
+            assert response.context['question'].name == goto
+            return response
+
+        data = {}
+        if answer:
+            data['submit_yes'] = 'Yes'
+        else:
+            data['submit_no'] = 'No'
+
+        response = client.post(url, data, follow=True)
         if next:
-            assert 'wizard' in response.context
-            assert response.context['wizard']['steps'].current == next
+            assert 'question' in response.context
+            assert response.context['question'].name == next
+        if guidance:
+            assert [g.name for g in response.context['guidance']] == guidance
+
         return response
 
     def check_results_page(self, response, work_package, user, tier, questions):
@@ -936,10 +982,10 @@ class TestWorkPackageClassifyData:
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
 
-        response = as_project_participant.get(self.url(work_package))
+        response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 200
         assert response.context['work_package'] == work_package
-        assert 'wizard' in response.context
+        assert 'question' in response.context
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
@@ -980,7 +1026,7 @@ class TestWorkPackageClassifyData:
 
         response = as_investigator.get(self.url(work_package), follow=True)
 
-        assert 'wizard' not in response.context
+        assert 'question' not in response.context
         assert [m.message for m in response.context['messages']] == [
             'You have already completed classification. Please delete your classification if you '
             'wish to change any answers.'
@@ -1001,30 +1047,32 @@ class TestWorkPackageClassifyData:
         response = as_investigator.post(self.url(work_package, 'classify_delete'))
 
         response = as_investigator.get(self.url(work_package), follow=True)
-        assert 'wizard' in response.context
+        assert 'question' in response.context
         assert b'Delete My Classification' not in response.content
 
     def test_classify_as_tier(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
-        response = self.classify(as_investigator, work_package, 'open_generate_new', answer=False,
-                                 next='closed_personal')
-        response = self.classify(as_investigator, work_package, 'closed_personal', answer=True,
-                                 next='public_and_open')
-        response = self.classify(as_investigator, work_package, 'public_and_open', answer=False,
-                                 next='no_reidentify')
-        response = self.classify(as_investigator, work_package, 'no_reidentify', answer=True,
-                                 next='no_reidentify_absolute')
-        response = self.classify(as_investigator, work_package, 'no_reidentify_absolute',
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=True, next='no_reidentify_absolute')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify_absolute',
                                  answer=False, next='no_reidentify_strong')
-        response = self.classify(as_investigator, work_package, 'no_reidentify_strong',
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify_strong',
                                  answer=True, next='include_commercial_personal')
-        response = self.classify(as_investigator, work_package, 'include_commercial_personal',
-                                 answer=True, next='financial_low_personal')
-        response = self.classify(as_investigator, work_package, 'financial_low_personal',
+        response = self.classify(as_investigator, work_package, response,
+                                 'include_commercial_personal', answer=True,
+                                 next='financial_low_personal')
+        response = self.classify(as_investigator, work_package, response, 'financial_low_personal',
                                  answer=False, next='sophisticated_attack')
-        response = self.classify(as_investigator, work_package, 'sophisticated_attack',
+        response = self.classify(as_investigator, work_package, response, 'sophisticated_attack',
                                  answer=False)
 
         self.check_results_page(
@@ -1046,23 +1094,29 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
-        response = self.classify(as_investigator, work_package, 'open_generate_new', answer=False,
-                                 next='closed_personal')
-        response = self.classify(as_investigator, work_package, 'closed_personal', answer=True,
-                                 next='public_and_open')
-        response = self.classify(as_investigator, work_package, 'public_and_open',
-                                 goto='open_generate_new', next='open_generate_new')
-        response = self.classify(as_investigator, work_package, 'open_generate_new', answer=False,
-                                 next='closed_personal')
-        response = self.classify(as_investigator, work_package, 'closed_personal', answer=False,
-                                 next='include_commercial')
-        response = self.classify(as_investigator, work_package, 'include_commercial', answer=True,
-                                 next='financial_low')
-        response = self.classify(as_investigator, work_package, 'financial_low',
-                                 goto='include_commercial', next='include_commercial')
-        response = self.classify(as_investigator, work_package, 'include_commercial', answer=False,
-                                 next='open_publication')
-        response = self.classify(as_investigator, work_package, 'open_publication', answer=True)
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 start='open_generate_new', next='open_generate_new')
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=True, next='financial_low')
+        response = self.classify(as_investigator, work_package, response, 'financial_low',
+                                 back='include_commercial', next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 back='closed_personal', next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
 
         self.check_results_page(
             response, work_package, as_investigator._user, 1,
@@ -1074,29 +1128,81 @@ class TestWorkPackageClassifyData:
             ]
         )
 
+    def test_classify_jump_back(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 back='closed_personal', next='closed_personal',
+                                 validate_goto=False)
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=True, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'True'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
+
+    def test_classify_jump_illegal(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 back='open_publication', next='open_publication',
+                                 validate_goto=False)
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        assert [m.message for m in response.context['messages']] == [
+            'An error occurred storing the results of your classification.'
+        ]
+
     def test_classify_guidance(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
-        response = as_investigator.get(self.url(work_package))
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_generate_new'
+        response = as_investigator.get(self.url(work_package), follow=True)
+        assert 'question' in response.context
+        assert response.context['question'].name == 'open_generate_new'
         guidance = ['personal_data', 'living_individual']
         assert [g.name for g in response.context['guidance']] == guidance
 
-        response = self.classify(as_investigator, work_package, 'open_generate_new', answer=False,
-                                 next='closed_personal',
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal',
                                  guidance=['personal_data', 'living_individual'])
-        response = self.classify(as_investigator, work_package, 'closed_personal', answer=True,
-                                 next='public_and_open',
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open',
                                  guidance=['personal_data', 'living_individual'])
-        response = self.classify(as_investigator, work_package, 'public_and_open', answer=False,
-                                 next='no_reidentify',
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify',
                                  guidance=['personal_data', 'pseudonymized_data',
                                            'living_individual'])
-        response = self.classify(as_investigator, work_package, 'no_reidentify', answer=False,
-                                 next='substantial_threat')
-        response = self.classify(as_investigator, work_package, 'substantial_threat', answer=True)
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=False, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
 
         self.check_results_page(
             response, work_package, as_investigator._user, 4,

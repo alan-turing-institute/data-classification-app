@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import OrderedDict
 
@@ -11,9 +12,9 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
+from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
-from formtools.wizard.views import SessionWizardView
 
 from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
@@ -709,14 +710,50 @@ class WorkPackageAddParticipant(
 
 
 class WorkPackageClassifyData(
-    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, SessionWizardView
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, TemplateView
 ):
     template_name = 'projects/work_package_classify_data.html'
-    form_list = [
-        ('_', SingleQuestionForm)
-    ]
 
-    def dispatch(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
+        response = self.check_already_classified()
+        if response:
+            return response
+        response = self.load_questions()
+        if response:
+            return response
+
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def post(self, *args, **kwargs):
+        response = self.check_already_classified()
+        if response:
+            return response
+
+        response = self.load_questions()
+        if response:
+            return response
+
+        answer = None
+        if 'submit_yes' in self.request.POST:
+            self.store_answer(self.question, True)
+            answer = self.question.answer_yes()
+        elif 'submit_no' in self.request.POST:
+            self.store_answer(self.question, False)
+            answer = self.question.answer_no()
+
+        if answer is not None:
+            if isinstance(answer, int):
+                return self.save_results(answer)
+            else:
+                url = reverse('projects:classify_data',
+                              args=[self.object.project.id, self.object.id, answer.id])
+                return HttpResponseRedirect(url)
+
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
+    def check_already_classified(self):
         """
         Before doing anything on this view, determine whether this user has
         already classified the work package.
@@ -739,49 +776,75 @@ class WorkPackageClassifyData(
                 url = reverse('projects:classify_results',
                               args=[self.object.project.id, self.object.id])
                 return HttpResponseRedirect(url)
+        return None
 
-        self.form_list = OrderedDict()
-        self.condition_dict = {}
-        first_step = None
-        for q in ClassificationQuestion.objects.get_ordered_questions():
-            if not first_step:
-                first_step = q.name
-            # SessionWizardView doesn't support having a form_list that
-            # changes from step to step, so instead it needs to contain all
-            # the forms, and use the condition_dict to determine which to show
-            self.form_list[q.name] = SingleQuestionForm.subclass_for_question(q)
-            self.condition_dict[q.name] = self.show_step(q, first_step)
+    def load_questions(self):
+        self.starting_question = ClassificationQuestion.objects.get_starting_question()
+        self.last_question = None
+        if 'question_pk' not in self.kwargs:
+            self.clear_answers()
+            url = reverse('projects:classify_data',
+                          args=[self.object.project.id, self.object.id, self.starting_question.id])
+            return HttpResponseRedirect(url)
+        else:
+            self.question = ClassificationQuestion.objects.get(pk=self.kwargs['question_pk'])
+            self.clear_answers(after=self.question)
+        last_question_name = self.get_last_question()
+        if last_question_name:
+            self.last_question = ClassificationQuestion.objects.get(name=last_question_name)
+        return None
 
-        return super().dispatch(*args, *kwargs)
+    def save_results(self, expected_answer):
+        questions = []
+        question = self.starting_question
+        # The session may contain irrelevant answers, e.g. if the user has went back and changed
+        # answers, so we don't just copy the session, we follow the chain from the starting
+        # question and only store what matches
+        while True:
+            answer = self.get_answer(question)
+            if answer is None:
+                logging.error(f"No response found in session for question {question.name}")
+                messages.error(
+                    self.request,
+                    'An error occurred storing the results of your classification.')
+                url = reverse('projects:classify_data',
+                              args=[self.object.project.id, self.object.id])
+                return HttpResponseRedirect(url)
 
-    def show_step(self, question, first_step):
-        def f(wizard):
-            # The condition needs to be true not just for the current step, but
-            # also all the steps leading up to it. However, you can't just check
-            # whether a step already has data, because that interferes with the
-            # ability to go backwards, so you need to follow the chain of
-            # submitted forms
-            chain = []
-            next_step = first_step
-            while True:
-                chain.append(next_step)
-                data = self.get_cleaned_data_for_step(next_step)
-                if not data:
-                    break
-                next_step = data.get('next_step')
-                if not next_step:
-                    break
-            return question.name in chain
-        return f
+            questions.append((question, answer))
+            if answer:
+                answer = question.answer_yes()
+            else:
+                answer = question.answer_no()
 
-    def get_context_data(self, form, **kwargs):
-        context = super().get_context_data(form=form, **kwargs)
+            if isinstance(answer, int):
+                if answer != expected_answer:
+                    logging.error(f"Unexpected tier found in session at {question.name}")
+                    messages.error(
+                        self.request,
+                        'An error occurred storing the results of your classification.')
+                    url = reverse('projects:classify_data',
+                                  args=[self.object.project.id, self.object.id])
+                    return HttpResponseRedirect(url)
 
+                self.object.classify_as(answer, self.request.user, questions)
+                self.object.calculate_tier()
+                break
+            else:
+                question = answer
+
+        self.clear_answers()
+        url = reverse('projects:classify_results',
+                      args=[self.object.project.id, self.object.id])
+        return HttpResponseRedirect(url)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         # Use a regex to identify links to guidance
         # Some form of HTML parser might be better, but we're looking for a very limited
         # pattern so is hopefully unnecessary
         pattern = re.compile('href="#([^"]+)"')
-        matches = [m for m in pattern.finditer(form.question_obj.question)]
+        matches = [m for m in pattern.finditer(self.question.question)]
         if matches:
             guidance = []
             all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
@@ -795,39 +858,48 @@ class WorkPackageClassifyData(
 
             context['guidance'] = guidance
 
+        context['question'] = self.question
+        context['starting_question'] = self.starting_question
+        if self.last_question:
+            context['last_question'] = self.last_question
         return context
 
     def test_func(self):
         role = self.get_project_role()
         return role.can_classify_data if role else False
 
-    def done(self, form_list, **kwargs):
-        """
-        Called when the classification process is complete
+    def store_answer(self, question, answer):
+        existing = self.request.session.get('classification', [])
+        # Cannot append to existing object in session, will not serialize correctly
+        self.request.session['classification'] = existing + [[question.name, answer]]
 
-        Record the user's classification and show results
-        """
-        tier = None
-        questions = []
-        for form in form_list:
-            question = form.question_obj
-            answer = form.cleaned_data['question']
-            questions.append((question, answer))
-            if 'tier' in form.cleaned_data:
-                tier = form.cleaned_data['tier']
+    def get_last_question(self):
+        answers = self.request.session.get('classification')
+        if answers:
+            return answers[-1][0]
+        return None
+
+    def get_answer(self, question):
+        answers = self.request.session.get('classification', [])
+        for answer in answers:
+            if answer[0] == question.name:
+                return answer[1]
+        return None
+
+    def clear_answers(self, after=None):
+        if not after:
+            self.request.session.pop('classification', None)
+            return
+
+        answers = self.request.session.get('classification', [])
+        upto = None
+        for i, answer in enumerate(answers):
+            if answer[0] == after.name:
+                upto = i
                 break
 
-        classification = self.object.classify_as(tier, self.request.user, questions)
-
-        self.object.calculate_tier()
-        url = reverse('projects:classify_results', args=[self.object.project.id, self.object.id])
-        return HttpResponseRedirect(url)
-
-    def get_form(self, *args, **kwargs):
-        # Both SessionWizardView and SingleProjectMixin define a get_form function
-        # SessionWizardView calls it a *lot*, and the definition in SingleProjectMixin
-        # results in a database call that we really don't need
-        return SessionWizardView.get_form(self, *args, **kwargs)
+        if upto is not None:
+            self.request.session['classification'] = answers[:upto]
 
 
 class WorkPackageClassifyResults(
