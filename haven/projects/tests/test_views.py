@@ -915,7 +915,7 @@ class TestWorkPackageClassifyData:
         next - Name of the ClassificationQuestion you expect to be asked next
         guidance - List of names of ClassificationGuidance you expect to be on the next page
         '''
-        url = response.request['PATH_INFO']
+        url = response.request['PATH_INFO'] + '?' + response.request['QUERY_STRING']
         response = client.get(url)
         assert 'question' in response.context
         assert response.context['question'].name == current
@@ -930,7 +930,9 @@ class TestWorkPackageClassifyData:
             else:
                 pk = ClassificationQuestion.objects.get(name=goto).pk
             url = self.url(work_package, f"classify/{pk}")
-            response = client.get(url)
+            if response.context['modify']:
+                url += '?modify=1'
+            response = client.get(url, follow=True)
             assert 'question' in response.context
             assert response.context['question'].name == goto
             return response
@@ -1215,6 +1217,245 @@ class TestWorkPackageClassifyData:
             ]
         )
 
+    def test_modify_classification_from_start(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=True, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+        response = as_investigator.get(self.url(work_package, page='classify?modify=1'),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == []
+
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=True, next='substantial_threat')
+        assert [m.message for m in response.context['messages']] == []
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=False)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 3,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'False'],
+            ]
+        )
+
+    def test_modify_classification(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=True, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+        pk = ClassificationQuestion.objects.get(name='substantial_threat').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == []
+
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=False)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 3,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'False'],
+            ]
+        )
+
+    def test_modify_classification_back(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'False'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
+
+        pk = ClassificationQuestion.objects.get(name='include_commercial').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == []
+
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 back='closed_personal', next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 start='open_generate_new', next='open_generate_new')
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=True, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+    def test_modify_classification_unanswered(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=True, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+        pk = ClassificationQuestion.objects.get(name='closed_personal').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == [
+            'Recorded answers could not be retrieved. Please begin the classification process '
+            'from the question below.'
+        ]
+
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=False, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=False)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 3,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'False'],
+                ['no_reidentify', 'False'],
+                ['substantial_threat', 'False'],
+            ]
+        )
+
+    def test_modify_classification_question_changed(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=False, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'False'],
+                ['no_reidentify', 'False'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+        q = ClassificationQuestion.objects.get(name='closed_personal')
+        q.question = q.question + ' (Changed)'
+        q.save()
+
+        pk = ClassificationQuestion.objects.get(name='public_and_open').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == [
+            'Some recorded answers could not be retrieved. Please begin the classification '
+            'process from the question below.'
+        ]
+
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=True, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'True'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
 
 @pytest.mark.django_db
 class TestNewParticipantAutocomplete:

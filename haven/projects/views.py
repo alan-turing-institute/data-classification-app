@@ -724,6 +724,7 @@ class WorkPackageClassifyData(
         response = self.check_already_classified()
         if response:
             return response
+
         response = self.load_questions()
         if response:
             return response
@@ -762,10 +763,14 @@ class WorkPackageClassifyData(
         Before doing anything on this view, determine whether this user has
         already classified the work package.
 
-        If they have, then show their classification (and others) rather than
-        display the form again.
+        If they have (and they're not trying to modify it), then show their classification (and
+        others) rather than display the form again.
         """
         self.object = self.get_object()
+        self.modify = bool(self.request.GET.get('modify', False))
+
+        if self.modify:
+            return None
 
         classification = ClassificationOpinion.objects.filter(
             work_package=self.object,
@@ -775,6 +780,7 @@ class WorkPackageClassifyData(
             message = ('You have already completed classification. Please delete your '
                        'classification if you wish to change any answers.')
             return self.redirect_to_results(message=message, message_level=messages.ERROR)
+        return None
 
     def load_questions(self):
         '''
@@ -790,6 +796,10 @@ class WorkPackageClassifyData(
             return self.redirect_to_question(self.starting_question)
         else:
             self.question = ClassificationQuestion.objects.get(pk=self.kwargs['question_pk'])
+            if self.modify:
+                response = self.store_previous_answers()
+                if response:
+                    return response
             self.clear_answers(after=self.question)
         self.previous_question = self.get_previous_question()
         return None
@@ -827,6 +837,8 @@ class WorkPackageClassifyData(
             message = 'An error occurred storing the results of your classification.'
             return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
+        if self.modify:
+            self.object.classification_for(self.request.user).delete()
         self.object.classify_as(tier, self.request.user, questions)
         self.object.calculate_tier()
         self.clear_answers()
@@ -859,6 +871,7 @@ class WorkPackageClassifyData(
             context['guidance'] = guidance
 
         context['question'] = self.question
+        context['modify'] = self.modify
         context['answer_yes'] = self.format_answer(self.question.answer_yes())
         context['answer_no'] = self.format_answer(self.question.answer_no())
         context['starting_question'] = self.starting_question
@@ -875,6 +888,8 @@ class WorkPackageClassifyData(
         if question:
             args.append(question.id)
         url = reverse('projects:classify_data', args=args)
+        if self.modify:
+            url += '?modify=1'
         return HttpResponseRedirect(url)
 
     def redirect_to_results(self, message=None, message_level=None):
@@ -889,7 +904,9 @@ class WorkPackageClassifyData(
         '''
         Store the answer to the given question in the session
         '''
-        existing = self.request.session.get(self.session_key, [])
+        existing = self.request.session.get(self.session_key)
+        if not existing:
+            existing = []
         # Cannot append to existing object in session, will not serialize correctly
         self.request.session[self.session_key] = existing + [[question.name, answer]]
 
@@ -908,15 +925,19 @@ class WorkPackageClassifyData(
         '''
         Retrieve the answer for the given question from the session
         '''
-        answers = self.request.session.get(self.session_key, [])
-        for answer in answers:
-            if answer[0] == question.name:
-                return answer[1]
+        answers = self.request.session.get(self.session_key)
+        if answers:
+            for answer in answers:
+                if answer[0] == question.name:
+                    return answer[1]
         return None
 
     def get_question_number(self):
-        answers = self.request.session.get(self.session_key, [])
-        return len(answers) + 1
+        answers = self.request.session.get(self.session_key)
+        number = 1
+        if answers:
+            number += len(answers)
+        return number
 
     def clear_answers(self, after=None):
         '''
@@ -932,15 +953,55 @@ class WorkPackageClassifyData(
             self.request.session.pop(self.session_key, None)
             return
 
-        answers = self.request.session.get(self.session_key, [])
-        upto = None
-        for i, answer in enumerate(answers):
-            if answer[0] == after.name:
-                upto = i
-                break
+        answers = self.request.session.get(self.session_key)
+        if answers:
+            upto = None
+            for i, answer in enumerate(answers):
+                if answer[0] == after.name:
+                    upto = i
+                    break
 
-        if upto is not None:
-            self.request.session[self.session_key] = answers[:upto]
+            if upto is not None:
+                self.request.session[self.session_key] = answers[:upto]
+
+    def store_previous_answers(self):
+        '''
+        Retrieve the user's previous classification from the database, and store it in the session
+
+        If something goes wrong (either because the user is trying to modify a question they never
+        answered in the first place, or because a question has been changed in the meantime), then
+        the user may be redirected to modify an earlier question than the one they actually chose
+        to.
+        '''
+        if self.request.session.get(self.session_key) is not None:
+            return
+        self.request.session[self.session_key] = []
+
+        classification = self.object.classification_for(self.request.user).first()
+        answered_questions = {}
+        if classification:
+            for q in classification.questions.all():
+                key = (q.question.id, q.question_version)
+                answered_questions[key] = q.answer
+
+        q = self.starting_question
+        while q and not isinstance(q, int) and q != self.question:
+            try:
+                key = (q.id, q.history.latest().history_id)
+                answer = answered_questions[key]
+                self.store_answer(q, answer)
+                if answer:
+                    q = q.answer_yes()
+                else:
+                    q = q.answer_no()
+            except KeyError:
+                message = ('Some recorded answers could not be retrieved. Please begin the '
+                           'classification process from the question below.')
+                return self.redirect_to_question(q, message)
+        if q != self.question:
+            message = ('Recorded answers could not be retrieved. Please begin the classification '
+                       'process from the question below.')
+            return self.redirect_to_question(self.starting_question, message)
 
 
 class WorkPackageClassifyResults(
