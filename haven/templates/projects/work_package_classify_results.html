@@ -8,25 +8,17 @@
 {% block content %}
 
 {% with classification.work_package as work_package %}
-<p>You ({{ classification.user }}, {{classification.role|project_role_display}}) have classified this project as Tier {{ classification.tier }}</p>
+<p>You ({{ classification.created_by }}, {{classification.role|project_role_display}}) have classified this project as Tier {{ classification.tier }}</p>
 
 {% if not work_package.has_tier %}
   <p><a class="btn btn-primary btn-lg" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
-{% endif %}
-
-{% if other_classifications.exists %}
-  <ul>
-  {% for cl in other_classifications %}
-    <li>{{ cl.user }} ({{cl.role|project_role_display}}) classified the project as Tier {{ cl.tier }}</li>
-  {% endfor %}
-  </ul>
 {% endif %}
 
 <h2>Overall classification</h2>
 {% if work_package.has_tier %}
   Work package is tier {{ work_package.tier }}
 {% elif not work_package.is_classification_ready %}
-  <p>Classification incomplete:</p>
+  <p>Classification pending:</p>
   <ul>
     {% for reason in work_package.missing_classification_requirements %}
       <li>{{ reason }}</li>
@@ -34,6 +26,15 @@
   </ul>
 {% elif work_package.tier_conflict %}
 <p>Users disagree on data tier</p>
+{% endif %}
+
+{% if other_classifications.exists %}
+  <p>Classifications by other users:</p>
+  <ul>
+  {% for cl in other_classifications %}
+    <li>{{ cl.created_by }} ({{cl.role|project_role_display}}) classified the project as Tier {{ cl.tier }}</li>
+  {% endfor %}
+  </ul>
 {% endif %}
 
 {% if questions_table %}

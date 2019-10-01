@@ -82,6 +82,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_results',
+        views.WorkPackageClassifyResults.as_view(),
+        name='classify_results'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/classify_delete',
         views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'

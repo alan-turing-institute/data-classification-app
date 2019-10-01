@@ -183,7 +183,8 @@ class WorkPackage(CreatedByModel):
 
         missing_datasets = required_datasets - datasets
         for d in missing_datasets:
-            missing_requirements.append(f"Not classified by representative for {d}")
+            role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+            missing_requirements.append(f"Not classified by {role} for dataset: {d}")
 
         return missing_requirements
 
@@ -274,6 +275,9 @@ class WorkPackage(CreatedByModel):
     @property
     def has_datasets(self):
         return self.datasets.exists()
+
+    def has_user_classified(self, user):
+        return self.classification_for(user).exists()
 
     def get_policies(self):
         if not self.has_tier:

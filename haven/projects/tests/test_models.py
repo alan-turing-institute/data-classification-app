@@ -84,8 +84,13 @@ class TestWorkPackage:
                                    investigator, data_provider_representative):
         work_package = classified_work_package(None)
 
+        assert not work_package.has_user_classified(investigator.user)
         work_package.classify_as(0, investigator.user)
+        assert work_package.has_user_classified(investigator.user)
+
+        assert not work_package.has_user_classified(data_provider_representative.user)
         work_package.classify_as(0, data_provider_representative.user)
+        assert work_package.has_user_classified(data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
@@ -119,7 +124,7 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by representative for Dataset 2']
+            'Not classified by Data Provider Representative for dataset: Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -139,7 +144,7 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by representative for Dataset 2']
+            'Not classified by Data Provider Representative for dataset: Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 

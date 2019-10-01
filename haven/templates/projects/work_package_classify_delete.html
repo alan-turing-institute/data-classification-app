@@ -11,3 +11,12 @@
 </form>
 
 {% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
+{% endblock crumbs %}
