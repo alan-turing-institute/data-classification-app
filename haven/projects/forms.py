@@ -301,7 +301,9 @@ class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
     def __init__(self, work_package, *args, **kwargs):
         kwargs.setdefault('instance', WorkPackageParticipant(work_package=work_package))
         super().__init__(*args, **kwargs)
-        self.fields['participant'].queryset = work_package.project.participants
+        qs = work_package.project.participants
+        qs = qs.exclude(id__in=work_package.participants.all())
+        self.fields['participant'].queryset = qs
 
 
 class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):

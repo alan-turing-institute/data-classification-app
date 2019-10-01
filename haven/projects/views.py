@@ -563,7 +563,7 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         context['participants_table'] = WorkPackageParticipantTable(
             participants, work_package=work_package, user=self.request.user)
 
-        context['can_classify'] =  work_package.has_datasets and not work_package.has_tier
+        context['can_classify'] = work_package.has_datasets and not work_package.has_tier
         context['has_classified'] = work_package.has_user_classified(self.request.user)
 
         if work_package.has_tier:

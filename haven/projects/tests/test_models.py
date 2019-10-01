@@ -1,5 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from core import recipes
 from data.classification import insert_initial_questions
@@ -9,6 +10,7 @@ from projects.models import (
     PolicyAssignment,
     PolicyGroup,
     ProjectDataset,
+    WorkPackageParticipant,
 )
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
@@ -579,6 +581,18 @@ class TestWorkPackage:
 
         assert work_package.participants.count() == 1
         assert participant == work_package.participants.first()
+
+    def test_add_participant_repeated(self, programme_manager, user1):
+        project = recipes.project.make()
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        work_package.add_user(user1, programme_manager)
+
+        with pytest.raises(IntegrityError):
+            WorkPackageParticipant.objects.create(
+                work_package=work_package, participant=participant, created_by=programme_manager)
 
     def test_add_participant_not_on_project(self, programme_manager, user1):
         project1 = recipes.project.make()

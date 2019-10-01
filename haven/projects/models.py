@@ -537,6 +537,9 @@ class WorkPackageParticipant(CreatedByModel):
     work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, related_name='+', on_delete=models.CASCADE)
 
+    class Meta(CreatedByModel.Meta):
+        unique_together = ('participant', 'work_package')
+
     def approve(self, approver):
         approver_participant = approver.get_participant(self.work_package.project)
 
