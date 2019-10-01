@@ -2,17 +2,22 @@ from braces.forms import UserKwargModelFormMixin
 from django.contrib.auth.mixins import UserPassesTestMixin
 
 
-class UserRoleRequiredMixin(UserPassesTestMixin):
+class UserPermissionRequiredMixin(UserPassesTestMixin):
     """
-    View mixin to ensure only certain user roles are able to access the view
+    View mixin to ensure only certain users can access the view.
+
+    The user must have one or more of the listed permissions
     """
-    user_roles = []
+    user_permissions = []
 
     def test_func(self):
-        return (
-            self.request.user.is_superuser or
-            self.request.user.user_role in self.user_roles
-        )
+        try:
+            for p in self.user_permissions:
+                if getattr(self.request.user.user_role, p):
+                    return True
+            return False
+        except AttributeError:
+            return False
 
 
 class SaveCreatorMixin(UserKwargModelFormMixin):

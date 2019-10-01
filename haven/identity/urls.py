@@ -8,8 +8,8 @@ app_name = 'identity'
 urlpatterns = [
     path('', views.UserList.as_view(), name='list'),
     path('new', views.UserCreate.as_view(), name='add_user'),
-    path('import', views.import_users, name='import_users'),
-    path('export', views.export_users, name='export_users'),
+    path('import', views.ImportUsers.as_view(), name='import_users'),
+    path('export', views.ExportUsers.as_view(), name='export_users'),
 
     path(
         '<int:pk>/edit',

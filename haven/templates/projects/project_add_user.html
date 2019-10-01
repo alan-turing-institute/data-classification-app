@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load haven %}
 
 {% block page_title %}{{ project.name }}: Add Participant{% endblock %}
 {% block h1_title %}{{ project.name }}: Add Participant{% endblock %}
@@ -23,8 +24,9 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
-  {% if project_role.can_list_participants %}
-    <li class="breadcrumb-item"><a href="{% url 'projects:list_participants' project.id %}">Participants</a></li>
+  {% url_check 'projects:list_participants' project.id as list_participants_href %}
+  {% if list_participants_href %}
+    <li class="breadcrumb-item"><a href="{{ list_participants_href }}">Participants</a></li>
   {% else %}
     <li class="breadcrumb-item">Participants</li>
   {% endif %}
