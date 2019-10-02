@@ -88,6 +88,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify/<int:question_pk>',
+        views.WorkPackageClassifyData.as_view(),
+        name='classify_data'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/classify_results',
         views.WorkPackageClassifyResults.as_view(),
         name='classify_results'

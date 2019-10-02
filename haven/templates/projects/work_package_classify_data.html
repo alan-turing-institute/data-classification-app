@@ -5,26 +5,26 @@
 {% block h1_title %}Data Classification for {{ work_package.name }}{% endblock %}
 
 {% block content %}
-<p>Step {{ wizard.steps.step1 }}</p>
-<form action="" method="post">{% csrf_token %}
-  {{ wizard.management_form }}
-  <table class="table table-sm">
-    <tbody>
-      {% for field in wizard.form %}
-      <tr>
-        <td>{{ field.label | bleach }}</td>
-        <td>{{ field }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<form action="" method="post">
+  {% csrf_token %}
+  <div class="form-group form-row">
+    <div class="col">
+      {{ question.question | bleach }}
+    </div>
+  </div>
 
-  {% if wizard.steps.prev %}
-  <button class="btn btn-light" name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">Start Again</button>
-  <button class="btn btn-light" name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">Back </button>
-  {% endif %}
-
-  <input type="submit" value="Continue " class="btn btn-primary" />
+  <div class="form-group form-row">
+    <div class="col">
+      <input type="submit" value="Yes" name="submit_yes" class="btn btn-primary" />
+      <input type="submit" value="No" name="submit_no" class="btn btn-primary" />
+      {% if previous_question and previous_question != question %}
+        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Back</a>
+      {% endif %}
+      {% if starting_question and starting_question != question and starting_question != previous_question %}
+        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id starting_question.id %}">Start over</a>
+      {% endif %}
+    </div>
+  </div>
 </form>
 
 {% if guidance %}
