@@ -165,6 +165,33 @@ class TestViewWorkPackage:
 
         assert response.status_code == 404
 
+    def test_list_participants(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        user2, user3 = recipes.user.make(_quantity=2)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_user(user2, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+        project.add_user(user3, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(user2, as_programme_manager._user)
+        work_package.add_user(user3, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+        table = response.context['participants_table'].as_values()
+        assert list(table) == [
+            ['Username', 'Role', 'Approved'],
+            [user2.display_name(), 'Researcher', 'False'],
+            [user3.display_name(), 'Researcher', 'False'],
+        ]
+
 
 @pytest.mark.django_db
 class TestEditProject:
@@ -255,6 +282,10 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
@@ -263,12 +294,43 @@ class TestAddUserToProject:
         assert project.participants.count() == 1
         assert project.participants.first().user.username == project_participant.username
 
+    def test_add_new_user_to_project_and_work_package(self, as_programme_manager,
+                                                      project_participant):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
+            'work_packages-0-work_package': work_package.id,
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        participants = project.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == project_participant.username
+
+        participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == project_participant.username
+
     def test_cancel_add_new_user_to_project(self, as_programme_manager, project_participant):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
             'cancel': 'Cancel',
         })
 
@@ -286,6 +348,10 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': new_user.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
@@ -303,6 +369,10 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
@@ -315,6 +385,10 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': 12345,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
@@ -386,6 +460,92 @@ class TestListParticipants:
         client.force_login(researcher.user)
 
         response = client.get('/projects/%d/participants/' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestEditParticipant:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+        response = client.get('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+
+        response = as_programme_manager.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_participant(self, as_programme_manager):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+        response = as_programme_manager.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
+            {
+                'role': ProjectRole.RESEARCHER.value,
+                'work_packages-TOTAL_FORMS': 1,
+                'work_packages-MAX_NUM_FORMS': 1,
+                'work_packages-MIN_NUM_FORMS': 0,
+                'work_packages-INITIAL_FORMS': 0,
+                'work_packages-0-work_package': work_package.id,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+        participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == investigator.user.username
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add participants, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+    def test_restricts_creation_based_on_role(self, client, referee, researcher):
+        client.force_login(referee.user)
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (referee.project.id, researcher.id),
+            {
+                'role': ProjectRole.INVESTIGATOR.value,
+            })
+
         assert response.status_code == 403
 
 
@@ -512,6 +672,101 @@ class TestWorkPackageListDatasets:
 
         assert response.status_code == 200
         assert list(response.context['datasets']) == [ds1, ds2]
+
+
+@pytest.mark.django_db
+class TestWorkPackageAddParticipant:
+    def test_add_participant(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        p1 = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/participants/new'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/participants/new' % (project.id, work_package.id),
+            {
+                'participant': p1.pk,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
+
+        assert work_package.participants.count() == 1
+        assert p1 == work_package.participants.first()
+
+
+@pytest.mark.django_db
+class TestWorkPackageApproveParticipants:
+    def test_anonymous_cannot_access_page(self, client, helpers, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = client.get(url)
+        helpers.assert_login_redirect(response)
+
+    def test_unprivileged_user_cannot_access_page(self, as_investigator, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_investigator.get(url)
+        assert response.status_code == 404
+
+    def test_view_page(self, as_data_provider_representative, referee, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        p1 = project.add_user(as_data_provider_representative._user,
+                              ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              programme_manager)
+        p2 = project.add_user(referee.user,
+                              ProjectRole.REFEREE.value,
+                              programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(as_data_provider_representative._user, programme_manager)
+        work_package.add_user(referee.user, programme_manager)
+        dataset = recipes.dataset.make()
+        project.add_dataset(dataset, as_data_provider_representative._user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'False', 'False'],
+        ]
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_data_provider_representative.post(url, {
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 1,
+            'participants-0-id': p2.get_work_package_participant(work_package).id,
+            'participants-0-approved': 'on',
+        })
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'True', 'True'],
+        ]
 
 
 @pytest.mark.django_db

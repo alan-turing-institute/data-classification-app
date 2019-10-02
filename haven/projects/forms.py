@@ -11,7 +11,13 @@ from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project, WorkPackage, WorkPackageDataset
+from .models import (
+    Participant,
+    Project,
+    WorkPackage,
+    WorkPackageDataset,
+    WorkPackageParticipant,
+)
 from .roles import ProjectRole
 
 
@@ -21,6 +27,18 @@ class SaveCancelFormHelper(FormHelper):
         self.add_input(Submit('submit', save_label, css_class=save_class))
         self.add_input(Submit('cancel', 'Cancel', css_class='btn-secondary',
                               formnovalidate='formnovalidate'))
+
+
+class ShowValue(forms.Widget):
+    '''
+    Dummy widget that simply displays the relevant value.
+
+    This is only necessary for forms used in inline formsets - for others, it's better to use
+    the Layout object to display any text.
+
+    Should only be used with disabled fields, since it won't actually submit a value.
+    '''
+    template_name = 'includes/show_value_widget.html'
 
 
 class ParticipantInlineFormSetHelper(FormHelper):
@@ -102,6 +120,41 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         return self.project.add_user(user, role, self.user)
 
 
+class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Form template for editing participants on a project"""
+
+    role = forms.ChoiceField(
+        choices=ProjectRole.choices(),
+        help_text='Role on this project'
+    )
+
+    class Meta:
+        model = Participant
+        fields = ('role',)
+
+
+class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single user/role assignment on a work package"""
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['work_package'].queryset = project.work_packages
+
+    class Meta:
+        model = WorkPackageParticipant
+        fields = ('work_package',)
+
+
+WorkPackagesForParticipantInlineFormSet = inlineformset_factory(
+    Participant,
+    WorkPackageParticipant,
+    form=WorkPackageForParticipantInlineForm,
+    fk_name='participant',
+    extra=1,
+    can_delete=True,
+    help_texts={'work_package': None},
+)
+
+
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a project"""
     def __init__(self, *args, **kwargs):
@@ -173,6 +226,37 @@ UsersForProjectInlineFormSet = inlineformset_factory(
 )
 
 
+class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment for a user"""
+
+    username = forms.CharField(disabled=True, widget=ShowValue)
+    approved = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            self.fields['username'].initial = instance.participant.user.username
+
+    class Meta:
+        model = Participant
+        fields = ()
+
+    def save(self, **kwargs):
+        if self.cleaned_data['approved']:
+            self.instance.approve(self.user)
+
+
+ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageParticipant,
+    form=ParticipantForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=False,
+)
+
+
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper('Create Dataset')
 
@@ -205,6 +289,21 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
         super().__init__(*args, **kwargs)
         self.fields['dataset'].queryset = work_package.project.datasets
+
+
+class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Add Participant to Work Package')
+
+    class Meta:
+        model = WorkPackageParticipant
+        fields = ('participant',)
+
+    def __init__(self, work_package, *args, **kwargs):
+        kwargs.setdefault('instance', WorkPackageParticipant(work_package=work_package))
+        super().__init__(*args, **kwargs)
+        qs = work_package.project.participants
+        qs = qs.exclude(id__in=work_package.participants.all())
+        self.fields['participant'].queryset = qs
 
 
 class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):

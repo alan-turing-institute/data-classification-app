@@ -117,7 +117,7 @@ class User(AbstractUser):
         except projects.models.Participant.DoesNotExist:
             return None
 
-    def project_role(self, project):
+    def project_role(self, project, participant=None):
         """
         Return the administrative role of a user on this project.
         This is used for determining project permissions.
@@ -129,7 +129,8 @@ class User(AbstractUser):
         :return: ProjectRole or None if user is not involved in project
         """
 
-        participant = self.get_participant(project)
+        if participant is None:
+            participant = self.get_participant(project)
         project_role = ProjectRole(participant.role) if participant else None
 
         is_project_admin = self.is_superuser or \

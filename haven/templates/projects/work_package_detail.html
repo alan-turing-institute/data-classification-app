@@ -16,6 +16,8 @@
 {% endblock content %}
 
 {% block extra_sections %}
+  {% include "projects/includes/work_package_detail_participants.html" %}
+
   {% include "projects/includes/work_package_detail_datasets.html" %}
 
   {% if policy_table %}

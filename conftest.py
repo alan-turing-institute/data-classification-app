@@ -130,7 +130,7 @@ def as_standard_user(client, standard_user):
 
 @pytest.fixture
 def as_data_provider_representative(client, data_provider_representative):
-    return client_login(client, data_provider_representative)
+    return client_login(client, data_provider_representative.user)
 
 
 @pytest.fixture
@@ -153,12 +153,15 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
+        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
+        work_package.add_user(data_provider_representative.user, programme_manager)
         project.add_user(user=referee.user,
                          role=ProjectRole.REFEREE.value,
                          creator=programme_manager)
+        work_package.add_user(referee.user, programme_manager)
 
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
@@ -166,8 +169,16 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         if tier is not None:
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
-            if tier >= Tier.TWO:
-                work_package.classify_as(tier, referee.user)
+            work_package.classify_as(tier, referee.user)
+            if tier >= Tier.THREE:
+                p = referee.user.get_participant(project)
+                p = p.get_work_package_participant(work_package)
+                p.approve(data_provider_representative.user)
+                work_package = p.work_package
+
+            assert [] == work_package.missing_classification_requirements
+            assert work_package.has_tier
+            assert tier == work_package.tier
         return work_package
     return _classified_work_package
 

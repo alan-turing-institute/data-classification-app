@@ -47,6 +47,20 @@ class ProjectRole(Enum):
             ProjectRole.RESEARCHER.value,
         ]
 
+    @classmethod
+    def approved_roles(cls):
+        """List of roles that don't require approval for higher-tier work packages"""
+        return [
+            ProjectRole.INVESTIGATOR.value,
+            ProjectRole.PROJECT_MANAGER.value,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+        ]
+
+    @classmethod
+    def non_approved_roles(cls):
+        """List of roles that require approval for higher-tier work packages"""
+        return list(set(cls.ordered_display_role_list()) - set(cls.approved_roles()))
+
 
 class UserProjectPermissions:
     """
@@ -84,6 +98,13 @@ class UserProjectPermissions:
                     ProjectRole.PROJECT_MANAGER,
                     ProjectRole.INVESTIGATOR,
                 ])
+
+    @property
+    def can_approve_participants(self):
+        """Is this role able to add new participants to the project?"""
+
+        # To add a new participant, the user must also have system-level access to view users
+        return self.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE
 
     @property
     def can_edit(self):
@@ -141,6 +162,12 @@ class UserProjectPermissions:
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
             ProjectRole.INVESTIGATOR,
         ]
+
+    @property
+    def requires_approval(self):
+        """Do users with this role need to be approved by DPRs for higher-tier work packages?"""
+
+        return self.role.value not in ProjectRole.approved_roles()
 
     def can_assign_role(self, role):
         """
