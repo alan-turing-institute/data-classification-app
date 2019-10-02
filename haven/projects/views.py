@@ -713,6 +713,11 @@ class WorkPackageClassifyData(
     LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, TemplateView
 ):
     template_name = 'projects/work_package_classify_data.html'
+    session_key = 'classification'
+
+    def test_func(self):
+        role = self.get_project_role()
+        return role.can_classify_data if role else False
 
     def get(self, *args, **kwargs):
         response = self.check_already_classified()
@@ -746,9 +751,7 @@ class WorkPackageClassifyData(
             if isinstance(answer, int):
                 return self.save_results(answer)
             else:
-                url = reverse('projects:classify_data',
-                              args=[self.object.project.id, self.object.id, answer.id])
-                return HttpResponseRedirect(url)
+                return self.redirect_to_question(answer)
 
         context = self.get_context_data()
         return self.render_to_response(context)
@@ -761,82 +764,72 @@ class WorkPackageClassifyData(
         If they have, then show their classification (and others) rather than
         display the form again.
         """
-        if self.request.user.is_authenticated:
-            self.object = self.get_object()
+        self.object = self.get_object()
 
-            classification = ClassificationOpinion.objects.filter(
-                work_package=self.object,
-                created_by=self.request.user
-            ).first()
-            if classification:
-                messages.error(
-                    self.request,
-                    'You have already completed classification. Please delete your classification '
-                    'if you wish to change any answers.')
-                url = reverse('projects:classify_results',
-                              args=[self.object.project.id, self.object.id])
-                return HttpResponseRedirect(url)
-        return None
+        classification = ClassificationOpinion.objects.filter(
+            work_package=self.object,
+            created_by=self.request.user
+        ).first()
+        if classification:
+            message = ('You have already completed classification. Please delete your '
+                       'classification if you wish to change any answers.')
+            return self.redirect_to_results(message=message, message_level=messages.ERROR)
 
     def load_questions(self):
+        '''
+        Retrieve the current question to be answered, according to the URL
+
+        If there isn't a question identified in the URL, user will be redirected to the starting
+        question
+        '''
         self.starting_question = ClassificationQuestion.objects.get_starting_question()
-        self.last_question = None
+        self.previous_question = None
         if 'question_pk' not in self.kwargs:
             self.clear_answers()
-            url = reverse('projects:classify_data',
-                          args=[self.object.project.id, self.object.id, self.starting_question.id])
-            return HttpResponseRedirect(url)
+            return self.redirect_to_question(self.starting_question)
         else:
             self.question = ClassificationQuestion.objects.get(pk=self.kwargs['question_pk'])
             self.clear_answers(after=self.question)
-        last_question_name = self.get_last_question()
-        if last_question_name:
-            self.last_question = ClassificationQuestion.objects.get(name=last_question_name)
+        self.previous_question = self.get_previous_question()
         return None
 
-    def save_results(self, expected_answer):
+    def save_results(self, expected_tier):
+        '''
+        Get all the answers from the session, and save the classification to the database
+        '''
         questions = []
         question = self.starting_question
-        # The session may contain irrelevant answers, e.g. if the user has went back and changed
-        # answers, so we don't just copy the session, we follow the chain from the starting
-        # question and only store what matches
+        tier = None
+        # Although we try to make sure the session only contains relevant answers, e.g. calling
+        # clear_answers if the user has went back and changed answers, it's possible something
+        # invalid might be in there. Therefore, we don't just copy the session, we follow the
+        # chain from the starting question and only store what matches
         while True:
             answer = self.get_answer(question)
             if answer is None:
                 logging.error(f"No response found in session for question {question.name}")
-                messages.error(
-                    self.request,
-                    'An error occurred storing the results of your classification.')
-                url = reverse('projects:classify_data',
-                              args=[self.object.project.id, self.object.id])
-                return HttpResponseRedirect(url)
+                message = 'An error occurred storing the results of your classification.'
+                return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
             questions.append((question, answer))
             if answer:
-                answer = question.answer_yes()
+                question = question.answer_yes()
             else:
-                answer = question.answer_no()
+                question = question.answer_no()
 
-            if isinstance(answer, int):
-                if answer != expected_answer:
-                    logging.error(f"Unexpected tier found in session at {question.name}")
-                    messages.error(
-                        self.request,
-                        'An error occurred storing the results of your classification.')
-                    url = reverse('projects:classify_data',
-                                  args=[self.object.project.id, self.object.id])
-                    return HttpResponseRedirect(url)
-
-                self.object.classify_as(answer, self.request.user, questions)
-                self.object.calculate_tier()
+            if isinstance(question, int):
+                tier = question
                 break
-            else:
-                question = answer
 
+        if tier != expected_tier:
+            logging.error(f"Unexpected tier storing result: expected {expected_tier}, was {tier}")
+            message = 'An error occurred storing the results of your classification.'
+            return self.redirect_to_question(None, message, message_level=messages.ERROR)
+
+        self.object.classify_as(tier, self.request.user, questions)
+        self.object.calculate_tier()
         self.clear_answers()
-        url = reverse('projects:classify_results',
-                      args=[self.object.project.id, self.object.id])
-        return HttpResponseRedirect(url)
+        return self.redirect_to_results()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -860,38 +853,72 @@ class WorkPackageClassifyData(
 
         context['question'] = self.question
         context['starting_question'] = self.starting_question
-        if self.last_question:
-            context['last_question'] = self.last_question
+        if self.previous_question:
+            context['previous_question'] = self.previous_question
         return context
 
-    def test_func(self):
-        role = self.get_project_role()
-        return role.can_classify_data if role else False
+    def redirect_to_question(self, question, message=None, message_level=None):
+        if message:
+            message_level = message_level or messages.INFO
+            messages.add_message(self.request, message_level, message)
+        args = [self.object.project.id, self.object.id]
+        if question:
+            args.append(question.id)
+        url = reverse('projects:classify_data', args=args)
+        return HttpResponseRedirect(url)
+
+    def redirect_to_results(self, message=None, message_level=None):
+        if message:
+            message_level = message_level or messages.INFO
+            messages.add_message(self.request, message_level, message)
+        args = [self.object.project.id, self.object.id]
+        url = reverse('projects:classify_results', args=args)
+        return HttpResponseRedirect(url)
 
     def store_answer(self, question, answer):
-        existing = self.request.session.get('classification', [])
+        '''
+        Store the answer to the given question in the session
+        '''
+        existing = self.request.session.get(self.session_key, [])
         # Cannot append to existing object in session, will not serialize correctly
-        self.request.session['classification'] = existing + [[question.name, answer]]
+        self.request.session[self.session_key] = existing + [[question.name, answer]]
 
-    def get_last_question(self):
-        answers = self.request.session.get('classification')
+    def get_previous_question(self):
+        '''
+        Return the ClassificationQuestion representing the last question the user answered
+        '''
+        answers = self.request.session.get(self.session_key)
         if answers:
-            return answers[-1][0]
+            name = answers[-1][0]
+            if name:
+                return ClassificationQuestion.objects.get(name=name)
         return None
 
     def get_answer(self, question):
-        answers = self.request.session.get('classification', [])
+        '''
+        Retrieve the answer for the given question from the session
+        '''
+        answers = self.request.session.get(self.session_key, [])
         for answer in answers:
             if answer[0] == question.name:
                 return answer[1]
         return None
 
     def clear_answers(self, after=None):
+        '''
+        Remove answers from the session
+
+        If `after` is None (the default), all answers will be removed.
+
+        Otherwise `after` should be a ClassificationQuestion instance. Answers for any
+        questions before (but not including) that question will remain in the session, but
+        anything else is removed.
+        '''
         if not after:
-            self.request.session.pop('classification', None)
+            self.request.session.pop(self.session_key, None)
             return
 
-        answers = self.request.session.get('classification', [])
+        answers = self.request.session.get(self.session_key, [])
         upto = None
         for i, answer in enumerate(answers):
             if answer[0] == after.name:
@@ -899,7 +926,7 @@ class WorkPackageClassifyData(
                 break
 
         if upto is not None:
-            self.request.session['classification'] = answers[:upto]
+            self.request.session[self.session_key] = answers[:upto]
 
 
 class WorkPackageClassifyResults(

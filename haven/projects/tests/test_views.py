@@ -922,7 +922,7 @@ class TestWorkPackageClassifyData:
 
         goto = back or start
         if goto:
-            key = 'last_question' if back else 'starting_question'
+            key = 'previous_question' if back else 'starting_question'
             if validate_goto:
                 assert key in response.context
                 assert response.context[key].name == goto

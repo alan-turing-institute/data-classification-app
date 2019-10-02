@@ -17,10 +17,10 @@
     <div class="col">
       <input type="submit" value="Yes" name="submit_yes" class="btn btn-primary" />
       <input type="submit" value="No" name="submit_no" class="btn btn-primary" />
-      {% if last_question and last_question != question %}
-        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id last_question.id %}">Back</a>
+      {% if previous_question and previous_question != question %}
+        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Back</a>
       {% endif %}
-      {% if starting_question and starting_question != question %}
+      {% if starting_question and starting_question != question and starting_question != previous_question %}
         <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id starting_question.id %}">Start over</a>
       {% endif %}
     </div>
