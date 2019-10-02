@@ -2,6 +2,7 @@ from operator import attrgetter
 
 import bleach
 import django_tables2 as tables
+from django.urls import reverse
 from django.utils.html import format_html
 from django_bleach.utils import get_bleach_default_options
 
@@ -87,12 +88,15 @@ class PolicyTable(tables.Table):
 
 
 class ClassificationOpinionQuestionTable(tables.Table):
-    question = tables.Column('Question')
+    question = tables.Column(
+        'Question',
+        linkify=lambda record: record.get('modify_url')
+    )
 
     class Meta:
         orderable = False
 
-    def __init__(self, classifications, *args, **kwargs):
+    def __init__(self, classifications, *args, current_user=None, **kwargs):
         all_questions = self._get_all_questions(classifications)
         columns = []
         unique_questions = {}
@@ -100,7 +104,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
         for questions in all_questions:
             column_name, column = self._create_column(questions[0].opinion)
             columns.append((column_name, column))
-            self._populate_column_data(column_name, questions, unique_questions)
+            self._populate_column_data(column_name, questions, unique_questions, current_user)
 
         data = self._get_sorted_data(all_questions, unique_questions)
 
@@ -120,8 +124,8 @@ class ClassificationOpinionQuestionTable(tables.Table):
                 all_questions.append(q)
         return all_questions
 
-    @staticmethod
-    def _create_column(classification):
+    @classmethod
+    def _create_column(cls, classification):
         user = classification.created_by
         column_name = 'user_{}'.format(user.id)
         column = tables.BooleanColumn(
@@ -129,18 +133,27 @@ class ClassificationOpinionQuestionTable(tables.Table):
             null=True,
             # This maybe doesn't belong in the footer, but it can't be data because it's
             # not a boolean
-            footer='Tier {}'.format(classification.tier)
+            footer='Tier {}'.format(classification.tier),
         )
         return (column_name, column)
 
     @staticmethod
-    def _populate_column_data(column_name, questions, unique_questions):
+    def _populate_column_data(column_name, questions, unique_questions, current_user):
         for question in questions:
             key = question.question_at_time.question
             row = unique_questions.setdefault(key, {
                 'question': key,
             })
             row[column_name] = question.answer
+            if current_user == question.opinion.created_by:
+                args = [
+                    question.opinion.work_package.project.id,
+                    question.opinion.work_package.id,
+                    question.question.id,
+                ]
+                url = reverse('projects:classify_data', args=args)
+                url += '?modify=1'
+                row['modify_url'] = url
 
     @staticmethod
     def _get_sorted_data(all_questions, unique_questions):

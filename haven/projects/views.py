@@ -1025,7 +1025,8 @@ class WorkPackageClassifyResults(
         other_classifications = self.object.classifications.exclude(created_by=self.request.user)
 
         table = ClassificationOpinionQuestionTable(
-            [classification] + list(other_classifications)
+            [classification] + list(other_classifications),
+            current_user=self.request.user,
         )
 
         return render(self.request, 'projects/work_package_classify_results.html', {
