@@ -9,7 +9,7 @@ matrix:
       install:
         - pip install -r requirements/test.txt
       script:
-        - pytest
+        - pytest --cov-config=haven/.coveragerc --cov-report term-missing --cov haven
     - language: node_js
       node_js:
         - 10
