@@ -834,8 +834,9 @@ class WorkPackageClassifyData(
 
     def format_answer(self, answer):
         if isinstance(answer, int):
-            return f"Classify as Tier {answer}"
-        return 'Next Question: ' + bleach_no_links(answer.question)
+            return f"Classify as <strong>Tier {answer}</strong>"
+        question = bleach_no_links(answer.question)
+        return f'<span class="text-muted">Next Question: {question}</span>'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
