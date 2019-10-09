@@ -130,6 +130,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
         column_name = 'user_{}'.format(user.id)
         column = tables.BooleanColumn(
             verbose_name=user.username,
+            yesno=('Yes', 'No'),
             null=True,
             # This maybe doesn't belong in the footer, but it can't be data because it's
             # not a boolean
