@@ -5,7 +5,7 @@
 {% block h1_title %}<small class="h6 text-muted">Question {{ question_number }}<br/></small> {{ question.question | bleach }}{% endblock %}
 
 {% block content %}
-<form action="{{ request.path }}" method="post">
+<form action="{{ request.path }}{% if modify %}?modify=1{% endif %}" method="post">
   {% csrf_token %}
 
   <div class="my-5">
