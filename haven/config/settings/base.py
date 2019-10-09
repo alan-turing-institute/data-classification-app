@@ -102,6 +102,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'sourcerevision.context_processors.source_revision',
             ],
             'libraries': {
                 'haven': 'core.template_tags.haven',
