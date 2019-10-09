@@ -130,7 +130,7 @@ def as_standard_user(client, standard_user):
 
 @pytest.fixture
 def as_data_provider_representative(client, data_provider_representative):
-    return client_login(client, data_provider_representative)
+    return client_login(client, data_provider_representative.user)
 
 
 @pytest.fixture
@@ -139,22 +139,60 @@ def as_project_participant(client, project_participant):
 
 
 @pytest.fixture
+def as_investigator(client, investigator):
+    return client_login(client, investigator.user)
+
+
+@pytest.fixture
 def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
     def _classified_work_package(tier):
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
+        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
-        work_package.classify_as(tier, investigator.user)
-        work_package.classify_as(tier, data_provider_representative.user)
-        if tier >= Tier.TWO:
-            project.add_user(user=referee.user,
-                             role=ProjectRole.REFEREE.value,
-                             creator=programme_manager)
+        work_package.add_user(data_provider_representative.user, programme_manager)
+        project.add_user(user=referee.user,
+                         role=ProjectRole.REFEREE.value,
+                         creator=programme_manager)
+        work_package.add_user(referee.user, programme_manager)
+
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        if tier is not None:
+            work_package.classify_as(tier, investigator.user)
+            work_package.classify_as(tier, data_provider_representative.user)
             work_package.classify_as(tier, referee.user)
+            if tier >= Tier.THREE:
+                p = referee.user.get_participant(project)
+                p = p.get_work_package_participant(work_package)
+                p.approve(data_provider_representative.user)
+                work_package = p.work_package
+
+            assert [] == work_package.missing_classification_requirements
+            assert work_package.has_tier
+            assert tier == work_package.tier
         return work_package
     return _classified_work_package
+
+
+@pytest.fixture
+def hide_audit_warnings(caplog):
+    '''
+    Filters out most (but not all) warnings from easyaudit.
+
+    No tests use this by default, it's mostly useful to temporarily add to a
+    failing test to reduce the noise.
+    '''
+    def filter(record):
+        if record.name in ['easyaudit.signals.model_signals', 'model_signals.py']:
+            return False
+        return True
+    caplog.handler.addFilter(filter)

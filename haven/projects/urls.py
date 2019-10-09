@@ -46,6 +46,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/participants/<int:pk>/edit',
+        views.EditParticipant.as_view(),
+        name='edit_participant'
+    ),
+
+    path(
         '<int:pk>/datasets/',
         views.ProjectListDatasets.as_view(),
         name='list_datasets'
@@ -82,6 +88,18 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify/<int:question_pk>',
+        views.WorkPackageClassifyData.as_view(),
+        name='classify_data'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_results',
+        views.WorkPackageClassifyResults.as_view(),
+        name='classify_results'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/classify_delete',
         views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'
@@ -97,6 +115,18 @@ urlpatterns = [
         '<int:project_pk>/work_packages/<int:pk>/datasets/new',
         views.WorkPackageAddDataset.as_view(),
         name='work_package_add_dataset'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/participants/new',
+        views.WorkPackageAddParticipant.as_view(),
+        name='work_package_add_participant'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/participants/approve',
+        views.WorkPackageApproveParticipants.as_view(),
+        name='work_package_approve_participants'
     ),
 
     path('<int:pk>/new_participant_autocomplete/',

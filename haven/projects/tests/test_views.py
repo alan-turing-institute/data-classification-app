@@ -1,5 +1,6 @@
 import json
 
+import bleach
 import pytest
 
 from core import recipes
@@ -165,6 +166,33 @@ class TestViewWorkPackage:
 
         assert response.status_code == 404
 
+    def test_list_participants(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        user2, user3 = recipes.user.make(_quantity=2)
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_user(user2, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+        project.add_user(user3, ProjectRole.RESEARCHER.value,
+                         as_programme_manager._user)
+
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(user2, as_programme_manager._user)
+        work_package.add_user(user3, as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+        table = response.context['participants_table'].as_values()
+        assert list(table) == [
+            ['Username', 'Role', 'Approved'],
+            [user2.display_name(), 'Researcher', 'False'],
+            [user3.display_name(), 'Researcher', 'False'],
+        ]
+
 
 @pytest.mark.django_db
 class TestEditProject:
@@ -254,28 +282,63 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == project_participant.username
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == project_participant.username
+
+    def test_add_new_user_to_project_and_work_package(self, as_programme_manager,
+                                                      project_participant):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+        response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
+            'work_packages-0-work_package': work_package.id,
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        participants = project.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == project_participant.username
+
+        participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == project_participant.username
 
     def test_cancel_add_new_user_to_project(self, as_programme_manager, project_participant):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
             'cancel': 'Cancel',
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 0
+        assert project.participants.count() == 0
 
     def test_add_user_without_domain_to_project(self, as_programme_manager):
         """Check that domain will not be added to entered username if the username exists as it is"""
@@ -285,42 +348,54 @@ class TestAddUserToProject:
         new_user = User.objects.create_user(username='newuser')
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': new_user.pk,
+            'user': new_user.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
         assert response.url == '/projects/%d/participants/' % project.id
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first().user.username == 'newuser'
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == 'newuser'
 
     def test_cannot_add_existing_user_to_project(self, as_programme_manager, project_participant):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         project.add_user(project_participant, ProjectRole.RESEARCHER, as_programme_manager._user)
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
         assert response.context['project'] == project
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
     def test_cannot_add_nonexisting_user_to_project(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
-            'username': 12345,
+            'user': 12345,
+            'work_packages-TOTAL_FORMS': 1,
+            'work_packages-MAX_NUM_FORMS': 1,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
         assert response.context['project'] == project
 
-        assert project.participant_set.count() == 0
+        assert project.participants.count() == 0
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
@@ -390,6 +465,92 @@ class TestListParticipants:
 
 
 @pytest.mark.django_db
+class TestEditParticipant:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+        response = client.get('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+
+        response = as_programme_manager.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_participant(self, as_programme_manager):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+        response = as_programme_manager.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
+            {
+                'role': ProjectRole.RESEARCHER.value,
+                'work_packages-TOTAL_FORMS': 1,
+                'work_packages-MAX_NUM_FORMS': 1,
+                'work_packages-MIN_NUM_FORMS': 0,
+                'work_packages-INITIAL_FORMS': 0,
+                'work_packages-0-work_package': work_package.id,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/participants/' % project.id
+
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+        participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == investigator.user.username
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        investigator = recipes.investigator.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add participants, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (researcher.project.id, researcher.id))
+        assert response.status_code == 403
+
+    def test_restricts_creation_based_on_role(self, client, referee, researcher):
+        client.force_login(referee.user)
+        response = client.post(
+            '/projects/%d/participants/%d/edit' % (referee.project.id, researcher.id),
+            {
+                'role': ProjectRole.INVESTIGATOR.value,
+            })
+
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestProjectAddDataset:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
@@ -426,7 +587,7 @@ class TestProjectAddDataset:
         assert dataset.description == 'Dataset One'
         assert dataset.default_representative == user1
 
-        assert project.projectdataset_set.first().representative == user1
+        assert project.get_representative(dataset) == user1
 
     def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
@@ -512,6 +673,101 @@ class TestWorkPackageListDatasets:
 
         assert response.status_code == 200
         assert list(response.context['datasets']) == [ds1, ds2]
+
+
+@pytest.mark.django_db
+class TestWorkPackageAddParticipant:
+    def test_add_participant(self, as_programme_manager, user1):
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        p1 = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get('/projects/%d/work_packages/%d/participants/new'
+                                            % (project.id, work_package.id))
+
+        assert response.status_code == 200
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/participants/new' % (project.id, work_package.id),
+            {
+                'participant': p1.pk,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
+
+        assert work_package.participants.count() == 1
+        assert p1 == work_package.participants.first()
+
+
+@pytest.mark.django_db
+class TestWorkPackageApproveParticipants:
+    def test_anonymous_cannot_access_page(self, client, helpers, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = client.get(url)
+        helpers.assert_login_redirect(response)
+
+    def test_unprivileged_user_cannot_access_page(self, as_investigator, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_investigator.get(url)
+        assert response.status_code == 404
+
+    def test_view_page(self, as_data_provider_representative, referee, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        p1 = project.add_user(as_data_provider_representative._user,
+                              ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                              programme_manager)
+        p2 = project.add_user(referee.user,
+                              ProjectRole.REFEREE.value,
+                              programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        work_package.add_user(as_data_provider_representative._user, programme_manager)
+        work_package.add_user(referee.user, programme_manager)
+        dataset = recipes.dataset.make()
+        project.add_dataset(dataset, as_data_provider_representative._user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'False', 'False'],
+        ]
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_data_provider_representative.post(url, {
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 1,
+            'participants-0-id': p2.get_work_package_participant(work_package).id,
+            'participants-0-approved': 'on',
+        })
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_data_provider_representative.get(url)
+        table = response.context['participants_table']
+
+        assert response.status_code == 200
+        assert list(table.as_values()) == [
+            ['Username', 'Role', 'Approved', 'Approved by you'],
+            [p1.user.display_name(), 'Data Provider Representative', 'True', 'True'],
+            [p2.user.display_name(), 'Referee', 'True', 'True'],
+        ]
 
 
 @pytest.mark.django_db
@@ -634,6 +890,81 @@ class TestWorkPackageClassifyData:
     def url(self, work_package, page='classify'):
         return '/projects/%d/work_packages/%d/%s' % (work_package.project.id, work_package.id, page)
 
+    def classify(self, client, work_package, response, current,
+                 answer=None, back=None, start=None,
+                 validate_goto=True, next=None, guidance=None):
+        '''
+        Posts data to answer a single classification question
+
+        Parameters are divided into three stages.
+        Defining the current page:
+        client - Test client instance
+        work_package - Work package to classify
+        response - Response object for current page
+        current - Name of the ClassificationQuestion being answered
+
+        Actions to take (optional, normally you should supply exactly one):
+        answer - boolean representing whether to answer Yes/No
+        back - Name of previous step to go back to (simulating the Back button)
+        start - Name of first step to go back to (simulating the Start Over button)
+
+        Expected results (optional, will not be verified if not provided):
+        validate_goto - Boolean indicating whether to check that back/start match what is
+                        displayed on page. If false, essentially simulates the user manually
+                        editing the URL
+        next - Name of the ClassificationQuestion you expect to be asked next
+        guidance - List of names of ClassificationGuidance you expect to be on the next page
+        '''
+        url = response.request['PATH_INFO']
+        response = client.get(url)
+        assert 'question' in response.context
+        assert response.context['question'].name == current
+
+        goto = back or start
+        if goto:
+            key = 'previous_question' if back else 'starting_question'
+            if validate_goto:
+                assert key in response.context
+                assert response.context[key].name == goto
+                pk = response.context[key].pk
+            else:
+                pk = ClassificationQuestion.objects.get(name=goto).pk
+            url = self.url(work_package, f"classify/{pk}")
+            response = client.get(url)
+            assert 'question' in response.context
+            assert response.context['question'].name == goto
+            return response
+
+        data = {}
+        if answer:
+            data['submit_yes'] = 'Yes'
+        else:
+            data['submit_no'] = 'No'
+
+        response = client.post(url, data, follow=True)
+        if next:
+            assert 'question' in response.context
+            assert response.context['question'].name == next
+        if guidance:
+            assert [g.name for g in response.context['guidance']] == guidance
+
+        return response
+
+    def check_results_page(self, response, work_package, user, tier, questions):
+        assert response.status_code == 200
+        assert response.context['classification'].tier == tier
+        assert work_package.classifications.get().tier == tier
+        table = list(response.context['questions_table'].as_values())
+        assert len(table) == len(questions) + 1
+
+        def question(name):
+            value = ClassificationQuestion.objects.get(name=name).question
+            value = bleach.clean(value, tags=[], strip=True)
+            return value
+
+        assert table[0] == ['Question', user.username]
+        assert table[1:] == [[question(q[0]), q[1]] for q in questions]
+
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
@@ -651,10 +982,10 @@ class TestWorkPackageClassifyData:
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
 
-        response = as_project_participant.get(self.url(work_package))
+        response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 200
         assert response.context['work_package'] == work_package
-        assert 'wizard' in response.context
+        assert 'question' in response.context
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
@@ -687,147 +1018,202 @@ class TestWorkPackageClassifyData:
         response = as_programme_manager.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_do_not_show_form_if_user_already_classified(self, client, as_project_participant,
-                                                         programme_manager):
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
-        work_package.classify_as(0, as_project_participant._user)
+    def test_do_not_show_form_if_user_already_classified(
+            self, classified_work_package, as_investigator):
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
+        work_package.classify_as(0, as_investigator._user)
 
-        assert 'wizard' not in response.context
+        response = as_investigator.get(self.url(work_package), follow=True)
 
-    def test_delete_classification(self, client, as_project_participant, programme_manager):
+        assert 'question' not in response.context
+        assert [m.message for m in response.context['messages']] == [
+            'You have already completed classification. Please delete your classification if you '
+            'wish to change any answers.'
+        ]
+
+    def test_delete_classification(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
-        work_package.classify_as(0, as_project_participant._user)
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
+        work_package.classify_as(0, as_investigator._user)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
         assert b'Delete My Classification' in response.content
 
-        response = as_project_participant.get(self.url(work_package, 'classify_delete'))
+        response = as_investigator.get(self.url(work_package, 'classify_delete'))
         assert b'Delete Classification' in response.content
 
-        response = as_project_participant.post(self.url(work_package, 'classify_delete'))
+        response = as_investigator.post(self.url(work_package, 'classify_delete'))
 
-        response = as_project_participant.get(self.url(work_package))
-        assert 'wizard' in response.context
+        response = as_investigator.get(self.url(work_package), follow=True)
+        assert 'question' in response.context
         assert b'Delete My Classification' not in response.content
 
-    def test_classify_as_tier(self, as_project_participant, programme_manager):
+    def test_classify_as_tier(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
-        def classify(current, answer, next):
-            data = {}
-            data['work_package_classify_data-current_step'] = current
-            if answer:
-                data[f"{current}-question"] = 'on'
-            response = as_project_participant.post(self.url(work_package), data)
-            if next:
-                assert 'wizard' in response.context
-                assert response.context['wizard']['steps'].current == next
-            return response
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=True, next='no_reidentify_absolute')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify_absolute',
+                                 answer=False, next='no_reidentify_strong')
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify_strong',
+                                 answer=True, next='include_commercial_personal')
+        response = self.classify(as_investigator, work_package, response,
+                                 'include_commercial_personal', answer=True,
+                                 next='financial_low_personal')
+        response = self.classify(as_investigator, work_package, response, 'financial_low_personal',
+                                 answer=False, next='sophisticated_attack')
+        response = self.classify(as_investigator, work_package, response, 'sophisticated_attack',
+                                 answer=False)
 
-        response = classify('open_generate_new', False, 'closed_personal')
-        response = classify('closed_personal', True, 'public_and_open')
-        response = classify('public_and_open', False, 'no_reidentify')
-        response = classify('no_reidentify', True, 'no_reidentify_absolute')
-        response = classify('no_reidentify_absolute', False, 'no_reidentify_strong')
-        response = classify('no_reidentify_strong', True, 'include_commercial_personal')
-        response = classify('include_commercial_personal', True, 'financial_low_personal')
-        response = classify('financial_low_personal', False, 'sophisticated_attack')
-        response = classify('sophisticated_attack', False, None)
+        self.check_results_page(
+            response, work_package, as_investigator._user, 3,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'False'],
+                ['no_reidentify', 'True'],
+                ['no_reidentify_absolute', 'False'],
+                ['no_reidentify_strong', 'True'],
+                ['include_commercial_personal', 'True'],
+                ['financial_low_personal', 'False'],
+                ['sophisticated_attack', 'False'],
+            ]
+        )
 
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 3
-        assert work_package.classifications.get().tier == 3
-
-    def test_classify_backwards(self, as_project_participant, programme_manager):
+    def test_classify_backwards(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
-        def classify(current, answer, goto, next):
-            data = {}
-            data['work_package_classify_data-current_step'] = current
-            if answer:
-                data[f"{current}-question"] = 'on'
-            if goto:
-                data['wizard_goto_step'] = goto,
-            response = as_project_participant.post(self.url(work_package), data)
-            if next:
-                assert 'wizard' in response.context
-                assert response.context['wizard']['steps'].current == next
-            return response
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 start='open_generate_new', next='open_generate_new')
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=True, next='financial_low')
+        response = self.classify(as_investigator, work_package, response, 'financial_low',
+                                 back='include_commercial', next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 back='closed_personal', next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
 
-        response = classify('open_generate_new', False, None, 'closed_personal')
-        response = classify('closed_personal', True, None, 'public_and_open')
-        response = classify('public_and_open', False, 'open_generate_new', 'open_generate_new')
-        response = classify('open_generate_new', False, None, 'closed_personal')
-        response = classify('closed_personal', False, None, 'include_commercial')
-        response = classify('include_commercial', True, None, 'financial_low')
-        response = classify('financial_low', False, 'include_commercial', 'include_commercial')
-        response = classify('include_commercial', False, None, 'open_publication')
-        response = classify('open_publication', True, None, None)
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'False'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
 
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 1
-        assert work_package.classifications.get().tier == 1
-
-    def test_classify_guidance(self, as_project_participant, programme_manager):
+    def test_classify_jump_back(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
-        project.add_user(user=as_project_participant._user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+        work_package = classified_work_package(None)
 
-        response = as_project_participant.get(self.url(work_package))
-        assert 'wizard' in response.context
-        assert response.context['wizard']['steps'].current == 'open_generate_new'
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 back='closed_personal', next='closed_personal',
+                                 validate_goto=False)
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open')
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=True, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'True'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
+
+    def test_classify_jump_illegal(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 back='open_publication', next='open_publication',
+                                 validate_goto=False)
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        assert [m.message for m in response.context['messages']] == [
+            'An error occurred storing the results of your classification.'
+        ]
+
+    def test_classify_guidance(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        assert 'question' in response.context
+        assert response.context['question'].name == 'open_generate_new'
         guidance = ['personal_data', 'living_individual']
         assert [g.name for g in response.context['guidance']] == guidance
 
-        def classify(current, answer, next, guidance=None):
-            data = {}
-            data['work_package_classify_data-current_step'] = current
-            if answer:
-                data[f"{current}-question"] = 'on'
-            response = as_project_participant.post(self.url(work_package), data)
-            if next:
-                assert 'wizard' in response.context
-                assert response.context['wizard']['steps'].current == next
-            if guidance:
-                assert [g.name for g in response.context['guidance']] == guidance
-            return response
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal',
+                                 guidance=['personal_data', 'living_individual'])
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=True, next='public_and_open',
+                                 guidance=['personal_data', 'living_individual'])
+        response = self.classify(as_investigator, work_package, response, 'public_and_open',
+                                 answer=False, next='no_reidentify',
+                                 guidance=['personal_data', 'pseudonymized_data',
+                                           'living_individual'])
+        response = self.classify(as_investigator, work_package, response, 'no_reidentify',
+                                 answer=False, next='substantial_threat')
+        response = self.classify(as_investigator, work_package, response, 'substantial_threat',
+                                 answer=True)
 
-        response = classify('open_generate_new', False, 'closed_personal',
-                            guidance=['personal_data', 'living_individual'])
-        response = classify('closed_personal', True, 'public_and_open',
-                            guidance=['personal_data', 'living_individual'])
-        response = classify('public_and_open', False, 'no_reidentify',
-                            guidance=['personal_data', 'pseudonymized_data', 'living_individual'])
-        response = classify('no_reidentify', False, 'substantial_threat')
-        response = classify('substantial_threat', True, None)
-
-        assert response.status_code == 200
-        assert response.context['classification'].tier == 4
-        assert work_package.classifications.get().tier == 4
+        self.check_results_page(
+            response, work_package, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'False'],
+                ['no_reidentify', 'False'],
+                ['substantial_threat', 'True'],
+            ]
+        )
 
 
 @pytest.mark.django_db

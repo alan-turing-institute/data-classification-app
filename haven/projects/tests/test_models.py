@@ -1,10 +1,17 @@
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from core import recipes
 from data.classification import insert_initial_questions
 from data.models import ClassificationGuidance, ClassificationQuestion
-from projects.models import Policy, PolicyAssignment, PolicyGroup
+from projects.models import (
+    Policy,
+    PolicyAssignment,
+    PolicyGroup,
+    ProjectDataset,
+    WorkPackageParticipant,
+)
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
 
@@ -20,8 +27,8 @@ class TestProject:
             programme_manager
         )
 
-        assert project.participant_set.count() == 1
-        assert project.participant_set.first() == part
+        assert project.participants.count() == 1
+        assert project.participants.first() == part
         assert part.user.username == 'project_participant@example.com'
         assert part.role == 'researcher'
         assert part.created_by == programme_manager
@@ -33,7 +40,7 @@ class TestProject:
 
         project.add_dataset(dataset, user1, programme_manager)
 
-        assert project.projectdataset_set.first().representative == user1
+        assert project.get_representative(dataset) == user1
 
     def test_add_dataset_wrong_role(self, programme_manager, user1):
         project = recipes.project.make()
@@ -67,251 +74,252 @@ class TestWorkPackage:
         with pytest.raises(ValidationError):
             work_package.add_dataset(dataset, programme_manager)
 
-    def test_classify_work_package(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classify_work_package_no_dataset(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+        work_package.datasets.clear()
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
+        with pytest.raises(ValidationError):
+            work_package.classify_as(0, investigator.user)
 
+    def test_classify_work_package(self, classified_work_package,
+                                   investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        assert not work_package.has_user_classified(investigator.user)
         work_package.classify_as(0, investigator.user)
-        work_package.classify_as(0, data_rep.user)
+        assert work_package.has_user_classified(investigator.user)
 
+        assert not work_package.has_user_classified(data_provider_representative.user)
+        work_package.classify_as(0, data_provider_representative.user)
+        assert work_package.has_user_classified(data_provider_representative.user)
+
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classification_not_ready(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classification_not_ready(self, classified_work_package, data_provider_representative):
+        work_package = classified_work_package(None)
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
-        work_package.classify_as(0, data_rep.user)
-
+        assert work_package.missing_classification_requirements == [
+            'Not classified by Investigator']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
-    def test_classification_not_ready_multiple_dprs(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
-        dataset2 = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classification_not_ready_multiple_dprs(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        project = work_package.project
+        dataset2 = recipes.dataset.make(name='Dataset 2')
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
         project.add_dataset(dataset2, data_rep2.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
         work_package.add_dataset(dataset2, investigator.user)
 
         work_package.classify_as(0, investigator.user)
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == [
+            'Not classified by Data Provider Representative for dataset: Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
-    def test_classify_work_package_multiple_dprs(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
-        dataset2 = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classify_work_package_multiple_dprs(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        project = work_package.project
+        dataset2 = recipes.dataset.make(name='Dataset 2')
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
         project.add_dataset(dataset2, data_rep2.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
         work_package.add_dataset(dataset2, investigator.user)
 
         work_package.classify_as(0, investigator.user)
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == [
+            'Not classified by Data Provider Representative for dataset: Dataset 2']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
         work_package.classify_as(0, data_rep2.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classification_uninvolved_dataset(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
+    def test_classification_uninvolved_dataset(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        project = work_package.project
         dataset2 = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
         project.add_dataset(dataset2, data_rep2.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
 
         work_package.classify_as(0, investigator.user)
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classification_dpr_change(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classification_dpr_change(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+        project = work_package.project
 
-        project.add_dataset(dataset, data_rep.user, investigator.user)
-        work_package.add_dataset(dataset, investigator.user)
-
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
         data_rep2 = recipes.participant.make(
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
 
-        pd = project.projectdataset_set.first()
+        pd = ProjectDataset.objects.filter(project=project).first()
         pd.representative = data_rep2.user
         pd.save()
 
         work_package.classify_as(0, investigator.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classify_work_package_tier2(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
-        ref = recipes.participant.make(
-            role=ProjectRole.REFEREE.value, project=project)
+    def test_classify_work_package_tier2(
+            self, classified_work_package, investigator, data_provider_representative, referee):
+        work_package = classified_work_package(None)
 
         work_package.classify_as(2, investigator.user)
-        work_package.classify_as(2, data_rep.user)
-        work_package.classify_as(2, ref.user)
+        work_package.classify_as(2, data_provider_representative.user)
+        work_package.classify_as(2, referee.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 2
 
-    def test_classification_not_ready_tier2(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classification_not_ready_tier2(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
 
         work_package.classify_as(2, investigator.user)
-        work_package.classify_as(2, data_rep.user)
+        work_package.classify_as(2, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == ['Not classified by Referee']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
-    def test_tier_conflict(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
-        rc = recipes.participant.make(
-            role=ProjectRole.PROJECT_MANAGER.value, project=project)
+    def test_classify_work_package_tier3(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(data_provider_representative.user)
+
+        work_package.classify_as(3, investigator.user)
+        work_package.classify_as(3, data_provider_representative.user)
+        work_package.classify_as(3, referee.user)
+
+        assert work_package.missing_classification_requirements == []
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 3
+
+    def test_classification_not_ready_tier3(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+
+        work_package.classify_as(3, investigator.user)
+        work_package.classify_as(3, data_provider_representative.user)
+        work_package.classify_as(3, referee.user)
+
+        assert work_package.missing_classification_requirements == [
+            'Not classified by approved Referee']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+        p = referee.get_work_package_participant(work_package)
+        p.approve(data_provider_representative.user)
+        work_package = p.work_package
+
+        assert work_package.missing_classification_requirements == []
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 3
+
+    def test_tier_conflict(self, classified_work_package, investigator,
+                           data_provider_representative, referee):
+        work_package = classified_work_package(None)
 
         work_package.classify_as(0, investigator.user)
-        work_package.classify_as(1, data_rep.user)
-        work_package.classify_as(1, rc.user)
+        work_package.classify_as(1, data_provider_representative.user)
+        work_package.classify_as(1, referee.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert work_package.tier_conflict
         assert not work_package.has_tier
 
-    def test_classify_work_package_not_partipant(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        other_project = recipes.project.make()
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=other_project)
+    def test_classify_work_package_not_partipant(self, classified_work_package, system_manager):
+        work_package = classified_work_package(None)
 
         with pytest.raises(ValidationError):
-            work_package.classify_as(0, investigator.user)
+            work_package.classify_as(0, system_manager)
 
-    def test_classify_work_package_role_changed(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classify_work_package_role_changed(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
 
         work_package.classify_as(0, investigator.user)
         investigator.role = ProjectRole.RESEARCHER.value
         investigator.save()
 
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classify_work_package_participant_removed(self):
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
-        data_rep = recipes.participant.make(
-            role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, project=project)
+    def test_classify_work_package_participant_removed(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
 
         work_package.classify_as(0, investigator.user)
         investigator.delete()
 
-        work_package.classify_as(0, data_rep.user)
+        work_package.classify_as(0, data_provider_representative.user)
 
+        assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classify_work_package_store_questions(self):
+    def test_classify_work_package_store_questions(self, classified_work_package, investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
-        project = recipes.project.make()
-        work_package = recipes.work_package.make(project=project)
-        investigator = recipes.participant.make(
-            role=ProjectRole.INVESTIGATOR.value, project=project)
+        work_package = classified_work_package(None)
 
         questions = []
         q = ClassificationQuestion.objects.get_starting_question()
@@ -562,3 +570,234 @@ class TestWorkPackage:
         ]
         table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
+
+    def test_add_participant(self, programme_manager, user1):
+        project = recipes.project.make()
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        work_package.add_user(user1, programme_manager)
+
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
+    def test_add_participant_repeated(self, programme_manager, user1):
+        project = recipes.project.make()
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
+        work_package = recipes.work_package.make(project=project)
+
+        work_package.add_user(user1, programme_manager)
+
+        with pytest.raises(IntegrityError):
+            WorkPackageParticipant.objects.create(
+                work_package=work_package, participant=participant, created_by=programme_manager)
+
+    def test_add_participant_not_on_project(self, programme_manager, user1):
+        project1 = recipes.project.make()
+        project2 = recipes.project.make()
+        project1.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                          programme_manager)
+        work_package = recipes.work_package.make(project=project2)
+
+        with pytest.raises(ValidationError):
+            work_package.add_user(user1, programme_manager)
+
+
+@pytest.mark.django_db
+class TestParticipant:
+    def assert_participants_with_approval(self, work_package, approver, expected):
+        participants = work_package.get_participants_with_approval(approver)
+        actual = [
+            [p.participant.role, p.approved, p.approved_by_you] for p in participants
+        ]
+        assert expected == actual
+
+    def test_participant_not_approved_for_unassigned_work_package(self, classified_work_package,
+                                                                  user1, programme_manager):
+        work_package = classified_work_package(None)
+        participant = work_package.project.add_user(user1, ProjectRole.RESEARCHER.value,
+                                                    programme_manager)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        assert not work_package.is_participant_approved(participant)
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', False, False],
+        ])
+
+    def test_cannot_approve_participant_for_unassigned_work_package(self, classified_work_package,
+                                                                    user1, programme_manager):
+        work_package = classified_work_package(None)
+        participant = work_package.project.add_user(user1, ProjectRole.RESEARCHER.value,
+                                                    programme_manager)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        assert participant.get_work_package_participant(work_package) is None
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', False, False],
+        ])
+
+    def test_participant_approved_for_low_tier_work_package(self, classified_work_package,
+                                                            user1, programme_manager):
+        work_package = classified_work_package(2)
+        participant = work_package.project.add_user(user1, ProjectRole.RESEARCHER.value,
+                                                    programme_manager)
+        work_package.add_user(user1, programme_manager)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        assert work_package.is_participant_approved(participant)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+            ['researcher', True, True],
+        ])
+
+    def test_participant_not_approved_for_high_tier_work_package(self, classified_work_package,
+                                                                 user1, programme_manager):
+        work_package = classified_work_package(3)
+        participant = work_package.project.add_user(user1, ProjectRole.RESEARCHER.value,
+                                                    programme_manager)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        work_package.add_user(user1, programme_manager)
+        assert not work_package.is_participant_approved(participant)
+        assert work_package.get_users_to_approve(dpr.user) == [participant.user]
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+            ['researcher', False, False],
+        ])
+
+    def test_participant_approved_by_dpr(self, classified_work_package):
+        work_package = classified_work_package(3)
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr.user)
+        assert work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+        ])
+
+    def test_participant_not_approved_by_multiple_dprs(self, classified_work_package, user1,
+                                                       programme_manager):
+        work_package = classified_work_package(3)
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr.user)
+
+        dataset = recipes.dataset.make()
+        dpr2 = work_package.project.add_user(
+            user=user1, role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+            creator=programme_manager)
+        work_package.add_user(user1, programme_manager)
+        work_package.project.add_dataset(dataset, dpr2.user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        assert not work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        assert work_package.get_users_to_approve(dpr2.user) == [referee.user]
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', False, True],
+            ['data_provider_representative', True, True],
+        ])
+        self.assert_participants_with_approval(work_package, dpr2.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', False, False],
+            ['data_provider_representative', True, True],
+        ])
+
+    def test_participant_approved_by_multiple_dprs(self, classified_work_package, user1,
+                                                   programme_manager):
+        work_package = classified_work_package(3)
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr.user)
+
+        dataset = recipes.dataset.make()
+        dpr2 = work_package.project.add_user(
+            user=user1, role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+            creator=programme_manager)
+        work_package.add_user(user1, programme_manager)
+        work_package.project.add_dataset(dataset, dpr2.user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr2.user)
+
+        assert work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        assert work_package.get_users_to_approve(dpr2.user) == []
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+            ['data_provider_representative', True, True],
+        ])
+        self.assert_participants_with_approval(work_package, dpr2.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+            ['data_provider_representative', True, True],
+        ])
+
+    def test_participant_approved_for_multiple_datasets(self, classified_work_package, user1,
+                                                        programme_manager):
+        work_package = classified_work_package(3)
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+
+        dataset = recipes.dataset.make()
+        work_package.project.add_dataset(dataset, dpr.user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr.user)
+
+        assert work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+        ])
+
+    def test_participant_not_approved_added_dataset(self, classified_work_package, user1,
+                                                    programme_manager):
+        work_package = classified_work_package(3)
+        referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+
+        p = referee.get_work_package_participant(work_package)
+        p.approve(dpr.user)
+
+        assert work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == []
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', True, True],
+        ])
+
+        dataset = recipes.dataset.make()
+        work_package.project.add_dataset(dataset, dpr.user, programme_manager)
+        work_package.add_dataset(dataset, programme_manager)
+
+        assert not work_package.is_participant_approved(referee)
+        assert work_package.get_users_to_approve(dpr.user) == [referee.user]
+        self.assert_participants_with_approval(work_package, dpr.user, [
+            ['investigator', True, True],
+            ['data_provider_representative', True, True],
+            ['referee', False, False],
+        ])

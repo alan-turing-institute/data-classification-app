@@ -11,7 +11,13 @@ from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
 
-from .models import Participant, Project, WorkPackage, WorkPackageDataset
+from .models import (
+    Participant,
+    Project,
+    WorkPackage,
+    WorkPackageDataset,
+    WorkPackageParticipant,
+)
 from .roles import ProjectRole
 
 
@@ -23,11 +29,23 @@ class SaveCancelFormHelper(FormHelper):
                               formnovalidate='formnovalidate'))
 
 
+class ShowValue(forms.Widget):
+    '''
+    Dummy widget that simply displays the relevant value.
+
+    This is only necessary for forms used in inline formsets - for others, it's better to use
+    the Layout object to display any text.
+
+    Should only be used with disabled fields, since it won't actually submit a value.
+    '''
+    template_name = 'includes/show_value_widget.html'
+
+
 class ParticipantInlineFormSetHelper(FormHelper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.form_tag = False
-        self.template = 'projects/participants_inline_formset.html'
+        self.template = 'projects/includes/participants_inline_formset.html'
 
 
 class ProjectForm(SaveCreatorMixin, forms.ModelForm):
@@ -41,7 +59,7 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
     """Autocomplete field for adding users"""
 
-    def __init__(self, project_id=None):
+    def __init__(self, project_id=None, *args, **kwargs):
         """User choice should be restricted to users not yet in this project"""
 
         if project_id:
@@ -55,10 +73,10 @@ class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
                 'data-placeholder': 'Search for user',
             },
         )
-        super().__init__(queryset=User.objects.all(), widget=widget)
+        super().__init__(queryset=User.objects.all(), widget=widget, *args, **kwargs)
 
 
-class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
+class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 
     def __init__(self, *args, **kwargs):
@@ -66,12 +84,9 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
         super(ProjectAddUserForm, self).__init__(*args, **kwargs)
 
         # Update user field with project ID
-        self.fields['username'] = ProjectUserAutocompleteChoiceField(project_id)
+        self.fields['user'] = ProjectUserAutocompleteChoiceField(project_id, label='Username')
 
-    helper = SaveCancelFormHelper('Add Participant')
-    helper.form_method = 'POST'
-
-    username = ProjectUserAutocompleteChoiceField()
+    user = ProjectUserAutocompleteChoiceField(label='Username')
 
     role = forms.ChoiceField(
         choices=ProjectRole.choices(),
@@ -79,14 +94,14 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
     )
 
     class Meta:
-        model = User
-        fields = ('__all__')
+        model = Participant
+        fields = ('user', 'role')
 
-    def clean_username(self):
-        username = self.cleaned_data['username']
+    def clean_user(self):
+        username = self.cleaned_data['user']
 
         # Verify if user already exists on project
-        if self.project.participant_set.filter(
+        if self.project.participants.filter(
             user__username=username
         ).exists():
             raise ValidationError("User is already on project")
@@ -101,8 +116,43 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.Form):
 
     def save(self, **kwargs):
         role = self.cleaned_data['role']
-        user = self.cleaned_data['username']
+        user = self.cleaned_data['user']
         return self.project.add_user(user, role, self.user)
+
+
+class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Form template for editing participants on a project"""
+
+    role = forms.ChoiceField(
+        choices=ProjectRole.choices(),
+        help_text='Role on this project'
+    )
+
+    class Meta:
+        model = Participant
+        fields = ('role',)
+
+
+class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single user/role assignment on a work package"""
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['work_package'].queryset = project.work_packages
+
+    class Meta:
+        model = WorkPackageParticipant
+        fields = ('work_package',)
+
+
+WorkPackagesForParticipantInlineFormSet = inlineformset_factory(
+    Participant,
+    WorkPackageParticipant,
+    form=WorkPackageForParticipantInlineForm,
+    fk_name='participant',
+    extra=1,
+    can_delete=True,
+    help_texts={'work_package': None},
+)
 
 
 class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
@@ -176,6 +226,37 @@ UsersForProjectInlineFormSet = inlineformset_factory(
 )
 
 
+class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment for a user"""
+
+    username = forms.CharField(disabled=True, widget=ShowValue)
+    approved = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            self.fields['username'].initial = instance.participant.user.username
+
+    class Meta:
+        model = Participant
+        fields = ()
+
+    def save(self, **kwargs):
+        if self.cleaned_data['approved']:
+            self.instance.approve(self.user)
+
+
+ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageParticipant,
+    form=ParticipantForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=False,
+)
+
+
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper('Create Dataset')
 
@@ -208,6 +289,21 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
         super().__init__(*args, **kwargs)
         self.fields['dataset'].queryset = work_package.project.datasets
+
+
+class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Add Participant to Work Package')
+
+    class Meta:
+        model = WorkPackageParticipant
+        fields = ('participant',)
+
+    def __init__(self, work_package, *args, **kwargs):
+        kwargs.setdefault('instance', WorkPackageParticipant(work_package=work_package))
+        super().__init__(*args, **kwargs)
+        qs = work_package.project.participants
+        qs = qs.exclude(id__in=work_package.participants.all())
+        self.fields['participant'].queryset = qs
 
 
 class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):

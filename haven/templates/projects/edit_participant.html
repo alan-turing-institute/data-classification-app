@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% load haven %}
 
-{% block page_title %}{{ project.name }}: Add Participant{% endblock %}
-{% block h1_title %}{{ project.name }}: Add Participant{% endblock %}
+{% block h1_title %}{{ project.name }}: Edit {{ participant.user.username }}{% endblock %}
 
 {% block content %}
 
 <p>
-{{ project.description }}
+  Details that are not listed below, such as email address, can only be changed globally.
+  {% if user.user_role.can_edit_users %}
+    Please <a href="{% url 'identity:edit_user' participant.user.id %}">edit the user</a> instead if you wish to change these.
+  {% else %}
+    Please contact someone with the appropriate credentials if you wish to change these.
+  {% endif %}
 </p>
 
 <form method="POST">
@@ -30,13 +33,13 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
-  {% url_check 'projects:list_participants' project.id as list_participants_href %}
-  {% if list_participants_href %}
-    <li class="breadcrumb-item"><a href="{{ list_participants_href }}">Participants</a></li>
+  {% if project_role.can_list_participants %}
+    <li class="breadcrumb-item"><a href="{% url 'projects:list_participants' project.id %}">Participants</a></li>
   {% else %}
     <li class="breadcrumb-item">Participants</li>
   {% endif %}
-  <li class="breadcrumb-item active" aria-current="page">Add</li>
+  <li class="breadcrumb-item">{{ participant.user.username }}</li>
+  <li class="breadcrumb-item">Edit</li>
 {% endblock crumbs %}
 
 {% block extra_js %}

@@ -22,5 +22,5 @@ global.formset = function(selector, prefix, show_add_button){
 }
 
 $(function() {
-  $(":checkbox").not(".formset :checkbox").checkboxpicker();
+  $(":checkbox").not(".delete-row :checkbox").checkboxpicker();
 });

@@ -5,9 +5,10 @@ from django.db.models import Case, When
 from django.utils.text import slugify
 from phonenumber_field.modelfields import PhoneNumberField
 
+import projects
 from projects.roles import ProjectRole, UserProjectPermissions
-from .managers import CustomUserManager
 
+from .managers import CustomUserManager
 from .roles import UserRole
 
 
@@ -68,7 +69,7 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
     @classmethod
-    def ordered_participant_set(cls):
+    def ordered_participants(cls):
         """Order Users by their UserRole"""
         ordered_role_list = UserRole.ordered_display_role_list()
         order = Case(*[When(role=role, then=pos) for pos, role in
@@ -111,13 +112,12 @@ class User(AbstractUser):
 
         :return: `Participant` object or None if user is not involved in project
         """
-        from projects.models import Participant
         try:
-            return self.participant_set.get(project=project)
-        except Participant.DoesNotExist:
+            return self.participants.get(project=project)
+        except projects.models.Participant.DoesNotExist:
             return None
 
-    def project_role(self, project):
+    def project_role(self, project, participant=None):
         """
         Return the administrative role of a user on this project.
         This is used for determining project permissions.
@@ -129,7 +129,8 @@ class User(AbstractUser):
         :return: ProjectRole or None if user is not involved in project
         """
 
-        participant = self.get_participant(project)
+        if participant is None:
+            participant = self.get_participant(project)
         project_role = ProjectRole(participant.role) if participant else None
 
         is_project_admin = self.is_superuser or \

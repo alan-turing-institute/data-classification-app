@@ -1,3 +1,4 @@
+{% load haven %}
 {% load static %}
 
 <!doctype html>
@@ -25,33 +26,39 @@
       <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
           {% if request.user.is_authenticated %}
-            {% if request.user.user_role.can_create_users or request.user.user_role.can_import_users %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Create User</a>
-              <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
-                {% if request.user.user_role.can_create_users %}
-                  <a class="dropdown-item" href="{% url 'identity:add_user' %}">Create Single User</a>
-                {% endif %}
-                {% if user.user_role.can_import_users %}
-                <form style="display: contents" method="POST" action="{% url "identity:import_users" %}" enctype="multipart/form-data">
-                  {% csrf_token %}
-                  <label class="dropdown-item">
-                    Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
-                  </label>
-                </form>
-                {% endif %}
-              </div>
-            </li>
-            {% endif %}
-            {% if request.user.user_role.can_view_all_users %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'identity:list' %}">Users</a>
-            </li>
-            {% endif %}
+            {% url_check 'identity:add_user' as add_user_href %}
+            {% url_check 'identity:import_users' as import_users_href %}
+            {% if add_user_href or import_users_href %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Create User</a>
+                <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+                  {% if add_user_href %}
+                    <a class="dropdown-item" href="{{ add_user_href }}">Create Single User</a>
+                  {% endif %}
+                  {% if import_users_href %}
+                  <form style="display: contents" method="POST" action="{{ import_users_href }}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label class="dropdown-item">
+                      Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+                    </label>
+                  </form>
+                  {% endif %}
+                </div>
+              </li>
+              {% endif %}
+              {% url_check 'identity:list' as list_users_href %}
+              {% if list_users_href %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ list_users_href }}">Users</a>
+                </li>
+              {% endif %}
 
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'projects:list' %}">Projects</a>
-            </li>
+              {% url_check 'projects:list' as list_projects_href %}
+              {% if list_projects_href %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ list_projects_href }}">Projects</a>
+                </li>
+              {% endif %}
             {% endif %}
         </ul>
 
@@ -74,6 +81,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         {% block crumbs %}
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
         {% endblock %}
       </ol>
     </nav>

@@ -13,7 +13,7 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
-            'username': 'some_unknown_user',
+            'user': 'some_unknown_user',
         }, user=programme_manager, project_id=project.pk)
         form.project = project
         assert not form.is_valid()
@@ -23,14 +23,14 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.RESEARCHER.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         }, user=programme_manager, project_id=project.pk)
         form.project = project
 
         assert form.is_valid()
 
         form.save()
-        participant = project.participant_set.get()
+        participant = project.participants.get()
 
         assert participant.user == project_participant
 
@@ -41,14 +41,14 @@ class TestProjectAddUserForm:
 
         form = ProjectAddUserForm({
             'role': ProjectRole.INVESTIGATOR.value,
-            'username': project_participant.pk,
+            'user': project_participant.pk,
         }, user=programme_manager, project_id=project.pk)
         form.project = project
 
         assert not form.is_valid()
-        assert 'username' in form.errors
+        assert 'user' in form.errors
 
-        assert project.participant_set.count() == 1
+        assert project.participants.count() == 1
 
 
 @pytest.mark.django_db

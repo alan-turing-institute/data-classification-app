@@ -6,7 +6,7 @@
 #
 asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.3.0       # via pytest
-attrs==19.1.0             # via pytest
+attrs==19.1.0             # via packaging, pytest
 babel==2.7.0              # via django-phonenumber-field
 bleach==3.1.0             # via django-bleach
 certifi==2019.6.16        # via requests
@@ -25,38 +25,39 @@ django-environ==0.4.5
 django-formtools==2.1
 django-phonenumber-field==2.1.0
 django-simple-history==2.7.2
+django-source-revision==0.1.0
 django-tables2==2.0.6
 django==2.1
 et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via cryptography, requests
-importlib-metadata==0.19  # via pluggy
+importlib-metadata==0.19  # via pluggy, pytest
 jdcal==1.4.1              # via openpyxl
 ldap3==2.5.1
 model-mommy==1.6.0
 more-itertools==7.2.0     # via pytest
 oauthlib==3.0.2           # via requests-oauthlib, social-auth-core
 openpyxl==2.6.1
+packaging==19.1           # via pytest
 phonenumbers==8.10.1
 pluggy==0.12.0            # via pytest
 py==1.8.0                 # via pytest
 pyasn1==0.4.5             # via ldap3
 pycparser==2.19           # via cffi
 pyjwt==1.7.1              # via social-auth-core
-pytest-cov==2.6.0
-pytest-django==3.4.3
-pytest==3.8.2
+pyparsing==2.4.2          # via packaging
+pytest-cov==2.7.1
+pytest-django==3.5.1
+pytest==5.1.0
 python3-openid==3.1.0     # via social-auth-core
 pytz==2019.1              # via babel, django
 requests-oauthlib==1.0.0
 requests==2.22.0          # via requests-oauthlib, social-auth-core
-six==1.12.0               # via bleach, cryptography, django-simple-history, model-mommy, pytest, social-auth-app-django, social-auth-core
+six==1.12.0               # via bleach, cryptography, django-simple-history, model-mommy, packaging, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0   # via social-auth-app-django
 sqlparse==0.3.0           # via django-debug-toolbar
 urllib3==1.25.3           # via requests
+wcwidth==0.1.7            # via pytest
 webencodings==0.5.1       # via bleach
 whitenoise==4.1.1
 zipp==0.5.2               # via importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==41.0.1        # via pytest

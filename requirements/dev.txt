@@ -23,6 +23,7 @@ django-formtools==2.1
 django-phonenumber-field==2.1.0
 django-pyodbc-azure==2.1.0.0
 django-simple-history==2.7.2
+django-source-revision==0.1.0
 django-tables2==2.0.6
 django==2.1
 et-xmlfile==1.0.1

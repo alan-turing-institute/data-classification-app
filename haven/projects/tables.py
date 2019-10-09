@@ -6,13 +6,47 @@ from django.utils.html import format_html
 from django_bleach.utils import get_bleach_default_options
 
 
+def bleach_no_links(value):
+    kwargs = dict(get_bleach_default_options())
+    value = bleach.clean(value, **kwargs)
+
+    kwargs['tags'] = [t for t in kwargs['tags'] if t != 'a']
+    kwargs['strip'] = True
+    value = bleach.clean(value, **kwargs)
+    return value
+
+
 class ParticipantTable(tables.Table):
     username = tables.Column('Username', accessor='user.display_name')
     role = tables.Column('Role', accessor='role')
 
+
+class WorkPackageParticipantTable(tables.Table):
+    username = tables.Column('Username', accessor='participant.user.display_name')
+    role = tables.Column('Role', accessor='participant.role')
+    approved = tables.BooleanColumn()
+    approved_by_you = tables.BooleanColumn()
+
     class Meta:
         orderable = False
         empty_text = 'No participants to display'
+
+    def __init__(self, *args, work_package=None, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.work_package = work_package
+        self.user = user
+
+    def before_render(self, request):
+        if self.work_package is None:
+            self.columns.hide('approved')
+            self.columns.hide('approved_by_you')
+        elif self.user is None:
+            self.columns.hide('approved_by_you')
+        else:
+            perms = self.user.project_role(self.work_package.project)
+            if not perms.can_approve_participants:
+                self.columns.hide('approved_by_you')
 
 
 class WorkPackageTable(tables.Table):
@@ -88,9 +122,10 @@ class ClassificationOpinionQuestionTable(tables.Table):
 
     @staticmethod
     def _create_column(classification):
-        column_name = 'user_{}'.format(classification.user.id)
+        user = classification.created_by
+        column_name = 'user_{}'.format(user.id)
         column = tables.BooleanColumn(
-            verbose_name=classification.user.username,
+            verbose_name=user.username,
             null=True,
             # This maybe doesn't belong in the footer, but it can't be data because it's
             # not a boolean
@@ -132,12 +167,6 @@ class ClassificationOpinionQuestionTable(tables.Table):
         return data
 
     def render_question(self, value):
-        kwargs = dict(get_bleach_default_options())
-        value = bleach.clean(value, **kwargs)
-
-        # We don't want any of the links to be displayed, so we'll strip them out entirely
-        kwargs['tags'] = [t for t in kwargs['tags'] if t != 'a']
-        kwargs['strip'] = True
-        value = bleach.clean(value, **kwargs)
+        value = bleach_no_links(value)
         value = format_html(value)
         return value
