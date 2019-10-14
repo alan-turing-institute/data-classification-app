@@ -1218,6 +1218,48 @@ class TestWorkPackageClassifyData:
             ]
         )
 
+    def test_classify_simultaneous(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package_1 = classified_work_package(None)
+        work_package_2 = classified_work_package(None)
+
+        response_1 = as_investigator.get(self.url(work_package_1), follow=True)
+        response_2 = as_investigator.get(self.url(work_package_2), follow=True)
+
+        response_1 = self.classify(as_investigator, work_package_1, response_1, 'open_generate_new',
+                                   answer=True, next='substantial_threat')
+        response_2 = self.classify(as_investigator, work_package_2, response_2, 'open_generate_new',
+                                   answer=False, next='closed_personal')
+        response_2 = self.classify(as_investigator, work_package_2, response_2, 'closed_personal',
+                                   answer=True, next='public_and_open')
+        response_2 = self.classify(as_investigator, work_package_2, response_2, 'public_and_open',
+                                   answer=False, next='no_reidentify')
+        response_1 = self.classify(as_investigator, work_package_1, response_1,
+                                   'substantial_threat', answer=True)
+        response_2 = self.classify(as_investigator, work_package_2, response_2, 'no_reidentify',
+                                   answer=False, next='substantial_threat')
+        response_2 = self.classify(as_investigator, work_package_2, response_2,
+                                   'substantial_threat', answer=True)
+
+        self.check_results_page(
+            response_1, work_package_1, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'True'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
+        self.check_results_page(
+            response_2, work_package_2, as_investigator._user, 4,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'True'],
+                ['public_and_open', 'False'],
+                ['no_reidentify', 'False'],
+                ['substantial_threat', 'True'],
+            ]
+        )
+
     def test_modify_classification_from_start(self, classified_work_package, as_investigator):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)

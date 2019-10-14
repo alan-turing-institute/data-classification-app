@@ -714,8 +714,6 @@ class WorkPackageClassifyData(
     LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, TemplateView
 ):
     template_name = 'projects/work_package_classify_data.html'
-    session_key = 'classification'
-    session_modification_key = 'classification_modification'
 
     def test_func(self):
         role = self.get_project_role()
@@ -902,6 +900,14 @@ class WorkPackageClassifyData(
         args = [self.object.project.id, self.object.id]
         url = reverse('projects:classify_results', args=args)
         return HttpResponseRedirect(url)
+
+    @property
+    def session_key(self):
+        return f"classification_{self.object.pk}"
+
+    @property
+    def session_modification_key(self):
+        return f"classification_modification_{self.object.pk}"
 
     def store_answer(self, question, answer):
         '''
