@@ -30,11 +30,12 @@
   <div class="form-group form-row">
     <div class="col">
       {% if previous_question and previous_question != question %}
-        <a class="btn btn-secondary btn-sm" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Back</a>
+        <a class="btn btn-secondary btn-sm" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Previous question</a>
       {% endif %}
       {% if starting_question and starting_question != question and starting_question != previous_question %}
         <a class="btn btn-secondary btn-sm" href="{% url 'projects:classify_data' project.id work_package.id starting_question.id %}">Start over</a>
       {% endif %}
+      <a class="btn btn-secondary btn-sm" href="{{ work_package.get_absolute_url }}">Cancel classification</a>
     </div>
   </div>
 </form>
