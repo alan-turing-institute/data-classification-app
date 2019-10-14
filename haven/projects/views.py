@@ -563,16 +563,6 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         return context
 
 
-class WorkPackageListDatasets(
-    LoginRequiredMixin, SingleWorkPackageMixin, DetailView
-):
-    template_name = 'projects/work_package_dataset_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['datasets'] = self.get_object().datasets.all()
-        return super().get_context_data(**kwargs)
-
-
 class WorkPackageAddDataset(
     LoginRequiredMixin, UserPassesTestMixin,
     UserFormKwargsMixin, SingleWorkPackageMixin, FormMixin, DetailView

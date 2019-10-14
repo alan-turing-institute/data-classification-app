@@ -623,27 +623,6 @@ class TestProjectAddDataset:
 
 
 @pytest.mark.django_db
-class TestWorkPackageListDatasets:
-    def test_view_page(self, as_programme_manager, user1):
-        ds1, ds2 = recipes.dataset.make(_quantity=2)
-        project = recipes.project.make(
-            created_by=as_programme_manager._user,
-        )
-        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         as_programme_manager._user)
-        work_package = recipes.work_package.make(project=project)
-        project.add_dataset(ds1, user1, as_programme_manager._user)
-        project.add_dataset(ds2, user1, as_programme_manager._user)
-        work_package.add_dataset(ds1, as_programme_manager._user)
-        work_package.add_dataset(ds2, as_programme_manager._user)
-
-        response = as_programme_manager.get('/projects/%d/work_packages/%d/datasets/'
-                                            % (project.id, work_package.id))
-
-        assert response.status_code == 200
-        assert list(response.context['datasets']) == [ds1, ds2]
-
-
 @pytest.mark.django_db
 class TestWorkPackageAddParticipant:
     def test_add_participant(self, as_programme_manager, user1):
