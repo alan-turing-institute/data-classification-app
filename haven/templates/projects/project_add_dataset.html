@@ -1,9 +1,20 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load haven %}
 
 {% block h1_title %}Create Dataset{% endblock %}
 
 {% block content %}
+<p>
+  If the user you wish to nominate as the representative is not present below, they have not yet been added to the project as a Data Provider Representative.
+  {% url_check 'projects:edit_participants' project.id as edit_participants_href %}
+  {% if edit_participants_href %}
+    Please <a href="{{ edit_participants_href }}">edit the project participants</a> first.
+  {% else %}
+    Please contact someone with the appropriate credentials to add the user to the project.
+  {% endif %}
+</p>
+
 <form method="POST">
   {% csrf_token %}
   {% crispy form %}
