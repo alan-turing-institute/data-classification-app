@@ -931,8 +931,6 @@ class TestWorkPackageClassifyData:
             else:
                 pk = ClassificationQuestion.objects.get(name=goto).pk
             url = self.url(work_package, f"classify/{pk}")
-            if response.context['modify']:
-                url += '?modify=1'
             response = client.get(url, follow=True)
             assert 'question' in response.context
             assert response.context['question'].name == goto
@@ -1460,6 +1458,65 @@ class TestWorkPackageClassifyData:
                 ['public_and_open', 'True'],
                 ['include_commercial', 'False'],
                 ['open_publication', 'True'],
+            ]
+        )
+
+    def test_modify_classification_abandoned(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(as_investigator, work_package, response, 'open_generate_new',
+                                 answer=False, next='closed_personal')
+        response = self.classify(as_investigator, work_package, response, 'closed_personal',
+                                 answer=False, next='include_commercial')
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=False, next='open_publication')
+        response = self.classify(as_investigator, work_package, response, 'open_publication',
+                                 answer=True)
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'False'],
+                ['include_commercial', 'False'],
+                ['open_publication', 'True'],
+            ]
+        )
+
+        pk = ClassificationQuestion.objects.get(name='open_generate_new').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == []
+        assert response.context['question_number'] == 1
+
+        pk = ClassificationQuestion.objects.get(name='include_commercial').pk
+        response = as_investigator.get(self.url(work_package, page=f"classify/{pk}?modify=1"),
+                                       follow=True)
+
+        assert 'question' in response.context
+        assert [m.message for m in response.context['messages']] == []
+        assert response.context['question_number'] == 3
+
+        response = self.classify(as_investigator, work_package, response, 'include_commercial',
+                                 answer=True, next='financial_low', number=4)
+        response = self.classify(as_investigator, work_package, response, 'financial_low',
+                                 answer=True, next='publishable', number=5)
+        response = self.classify(as_investigator, work_package, response, 'publishable',
+                                 answer=True)
+        assert [m.message for m in response.context['messages']] == []
+
+        self.check_results_page(
+            response, work_package, as_investigator._user, 1,
+            [
+                ['open_generate_new', 'False'],
+                ['closed_personal', 'False'],
+                ['include_commercial', 'True'],
+                ['financial_low', 'True'],
+                ['publishable', 'True'],
             ]
         )
 

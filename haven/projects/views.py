@@ -715,6 +715,7 @@ class WorkPackageClassifyData(
 ):
     template_name = 'projects/work_package_classify_data.html'
     session_key = 'classification'
+    session_modification_key = 'classification_modification'
 
     def test_func(self):
         role = self.get_project_role()
@@ -767,9 +768,9 @@ class WorkPackageClassifyData(
         others) rather than display the form again.
         """
         self.object = self.get_object()
-        self.modify = bool(self.request.GET.get('modify', False))
+        self.start_modification = bool(self.request.GET.get('modify', False))
 
-        if self.modify:
+        if self.start_modification or self.is_modification():
             return None
 
         classification = ClassificationOpinion.objects.filter(
@@ -792,12 +793,17 @@ class WorkPackageClassifyData(
         self.starting_question = ClassificationQuestion.objects.get_starting_question()
         self.previous_question = None
         if 'question_pk' not in self.kwargs:
-            self.clear_answers()
+            if self.start_modification:
+                response = self.store_previous_answers(self.starting_question)
+                if response:
+                    return response
+            else:
+                self.clear_answers()
             return self.redirect_to_question(self.starting_question)
         else:
             self.question = ClassificationQuestion.objects.get(pk=self.kwargs['question_pk'])
-            if self.modify:
-                response = self.store_previous_answers()
+            if self.start_modification:
+                response = self.store_previous_answers(self.question)
                 if response:
                     return response
             self.clear_answers(after=self.question)
@@ -837,7 +843,7 @@ class WorkPackageClassifyData(
             message = 'An error occurred storing the results of your classification.'
             return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
-        if self.modify:
+        if self.is_modification():
             self.object.classification_for(self.request.user).delete()
         self.object.classify_as(tier, self.request.user, questions)
         self.object.calculate_tier()
@@ -871,7 +877,6 @@ class WorkPackageClassifyData(
             context['guidance'] = guidance
 
         context['question'] = self.question
-        context['modify'] = self.modify
         context['answer_yes'] = self.format_answer(self.question.answer_yes())
         context['answer_no'] = self.format_answer(self.question.answer_no())
         context['starting_question'] = self.starting_question
@@ -888,8 +893,6 @@ class WorkPackageClassifyData(
         if question:
             args.append(question.id)
         url = reverse('projects:classify_data', args=args)
-        if self.modify:
-            url += '?modify=1'
         return HttpResponseRedirect(url)
 
     def redirect_to_results(self, message=None, message_level=None):
@@ -921,6 +924,12 @@ class WorkPackageClassifyData(
                 return ClassificationQuestion.objects.get(name=name)
         return None
 
+    def is_modification(self):
+        '''
+        Determine if this is during a modification
+        '''
+        return self.request.session.get(self.session_modification_key, False)
+
     def get_answer(self, question):
         '''
         Retrieve the answer for the given question from the session
@@ -951,6 +960,7 @@ class WorkPackageClassifyData(
         '''
         if not after:
             self.request.session.pop(self.session_key, None)
+            self.request.session.pop(self.session_modification_key, None)
             return
 
         answers = self.request.session.get(self.session_key)
@@ -964,18 +974,19 @@ class WorkPackageClassifyData(
             if upto is not None:
                 self.request.session[self.session_key] = answers[:upto]
 
-    def store_previous_answers(self):
+    def store_previous_answers(self, upto):
         '''
         Retrieve the user's previous classification from the database, and store it in the session
+
+        upto is the question to start the modification process from
 
         If something goes wrong (either because the user is trying to modify a question they never
         answered in the first place, or because a question has been changed in the meantime), then
         the user may be redirected to modify an earlier question than the one they actually chose
         to.
         '''
-        if self.request.session.get(self.session_key) is not None:
-            return
         self.request.session[self.session_key] = []
+        self.request.session[self.session_modification_key] = True
 
         classification = self.object.classification_for(self.request.user).first()
         answered_questions = {}
@@ -985,7 +996,7 @@ class WorkPackageClassifyData(
                 answered_questions[key] = q.answer
 
         q = self.starting_question
-        while q and not isinstance(q, int) and q != self.question:
+        while q and not isinstance(q, int) and q != upto:
             try:
                 key = (q.id, q.history.latest().history_id)
                 answer = answered_questions[key]
@@ -998,7 +1009,7 @@ class WorkPackageClassifyData(
                 message = ('Some recorded answers could not be retrieved. Please begin the '
                            'classification process from the question below.')
                 return self.redirect_to_question(q, message)
-        if q != self.question:
+        if q != upto:
             message = ('Recorded answers could not be retrieved. Please begin the classification '
                        'process from the question below.')
             return self.redirect_to_question(self.starting_question, message)
