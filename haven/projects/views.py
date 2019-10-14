@@ -189,9 +189,9 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
         kwargs['participant'] = self.request.user.get_participant(project)
         participants = project.participants.all()
         kwargs['participants_table'] = ParticipantTable(participants)
-        work_packages = project.work_packages.all()
+        work_packages = project.work_packages.order_by('created_at').all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
-        datasets = project.datasets.all()
+        datasets = project.datasets.order_by('created_at').all()
         kwargs['datasets_table'] = DatasetTable(datasets)
         return SingleProjectMixin.get_context_data(self, **kwargs)
 
@@ -498,16 +498,6 @@ class ProjectCreateDataset(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
-
-
-class ProjectListWorkPackages(
-    LoginRequiredMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/work_package_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['work_packages'] = self.get_object().work_packages.order_by('created_at').all()
-        return super().get_context_data(**kwargs)
 
 
 class ProjectCreateWorkPackage(
