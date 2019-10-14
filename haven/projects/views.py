@@ -188,7 +188,8 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
         project = self.get_object()
         kwargs['participant'] = self.request.user.get_participant(project)
         participants = project.participants.all()
-        kwargs['participants_table'] = ParticipantTable(participants)
+        kwargs['participants_table'] = ParticipantTable(
+            participants, show_edit_links=self.get_project_role().can_edit_participants)
         work_packages = project.work_packages.order_by('created_at').all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
         datasets = project.datasets.order_by('created_at').all()
@@ -284,10 +285,7 @@ class ProjectAddUser(
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
         return self.get_project_role().can_add_participants
@@ -309,20 +307,6 @@ class ProjectAddUser(
             return self.form_invalid(form)
 
 
-class ProjectListParticipants(
-    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/participant_list.html'
-
-    def test_func(self):
-        return self.get_project_role().can_list_participants
-
-    def get_context_data(self, **kwargs):
-        kwargs['ordered_participants'] = self.get_object().ordered_participants()
-        kwargs.update({"accessing_user": self.request.user})
-        return super().get_context_data(**kwargs)
-
-
 class EditProjectListParticipants(
     LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
 ):
@@ -332,7 +316,7 @@ class EditProjectListParticipants(
     template_name = 'projects/edit_participant_list.html'
 
     def get_success_url(self):
-        return reverse('projects:list_participants', args=[self.get_object().id])
+        return reverse('projects:detail', args=[self.get_object().id])
 
     def test_func(self):
         return (self.get_project_role().can_edit_participants
@@ -439,10 +423,7 @@ class EditParticipant(
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
         return self.get_project_role().can_edit_participants
@@ -631,10 +612,7 @@ class WorkPackageApproveParticipants(
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:

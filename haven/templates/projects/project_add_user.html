@@ -30,12 +30,7 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
-  {% url_check 'projects:list_participants' project.id as list_participants_href %}
-  {% if list_participants_href %}
-    <li class="breadcrumb-item"><a href="{{ list_participants_href }}">Participants</a></li>
-  {% else %}
-    <li class="breadcrumb-item">Participants</li>
-  {% endif %}
+  <li class="breadcrumb-item">Participants</li>
   <li class="breadcrumb-item active" aria-current="page">Add</li>
 {% endblock crumbs %}
 

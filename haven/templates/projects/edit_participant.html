@@ -33,11 +33,7 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
-  {% if project_role.can_list_participants %}
-    <li class="breadcrumb-item"><a href="{% url 'projects:list_participants' project.id %}">Participants</a></li>
-  {% else %}
-    <li class="breadcrumb-item">Participants</li>
-  {% endif %}
+  <li class="breadcrumb-item">Participants</li>
   <li class="breadcrumb-item">{{ participant.user.username }}</li>
   <li class="breadcrumb-item">Edit</li>
 {% endblock crumbs %}

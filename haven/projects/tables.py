@@ -18,8 +18,21 @@ def bleach_no_links(value):
 
 
 class ParticipantTable(tables.Table):
-    username = tables.Column('Username', accessor='user.display_name')
+    username = tables.Column('Username', accessor='user.display_name',
+                             linkify=lambda table, record: table.link_username(record))
     role = tables.Column('Role', accessor='role')
+    created_at = tables.DateTimeColumn(verbose_name='Added', short=False)
+    created_by = tables.Column(verbose_name='Added by')
+
+    def __init__(self, *args, show_edit_links=False, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.show_edit_links = show_edit_links
+
+    def link_username(self, record):
+        if self.show_edit_links:
+            return reverse('projects:edit_participant', args=[record.project.id, record.id])
+        return None
 
 
 class WorkPackageParticipantTable(tables.Table):

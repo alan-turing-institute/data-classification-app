@@ -290,7 +290,7 @@ class TestAddUserToProject:
         })
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d/participants/' % project.id
+        assert response.url == '/projects/%d' % project.id
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == project_participant.username
@@ -312,7 +312,7 @@ class TestAddUserToProject:
         })
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d/participants/' % project.id
+        assert response.url == '/projects/%d' % project.id
 
         participants = project.participants
         assert participants.count() == 1
@@ -336,7 +336,7 @@ class TestAddUserToProject:
         })
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d/participants/' % project.id
+        assert response.url == '/projects/%d' % project.id
 
         assert project.participants.count() == 0
 
@@ -356,7 +356,7 @@ class TestAddUserToProject:
         })
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d/participants/' % project.id
+        assert response.url == '/projects/%d' % project.id
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == 'newuser'
@@ -433,38 +433,6 @@ class TestAddUserToProject:
 
 
 @pytest.mark.django_db
-class TestListParticipants:
-    def test_anonymous_cannot_access_page(self, client, helpers):
-        project = recipes.project.make()
-        response = client.get('/projects/%d/participants/' % project.id)
-        helpers.assert_login_redirect(response)
-
-    def test_view_page(self, as_programme_manager):
-        project = recipes.project.make(created_by=as_programme_manager._user)
-        researcher = recipes.researcher.make(project=project)
-        investigator = recipes.investigator.make(project=project)
-
-        response = as_programme_manager.get('/projects/%d/participants/' % project.id)
-
-        assert response.status_code == 200
-        assert list(response.context['ordered_participants']) == [investigator, researcher]
-
-    def test_returns_404_for_invisible_project(self, as_standard_user):
-        project = recipes.project.make()
-
-        # Programme manager shouldn't have visibility of this other project at all
-        # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get('/projects/%d/participants/' % project.id)
-        assert response.status_code == 404
-
-    def test_returns_403_for_unauthorised_user(self, client, researcher):
-        client.force_login(researcher.user)
-
-        response = client.get('/projects/%d/participants/' % researcher.project.id)
-        assert response.status_code == 403
-
-
-@pytest.mark.django_db
 class TestEditParticipant:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
@@ -503,7 +471,7 @@ class TestEditParticipant:
         )
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d/participants/' % project.id
+        assert response.url == '/projects/%d' % project.id
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == investigator.user.username
