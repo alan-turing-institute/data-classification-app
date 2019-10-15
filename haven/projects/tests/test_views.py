@@ -517,6 +517,94 @@ class TestEditParticipant:
 
 
 @pytest.mark.django_db
+class TestEditParticipants:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        response = client.get('/projects/%d/participants/edit' % (project.id,))
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/participants/edit' % (project.id,))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.get(
+            '/projects/%d/participants/edit' % (project.id,))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_participants(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+        participant = recipes.participant.make(project=project)
+        response = as_programme_manager.post(
+            '/projects/%d/participants/edit' % (project.id,),
+            {
+                'participants-TOTAL_FORMS': 2,
+                'participants-MAX_NUM_FORMS': 2,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 2,
+                'participants-0-id': investigator.id,
+                'participants-0-project': project.id,
+                'participants-0-role': ProjectRole.RESEARCHER.value,
+                'participants-1-id': participant.id,
+                'participants-1-project': project.id,
+                'participants-1-role': ProjectRole.RESEARCHER.value,
+                'participants-1-DELETE': 'on',
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/participants/edit' % (project.id,))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/participants/edit' % (project.id,))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        # Researchers can't add participants, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/participants/edit' % (researcher.project.id,))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/participants/edit' % (researcher.project.id,))
+        assert response.status_code == 403
+
+    def test_restricts_creation_based_on_role(self, client, referee, researcher):
+        client.force_login(referee.user)
+        response = client.post(
+            '/projects/%d/participants/edit' % (referee.project.id,),
+            {
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 1,
+                'participants-0-id': researcher.id,
+                'participants-0-project': referee.project.id,
+                'participants-0-role': ProjectRole.INVESTIGATOR.value,
+            })
+
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestProjectAddDataset:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
