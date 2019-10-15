@@ -623,37 +623,6 @@ class TestProjectAddDataset:
 
 
 @pytest.mark.django_db
-class TestListDatasets:
-    def test_anonymous_cannot_access_page(self, client, helpers):
-        project = recipes.project.make()
-        response = client.get('/projects/%d/datasets/' % project.id)
-        helpers.assert_login_redirect(response)
-
-    def test_view_page(self, as_programme_manager, user1):
-        ds1, ds2 = recipes.dataset.make(_quantity=2)
-        project = recipes.project.make(
-            created_by=as_programme_manager._user,
-        )
-        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         as_programme_manager._user)
-        project.add_dataset(ds1, user1, as_programme_manager._user)
-        project.add_dataset(ds2, user1, as_programme_manager._user)
-
-        response = as_programme_manager.get('/projects/%d/datasets/' % project.id)
-
-        assert response.status_code == 200
-        assert list(response.context['datasets']) == [ds1, ds2]
-
-    def test_returns_404_for_invisible_project(self, as_standard_user):
-        project = recipes.project.make()
-
-        # Regular user shouldn't have visibility of this other project at all
-        # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get('/projects/%d/datasets/' % project.id)
-        assert response.status_code == 404
-
-
-@pytest.mark.django_db
 class TestWorkPackageListDatasets:
     def test_view_page(self, as_programme_manager, user1):
         ds1, ds2 = recipes.dataset.make(_quantity=2)

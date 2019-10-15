@@ -464,16 +464,6 @@ class EditParticipant(
             return self.form_invalid(form)
 
 
-class ProjectListDatasets(
-    LoginRequiredMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/dataset_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['datasets'] = self.get_object().datasets.all()
-        return super().get_context_data(**kwargs)
-
-
 class ProjectCreateDataset(
     LoginRequiredMixin, UserPassesTestMixin, UserFormKwargsMixin,
     FormMixin, SingleProjectMixin, DetailView

@@ -61,6 +61,7 @@ class WorkPackageTable(tables.Table):
 
 class DatasetTable(tables.Table):
     name = tables.Column('Name')
+    created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
 
     class Meta:
         orderable = False
