@@ -262,21 +262,10 @@ ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
 )
 
 
-class ParticipantForWorkPackageApprovalInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+class ParticipantForWorkPackageApprovalInlineForm(ParticipantForWorkPackageInlineForm):
     """Inline form describing a single work package assignment for a user"""
 
-    username = forms.CharField(disabled=True, widget=ShowValue)
     approved = forms.BooleanField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        instance = kwargs.get('instance')
-        if instance:
-            self.fields['username'].initial = instance.participant.user.username
-
-    class Meta:
-        model = Participant
-        fields = ()
 
     def save(self, **kwargs):
         if self.cleaned_data['approved']:
