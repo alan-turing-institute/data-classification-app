@@ -776,6 +776,93 @@ class TestWorkPackageApproveParticipants:
 
 
 @pytest.mark.django_db
+class TestWorkPackageEditParticipants:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        response = client.get(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_participants(self, as_programme_manager, referee, data_provider_representative):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        project.add_user(data_provider_representative.user,
+                         ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        project.add_user(referee.user,
+                         ProjectRole.REFEREE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        wpp1 = work_package.add_user(data_provider_representative.user, as_programme_manager._user)
+        wpp2 = work_package.add_user(referee.user, as_programme_manager._user)
+        dataset = recipes.dataset.make()
+        project.add_dataset(dataset, data_provider_representative.user, as_programme_manager._user)
+        work_package.add_dataset(dataset, as_programme_manager._user)
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id),
+            {
+                'participants-TOTAL_FORMS': 2,
+                'participants-MAX_NUM_FORMS': 2,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 2,
+                'participants-0-id': wpp1.id,
+                'participants-0-work_package': work_package.id,
+                'participants-0-DELETE': 'on',
+                'participants-1-id': wpp2.id,
+                'participants-1-work_package': work_package.id,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert work_package.participants.count() == 1
+        assert work_package.participants.first().role == ProjectRole.REFEREE.value
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        project = researcher.project
+        work_package = recipes.work_package.make(project=project)
+        # Researchers can't add participants, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/work_packages/%d/participants/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestWorkPackageAddDataset:
     def test_add_dataset(self, as_programme_manager, user1):
         ds1, ds2 = recipes.dataset.make(_quantity=2)

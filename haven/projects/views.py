@@ -26,6 +26,7 @@ from identity.roles import UserRole
 from .forms import (
     ParticipantForm,
     ParticipantInlineFormSetHelper,
+    ParticipantsForWorkPackageApprovalInlineFormSet,
     ParticipantsForWorkPackageInlineFormSet,
     ProjectAddDatasetForm,
     ProjectAddUserForm,
@@ -609,6 +610,53 @@ class WorkPackageApproveParticipants(
             'instance': work_package,
             'prefix': 'participants',
             'queryset': work_package.get_work_package_participants_to_approve(user),
+        }
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        return ParticipantsForWorkPackageApprovalInlineFormSet(**options)
+
+    def get_success_url(self):
+        obj = self.get_project()
+        return reverse('projects:detail', args=[obj.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        self.object = self.get_object()
+        formset = self.get_formset()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data())
+
+
+class WorkPackageEditParticipants(
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_participants_edit.html'
+
+    def test_func(self):
+        return self.get_project_role().can_edit_participants
+
+    def get_context_data(self, **kwargs):
+        helper = SaveCancelInlineFormSetHelper()
+        kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        work_package = self.get_object()
+        user = self.request.user
+        options = {
+            'form_kwargs': {
+                'user': user,
+            },
+            'instance': work_package,
+            'prefix': 'participants',
+            'queryset': work_package.work_package_participants,
         }
         if self.request.method == 'POST':
             options['data'] = self.request.POST

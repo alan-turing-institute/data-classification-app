@@ -240,6 +240,32 @@ class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelFo
     """Inline form describing a single work package assignment for a user"""
 
     username = forms.CharField(disabled=True, widget=ShowValue)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            self.fields['username'].initial = instance.participant.user.username
+
+    class Meta:
+        model = Participant
+        fields = ()
+
+
+ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageParticipant,
+    form=ParticipantForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=True,
+)
+
+
+class ParticipantForWorkPackageApprovalInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment for a user"""
+
+    username = forms.CharField(disabled=True, widget=ShowValue)
     approved = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
@@ -257,10 +283,10 @@ class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelFo
             self.instance.approve(self.user)
 
 
-ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
+ParticipantsForWorkPackageApprovalInlineFormSet = inlineformset_factory(
     WorkPackage,
     WorkPackageParticipant,
-    form=ParticipantForWorkPackageInlineForm,
+    form=ParticipantForWorkPackageApprovalInlineForm,
     fk_name='work_package',
     extra=0,
     can_delete=False,
