@@ -69,6 +69,24 @@ function get_azure_secret() {
     az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
 }
 
+# Fetch a secret from the Azure keyvault, but generate and store one if it does not exist
+function get_or_create_azure_secret() {
+    local SECRET_NAME="$1"
+
+    # Get current value from keyvault
+    local keyvault_value=$(get_azure_secret  "$1")
+
+    # If there is no current key then generate a new one
+    if [ -z "${keyvault_value}" ]
+    then
+          echo "Creating new key for $1"
+          keyvault_value=$(generate_key)
+          az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}"
+    fi
+
+    echo "${keyvault_value}"
+}
+
 # Exit if a deployment already exists
 error_if_already_deployed() {
     if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") == "true" ]]; then
@@ -132,9 +150,8 @@ create_app() {
     local deployment_url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url" -otsv)
      az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
-    # Create a secret key for Django and store in keyvault
-    local django_secret_key=$(generate_key)
-    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+    # Create Django secret key
+    local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
 }
 
 create_mssql_db() {
@@ -196,7 +213,7 @@ create_registration () {
     local app_uri="${BASE_URL}"
 
     # A client secret used in the OAuth2 call
-    local client_secret=$(generate_key)
+    local client_secret=$(get_or_create_azure_secret  "SECRET-KEY")
 
     # The tenant we use to register the app may not be the tenant used to create the app
     switch_to_registration_tenant
