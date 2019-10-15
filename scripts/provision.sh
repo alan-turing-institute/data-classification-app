@@ -156,7 +156,7 @@ create_app() {
 create_mssql_db() {
     echo "Creating the DB server"
     local db_username=${DB_USERNAME}
-    local db_password=${DB_PASSWORD}
+    local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
     local database_url="mssql://${db_username}:${db_password}@$DB_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 
     # Create the db server
@@ -178,7 +178,8 @@ create_postgresql_db() {
     echo "Creating the DB server"
 
     local db_username=${DB_USERNAME}
-    local db_password=${DB_PASSWORD}
+    local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
+
     local database_url="postgresql://${db_username}@$DB_SERVER_NAME:${db_password}@$DB_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
 
     # Create the postgresql server
