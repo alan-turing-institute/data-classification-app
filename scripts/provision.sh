@@ -146,8 +146,10 @@ create_app() {
     # Configure startup file
     az webapp config set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --startup-file "/home/site/repository/deploy_linux.sh"
 
-    local deployment_url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url" -otsv)
-     az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
+    # Get deployment URL
+    local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
+    local deployment_url="${scm_uri}:443/${APP_NAME}.git/"
+    az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
     # Create Django secret key
     local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
