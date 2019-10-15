@@ -3,6 +3,7 @@ import re
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from dal import autocomplete
 from django.contrib import messages
@@ -16,7 +17,6 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 
-from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserPermissionRequiredMixin
@@ -31,6 +31,8 @@ from .forms import (
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
     ProjectForm,
+    SaveCancelFormHelper,
+    SaveCancelInlineFormSetHelper,
     UsersForProjectInlineFormSet,
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
@@ -241,15 +243,8 @@ class ProjectAddUser(
     form_class = ProjectAddUserForm
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Add Participant'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
-        kwargs['helper'] = helper
-        kwargs['formset'] = self.get_formset()
         kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
 
     def get_form_kwargs(self):
@@ -268,9 +263,16 @@ class ProjectAddUser(
             for (role, name) in form.fields['role'].choices
             if project_role.can_assign_role(ProjectRole(role))
         ]
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Add Participant')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
         return form
 
     def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
         options = {
             'form_kwargs': {
                 'project': self.get_project(),
@@ -281,7 +283,9 @@ class ProjectAddUser(
 
         if self.request.method == 'POST':
             options['data'] = self.request.POST
-        return WorkPackagesForParticipantInlineFormSet(**options)
+        formset = WorkPackagesForParticipantInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Add Participant')
+        return formset
 
     def get_success_url(self):
         obj = self.get_project()
@@ -297,14 +301,17 @@ class ProjectAddUser(
         form = self.get_form()
         formset = self.get_formset()
         self.object = None
-        if form.is_valid() and formset.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             response = self.form_valid(form)
             participant = self.object
-            formset.instance = participant
-            formset.save()
+            if formset:
+                formset.instance = participant
+                formset.save()
             return response
-        else:
-            return self.form_invalid(form)
 
 
 class EditProjectListParticipants(
@@ -332,11 +339,6 @@ class EditProjectListParticipants(
 
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
-        # Use crispy FormHelper to add submit and cancel buttons
-        helper.add_input(Submit('submit', 'Save Changes'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
         helper.form_method = 'POST'
         kwargs['helper'] = helper
 
@@ -384,13 +386,6 @@ class EditParticipant(
         return 'project_pk'
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Edit Participant'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
-        kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True
         return super().get_context_data(**kwargs)
@@ -406,9 +401,16 @@ class EditParticipant(
             for (role, name) in form.fields['role'].choices
             if project_role.can_assign_role(ProjectRole(role))
         ]
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Edit Participant')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
         return form
 
     def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
         options = {
             'form_kwargs': {
                 'project': self.get_project(),
@@ -417,9 +419,13 @@ class EditParticipant(
             'instance': self.get_object(),
             'prefix': 'work_packages',
         }
+        if not self.get_project().work_packages.exists():
+            options['extra'] = 0
         if self.request.method == 'POST':
             options['data'] = self.request.POST
-        return WorkPackagesForParticipantInlineFormSet(**options)
+        formset = WorkPackagesForParticipantInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Edit Participant')
+        return formset
 
     def get_success_url(self):
         obj = self.get_project()
@@ -435,14 +441,17 @@ class EditParticipant(
         self.object = self.get_object()
         form = self.get_form()
         formset = self.get_formset()
-        if form.is_valid() and formset.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             response = self.form_valid(form)
             participant = self.object
-            formset.instance = participant
-            formset.save()
+            if formset:
+                formset.instance = participant
+                formset.save()
             return response
-        else:
-            return self.form_invalid(form)
 
 
 class ProjectCreateDataset(

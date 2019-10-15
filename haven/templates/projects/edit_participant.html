@@ -17,12 +17,14 @@
 <form method="POST">
   {% csrf_token %}
   {{ form.media }}
-  {{ form|crispy }}
+  {% crispy form %}
 
-  <h2>Work Packages</h2>
-  <div id="project-formset">
-    {% crispy formset helper %}
-  </div>
+  {% if formset %}
+    <h2>Work Packages</h2>
+    <div id="project-formset">
+      {% crispy formset %}
+    </div>
+  {% endif %}
 
 </form>
 

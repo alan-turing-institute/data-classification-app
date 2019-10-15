@@ -283,10 +283,6 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
@@ -328,10 +324,6 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
             'cancel': 'Cancel',
         })
 
@@ -349,10 +341,6 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': new_user.pk,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 302
@@ -370,10 +358,6 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
@@ -386,10 +370,6 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': 12345,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
         })
 
         assert response.status_code == 200
@@ -453,6 +433,24 @@ class TestEditParticipant:
         assert response.context['project'] == project
 
     def test_edit_participant(self, as_programme_manager):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        investigator = recipes.investigator.make(project=project)
+        response = as_programme_manager.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
+            {
+                'role': ProjectRole.RESEARCHER.value,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.participants.count() == 1
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+    def test_edit_participant_and_work_package(self, as_programme_manager):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(project=project,

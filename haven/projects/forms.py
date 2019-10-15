@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 from django.urls import reverse
 
+from core.forms import InlineFormSetHelper
 from data.models import Dataset
 from identity.mixins import SaveCreatorMixin
 from identity.models import User
@@ -29,6 +30,14 @@ class SaveCancelFormHelper(FormHelper):
                               formnovalidate='formnovalidate'))
 
 
+class SaveCancelInlineFormSetHelper(InlineFormSetHelper):
+    def __init__(self, save_label='Save', save_class='btn-success', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_input(Submit('submit', save_label, css_class=save_class))
+        self.add_input(Submit('cancel', 'Cancel', css_class='btn-secondary',
+                              formnovalidate='formnovalidate'))
+
+
 class ShowValue(forms.Widget):
     '''
     Dummy widget that simply displays the relevant value.
@@ -41,8 +50,9 @@ class ShowValue(forms.Widget):
     template_name = 'includes/show_value_widget.html'
 
 
-class ParticipantInlineFormSetHelper(FormHelper):
+class ParticipantInlineFormSetHelper(SaveCancelInlineFormSetHelper):
     def __init__(self, *args, **kwargs):
+        kwargs.setdefault('save_label', 'Save Changes')
         super().__init__(*args, **kwargs)
         self.form_tag = False
         self.template = 'projects/includes/participants_inline_formset.html'
