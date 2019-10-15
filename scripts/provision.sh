@@ -60,7 +60,7 @@ fi
 
 
 generate_key () {
-    openssl rand 32 -base64
+    echo "$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
 }
 
 # Fetch a secret from the Azure keyvault
@@ -79,9 +79,8 @@ function get_or_create_azure_secret() {
     # If there is no current key then generate a new one
     if [ -z "${keyvault_value}" ]
     then
-          echo "Creating new key for $1"
           keyvault_value=$(generate_key)
-          az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}"
+          az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}" --output none
     fi
 
     echo "${keyvault_value}"
