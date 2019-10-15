@@ -589,7 +589,6 @@ class TestProjectAddDataset:
 
 
 @pytest.mark.django_db
-@pytest.mark.django_db
 class TestWorkPackageAddParticipant:
     def test_add_participant(self, as_programme_manager, user1):
         project = recipes.project.make(
@@ -636,7 +635,8 @@ class TestWorkPackageApproveParticipants:
         response = as_investigator.get(url)
         assert response.status_code == 404
 
-    def test_view_page(self, as_data_provider_representative, referee, programme_manager):
+    def test_approve_participants(self, as_data_provider_representative, referee,
+                                  programme_manager):
         project = recipes.project.make(created_by=programme_manager)
         p1 = project.add_user(as_data_provider_representative._user,
                               ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
@@ -663,6 +663,9 @@ class TestWorkPackageApproveParticipants:
         ]
 
         url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        response = as_data_provider_representative.get(url)
+        assert response.status_code == 200
+
         response = as_data_provider_representative.post(url, {
             'participants-TOTAL_FORMS': 1,
             'participants-MAX_NUM_FORMS': 1,

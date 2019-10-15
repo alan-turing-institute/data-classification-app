@@ -593,12 +593,7 @@ class WorkPackageApproveParticipants(
         return self.get_project_role().can_approve_participants
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Approve Participants'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
+        helper = SaveCancelInlineFormSetHelper('Approve Participants')
         kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True
