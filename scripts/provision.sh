@@ -86,14 +86,6 @@ function get_or_create_azure_secret() {
     echo "${keyvault_value}"
 }
 
-# Exit if a deployment already exists
-error_if_already_deployed() {
-    if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") == "true" ]]; then
-        echo "This script is for crearing a new deployment, but the resource group already exists"
-        exit 1
-    fi
-}
-
 azure_login() {
     az login
     switch_to_app_tenant
@@ -280,7 +272,6 @@ deploy_settings () {
 }
 
 azure_login
-error_if_already_deployed
 create_resource_group
 create_keyvault
 create_postgresql_db
