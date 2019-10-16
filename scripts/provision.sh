@@ -147,6 +147,34 @@ create_app() {
     local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
 }
 
+configure_deployment () {
+    if [ ! -z ${GITHUB_REPO} ]; then
+        # Get deployment URL
+        local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
+        local deploy_hook="${scm_uri}/deploy"
+        local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
+        local key_with_quotes=$(curl --silent "${deploy_key_request}")
+        local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
+
+        echo "Adding GitHub deploy key."
+        echo "Please enter your GitHub username and password when prompted."
+        read -p "Enter your GitHub username: " github_username
+        local scm_base_url="${APP_NAME}.scm.azurewebsites.net"
+        local deploy_key_args="{\"title\":\"${scm_base_url}\",\"key\":\"${deploy_key}\",\"read_only\":true}"
+        curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${GITHUB_REPO}/keys"
+
+        if [ ! -z ${DEPLOYMENT_AUTO_UPDATE} ]; then
+            echo "Adding GitHub deploy hook to enable auto-deployment."
+            echo "Please enter your GitHub password when prompted."
+            local deploy_hook_args="{\"config\":{\"url\": \"${deploy_hook}\"}}"
+            curl --user "${github_username}" --request POST --data "${deploy_hook_args}" "https://api.github.com/repos/${GITHUB_REPO}/hooks"
+        fi
+
+        az webapp deployment source config --branch "${GITHUB_BRANCH}" --name "${APP_NAME}" --repo-url "https://github.com/${GITHUB_REPO}" --resource-group "${RESOURCE_GROUP}"
+    fi
+}
+
+
 create_mssql_db() {
     echo "Creating the DB server"
     local db_username=${DB_USERNAME}
@@ -278,33 +306,17 @@ create_postgresql_db
 create_app
 create_registration
 deploy_settings
+configure_deployment
 
 # At time of writing, the following steps must be done on the Azure Portal
 cat <<EOF
 
 To complete the deployment:
 
-1. Set up IP restrictions for the App Service
+Set up IP restrictions for the SCM repository
 * Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
-* Under ${APP_NAME}.azurewebsites.net, add a rule under for each IP range to enable
-* Under ${APP_NAME}.scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
-
-2. Choose a method to deploy the code
-
-  2A. Continuous deployment using GitHub
-    * Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
-    * If there is an existing deployment you will need to disable this using the Disconnect button
-    * Select GitHub and click Authorize
-    * In the 'Configure' step, select:
-      - Organization: 'alan-turing-institute'
-      - repository: 'data-safe-haven-webapp'
-      - branch: the branch you wish to continuously deploy (eg master, development)
-
-  2B. Local git deployment
-    * Browse to Azure Portal -> App Services / $APP_NAME  / Deployment Center
-    * Click the FTP/Credentials button
-    * Under USER CREDENTIALS set username as DSH_DEPLOYMENT_USER and choose a password
-    * To deploy your current head branch, run the script "deploy_code.sh -e $ENVFILE"
-    * Enter the deployment password when prompted
-
+* Select the ${APP_NAME}.scm.azurewebsites.net tab
+* Add a rule for each IP range to enable.
+  * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
+  * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 EOF
