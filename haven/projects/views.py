@@ -235,6 +235,8 @@ class ProjectArchive(
         return self.get_project_permissions().can_archive
 
     def post(self, request, *args, **kwargs):
+        import logging
+        logging.warning('Processing archive')
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)

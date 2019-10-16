@@ -5,3 +5,5 @@ pytest-cov==2.7.1
 pytest-django==3.5.1
 model-mommy==1.6.0
 pytest-cov==2.7.1
+pytest-bdd==3.2.1
+pytest-splinter==2.0.1
