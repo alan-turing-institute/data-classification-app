@@ -48,7 +48,7 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' classification.work_package.project.id %}">{{ classification.work_package.project.name }}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' classification.work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
   <li class="breadcrumb-item"><a href="{{ classification.work_package.get_absolute_url }}">{{ classification.work_package.name }}</a></li>
   <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
 {% endblock crumbs %}

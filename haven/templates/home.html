@@ -2,10 +2,15 @@
 
 {% block content %}
   <p class="lead">
-    Welcome to the data safe haven
+    Welcome to the data safe haven management application.
   </p>
+  {% if request.user.is_authenticated %}
+    <a class="btn btn-primary" href="{% url 'projects:list' %}">View your projects</a>
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
+  {% endif %}
 
-<nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
+  <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
     <span class="navbar-text ml-auto">Build {{ SOURCE_REVISION }}</span>
-</nav>
+  </nav>
 {% endblock content %}

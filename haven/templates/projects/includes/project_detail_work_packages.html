@@ -2,7 +2,7 @@
 {% load django_tables2 %}
 {% load haven %}
 
-{% block name %}<a href="{% url 'projects:list_work_packages' project.id %}">Work Packages</a>{% endblock %}
+{% block name %}Work Packages{% endblock %}
 
 {% block actions %}
   {% url_check 'projects:add_work_package' project.id as add_work_package_href %}

@@ -28,12 +28,6 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/participants/',
-        views.ProjectListParticipants.as_view(),
-        name='list_participants'
-    ),
-
-    path(
         '<int:pk>/participants/edit',
         views.EditProjectListParticipants.as_view(),
         name='edit_participants'
@@ -52,21 +46,9 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/datasets/',
-        views.ProjectListDatasets.as_view(),
-        name='list_datasets'
-    ),
-
-    path(
         '<int:pk>/datasets/new',
         views.ProjectCreateDataset.as_view(),
         name='add_dataset'
-    ),
-
-    path(
-        '<int:pk>/work_packages/',
-        views.ProjectListWorkPackages.as_view(),
-        name='list_work_packages'
     ),
 
     path(
@@ -103,12 +85,6 @@ urlpatterns = [
         '<int:project_pk>/work_packages/<int:pk>/classify_delete',
         views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'
-    ),
-
-    path(
-        '<int:project_pk>/work_packages/<int:pk>/datasets/',
-        views.WorkPackageListDatasets.as_view(),
-        name='work_package_list_datasets'
     ),
 
     path(
