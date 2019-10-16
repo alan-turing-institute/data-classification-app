@@ -82,6 +82,9 @@ deploy_code () {
     then
         echo "Updating remote definition ${remote_name}: ${deployment_url}"
         git remote set-url "${remote_name}" "${deployment_url}"
+
+        echo "Cleaning up after previous deployments"
+        git remote prune "${remote_name}"
     else
         echo "Adding remote definition ${remote_name}: ${deployment_url}"
         git remote add "${remote_name}" "${deployment_url}"
