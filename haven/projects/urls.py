@@ -100,6 +100,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/participants/edit',
+        views.WorkPackageEditParticipants.as_view(),
+        name='work_package_edit_participants'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/participants/approve',
         views.WorkPackageApproveParticipants.as_view(),
         name='work_package_approve_participants'

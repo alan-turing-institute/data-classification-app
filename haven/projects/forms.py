@@ -240,7 +240,6 @@ class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelFo
     """Inline form describing a single work package assignment for a user"""
 
     username = forms.CharField(disabled=True, widget=ShowValue)
-    approved = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -252,15 +251,31 @@ class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelFo
         model = Participant
         fields = ()
 
-    def save(self, **kwargs):
-        if self.cleaned_data['approved']:
-            self.instance.approve(self.user)
-
 
 ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
     WorkPackage,
     WorkPackageParticipant,
     form=ParticipantForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=True,
+)
+
+
+class ParticipantForWorkPackageApprovalInlineForm(ParticipantForWorkPackageInlineForm):
+    """Inline form describing a single work package assignment for a user"""
+
+    approved = forms.BooleanField(required=False)
+
+    def save(self, **kwargs):
+        if self.cleaned_data['approved']:
+            self.instance.approve(self.user)
+
+
+ParticipantsForWorkPackageApprovalInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageParticipant,
+    form=ParticipantForWorkPackageApprovalInlineForm,
     fk_name='work_package',
     extra=0,
     can_delete=False,

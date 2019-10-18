@@ -534,7 +534,8 @@ class WorkPackageDataset(CreatedByModel):
 
 
 class WorkPackageParticipant(CreatedByModel):
-    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    work_package = models.ForeignKey(WorkPackage, related_name='work_package_participants',
+                                     on_delete=models.CASCADE)
     participant = models.ForeignKey(Participant, related_name='+', on_delete=models.CASCADE)
 
     class Meta(CreatedByModel.Meta):
