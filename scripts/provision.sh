@@ -87,16 +87,21 @@ function get_or_create_azure_secret() {
 }
 
 azure_login() {
-    az login
-    switch_to_app_tenant
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        az login
+        switch_to_app_tenant
+    fi
 }
 
 # Switch Azure CLI to the tenant used for app creation
 switch_to_app_tenant () {
     # We need to explicitly set the subscription in order to change the default tenant.
-    # This is because Azure CLI does not already respect the --subscription argument.
-    echo "Preparing to switch to $SUBSCRIPTION"
-    az account set --subscription "${SUBSCRIPTION}"
+    # This is because Azure CLI does not always respect the --subscription argument.
+
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        echo "Preparing to switch to $SUBSCRIPTION"
+        az account set --subscription "${SUBSCRIPTION}"
+    fi
 }
 
 # Switch Azure CLI to the tenant used for app registration
@@ -104,7 +109,9 @@ switch_to_registration_tenant () {
     # The tenant we use to register the app may not have a subscription, in which case we cannot use
     # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
     # the --allow-no-subscriptions flag.
-    az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+    fi
 }
 
 create_resource_group() {
