@@ -87,3 +87,18 @@ class TestAddUserForm:
 
         assert not form.is_valid()
         assert form.errors['__all__']
+
+    def test_project_dropdown_no_archived(self, investigator, programme_manager):
+        user = investigator.user
+        involved_project = investigator.project
+        unarchived_project = recipes.project.make()
+        unarchived_project.add_user(user, ProjectRole.INVESTIGATOR.value, programme_manager)
+        archived_project = recipes.project.make()
+        archived_project.add_user(user, ProjectRole.INVESTIGATOR.value, programme_manager)
+        archived_project.archive()
+
+        form = ProjectForUserInlineForm(user=user)
+        field = form.fields['project']
+        assert field.valid_value(involved_project.pk)
+        assert not field.valid_value(archived_project.pk)
+        assert field.valid_value(unarchived_project.pk)

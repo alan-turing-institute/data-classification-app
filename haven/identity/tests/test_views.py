@@ -209,6 +209,51 @@ class TestEditUser:
         system_manager.refresh_from_db()
         assert system_manager.email == 'controller@example.com'
 
+    def test_edit_archived_project(self, as_system_manager, project_participant):
+        project1 = recipes.project.make()
+        participant1 = project1.add_user(project_participant, ProjectRole.RESEARCHER.value,
+                                         as_system_manager._user)
+        project2 = recipes.project.make()
+        project2.add_user(project_participant, ProjectRole.RESEARCHER.value,
+                          as_system_manager._user)
+
+        response = as_system_manager.get('/users/%d/edit' % project_participant.id)
+        forms = response.context['formset'].forms
+        choices = [c[0] for c in forms[0].fields['project'].choices]
+        defaults = [f.initial.get('project') for f in forms]
+
+        assert choices == ['', project1.pk, project2.pk]
+        assert defaults == [project1.pk, project2.pk, None]
+
+        project2.archive()
+
+        response = as_system_manager.get('/users/%d/edit' % project_participant.id)
+        forms = response.context['formset'].forms
+        choices = [c[0] for c in forms[0].fields['project'].choices]
+        defaults = [f.initial.get('project') for f in forms]
+
+        assert choices == ['', project1.pk]
+        assert defaults == [project1.pk, None]
+
+        response = as_system_manager.post(
+            '/users/%d/edit' % project_participant.id, {
+                'role': project_participant.role,
+                'email': project_participant.email,
+                'mobile': project_participant.mobile,
+                'first_name': project_participant.first_name,
+                'last_name': project_participant.last_name,
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 2,
+                'participants-0-id': participant1.id,
+                'participants-0-project': project1.id,
+                'participants-0-role': 'researcher',
+            }, follow=True)
+        assert response.status_code == 200
+        assert project_participant.project_participation_role(project1) == ProjectRole.RESEARCHER
+        assert project_participant.project_participation_role(project2) == ProjectRole.RESEARCHER
+
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
         response = as_project_participant.get('/users/%d/edit' % researcher.id)
         assert response.status_code == 403

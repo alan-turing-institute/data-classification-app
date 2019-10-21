@@ -28,6 +28,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:pk>/archive',
+        views.ProjectArchive.as_view(),
+        name='archive'
+    ),
+
+    path(
         '<int:pk>/participants/edit',
         views.EditProjectListParticipants.as_view(),
         name='edit_participants'
