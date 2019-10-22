@@ -5,6 +5,7 @@ import pytest
 
 from core import recipes
 from identity.models import User
+from identity.roles import UserRole
 from identity.views import csv_users
 from projects.roles import ProjectRole
 
@@ -99,6 +100,26 @@ class TestEditUser:
         assert response.status_code == 200
         assert response.context['formset']
 
+    def test_edit_details(self, as_system_manager, project_participant):
+        response = as_system_manager.post(
+            '/users/%d/edit' % project_participant.id, {
+                'role': project_participant.role,
+                'email': 'new@example.com',
+                'mobile': '+441357924680',
+                'first_name': 'New',
+                'last_name': 'New',
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 0,
+            }, follow=True)
+        assert response.status_code == 200
+        project_participant.refresh_from_db()
+        assert project_participant.email == 'new@example.com'
+        assert project_participant.mobile == '+441357924680'
+        assert project_participant.first_name == 'New'
+        assert project_participant.last_name == 'New'
+
     def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
         response = as_system_manager.post(
@@ -139,6 +160,24 @@ class TestEditUser:
             }, follow=True)
         assert response.status_code == 200
         assert user.project_participation_role(project) is None
+
+    def test_cannot_edit_privileged_user(self, as_programme_manager, system_manager):
+        response = as_programme_manager.post(
+            '/users/%d/edit' % system_manager.id, {
+                'role': system_manager.role,
+                'email': 'my_new_email@example.com',
+                'mobile': system_manager.mobile,
+                'first_name': system_manager.first_name,
+                'last_name': system_manager.last_name,
+                'participants-TOTAL_FORMS': 0,
+                'participants-MAX_NUM_FORMS': 0,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 0,
+            }, follow=True)
+        assert response.status_code == 200
+        system_manager.refresh_from_db()
+        assert system_manager.email == 'my_new_email@example.com'
+        assert system_manager.role == UserRole.SYSTEM_MANAGER.value
 
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
         response = as_project_participant.get('/users/%d/edit' % researcher.id)
