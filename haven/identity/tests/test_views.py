@@ -5,6 +5,7 @@ import pytest
 
 from core import recipes
 from identity.models import User
+from identity.roles import UserRole
 from identity.views import csv_users
 from projects.roles import ProjectRole
 
@@ -34,8 +35,12 @@ class TestCreateUser:
         assert response.context['formset']
 
     def test_create_user(self, as_system_manager):
+        response = as_system_manager.get('/users/new')
+        assert 'role' in response.context['form'].fields
+
         response = as_system_manager.post('/users/new', {
             'email': 'testuser@example.com',
+            'role': UserRole.PROGRAMME_MANAGER.value,
             'first_name': 'Test',
             'last_name': 'User',
             'mobile': '+443338888888',
@@ -46,7 +51,9 @@ class TestCreateUser:
         }, follow=True)
 
         assert response.status_code == 200
-        assert User.objects.filter(email='testuser@example.com').exists()
+        user = User.objects.get(email='testuser@example.com')
+        assert user is not None
+        assert user.role == UserRole.PROGRAMME_MANAGER.value
 
     def test_create_user_and_add_to_project(self, as_system_manager):
         project = recipes.project.make()
@@ -68,6 +75,27 @@ class TestCreateUser:
         assert user
         assert user.project_participation_role(project) == \
                ProjectRole.RESEARCHER
+
+    def test_cannot_create_privileged_user(self, as_programme_manager):
+        response = as_programme_manager.get('/users/new')
+        assert 'role' not in response.context['form'].fields
+
+        response = as_programme_manager.post('/users/new', {
+            'email': 'testuser@example.com',
+            'role': UserRole.PROGRAMME_MANAGER.value,
+            'first_name': 'Test',
+            'last_name': 'User',
+            'mobile': '+443338888888',
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 0,
+        }, follow=True)
+
+        assert response.status_code == 200
+        user = User.objects.get(email='testuser@example.com')
+        assert user is not None
+        assert user.role == UserRole.NONE.value
 
     def test_returns_403_if_cannot_create_users(self, as_project_participant):
         response = as_project_participant.get('/users/new')
@@ -176,7 +204,7 @@ class TestEditUser:
         assert response.status_code == 200
         assert not response.context['form'].is_valid()
         assert response.context['form'].errors == {
-            'role': ['You cannot edit users with role System Manager'],
+            '__all__': ['You cannot edit users with role System Manager'],
         }
         system_manager.refresh_from_db()
         assert system_manager.email == 'controller@example.com'
