@@ -14,15 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 from core import views as core_views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-
     path('users/', include('identity.urls', namespace='identity')),
 
     path('projects/', include('projects.urls', namespace='projects')),
@@ -39,8 +36,27 @@ urlpatterns = [
     path('error/', TemplateView.as_view(template_name='error.html'), name="error-page"),
 ]
 
+
+# These features are only enabled for local testing
 if settings.DEBUG:
+    # Enable debug toolbar
     import debug_toolbar
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+
+    # Enable admin interface
+    from django.contrib import admin
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+    ] + urlpatterns
+
+    # Enable local user login
+    from django.contrib.auth import views as auth_views
+    urlpatterns = [
+        path(
+            'accounts/login/',
+            auth_views.LoginView.as_view(template_name='identity/login.html'),
+            name='login'
+        )
     ] + urlpatterns

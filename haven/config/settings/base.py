@@ -47,7 +47,7 @@ THIRD_PARTY_PRE_APPS = [
 ]
 
 DJANGO_APPS = [
-    'django.contrib.admin',
+    'django.contrib.admin',  # admin currently required by django-easy-audit
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -58,7 +58,6 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'crispy_forms',
-    'debug_toolbar',
     'django_bleach',
     'django_tables2',
     'easyaudit',
@@ -76,7 +75,6 @@ INSTALLED_APPS = THIRD_PARTY_PRE_APPS + DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_A
 
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
