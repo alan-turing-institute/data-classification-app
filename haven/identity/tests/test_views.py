@@ -5,7 +5,6 @@ import pytest
 
 from core import recipes
 from identity.models import User
-from identity.roles import UserRole
 from identity.views import csv_users
 from projects.roles import ProjectRole
 
@@ -175,9 +174,12 @@ class TestEditUser:
                 'participants-INITIAL_FORMS': 0,
             }, follow=True)
         assert response.status_code == 200
+        assert not response.context['form'].is_valid()
+        assert response.context['form'].errors == {
+            'role': ['You cannot edit users with role System Manager'],
+        }
         system_manager.refresh_from_db()
-        assert system_manager.email == 'my_new_email@example.com'
-        assert system_manager.role == UserRole.SYSTEM_MANAGER.value
+        assert system_manager.email == 'controller@example.com'
 
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
         response = as_project_participant.get('/users/%d/edit' % researcher.id)
