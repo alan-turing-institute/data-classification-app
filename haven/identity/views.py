@@ -154,7 +154,7 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="UserCreate.csv"'
 
-        writer = csv.writer(response)
+        writer = csv.writer(response, quoting=csv.QUOTE_MINIMAL)
 
         writer.writerow([
             'SamAccountName',
@@ -174,7 +174,7 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
                 username,
                 user.first_name,
                 user.last_name,
-                user.mobile,
+                user.mobile.as_international if user.mobile else '',
                 user.email
             ])
 
