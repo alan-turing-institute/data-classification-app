@@ -1,10 +1,21 @@
 from .base import *  # noqa
 
 
-# Settings specific to the development environment
+# Settings specific to the local machine development environment
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+
+# Enable debug toolbar
+INSTALLED_APPS.extend([
+    'debug_toolbar',
+])
+
+# Add debug toolbar
+MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+
+# Allow local database user login
+AUTHENTICATION_BACKENDS.append('django.contrib.auth.backends.ModelBackend')
 
 # Log all emails to console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
