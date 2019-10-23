@@ -155,30 +155,39 @@ create_app() {
 }
 
 configure_deployment () {
-    if [ ! -z ${GITHUB_REPO} ]; then
-        # Get deployment URL
-        local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
-        local deploy_hook="${scm_uri}/deploy"
-        local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
-        local key_with_quotes=$(curl --silent "${deploy_key_request}")
-        local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
+    # Get deployment URL
+    local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
 
+    # Fetch deploy hook
+    local deploy_hook="${scm_uri}/deploy"
+    az keyvault secret set --name "DEPLOY-HOOK" --vault-name "${KEYVAULT_NAME}" --value "${deploy_hook}"
+
+    # Fetch deploy key
+    local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
+    local key_with_quotes=$(curl --silent "${deploy_key_request}")
+    local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
+    az keyvault secret set --name "DEPLOY-KEY" --vault-name "${KEYVAULT_NAME}" --value "${deploy_key}"
+
+    if [ -z ${DEPLOYMENT_GITHUB_REPO} ]; then
+        echo "No GitHub repository was specified for adding a deploy key. If you are deploying from a private repository you will need to add a deploy key to your repository."
+    else
         echo "Adding GitHub deploy key."
         echo "Please enter your GitHub username and password when prompted."
         read -p "Enter your GitHub username: " github_username
         local scm_base_url="${APP_NAME}.scm.azurewebsites.net"
         local deploy_key_args="{\"title\":\"${scm_base_url}\",\"key\":\"${deploy_key}\",\"read_only\":true}"
-        curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${GITHUB_REPO}/keys"
+        curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/keys"
 
         if [ ! -z ${DEPLOYMENT_AUTO_UPDATE} ]; then
             echo "Adding GitHub deploy hook to enable auto-deployment."
             echo "Please enter your GitHub password when prompted."
             local deploy_hook_args="{\"config\":{\"url\": \"${deploy_hook}\"}}"
-            curl --user "${github_username}" --request POST --data "${deploy_hook_args}" "https://api.github.com/repos/${GITHUB_REPO}/hooks"
+            curl --user "${github_username}" --request POST --data "${deploy_hook_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/hooks"
         fi
-
-        az webapp deployment source config --branch "${GITHUB_BRANCH}" --name "${APP_NAME}" --repo-url "https://github.com/${GITHUB_REPO}" --resource-group "${RESOURCE_GROUP}"
     fi
+
+    # Set the source code URL and branch
+    az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
 }
 
 
