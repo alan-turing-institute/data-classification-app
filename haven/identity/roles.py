@@ -147,4 +147,4 @@ class UserRole(Enum):
         :param role: `UserRole` to be assigned
         :return `True` if can assign role, `False` if not
         """
-        return role in self.creatable_roles
+        return self.can_create(role)
