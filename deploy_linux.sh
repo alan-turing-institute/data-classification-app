@@ -22,6 +22,9 @@ python3 haven/manage.py collectstatic --noinput --clear
 echo "Running Safe Haven migrations..."
 python3 haven/manage.py migrate
 
+echo "Fetching git hash..."
+git rev-parse --short HEAD > "%DEPLOYMENT_TARGET%/version.txt"
+
 echo "Running gunicorn web server..."
 # Log to stdout so it will be picked up by Azure log stream
 gunicorn --bind=0.0.0.0 --timeout 600 --chdir haven config.wsgi --error-logfile '-' --log-level 'warning'
