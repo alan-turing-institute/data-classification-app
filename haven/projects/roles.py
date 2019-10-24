@@ -108,7 +108,14 @@ class UserProjectPermissions:
 
     @property
     def can_edit(self):
-        """Is this role able to edit participants?"""
+        """Is this role able to edit project details?"""
+        return self.is_project_admin or self.role in [
+            ProjectRole.PROJECT_MANAGER,
+        ]
+
+    @property
+    def can_archive(self):
+        """Is this role able to archive the project?"""
         return self.is_project_admin or self.role in [
             ProjectRole.PROJECT_MANAGER,
         ]

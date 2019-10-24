@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Archive Project{% endblock %}
+
+{% block content %}
+<p>
+  Archiving the project means it will no longer be visible for any user, and no further action can be taken on it.
+  Please confirm below if you would like to archive the project.
+</p>
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Archive</li>
+{% endblock crumbs %}

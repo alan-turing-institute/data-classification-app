@@ -31,6 +31,7 @@ from .forms import (
     ProjectAddDatasetForm,
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
+    ProjectArchiveForm,
     ProjectForm,
     SaveCancelFormHelper,
     SaveCancelInlineFormSetHelper,
@@ -219,6 +220,31 @@ class ProjectEdit(
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         return super().post(request, *args, **kwargs)
+
+
+class ProjectArchive(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_archive.html'
+    form_class = ProjectArchiveForm
+
+    def test_func(self):
+        return self.get_project_role().can_archive
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_project().archive()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('projects:list')
 
 
 class ProjectHistory(

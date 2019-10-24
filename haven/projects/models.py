@@ -33,6 +33,7 @@ class Project(CreatedByModel):
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
                                       blank=True)
+    archived = models.BooleanField(default=False)
 
     objects = ProjectQuerySet.as_manager()
 
@@ -68,6 +69,10 @@ class Project(CreatedByModel):
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
+
+    def archive(self):
+        self.archived = True
+        self.save()
 
     def ordered_participants(self):
         """Order participants on this project by their ProjectRole"""

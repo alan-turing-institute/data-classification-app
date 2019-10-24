@@ -66,6 +66,11 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
         fields = ['name', 'description']
 
 
+class ProjectArchiveForm(forms.Form):
+    helper = SaveCancelFormHelper('Archive Project', 'btn-danger')
+    helper.form_method = 'POST'
+
+
 class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
     """Autocomplete field for adding users"""
 

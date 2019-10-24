@@ -76,6 +76,15 @@ class TestListProjects:
 
         assert list(response.context['projects']) == [other_project, my_project]
 
+    def test_list_archived_projects(self, programme_manager, as_system_manager):
+        my_project = recipes.project.make(created_by=as_system_manager._user)
+        my_project.archive()
+        other_project = recipes.project.make(created_by=programme_manager)
+
+        response = as_system_manager.get('/projects/')
+
+        assert list(response.context['projects']) == [other_project]
+
 
 @pytest.mark.django_db
 class TestViewProject:
@@ -115,6 +124,14 @@ class TestViewProject:
         assert response.status_code == 200
         assert response.context['project'] == project
 
+    def test_cannot_view_archived_project(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        project.archive()
+
+        response = as_programme_manager.get('/projects/%d' % project.id)
+
+        assert response.status_code == 404
+
 
 @pytest.mark.django_db
 class TestViewProjectHistory:
@@ -131,6 +148,27 @@ class TestViewProjectHistory:
         table = list(response.context['history_table'].as_values())
         assert len(table) >= 2
         assert table[0] == ['Timestamp', 'Type', 'User', 'Subject', 'Details', 'Changes']
+
+
+@pytest.mark.django_db
+class TestArchiveProject:
+    def test_archive_project(self, programme_manager, as_standard_user):
+        project = recipes.project.make(created_by=programme_manager)
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}")
+        assert b'Archive Project' in response.content
+
+        url = f"/projects/{project.pk}/archive"
+        response = as_standard_user.get(url)
+        assert b'Archive Project' in response.content
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 200
+
+        response = as_standard_user.get(f"/projects/{project.pk}")
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
