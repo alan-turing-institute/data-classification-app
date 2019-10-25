@@ -114,6 +114,30 @@ switch_to_registration_tenant () {
     fi
 }
 
+# Return response from a get call
+function curl_with_retry() {
+    local url="$1"
+    local description="$2"
+
+    local retry=0
+    until [ "$retry" -gt 20 ]; do
+      local result
+      result=$(curl --fail --silent "${url}")
+      status="$?"
+
+      if [ $status -eq 0 ]; then
+        echo "${result}"
+        return
+      fi
+
+      echo "Retry ${retry}" 1>&2
+      ((retry++))
+      sleep 30;
+    done
+    echo "Failed to execute curl for ${description}" 1>&2
+    exit 1
+}
+
 create_resource_group() {
     echo "Creating resource group"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
@@ -164,7 +188,7 @@ configure_deployment () {
 
     # Fetch deploy key
     local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
-    local key_with_quotes=$(curl --silent "${deploy_key_request}")
+    local key_with_quotes=$(curl_with_retry "${deploy_key_request}" "Requesting deploy key from SCM")
     local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
     az keyvault secret set --name "DEPLOY-KEY" --vault-name "${KEYVAULT_NAME}" --value "${deploy_key}"
 
