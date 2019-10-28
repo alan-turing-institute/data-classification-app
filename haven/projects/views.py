@@ -678,11 +678,11 @@ class WorkPackageAddDataset(
         return kwargs
 
     def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
-        self.object = self.get_object()
         if form.is_valid():
             form.save()
             return self.form_valid(form)
