@@ -60,7 +60,7 @@ fi
 
 
 generate_key () {
-    openssl rand 32 -base64
+    echo "$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
 }
 
 # Fetch a secret from the Azure keyvault
@@ -69,25 +69,39 @@ function get_azure_secret() {
     az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
 }
 
-# Exit if a deployment already exists
-error_if_already_deployed() {
-    if [[ $(az group exists --name ${RESOURCE_GROUP} --subscription "${SUBSCRIPTION}") == "true" ]]; then
-        echo "This script is for crearing a new deployment, but the resource group already exists"
-        exit 1
+# Fetch a secret from the Azure keyvault, but generate and store one if it does not exist
+function get_or_create_azure_secret() {
+    local SECRET_NAME="$1"
+
+    # Get current value from keyvault
+    local keyvault_value=$(get_azure_secret  "$1")
+
+    # If there is no current key then generate a new one
+    if [ -z "${keyvault_value}" ]
+    then
+          keyvault_value=$(generate_key)
+          az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}" --output none
     fi
+
+    echo "${keyvault_value}"
 }
 
 azure_login() {
-    az login
-    switch_to_app_tenant
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        az login
+        switch_to_app_tenant
+    fi
 }
 
 # Switch Azure CLI to the tenant used for app creation
 switch_to_app_tenant () {
     # We need to explicitly set the subscription in order to change the default tenant.
-    # This is because Azure CLI does not already respect the --subscription argument.
-    echo "Preparing to switch to $SUBSCRIPTION"
-    az account set --subscription "${SUBSCRIPTION}"
+    # This is because Azure CLI does not always respect the --subscription argument.
+
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        echo "Preparing to switch to $SUBSCRIPTION"
+        az account set --subscription "${SUBSCRIPTION}"
+    fi
 }
 
 # Switch Azure CLI to the tenant used for app registration
@@ -95,7 +109,33 @@ switch_to_registration_tenant () {
     # The tenant we use to register the app may not have a subscription, in which case we cannot use
     # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
     # the --allow-no-subscriptions flag.
-    az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+    fi
+}
+
+# Return response from a get call
+function curl_with_retry() {
+    local url="$1"
+    local description="$2"
+
+    local retry=0
+    until [ "$retry" -gt 20 ]; do
+      local result
+      result=$(curl --fail --silent "${url}")
+      status="$?"
+
+      if [ $status -eq 0 ]; then
+        echo "${result}"
+        return
+      fi
+
+      echo "Retry ${retry}" 1>&2
+      ((retry++))
+      sleep 30;
+    done
+    echo "Failed to execute curl for ${description}" 1>&2
+    exit 1
 }
 
 create_resource_group() {
@@ -118,7 +158,7 @@ create_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.7"  --deployment-local-git
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.7"
 
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --application-logging true --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
@@ -129,18 +169,56 @@ create_app() {
     # Configure startup file
     az webapp config set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --startup-file "/home/site/repository/deploy_linux.sh"
 
-    local deployment_url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url" -otsv)
-     az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
+    # Get deployment URL
+    local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
+    local deployment_url="${scm_uri}:443/${APP_NAME}.git/"
+    az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
-    # Create a secret key for Django and store in keyvault
-    local django_secret_key=$(generate_key)
-    az keyvault secret set --name "SECRET-KEY" --vault-name "${KEYVAULT_NAME}" --value "${django_secret_key}"
+    # Create Django secret key
+    local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
 }
+
+configure_deployment () {
+    # Get deployment URL
+    local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
+
+    # Fetch deploy hook
+    local deploy_hook="${scm_uri}/deploy"
+    az keyvault secret set --name "DEPLOY-HOOK" --vault-name "${KEYVAULT_NAME}" --value "${deploy_hook}"
+
+    # Fetch deploy key
+    local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
+    local key_with_quotes=$(curl_with_retry "${deploy_key_request}" "Requesting deploy key from SCM")
+    local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
+    az keyvault secret set --name "DEPLOY-KEY" --vault-name "${KEYVAULT_NAME}" --value "${deploy_key}"
+
+    if [ -z ${DEPLOYMENT_GITHUB_REPO} ]; then
+        echo "No GitHub repository was specified for adding a deploy key. If you are deploying from a private repository you will need to add a deploy key to your repository."
+    else
+        echo "Adding GitHub deploy key."
+        echo "Please enter your GitHub username and password when prompted."
+        read -p "Enter your GitHub username: " github_username
+        local scm_base_url="${APP_NAME}.scm.azurewebsites.net"
+        local deploy_key_args="{\"title\":\"${scm_base_url}\",\"key\":\"${deploy_key}\",\"read_only\":true}"
+        curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/keys"
+
+        if [ ! -z ${DEPLOYMENT_AUTO_UPDATE} ]; then
+            echo "Adding GitHub deploy hook to enable auto-deployment."
+            echo "Please enter your GitHub password when prompted."
+            local deploy_hook_args="{\"config\":{\"url\": \"${deploy_hook}\"}}"
+            curl --user "${github_username}" --request POST --data "${deploy_hook_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/hooks"
+        fi
+    fi
+
+    # Set the source code URL and branch
+    az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
+}
+
 
 create_mssql_db() {
     echo "Creating the DB server"
     local db_username=${DB_USERNAME}
-    local db_password=${DB_PASSWORD}
+    local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
     local database_url="mssql://${db_username}:${db_password}@$DB_SERVER_NAME.database.windows.net:1433/$DB_NAME"
 
     # Create the db server
@@ -162,7 +240,8 @@ create_postgresql_db() {
     echo "Creating the DB server"
 
     local db_username=${DB_USERNAME}
-    local db_password=${DB_PASSWORD}
+    local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
+
     local database_url="postgresql://${db_username}@$DB_SERVER_NAME:${db_password}@$DB_SERVER_NAME.postgres.database.azure.com:5432/$DB_NAME"
 
     # Create the postgresql server
@@ -196,7 +275,7 @@ create_registration () {
     local app_uri="${BASE_URL}"
 
     # A client secret used in the OAuth2 call
-    local client_secret=$(generate_key)
+    local client_secret=$(get_or_create_azure_secret  "SECRET-KEY")
 
     # The tenant we use to register the app may not be the tenant used to create the app
     switch_to_registration_tenant
@@ -261,40 +340,23 @@ deploy_settings () {
 }
 
 azure_login
-error_if_already_deployed
 create_resource_group
 create_keyvault
 create_postgresql_db
 create_app
 create_registration
 deploy_settings
+configure_deployment
 
 # At time of writing, the following steps must be done on the Azure Portal
 cat <<EOF
 
 To complete the deployment:
 
-1. Set up IP restrictions for the App Service
+Set up IP restrictions for the SCM repository
 * Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
-* Under ${APP_NAME}.azurewebsites.net, add a rule under for each IP range to enable
-* Under ${APP_NAME}.scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
-
-2. Choose a method to deploy the code
-
-  2A. Continuous deployment using GitHub
-    * Browse to Azure Portal -> App Services / $APP_NAME / Deployment Center
-    * If there is an existing deployment you will need to disable this using the Disconnect button
-    * Select GitHub and click Authorize
-    * In the 'Configure' step, select:
-      - Organization: 'alan-turing-institute'
-      - repository: 'data-safe-haven-webapp'
-      - branch: the branch you wish to continuously deploy (eg master, development)
-
-  2B. Local git deployment
-    * Browse to Azure Portal -> App Services / $APP_NAME  / Deployment Center
-    * Click the FTP/Credentials button
-    * Under USER CREDENTIALS set username as DSH_DEPLOYMENT_USER and choose a password
-    * To deploy your current head branch, run the script "deploy_code.sh -e $ENVFILE"
-    * Enter the deployment password when prompted
-
+* Select the ${APP_NAME}.scm.azurewebsites.net tab
+* Add a rule for each IP range to enable.
+  * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
+  * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 EOF
