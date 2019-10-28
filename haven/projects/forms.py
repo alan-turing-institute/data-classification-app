@@ -165,8 +165,6 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
 
 
 class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper('Create Work Package')
-
     class Meta:
         model = WorkPackage
         fields = ('name', 'description')
@@ -211,6 +209,17 @@ class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
 
 
 # Inline forms
+
+
+class DatasetForWorkPackageInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single dataset assignment to a work package"""
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['dataset'].queryset = project.datasets
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ('dataset',)
 
 
 class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
@@ -300,6 +309,16 @@ class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
 
 
 # Form factories
+
+DatasetForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageDataset,
+    form=DatasetForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=1,
+    can_delete=True,
+)
+
 
 ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
     WorkPackage,
