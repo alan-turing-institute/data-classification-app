@@ -277,7 +277,8 @@ class TestExportUsers:
         response = as_project_participant.get('/users/export')
         assert response.status_code == 403
 
-    def test_export_as_pm(self, as_programme_manager):
+    def test_export_as_pm(self, as_programme_manager, superuser, system_manager, standard_user,
+                          project_participant, user1):
         response = as_programme_manager.get('/users/export')
         assert response.status_code == 200
         assert response['Content-Type'] == 'text/csv'
@@ -285,6 +286,12 @@ class TestExportUsers:
         assert parsed == [
             ['SamAccountName', 'GivenName', 'Surname', 'Mobile', 'SecondaryEmail'],
             ['coordinator', '', '', '', 'coordinator@example.com'],
+            ['admin', '', '', '', 'admin@example.com'],
+            ['controller', 'System', 'Manager', '+441234567890', 'controller@example.com'],
+            ['user', '', '', '', 'user@example.com'],
+            ['project_participant', 'Angela', 'Zala', '+441234567890',
+             'project_participant@example.com'],
+            ['user1', '', '', '', 'user@example.com'],
         ]
 
 
