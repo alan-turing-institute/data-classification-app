@@ -11,11 +11,10 @@
 
   {% if formset %}
     <h2>Datasets</h2>
-    <div id="project-formset">
+    <div id="{{ formset.prefix }}-formset">
       {% crispy formset %}
     </div>
   {% endif %}
-
 </form>
 
 {% endblock content %}
@@ -29,5 +28,5 @@
 {% endblock crumbs %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#project-formset', '{{ formset.prefix | escapejs }}', true)</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', true)</script>
 {% endblock %}

@@ -108,7 +108,6 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper('Create Dataset')
 
     class Meta:
         model = Dataset
@@ -297,6 +296,17 @@ class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
         return role
 
 
+class WorkPackageForDatasetInlineForm(SaveCreatorMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment to a dataset"""
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['work_package'].queryset = project.work_packages
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ('work_package',)
+
+
 class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a work package"""
     def __init__(self, *args, project=None, **kwargs):
@@ -359,6 +369,16 @@ UsersForProjectInlineFormSet = inlineformset_factory(
     extra=0,
     can_delete=True,
     help_texts={'role': None},
+)
+
+
+WorkPackagesForDatasetInlineFormSet = inlineformset_factory(
+    Dataset,
+    WorkPackageDataset,
+    form=WorkPackageForDatasetInlineForm,
+    fk_name='dataset',
+    extra=1,
+    can_delete=True,
 )
 
 
