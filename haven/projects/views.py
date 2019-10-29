@@ -1195,7 +1195,7 @@ class WorkPackageClassifyDelete(
         return self.object.get_absolute_url()
 
 
-class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
+class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
     """
     Autocomplete username from list of Users who are not currently participants in this project
     """

@@ -1759,7 +1759,7 @@ class TestNewParticipantAutocomplete:
 
         def assert_autocomplete_result(query_string, expected_users):
             response = as_programme_manager.get(
-                f'/projects/{project.id}/new_participant_autocomplete/?q={query_string}')
+                f'/projects/{project.id}/autocomplete_new_participant/?q={query_string}')
             assert response.status_code == 200
             output = json.loads(response.content.decode('UTF-8'))
             output_set = {d['text'] for d in output['results']}

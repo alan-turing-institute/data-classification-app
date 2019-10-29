@@ -38,16 +38,13 @@ class ShowValue(forms.Widget):
 
 # Fields
 
-class ProjectUserAutocompleteChoiceField(forms.ModelChoiceField):
+class UserAutocompleteChoiceField(forms.ModelChoiceField):
     """Autocomplete field for adding users"""
 
-    def __init__(self, project_id=None, *args, **kwargs):
+    def __init__(self, autocomplete_url=None, *args, **kwargs):
         """User choice should be restricted to users not yet in this project"""
 
-        if project_id:
-            autocomplete_url = reverse('projects:new_participant_autocomplete', kwargs={'pk': project_id})
-        else:
-            autocomplete_url = 'projects:new_participant_autocomplete/'
+        autocomplete_url = autocomplete_url or 'dummy_url'
 
         widget = autocomplete.ModelSelect2(
             url=autocomplete_url,
@@ -127,9 +124,11 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         super(ProjectAddUserForm, self).__init__(*args, **kwargs)
 
         # Update user field with project ID
-        self.fields['user'] = ProjectUserAutocompleteChoiceField(project_id, label='Username')
+        autocomplete_url = reverse('projects:autocomplete_new_participant',
+                                   kwargs={'pk': project_id})
+        self.fields['user'] = UserAutocompleteChoiceField(autocomplete_url, label='Username')
 
-    user = ProjectUserAutocompleteChoiceField(label='Username')
+    user = UserAutocompleteChoiceField(label='Username')
 
     role = forms.ChoiceField(
         choices=ProjectRole.choices(),
