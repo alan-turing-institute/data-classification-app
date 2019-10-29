@@ -106,7 +106,19 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Investigator']
+            'An Investigator still needs to classify this Work Package.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+    def test_classification_not_ready_dpr(self, classified_work_package, investigator):
+        work_package = classified_work_package(None)
+
+        work_package.classify_as(0, investigator.user)
+
+        assert work_package.missing_classification_requirements == [
+            'A Data Provider Representative still needs to classify this Work Package.',
+            'A Data Provider Representative for dataset ' + work_package.datasets.get(pk=1).name + ' still needs to classify this Work Package.'
+        ]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -126,7 +138,7 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Data Provider Representative for dataset: Dataset 2']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -146,7 +158,7 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Data Provider Representative for dataset: Dataset 2']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -220,7 +232,8 @@ class TestWorkPackage:
         work_package.classify_as(2, investigator.user)
         work_package.classify_as(2, data_provider_representative.user)
 
-        assert work_package.missing_classification_requirements == ['Not classified by Referee']
+        assert work_package.missing_classification_requirements == [
+            'A Referee still needs to classify this Work Package.',]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -253,7 +266,7 @@ class TestWorkPackage:
         work_package.classify_as(3, referee.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by approved Referee']
+            'An approved Referee still needs to classify this Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 

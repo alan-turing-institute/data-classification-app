@@ -204,7 +204,7 @@ class TestEditUser:
         assert response.status_code == 200
         assert not response.context['form'].is_valid()
         assert response.context['form'].errors == {
-            '__all__': ['You cannot edit users with role System Manager'],
+            '__all__': ['You cannot edit users with the role System Manager'],
         }
         system_manager.refresh_from_db()
         assert system_manager.email == 'controller@example.com'

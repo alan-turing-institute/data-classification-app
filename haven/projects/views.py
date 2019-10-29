@@ -882,7 +882,7 @@ class WorkPackageClassifyData(
         ).first()
         if classification:
             message = ('You have already completed classification. Please delete your '
-                       'classification if you wish to change any answers.')
+                       'classification and start again if you wish to change any answers.')
             return self.redirect_to_results(message=message, message_level=messages.ERROR)
         return None
 

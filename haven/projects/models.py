@@ -232,12 +232,13 @@ class WorkPackage(CreatedByModel):
             role = ProjectRole.display_name(r)
             if require_approval:
                 role = 'approved ' + role
-            missing_requirements.append(f"Not classified by {role}")
+            suffix = 'n' if role.lower()[0] in 'aeiou' else ''
+            missing_requirements.append(f"A{suffix} {role} still needs to classify this Work Package.")
 
         missing_datasets = required_datasets - datasets
         for d in missing_datasets:
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-            missing_requirements.append(f"Not classified by {role} for dataset: {d}")
+            missing_requirements.append(f"A {role} for dataset {d} still needs to classify this Work Package.")
 
         if not self.has_datasets:
             missing_requirements.append('No datasets in work package')

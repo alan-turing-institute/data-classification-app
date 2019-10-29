@@ -50,10 +50,10 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role_display = UserRole.display_name(role)
         if 'role' in self.changed_data:
             if not UserRole(self.user.role).can_assign_role(role_model):
-                raise ValidationError(f"You cannot assign role {role_display}")
+                raise ValidationError(f"You cannot assign the role {role_display}")
         else:
             if not UserRole(self.user.role).can_assign_role(role_model):
-                raise ValidationError(f"You cannot edit users with role {role_display}")
+                raise ValidationError(f"You cannot edit users with the role {role_display}")
         return role
 
     def clean_email(self):
@@ -69,7 +69,7 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
             role_model = UserRole(self.instance.role)
             role_display = UserRole.display_name(self.instance.role)
             if not UserRole(self.user.role).can_assign_role(role_model):
-                raise ValidationError(f"You cannot edit users with role {role_display}")
+                raise ValidationError(f"You cannot edit users with the role {role_display}")
 
 
 class CreateUserForm(SaveCreatorMixin, EditUserForm):
