@@ -13,6 +13,10 @@
   {% if edit_user_href %}
     <a class="btn btn-primary btn-lg my-1" href="{{ edit_user_href }}">Edit Participants</a>
   {% endif %}
+  {% url_check 'identity:export_users' as export_users_href %}
+  {% if export_users_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ export_users_href }}?project={{ project.id }}">Export UserCreate.csv</a>
+  {% endif %}
 {% endblock %}
 
 {% block details %}

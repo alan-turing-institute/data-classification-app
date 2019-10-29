@@ -294,6 +294,24 @@ class TestExportUsers:
             ['user1', '', '', '', 'user@example.com'],
         ]
 
+    def test_export_by_project(self, as_programme_manager, superuser, system_manager, standard_user,
+                               project_participant, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        project.add_user(user1, role=ProjectRole.PROJECT_MANAGER.value,
+                         creator=as_programme_manager._user)
+        project.add_user(project_participant, role=ProjectRole.RESEARCHER.value,
+                         creator=as_programme_manager._user)
+        response = as_programme_manager.get(f"/users/export?project={project.pk}")
+        assert response.status_code == 200
+        assert response['Content-Type'] == 'text/csv'
+        parsed = self.parse_csv_response(response)
+        assert parsed == [
+            ['SamAccountName', 'GivenName', 'Surname', 'Mobile', 'SecondaryEmail'],
+            ['user1', '', '', '', 'user@example.com'],
+            ['project_participant', 'Angela', 'Zala', '+441234567890',
+             'project_participant@example.com'],
+        ]
+
 
 @pytest.mark.django_db
 class TestImportUsers:
