@@ -1,6 +1,6 @@
 import logging
 import re
-from collections import OrderedDict
+from collections import defaultdict
 
 from braces.views import UserFormKwargsMixin
 from crispy_forms.helper import FormHelper
@@ -1192,6 +1192,36 @@ class WorkPackageClassifyDelete(
         return self.object.get_absolute_url()
 
 
+class GroupedSelect2QuerySetView(autocomplete.Select2QuerySetView):
+    '''
+    Extends Select2QuerySetView to allow grouping of results (in a similar way to
+    Select2GroupListView)
+
+    Subclasses should define a get_result_group method which receives the same result
+    object as get_result_value etc., and return a 2-tuple of (group_id, group_label).
+    The resulting groups will be sorted by group_id.
+    '''
+    def get_results(self, context):
+        grouped = defaultdict(list)
+        for result in context['object_list']:
+            group = self.get_result_group(result)
+            if int(self.request.GET.get('page', '1')) > 1:
+                group = (group[0], group[1] + '...')
+            grouped[group].append(result)
+
+        results = []
+        keys = sorted(grouped.keys())
+        for key in keys:
+            group = grouped[key]
+            if group:
+                results.append({
+                    'id': key[0],
+                    'text': key[1],
+                    'children': super().get_results({'object_list': group})
+                })
+        return results
+
+
 class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
     """
     Autocomplete username from list of Users who are not currently participants in this project
@@ -1231,17 +1261,33 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
         return user.display_name()
 
 
-class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant):
+class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
+                                             GroupedSelect2QuerySetView):
     """
     Autocomplete username from list of Users who are not currently participants in this project,
     or are DPRs
     """
     def get_users_to_exclude(self):
         if 'pk' in self.kwargs:
-            # Autocomplete suggestions are users not already participating in this project
             project_id = self.kwargs['pk']
             participants = Project.objects.get(pk=project_id).participants
             participants = participants.exclude(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             return participants.values('user')
 
         return None
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if 'pk' in self.kwargs:
+            project_id = self.kwargs['pk']
+            qs = qs.annotate(you=FilteredRelation(
+                'participants',
+                condition=Q(participants__project=project_id))
+            )
+            qs = qs.annotate(project_role=F('you__role'))
+        return qs
+
+    def get_result_group(self, result):
+        if result.project_role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
+            return (0, 'Data Provider Representatives')
+        return (1, 'Other users')

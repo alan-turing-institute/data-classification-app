@@ -1883,20 +1883,37 @@ class TestAutocompleteDPR:
             username='jcohen@example.com',
         )
 
-        def assert_autocomplete_result(query_string, expected_users):
+        def assert_autocomplete_result(query_string, expected_dprs, expected_users):
             response = as_programme_manager.get(
                 f'/projects/{project.id}/autocomplete_dpr/?q={query_string}')
             assert response.status_code == 200
             output = json.loads(response.content.decode('UTF-8'))
-            output_set = {d['text'] for d in output['results']}
 
-            expected_set = {u.display_name() for u in expected_users}
-            assert expected_set == output_set
+            if expected_dprs:
+                group = output['results'][0]
+                assert group['text'] == 'Data Provider Representatives'
+                output_set = {d['text'] for d in group['children']}
+
+                expected_set = {u.display_name() for u in expected_dprs}
+                assert expected_set == output_set
+            else:
+                assert len(output['results']) == 0 or output['results'][0]['text'] == 'Other users'
+
+            if expected_users:
+                group = output['results'][-1]
+                assert group['text'] == 'Other users'
+                output_set = {d['text'] for d in group['children']}
+
+                expected_set = {u.display_name() for u in expected_users}
+                assert expected_set == output_set
+            else:
+                assert (len(output['results']) == 0
+                        or output['results'][-1]['text'] == 'Data Provider Representatives')
 
         # Test all users returned with no query string
-        assert_autocomplete_result('', {user0, user1, user2, user3, user4, user5})
-        assert_autocomplete_result('K Johnson', {user1})
-        assert_autocomplete_result('son', {user1, user3})
+        assert_autocomplete_result('', {}, {user0, user1, user2, user3, user4, user5})
+        assert_autocomplete_result('K Johnson', {}, {user1})
+        assert_autocomplete_result('son', {}, {user1, user3})
 
         # Check autocomplete does not return users who are already in a project
         project.add_user(user=user1,
@@ -1905,6 +1922,6 @@ class TestAutocompleteDPR:
         project.add_user(user=user3,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=user0)
-        assert_autocomplete_result('', {user0, user2, user3, user4, user5})
-        assert_autocomplete_result('K Johnson', {})
-        assert_autocomplete_result('son', {user3})
+        assert_autocomplete_result('', {user3}, {user0, user2, user4, user5})
+        assert_autocomplete_result('K Johnson', {}, {})
+        assert_autocomplete_result('son', {user3}, {})
