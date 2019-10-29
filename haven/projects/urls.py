@@ -117,8 +117,15 @@ urlpatterns = [
         name='work_package_approve_participants'
     ),
 
-    path('<int:pk>/autocomplete_new_participant/',
-         views.AutocompleteNewParticipant.as_view(),
-         name='autocomplete_new_participant'
+    path(
+        '<int:pk>/autocomplete_dpr/',
+        views.AutocompleteDataProviderRepresentative.as_view(),
+        name='autocomplete_dpr'
+    ),
+
+    path(
+        '<int:pk>/autocomplete_new_participant/',
+        views.AutocompleteNewParticipant.as_view(),
+        name='autocomplete_new_participant'
     ),
 ]

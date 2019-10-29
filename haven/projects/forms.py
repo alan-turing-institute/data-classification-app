@@ -111,9 +111,11 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         fields = ('name', 'description', 'default_representative')
 
     def __init__(self, *args, **kwargs):
-        representative_qs = kwargs.pop('representative_qs')
+        project_id = kwargs.pop('project_id')
         super().__init__(*args, **kwargs)
-        self.fields['default_representative'].queryset = representative_qs
+        autocomplete_url = reverse('projects:autocomplete_dpr', kwargs={'pk': project_id})
+        field = UserAutocompleteChoiceField(autocomplete_url, label='Default Representative')
+        self.fields['default_representative'] = field
 
 
 class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):

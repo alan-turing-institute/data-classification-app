@@ -709,6 +709,28 @@ class TestProjectAddDataset:
         assert project.datasets.count() == 1
         assert list(project.datasets.first().work_packages.all()) == [work_package1, work_package3]
 
+    def test_add_new_dataset_with_new_dpr(self, as_programme_manager, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+
+        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+            'default_representative': user1.pk,
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.datasets.count() == 1
+        dataset = project.datasets.first()
+        assert dataset.name == 'dataset 1'
+        assert dataset.description == 'Dataset One'
+        assert dataset.default_representative == user1
+
+        assert project.get_representative(dataset) == user1
+
+        assert user1.get_participant(project).role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
+
     def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
@@ -1723,8 +1745,9 @@ class TestWorkPackageClassifyData:
             ]
         )
 
+
 @pytest.mark.django_db
-class TestNewParticipantAutocomplete:
+class TestAutocompleteNewParticipant:
     def test_visit(self, as_programme_manager):
 
         user0 = as_programme_manager._user
@@ -1820,6 +1843,67 @@ class TestNewParticipantAutocomplete:
         # Check autocomplete does not return users who are already in a project
         project.add_user(user=user1,
                          role=ProjectRole.RESEARCHER.value,
+                         creator=user0)
+        assert_autocomplete_result('', {user0, user2, user3, user4, user5})
+        assert_autocomplete_result('K Johnson', {})
+        assert_autocomplete_result('son', {user3})
+
+
+@pytest.mark.django_db
+class TestAutocompleteDPR:
+    def test_visit(self, as_programme_manager):
+
+        user0 = as_programme_manager._user
+        project = recipes.project.make(created_by=user0)
+
+        # Create some test users
+        user1 = User.objects.create_user(
+            first_name='Katherine',
+            last_name='Johnson',
+            username='kathyjohnson@example.com',
+        )
+        user2 = User.objects.create_user(
+            first_name='Dorothy',
+            last_name='Vaughan',
+            username='dorothyvaughan@example.com',
+        )
+        user3 = User.objects.create_user(
+            first_name='Mary',
+            last_name='Jackson',
+            username='mj@example.com',
+        )
+        user4 = User.objects.create_user(
+            first_name='Margaret',
+            last_name='Hamilton',
+            username='mham@example.com',
+        )
+        user5 = User.objects.create_user(
+            first_name='Judith',
+            last_name='Cohen',
+            username='jcohen@example.com',
+        )
+
+        def assert_autocomplete_result(query_string, expected_users):
+            response = as_programme_manager.get(
+                f'/projects/{project.id}/autocomplete_dpr/?q={query_string}')
+            assert response.status_code == 200
+            output = json.loads(response.content.decode('UTF-8'))
+            output_set = {d['text'] for d in output['results']}
+
+            expected_set = {u.display_name() for u in expected_users}
+            assert expected_set == output_set
+
+        # Test all users returned with no query string
+        assert_autocomplete_result('', {user0, user1, user2, user3, user4, user5})
+        assert_autocomplete_result('K Johnson', {user1})
+        assert_autocomplete_result('son', {user1, user3})
+
+        # Check autocomplete does not return users who are already in a project
+        project.add_user(user=user1,
+                         role=ProjectRole.RESEARCHER.value,
+                         creator=user0)
+        project.add_user(user=user3,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=user0)
         assert_autocomplete_result('', {user0, user2, user3, user4, user5})
         assert_autocomplete_result('K Johnson', {})

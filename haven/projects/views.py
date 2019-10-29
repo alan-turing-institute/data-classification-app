@@ -497,10 +497,7 @@ class ProjectCreateDataset(
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        participants = self.get_object().participants
-        participants = participants.filter(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-        users = User.objects.filter(id__in=participants.values_list('user', flat=True))
-        kwargs['representative_qs'] = users
+        kwargs['project_id'] = self.get_object().id
         return kwargs
 
     def get_form(self):
@@ -1201,18 +1198,7 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
     """
     def get_queryset(self):
 
-        # Filter results depending on user role permissions
-        if not self.request.user.user_role.can_view_all_users:
-            return User.objects.none()
-
-        if 'pk' in self.kwargs:
-            # Autocomplete suggestions are users not already participating in this project
-            project_id = self.kwargs['pk']
-            existing_users = Project.objects.get(pk=project_id).participants.values('user')
-            qs = User.objects.exclude(pk__in=existing_users)
-        else:
-            qs = User.objects.all()
-
+        qs = self.get_visible_users()
         if self.q:
             for term in self.q.split():
                 qs = qs.filter(
@@ -1223,5 +1209,39 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
 
         return qs
 
+    def get_visible_users(self):
+        # Filter results depending on user role permissions
+        if not self.request.user.user_role.can_view_all_users:
+            return User.objects.none()
+
+        existing_users = self.get_users_to_exclude()
+        if existing_users is not None:
+            return User.objects.exclude(pk__in=existing_users)
+
+        return User.objects.all()
+
+    def get_users_to_exclude(self):
+        if 'pk' in self.kwargs:
+            # Autocomplete suggestions are users not already participating in this project
+            project_id = self.kwargs['pk']
+            return Project.objects.get(pk=project_id).participants.values('user')
+        return None
+
     def get_result_label(self, user):
         return user.display_name()
+
+
+class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant):
+    """
+    Autocomplete username from list of Users who are not currently participants in this project,
+    or are DPRs
+    """
+    def get_users_to_exclude(self):
+        if 'pk' in self.kwargs:
+            # Autocomplete suggestions are users not already participating in this project
+            project_id = self.kwargs['pk']
+            participants = Project.objects.get(pk=project_id).participants
+            participants = participants.exclude(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+            return participants.values('user')
+
+        return None

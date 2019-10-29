@@ -72,7 +72,9 @@ class Project(CreatedByModel):
     @transaction.atomic
     def add_dataset(self, dataset, representative, creator):
         participant = representative.get_participant(self)
-        if not participant or participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
+        if not participant:
+            self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+        elif participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
