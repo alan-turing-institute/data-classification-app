@@ -17,7 +17,15 @@
 
 <form method="POST">
   {% csrf_token %}
+  {{ form.media }}
   {% crispy form %}
+
+  {% if formset %}
+    <h2>Work Packages</h2>
+    <div id="{{ formset.prefix }}-formset">
+      {% crispy formset %}
+    </div>
+  {% endif %}
 </form>
 
 {% endblock content %}
@@ -29,3 +37,7 @@
   <li class="breadcrumb-item">Datasets</li>
   <li class="breadcrumb-item active" aria-current="page">New</li>
 {% endblock crumbs %}
+
+{% block extra_js %}
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', true)</script>
+{% endblock %}

@@ -681,6 +681,34 @@ class TestProjectAddDataset:
 
         assert project.get_representative(dataset) == user1
 
+    def test_add_new_dataset_with_work_packages(self, as_programme_manager,
+                                                data_provider_representative):
+        pm = as_programme_manager._user
+        project = recipes.project.make(created_by=pm)
+        project.add_user(data_provider_representative.user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator=pm)
+        work_package1 = recipes.work_package.make(project=project, created_by=pm)
+        recipes.work_package.make(project=project, created_by=pm)
+        work_package3 = recipes.work_package.make(project=project, created_by=pm)
+
+        response = as_programme_manager.post('/projects/%d/datasets/new' % project.id, {
+            'name': 'dataset 1',
+            'description': 'Dataset One',
+            'default_representative': data_provider_representative.user.pk,
+            'work_packages-TOTAL_FORMS': 2,
+            'work_packages-MAX_NUM_FORMS': 2,
+            'work_packages-MIN_NUM_FORMS': 0,
+            'work_packages-INITIAL_FORMS': 0,
+            'work_packages-0-work_package': work_package1.id,
+            'work_packages-1-work_package': work_package3.id,
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.datasets.count() == 1
+        assert list(project.datasets.first().work_packages.all()) == [work_package1, work_package3]
+
     def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
@@ -964,6 +992,37 @@ class TestProjectAddWorkPackage:
         assert project.work_packages.count() == 1
         assert project.work_packages.first().name == 'work package 1'
         assert project.work_packages.first().description == 'Work Package One'
+
+    def test_add_new_work_package_with_datasets(self, as_programme_manager,
+                                                data_provider_representative):
+        pm = as_programme_manager._user
+        project = recipes.project.make(created_by=pm)
+        project.add_user(data_provider_representative.user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator=pm)
+        dataset1 = recipes.dataset.make(created_by=pm)
+        dataset2 = recipes.dataset.make(created_by=pm)
+        dataset3 = recipes.dataset.make(created_by=pm)
+        project.add_dataset(dataset1, representative=data_provider_representative.user, creator=pm)
+        project.add_dataset(dataset2, representative=data_provider_representative.user, creator=pm)
+        project.add_dataset(dataset3, representative=data_provider_representative.user, creator=pm)
+
+        response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id, {
+            'role': ProjectRole.RESEARCHER.value,
+            'name': 'work package 1',
+            'description': 'Work Package One',
+            'datasets-TOTAL_FORMS': 2,
+            'datasets-MAX_NUM_FORMS': 2,
+            'datasets-MIN_NUM_FORMS': 0,
+            'datasets-INITIAL_FORMS': 0,
+            'datasets-0-dataset': dataset1.id,
+            'datasets-1-dataset': dataset3.id,
+        })
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.work_packages.count() == 1
+        assert list(project.work_packages.first().datasets.all()) == [dataset1, dataset3]
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()

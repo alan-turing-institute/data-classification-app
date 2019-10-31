@@ -24,6 +24,7 @@ from identity.models import User
 from identity.roles import UserRole
 
 from .forms import (
+    DatasetForWorkPackageInlineFormSet,
     ParticipantForm,
     ParticipantInlineFormSetHelper,
     ParticipantsForWorkPackageApprovalInlineFormSet,
@@ -39,6 +40,7 @@ from .forms import (
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
     WorkPackageClassifyDeleteForm,
+    WorkPackagesForDatasetInlineFormSet,
     WorkPackagesForParticipantInlineFormSet,
 )
 from .models import (
@@ -488,6 +490,11 @@ class ProjectCreateDataset(
     template_name = 'projects/project_add_dataset.html'
     form_class = ProjectAddDatasetForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
+        return super().get_context_data(**kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         participants = self.get_object().participants
@@ -496,25 +503,58 @@ class ProjectCreateDataset(
         kwargs['representative_qs'] = users
         return kwargs
 
+    def get_form(self):
+        form = super().get_form()
+
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Create Dataset')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
+        return form
+
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
 
         form = self.get_form()
+        formset = self.get_formset()
         self.object = self.get_object()
-        if form.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             dataset = form.save()
             self.object.add_dataset(dataset, dataset.default_representative, request.user)
+            if formset:
+                formset.instance = dataset
+                formset.save()
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_role().can_add_datasets
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+    def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'prefix': 'work_packages',
+        }
+
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        formset = WorkPackagesForDatasetInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Create Dataset')
+        return formset
 
 
 class ProjectCreateWorkPackage(
@@ -524,28 +564,67 @@ class ProjectCreateWorkPackage(
     template_name = 'projects/project_add_work_package.html'
     form_class = ProjectAddWorkPackageForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
+        return super().get_context_data(**kwargs)
+
+    def get_form(self):
+        form = super().get_form()
+
+        if not self.get_project().datasets.exists():
+            form.helper = SaveCancelFormHelper('Create Work Package')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
+        return form
+
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
 
         form = self.get_form()
+        formset = self.get_formset()
         self.object = self.get_object()
-        if form.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             work_package = form.save(commit=False)
             work_package.created_by = form.user
             work_package.project = self.object
             work_package.save()
             form.save_m2m()
+            if formset:
+                formset.instance = work_package
+                formset.save()
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_role().can_add_work_packages
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+    def get_formset(self, **kwargs):
+        if not self.get_project().datasets.exists():
+            return None
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'prefix': 'datasets',
+        }
+
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        formset = DatasetForWorkPackageInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Create Work Package')
+        return formset
+
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
@@ -599,11 +678,11 @@ class WorkPackageAddDataset(
         return kwargs
 
     def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
-        self.object = self.get_object()
         if form.is_valid():
             form.save()
             return self.form_valid(form)
