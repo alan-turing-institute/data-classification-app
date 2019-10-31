@@ -228,6 +228,12 @@ class WorkPackage(CreatedByModel):
 
         missing_requirements = []
         missing_roles = required_roles - roles
+
+        missing_datasets = required_datasets - datasets
+        # No need to report a missing DPR classification twice
+        if missing_datasets:
+            missing_roles.discard(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+
         for r in missing_roles:
             role = ProjectRole.display_name(r)
             if require_approval:
@@ -235,7 +241,6 @@ class WorkPackage(CreatedByModel):
             suffix = 'n' if role.lower()[0] in 'aeiou' else ''
             missing_requirements.append(f"A{suffix} {role} still needs to classify this Work Package.")
 
-        missing_datasets = required_datasets - datasets
         for d in missing_datasets:
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             missing_requirements.append(f"A {role} for dataset {d} still needs to classify this Work Package.")

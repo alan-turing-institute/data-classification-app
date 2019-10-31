@@ -116,7 +116,6 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
 
         assert work_package.missing_classification_requirements == [
-            'A Data Provider Representative still needs to classify this Work Package.',
             'A Data Provider Representative for dataset ' + work_package.datasets.get(pk=1).name + ' still needs to classify this Work Package.'
         ]
         assert not work_package.is_classification_ready
