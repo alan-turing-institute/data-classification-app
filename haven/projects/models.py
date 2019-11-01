@@ -205,6 +205,7 @@ class WorkPackage(CreatedByModel):
         roles = set()
         pending_classifications = set()
         datasets = set()
+        roles_required_in_wp = set()
 
         for c in self.classifications.all():
             if c.role != ProjectRole.REFEREE.value:
@@ -213,6 +214,7 @@ class WorkPackage(CreatedByModel):
                 pending_classifications.add(c)
             if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
+                roles_required_in_wp.add(ProjectRole.REFEREE.value)
                 if c.tier >= Tier.THREE:
                     require_approval = True
             for d in c.datasets:
@@ -230,16 +232,39 @@ class WorkPackage(CreatedByModel):
         missing_roles = required_roles - roles
 
         missing_datasets = required_datasets - datasets
+
         # No need to report a missing DPR classification twice
         if missing_datasets:
             missing_roles.discard(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
 
         for r in missing_roles:
+            # If a required user has not been assigned
+            warn_no_roles_assigned = r in roles_required_in_wp
+            warn_no_roles_approved = require_approval
+            for participant in self.participants.filter(role=r):
+                warn_no_roles_assigned = False
+                if self.is_participant_approved(participant):
+                    warn_no_roles_approved = False
             role = ProjectRole.display_name(r)
-            if require_approval:
-                role = 'approved ' + role
-            suffix = 'n' if role.lower()[0] in 'aeiou' else ''
-            missing_requirements.append(f"A{suffix} {role} still needs to classify this Work Package.")
+
+            if warn_no_roles_assigned:
+                # Warn if Work Package doesn't contain user with required role
+                missing_requirements.append(
+                    f"A {role} needs to be added to this Work Package.")
+
+            elif warn_no_roles_approved:
+                # Warn if role approval is required and has not been granted
+                approver = ProjectRole.display_name(
+                    ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+                missing_requirements.append(f"Each {approver} for this Work Package needs to approve the {role}.")
+
+            else:
+                # Warn if classifications haven't been made by all roles
+                if require_approval:
+                    role = 'approved ' + role
+                suffix = 'n' if role.lower()[0] in 'aeiou' else ''
+
+                missing_requirements.append(f"A{suffix} {role} still needs to classify this Work Package.")
 
         for d in missing_datasets:
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
