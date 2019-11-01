@@ -165,7 +165,11 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
         ])
 
         # Write out all users visible to the current user
-        for user in User.objects.get_visible_users(request.user):
+        users = User.objects
+        users = users.get_visible_users(request.user)
+        if 'project' in request.GET:
+            users = users.filter(participants__project_id=request.GET['project'])
+        for user in users:
 
             # Remove the domain from the username
             username = user.username.split('@')[0]
