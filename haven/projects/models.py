@@ -19,6 +19,13 @@ def validate_role(role):
         raise ValidationError('Not a valid ProjectRole string')
 
 
+def a_or_an(following_text, capitalize=True):
+    """Returns text with A/An/a/an prefixed as appropriate"""
+    prefix = "A" if capitalize else 'a'
+    suffix = 'n' if following_text.lower()[0] in 'aeiou' else ''
+    return f"{prefix}{suffix} {following_text}"
+
+
 class CreatedByModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
@@ -250,7 +257,7 @@ class WorkPackage(CreatedByModel):
             if warn_no_roles_assigned:
                 # Warn if Work Package doesn't contain user with required role
                 missing_requirements.append(
-                    f"A {role} needs to be added to this Work Package.")
+                    f"{a_or_an(role)} needs to be added to this Work Package.")
 
             elif warn_no_roles_approved:
                 # Warn if role approval is required and has not been granted
@@ -262,16 +269,16 @@ class WorkPackage(CreatedByModel):
                 # Warn if classifications haven't been made by all roles
                 if require_approval:
                     role = 'approved ' + role
-                suffix = 'n' if role.lower()[0] in 'aeiou' else ''
 
-                missing_requirements.append(f"A{suffix} {role} still needs to classify this Work Package.")
+                missing_requirements.append(
+                    f"{a_or_an(role)} still needs to classify this Work Package.")
 
         for d in missing_datasets:
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-            missing_requirements.append(f"A {role} for dataset {d} still needs to classify this Work Package.")
+            missing_requirements.append(f"{a_or_an(role)} for dataset {d} still needs to classify this Work Package.")
 
         if not self.has_datasets:
-            missing_requirements.append('No datasets in work package')
+            missing_requirements.append('No datasets have been added to this Work Package')
 
         return missing_requirements
 

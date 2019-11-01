@@ -11,6 +11,7 @@ from projects.models import (
     PolicyGroup,
     ProjectDataset,
     WorkPackageParticipant,
+    a_or_an
 )
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
@@ -908,3 +909,13 @@ class TestParticipant:
             ['data_provider_representative', True, True],
             ['referee', False, False],
         ])
+
+
+class TestUtils:
+    def test_a_or_an(self):
+        assert a_or_an('Investigator') == 'An Investigator'
+        assert a_or_an('investigator') == 'An investigator'
+        assert a_or_an('Data Provider Representative') == 'A Data Provider Representative'
+        assert a_or_an('Referee', capitalize=True) == 'A Referee'
+        assert a_or_an('referee', capitalize=False) == 'a referee'
+        assert a_or_an('Referee', capitalize=False) == 'a Referee'
