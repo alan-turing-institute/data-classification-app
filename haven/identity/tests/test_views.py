@@ -5,6 +5,7 @@ import pytest
 
 from core import recipes
 from identity.models import User
+from identity.roles import UserRole
 from identity.views import csv_users
 from projects.roles import ProjectRole
 
@@ -34,8 +35,12 @@ class TestCreateUser:
         assert response.context['formset']
 
     def test_create_user(self, as_system_manager):
+        response = as_system_manager.get('/users/new')
+        assert 'role' in response.context['form'].fields
+
         response = as_system_manager.post('/users/new', {
             'email': 'testuser@example.com',
+            'role': UserRole.PROGRAMME_MANAGER.value,
             'first_name': 'Test',
             'last_name': 'User',
             'mobile': '+443338888888',
@@ -46,7 +51,9 @@ class TestCreateUser:
         }, follow=True)
 
         assert response.status_code == 200
-        assert User.objects.filter(email='testuser@example.com').exists()
+        user = User.objects.get(email='testuser@example.com')
+        assert user is not None
+        assert user.role == UserRole.PROGRAMME_MANAGER.value
 
     def test_create_user_and_add_to_project(self, as_system_manager):
         project = recipes.project.make()
@@ -68,6 +75,27 @@ class TestCreateUser:
         assert user
         assert user.project_participation_role(project) == \
                ProjectRole.RESEARCHER
+
+    def test_cannot_create_privileged_user(self, as_programme_manager):
+        response = as_programme_manager.get('/users/new')
+        assert 'role' not in response.context['form'].fields
+
+        response = as_programme_manager.post('/users/new', {
+            'email': 'testuser@example.com',
+            'role': UserRole.PROGRAMME_MANAGER.value,
+            'first_name': 'Test',
+            'last_name': 'User',
+            'mobile': '+443338888888',
+            'participants-TOTAL_FORMS': 1,
+            'participants-MAX_NUM_FORMS': 1,
+            'participants-MIN_NUM_FORMS': 0,
+            'participants-INITIAL_FORMS': 0,
+        }, follow=True)
+
+        assert response.status_code == 200
+        user = User.objects.get(email='testuser@example.com')
+        assert user is not None
+        assert user.role == UserRole.NONE.value
 
     def test_returns_403_if_cannot_create_users(self, as_project_participant):
         response = as_project_participant.get('/users/new')
@@ -98,6 +126,26 @@ class TestEditUser:
             '/users/%d/edit' % project_participant.id)
         assert response.status_code == 200
         assert response.context['formset']
+
+    def test_edit_details(self, as_system_manager, project_participant):
+        response = as_system_manager.post(
+            '/users/%d/edit' % project_participant.id, {
+                'role': project_participant.role,
+                'email': 'new@example.com',
+                'mobile': '+441357924680',
+                'first_name': 'New',
+                'last_name': 'New',
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 0,
+            }, follow=True)
+        assert response.status_code == 200
+        project_participant.refresh_from_db()
+        assert project_participant.email == 'new@example.com'
+        assert project_participant.mobile == '+441357924680'
+        assert project_participant.first_name == 'New'
+        assert project_participant.last_name == 'New'
 
     def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
@@ -139,6 +187,72 @@ class TestEditUser:
             }, follow=True)
         assert response.status_code == 200
         assert user.project_participation_role(project) is None
+
+    def test_cannot_edit_privileged_user(self, as_programme_manager, system_manager):
+        response = as_programme_manager.post(
+            '/users/%d/edit' % system_manager.id, {
+                'role': system_manager.role,
+                'email': 'my_new_email@example.com',
+                'mobile': system_manager.mobile,
+                'first_name': system_manager.first_name,
+                'last_name': system_manager.last_name,
+                'participants-TOTAL_FORMS': 0,
+                'participants-MAX_NUM_FORMS': 0,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 0,
+            }, follow=True)
+        assert response.status_code == 200
+        assert not response.context['form'].is_valid()
+        assert response.context['form'].errors == {
+            '__all__': ['You cannot edit users with role System Manager'],
+        }
+        system_manager.refresh_from_db()
+        assert system_manager.email == 'controller@example.com'
+
+    def test_edit_archived_project(self, as_system_manager, project_participant):
+        project1 = recipes.project.make()
+        participant1 = project1.add_user(project_participant, ProjectRole.RESEARCHER.value,
+                                         as_system_manager._user)
+        project2 = recipes.project.make()
+        project2.add_user(project_participant, ProjectRole.RESEARCHER.value,
+                          as_system_manager._user)
+
+        response = as_system_manager.get('/users/%d/edit' % project_participant.id)
+        forms = response.context['formset'].forms
+        choices = [c[0] for c in forms[0].fields['project'].choices]
+        defaults = [f.initial.get('project') for f in forms]
+
+        assert choices == ['', project1.pk, project2.pk]
+        assert defaults == [project1.pk, project2.pk, None]
+
+        project2.archive()
+
+        response = as_system_manager.get('/users/%d/edit' % project_participant.id)
+        forms = response.context['formset'].forms
+        choices = [c[0] for c in forms[0].fields['project'].choices]
+        defaults = [f.initial.get('project') for f in forms]
+
+        assert choices == ['', project1.pk]
+        assert defaults == [project1.pk, None]
+
+        response = as_system_manager.post(
+            '/users/%d/edit' % project_participant.id, {
+                'role': project_participant.role,
+                'email': project_participant.email,
+                'mobile': project_participant.mobile,
+                'first_name': project_participant.first_name,
+                'last_name': project_participant.last_name,
+                'participants-TOTAL_FORMS': 1,
+                'participants-MAX_NUM_FORMS': 1,
+                'participants-MIN_NUM_FORMS': 0,
+                'participants-INITIAL_FORMS': 2,
+                'participants-0-id': participant1.id,
+                'participants-0-project': project1.id,
+                'participants-0-role': 'researcher',
+            }, follow=True)
+        assert response.status_code == 200
+        assert project_participant.project_participation_role(project1) == ProjectRole.RESEARCHER
+        assert project_participant.project_participation_role(project2) == ProjectRole.RESEARCHER
 
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
         response = as_project_participant.get('/users/%d/edit' % researcher.id)

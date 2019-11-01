@@ -46,11 +46,14 @@ class UserCreate(LoginRequiredMixin,
         return super().get_context_data(**kwargs)
 
     def get_formset(self, **kwargs):
-        form_kwargs = {'user': self.request.user}
+        options = {
+            'form_kwargs': {
+                'user': self.request.user
+            },
+        }
         if self.request.method == 'POST':
-            return ProjectsForUserInlineFormSet(self.request.POST, form_kwargs=form_kwargs)
-        else:
-            return ProjectsForUserInlineFormSet(form_kwargs=form_kwargs)
+            options['data'] = self.request.POST
+        return ProjectsForUserInlineFormSet(**options)
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -97,18 +100,17 @@ class UserEdit(LoginRequiredMixin,
         return super().get_context_data(**kwargs)
 
     def get_formset(self, **kwargs):
-        form_kwargs = {'user': self.request.user}
+        user = self.get_object()
+        options = {
+            'instance': user,
+            'queryset': user.participants.filter(project__archived=False),
+            'form_kwargs': {
+                'user': self.request.user
+            },
+        }
         if self.request.method == 'POST':
-            return ProjectsForUserInlineFormSet(
-                self.request.POST,
-                instance=self.get_object(),
-                form_kwargs=form_kwargs
-            )
-        else:
-            return ProjectsForUserInlineFormSet(
-                instance=self.get_object(),
-                form_kwargs=form_kwargs
-            )
+            options['data'] = self.request.POST
+        return ProjectsForUserInlineFormSet(**options)
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:

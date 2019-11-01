@@ -3,6 +3,7 @@ import re
 from collections import OrderedDict
 
 from braces.views import UserFormKwargsMixin
+from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from dal import autocomplete
 from django.contrib import messages
@@ -16,7 +17,6 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 
-from core.forms import InlineFormSetHelper
 from data.forms import SingleQuestionForm
 from data.models import ClassificationGuidance, ClassificationQuestion
 from identity.mixins import UserPermissionRequiredMixin
@@ -24,17 +24,23 @@ from identity.models import User
 from identity.roles import UserRole
 
 from .forms import (
+    DatasetForWorkPackageInlineFormSet,
     ParticipantForm,
     ParticipantInlineFormSetHelper,
+    ParticipantsForWorkPackageApprovalInlineFormSet,
     ParticipantsForWorkPackageInlineFormSet,
     ProjectAddDatasetForm,
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
+    ProjectArchiveForm,
     ProjectForm,
+    SaveCancelFormHelper,
+    SaveCancelInlineFormSetHelper,
     UsersForProjectInlineFormSet,
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
     WorkPackageClassifyDeleteForm,
+    WorkPackagesForDatasetInlineFormSet,
     WorkPackagesForParticipantInlineFormSet,
 )
 from .models import (
@@ -188,10 +194,11 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
         project = self.get_object()
         kwargs['participant'] = self.request.user.get_participant(project)
         participants = project.participants.all()
-        kwargs['participants_table'] = ParticipantTable(participants)
-        work_packages = project.work_packages.all()
+        kwargs['participants_table'] = ParticipantTable(
+            participants, show_edit_links=self.get_project_role().can_edit_participants)
+        work_packages = project.work_packages.order_by('created_at').all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
-        datasets = project.datasets.all()
+        datasets = project.datasets.order_by('created_at').all()
         kwargs['datasets_table'] = DatasetTable(datasets)
         return SingleProjectMixin.get_context_data(self, **kwargs)
 
@@ -217,6 +224,31 @@ class ProjectEdit(
         return super().post(request, *args, **kwargs)
 
 
+class ProjectArchive(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleProjectMixin, DetailView
+):
+    template_name = 'projects/project_archive.html'
+    form_class = ProjectArchiveForm
+
+    def test_func(self):
+        return self.get_project_role().can_archive
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_project().archive()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('projects:list')
+
+
 class ProjectHistory(
     LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
 ):
@@ -240,15 +272,8 @@ class ProjectAddUser(
     form_class = ProjectAddUserForm
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Add Participant'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
-        kwargs['helper'] = helper
-        kwargs['formset'] = self.get_formset()
         kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
 
     def get_form_kwargs(self):
@@ -267,9 +292,16 @@ class ProjectAddUser(
             for (role, name) in form.fields['role'].choices
             if project_role.can_assign_role(ProjectRole(role))
         ]
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Add Participant')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
         return form
 
     def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
         options = {
             'form_kwargs': {
                 'project': self.get_project(),
@@ -280,14 +312,13 @@ class ProjectAddUser(
 
         if self.request.method == 'POST':
             options['data'] = self.request.POST
-        return WorkPackagesForParticipantInlineFormSet(**options)
+        formset = WorkPackagesForParticipantInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Add Participant')
+        return formset
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
         return self.get_project_role().can_add_participants
@@ -299,28 +330,17 @@ class ProjectAddUser(
         form = self.get_form()
         formset = self.get_formset()
         self.object = None
-        if form.is_valid() and formset.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             response = self.form_valid(form)
             participant = self.object
-            formset.instance = participant
-            formset.save()
+            if formset:
+                formset.instance = participant
+                formset.save()
             return response
-        else:
-            return self.form_invalid(form)
-
-
-class ProjectListParticipants(
-    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/participant_list.html'
-
-    def test_func(self):
-        return self.get_project_role().can_list_participants
-
-    def get_context_data(self, **kwargs):
-        kwargs['ordered_participants'] = self.get_object().ordered_participants()
-        kwargs.update({"accessing_user": self.request.user})
-        return super().get_context_data(**kwargs)
 
 
 class EditProjectListParticipants(
@@ -332,7 +352,7 @@ class EditProjectListParticipants(
     template_name = 'projects/edit_participant_list.html'
 
     def get_success_url(self):
-        return reverse('projects:list_participants', args=[self.get_object().id])
+        return reverse('projects:detail', args=[self.get_object().id])
 
     def test_func(self):
         return (self.get_project_role().can_edit_participants
@@ -348,11 +368,6 @@ class EditProjectListParticipants(
 
     def get_context_data(self, **kwargs):
         helper = ParticipantInlineFormSetHelper()
-        # Use crispy FormHelper to add submit and cancel buttons
-        helper.add_input(Submit('submit', 'Save Changes'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
         helper.form_method = 'POST'
         kwargs['helper'] = helper
 
@@ -400,13 +415,6 @@ class EditParticipant(
         return 'project_pk'
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Edit Participant'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
-        kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True
         return super().get_context_data(**kwargs)
@@ -422,9 +430,16 @@ class EditParticipant(
             for (role, name) in form.fields['role'].choices
             if project_role.can_assign_role(ProjectRole(role))
         ]
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Edit Participant')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
         return form
 
     def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
         options = {
             'form_kwargs': {
                 'project': self.get_project(),
@@ -433,16 +448,17 @@ class EditParticipant(
             'instance': self.get_object(),
             'prefix': 'work_packages',
         }
+        if not self.get_project().work_packages.exists():
+            options['extra'] = 0
         if self.request.method == 'POST':
             options['data'] = self.request.POST
-        return WorkPackagesForParticipantInlineFormSet(**options)
+        formset = WorkPackagesForParticipantInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Edit Participant')
+        return formset
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
         return self.get_project_role().can_edit_participants
@@ -454,24 +470,17 @@ class EditParticipant(
         self.object = self.get_object()
         form = self.get_form()
         formset = self.get_formset()
-        if form.is_valid() and formset.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             response = self.form_valid(form)
             participant = self.object
-            formset.instance = participant
-            formset.save()
+            if formset:
+                formset.instance = participant
+                formset.save()
             return response
-        else:
-            return self.form_invalid(form)
-
-
-class ProjectListDatasets(
-    LoginRequiredMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/dataset_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['datasets'] = self.get_object().datasets.all()
-        return super().get_context_data(**kwargs)
 
 
 class ProjectCreateDataset(
@@ -481,6 +490,11 @@ class ProjectCreateDataset(
     template_name = 'projects/project_add_dataset.html'
     form_class = ProjectAddDatasetForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
+        return super().get_context_data(**kwargs)
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         participants = self.get_object().participants
@@ -489,19 +503,35 @@ class ProjectCreateDataset(
         kwargs['representative_qs'] = users
         return kwargs
 
+    def get_form(self):
+        form = super().get_form()
+
+        if not self.get_project().work_packages.exists():
+            form.helper = SaveCancelFormHelper('Create Dataset')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
+        return form
+
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
 
         form = self.get_form()
+        formset = self.get_formset()
         self.object = self.get_object()
-        if form.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             dataset = form.save()
             self.object.add_dataset(dataset, dataset.default_representative, request.user)
+            if formset:
+                formset.instance = dataset
+                formset.save()
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_role().can_add_datasets
@@ -509,15 +539,22 @@ class ProjectCreateDataset(
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
 
+    def get_formset(self, **kwargs):
+        if not self.get_project().work_packages.exists():
+            return None
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'prefix': 'work_packages',
+        }
 
-class ProjectListWorkPackages(
-    LoginRequiredMixin, SingleProjectMixin, DetailView
-):
-    template_name = 'projects/work_package_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['work_packages'] = self.get_object().work_packages.order_by('created_at').all()
-        return super().get_context_data(**kwargs)
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        formset = WorkPackagesForDatasetInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Create Dataset')
+        return formset
 
 
 class ProjectCreateWorkPackage(
@@ -527,28 +564,67 @@ class ProjectCreateWorkPackage(
     template_name = 'projects/project_add_work_package.html'
     form_class = ProjectAddWorkPackageForm
 
+    def get_context_data(self, **kwargs):
+        kwargs['editing'] = False
+        kwargs['formset'] = self.get_formset()
+        return super().get_context_data(**kwargs)
+
+    def get_form(self):
+        form = super().get_form()
+
+        if not self.get_project().datasets.exists():
+            form.helper = SaveCancelFormHelper('Create Work Package')
+        else:
+            form.helper = FormHelper()
+        form.helper.form_tag = False
+        return form
+
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
 
         form = self.get_form()
+        formset = self.get_formset()
         self.object = self.get_object()
-        if form.is_valid():
+        if not form.is_valid():
+            return self.form_invalid(form)
+        elif formset and not formset.is_valid():
+            return self.form_invalid(form)
+        else:
             work_package = form.save(commit=False)
             work_package.created_by = form.user
             work_package.project = self.object
             work_package.save()
             form.save_m2m()
+            if formset:
+                formset.instance = work_package
+                formset.save()
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_role().can_add_work_packages
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+    def get_formset(self, **kwargs):
+        if not self.get_project().datasets.exists():
+            return None
+        options = {
+            'form_kwargs': {
+                'project': self.get_project(),
+                'user': self.request.user,
+            },
+            'prefix': 'datasets',
+        }
+
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        formset = DatasetForWorkPackageInlineFormSet(**options)
+        formset.helper = SaveCancelInlineFormSetHelper('Create Work Package')
+        return formset
+
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
@@ -583,16 +659,6 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         return context
 
 
-class WorkPackageListDatasets(
-    LoginRequiredMixin, SingleWorkPackageMixin, DetailView
-):
-    template_name = 'projects/work_package_dataset_list.html'
-
-    def get_context_data(self, **kwargs):
-        kwargs['datasets'] = self.get_object().datasets.all()
-        return super().get_context_data(**kwargs)
-
-
 class WorkPackageAddDataset(
     LoginRequiredMixin, UserPassesTestMixin,
     UserFormKwargsMixin, SingleWorkPackageMixin, FormMixin, DetailView
@@ -612,11 +678,11 @@ class WorkPackageAddDataset(
         return kwargs
 
     def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
         if "cancel" in request.POST:
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
-        self.object = self.get_object()
         if form.is_valid():
             form.save()
             return self.form_valid(form)
@@ -633,12 +699,7 @@ class WorkPackageApproveParticipants(
         return self.get_project_role().can_approve_participants
 
     def get_context_data(self, **kwargs):
-        helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Approve Participants'))
-        helper.add_input(Submit('cancel', 'Cancel',
-                                css_class='btn-secondary',
-                                formnovalidate='formnovalidate'))
-
+        helper = SaveCancelInlineFormSetHelper('Approve Participants')
         kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True
@@ -657,14 +718,58 @@ class WorkPackageApproveParticipants(
         }
         if self.request.method == 'POST':
             options['data'] = self.request.POST
+        return ParticipantsForWorkPackageApprovalInlineFormSet(**options)
+
+    def get_success_url(self):
+        obj = self.get_project()
+        return reverse('projects:detail', args=[obj.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        self.object = self.get_object()
+        formset = self.get_formset()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data())
+
+
+class WorkPackageEditParticipants(
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_participants_edit.html'
+
+    def test_func(self):
+        return self.get_project_role().can_edit_participants
+
+    def get_context_data(self, **kwargs):
+        helper = SaveCancelInlineFormSetHelper()
+        kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        work_package = self.get_object()
+        user = self.request.user
+        options = {
+            'form_kwargs': {
+                'user': user,
+            },
+            'instance': work_package,
+            'prefix': 'participants',
+            'queryset': work_package.work_package_participants,
+        }
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
         return ParticipantsForWorkPackageInlineFormSet(**options)
 
     def get_success_url(self):
         obj = self.get_project()
-        if self.get_project_role().can_list_participants:
-            return reverse('projects:list_participants', args=[obj.id])
-        else:
-            return reverse('projects:detail', args=[obj.id])
+        return reverse('projects:detail', args=[obj.id])
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -714,7 +819,6 @@ class WorkPackageClassifyData(
     LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, TemplateView
 ):
     template_name = 'projects/work_package_classify_data.html'
-    session_key = 'classification'
 
     def test_func(self):
         role = self.get_project_role()
@@ -724,6 +828,7 @@ class WorkPackageClassifyData(
         response = self.check_already_classified()
         if response:
             return response
+
         response = self.load_questions()
         if response:
             return response
@@ -762,10 +867,14 @@ class WorkPackageClassifyData(
         Before doing anything on this view, determine whether this user has
         already classified the work package.
 
-        If they have, then show their classification (and others) rather than
-        display the form again.
+        If they have (and they're not trying to modify it), then show their classification (and
+        others) rather than display the form again.
         """
         self.object = self.get_object()
+        self.start_modification = bool(self.request.GET.get('modify', False))
+
+        if self.start_modification or self.is_modification():
+            return None
 
         classification = ClassificationOpinion.objects.filter(
             work_package=self.object,
@@ -775,6 +884,7 @@ class WorkPackageClassifyData(
             message = ('You have already completed classification. Please delete your '
                        'classification if you wish to change any answers.')
             return self.redirect_to_results(message=message, message_level=messages.ERROR)
+        return None
 
     def load_questions(self):
         '''
@@ -786,10 +896,19 @@ class WorkPackageClassifyData(
         self.starting_question = ClassificationQuestion.objects.get_starting_question()
         self.previous_question = None
         if 'question_pk' not in self.kwargs:
-            self.clear_answers()
+            if self.start_modification:
+                response = self.store_previous_answers(self.starting_question)
+                if response:
+                    return response
+            else:
+                self.clear_answers()
             return self.redirect_to_question(self.starting_question)
         else:
             self.question = ClassificationQuestion.objects.get(pk=self.kwargs['question_pk'])
+            if self.start_modification:
+                response = self.store_previous_answers(self.question)
+                if response:
+                    return response
             self.clear_answers(after=self.question)
         self.previous_question = self.get_previous_question()
         return None
@@ -827,6 +946,8 @@ class WorkPackageClassifyData(
             message = 'An error occurred storing the results of your classification.'
             return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
+        if self.is_modification():
+            self.object.classification_for(self.request.user).delete()
         self.object.classify_as(tier, self.request.user, questions)
         self.object.calculate_tier()
         self.clear_answers()
@@ -885,11 +1006,21 @@ class WorkPackageClassifyData(
         url = reverse('projects:classify_results', args=args)
         return HttpResponseRedirect(url)
 
+    @property
+    def session_key(self):
+        return f"classification_{self.object.pk}"
+
+    @property
+    def session_modification_key(self):
+        return f"classification_modification_{self.object.pk}"
+
     def store_answer(self, question, answer):
         '''
         Store the answer to the given question in the session
         '''
-        existing = self.request.session.get(self.session_key, [])
+        existing = self.request.session.get(self.session_key)
+        if not existing:
+            existing = []
         # Cannot append to existing object in session, will not serialize correctly
         self.request.session[self.session_key] = existing + [[question.name, answer]]
 
@@ -904,19 +1035,29 @@ class WorkPackageClassifyData(
                 return ClassificationQuestion.objects.get(name=name)
         return None
 
+    def is_modification(self):
+        '''
+        Determine if this is during a modification
+        '''
+        return self.request.session.get(self.session_modification_key, False)
+
     def get_answer(self, question):
         '''
         Retrieve the answer for the given question from the session
         '''
-        answers = self.request.session.get(self.session_key, [])
-        for answer in answers:
-            if answer[0] == question.name:
-                return answer[1]
+        answers = self.request.session.get(self.session_key)
+        if answers:
+            for answer in answers:
+                if answer[0] == question.name:
+                    return answer[1]
         return None
 
     def get_question_number(self):
-        answers = self.request.session.get(self.session_key, [])
-        return len(answers) + 1
+        answers = self.request.session.get(self.session_key)
+        number = 1
+        if answers:
+            number += len(answers)
+        return number
 
     def clear_answers(self, after=None):
         '''
@@ -930,17 +1071,59 @@ class WorkPackageClassifyData(
         '''
         if not after:
             self.request.session.pop(self.session_key, None)
+            self.request.session.pop(self.session_modification_key, None)
             return
 
-        answers = self.request.session.get(self.session_key, [])
-        upto = None
-        for i, answer in enumerate(answers):
-            if answer[0] == after.name:
-                upto = i
-                break
+        answers = self.request.session.get(self.session_key)
+        if answers:
+            upto = None
+            for i, answer in enumerate(answers):
+                if answer[0] == after.name:
+                    upto = i
+                    break
 
-        if upto is not None:
-            self.request.session[self.session_key] = answers[:upto]
+            if upto is not None:
+                self.request.session[self.session_key] = answers[:upto]
+
+    def store_previous_answers(self, upto):
+        '''
+        Retrieve the user's previous classification from the database, and store it in the session
+
+        upto is the question to start the modification process from
+
+        If something goes wrong (either because the user is trying to modify a question they never
+        answered in the first place, or because a question has been changed in the meantime), then
+        the user may be redirected to modify an earlier question than the one they actually chose
+        to.
+        '''
+        self.request.session[self.session_key] = []
+        self.request.session[self.session_modification_key] = True
+
+        classification = self.object.classification_for(self.request.user).first()
+        answered_questions = {}
+        if classification:
+            for q in classification.questions.all():
+                key = (q.question.id, q.question_version)
+                answered_questions[key] = q.answer
+
+        q = self.starting_question
+        while q and not isinstance(q, int) and q != upto:
+            try:
+                key = (q.id, q.history.latest().history_id)
+                answer = answered_questions[key]
+                self.store_answer(q, answer)
+                if answer:
+                    q = q.answer_yes()
+                else:
+                    q = q.answer_no()
+            except KeyError:
+                message = ('Some recorded answers could not be retrieved. Please begin the '
+                           'classification process from the question below.')
+                return self.redirect_to_question(q, message)
+        if q != upto:
+            message = ('Recorded answers could not be retrieved. Please begin the classification '
+                       'process from the question below.')
+            return self.redirect_to_question(self.starting_question, message)
 
 
 class WorkPackageClassifyResults(
@@ -963,16 +1146,18 @@ class WorkPackageClassifyResults(
 
         other_classifications = self.object.classifications.exclude(created_by=self.request.user)
 
-        table = ClassificationOpinionQuestionTable(
-            [classification] + list(other_classifications)
-        )
-
-        return render(self.request, 'projects/work_package_classify_results.html', {
+        context = {
             'classification': classification,
             'other_classifications': other_classifications,
             'project_tier': self.object.tier,
-            'questions_table': table,
-        })
+        }
+        if not self.object.has_tier:
+            context['questions_table'] = ClassificationOpinionQuestionTable(
+                [classification] + list(other_classifications),
+                current_user=self.request.user,
+            )
+
+        return render(self.request, 'projects/work_package_classify_results.html', context)
 
     def test_func(self):
         role = self.get_project_role()

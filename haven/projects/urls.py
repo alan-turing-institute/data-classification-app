@@ -28,9 +28,9 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/participants/',
-        views.ProjectListParticipants.as_view(),
-        name='list_participants'
+        '<int:pk>/archive',
+        views.ProjectArchive.as_view(),
+        name='archive'
     ),
 
     path(
@@ -52,21 +52,9 @@ urlpatterns = [
     ),
 
     path(
-        '<int:pk>/datasets/',
-        views.ProjectListDatasets.as_view(),
-        name='list_datasets'
-    ),
-
-    path(
         '<int:pk>/datasets/new',
         views.ProjectCreateDataset.as_view(),
         name='add_dataset'
-    ),
-
-    path(
-        '<int:pk>/work_packages/',
-        views.ProjectListWorkPackages.as_view(),
-        name='list_work_packages'
     ),
 
     path(
@@ -106,12 +94,6 @@ urlpatterns = [
     ),
 
     path(
-        '<int:project_pk>/work_packages/<int:pk>/datasets/',
-        views.WorkPackageListDatasets.as_view(),
-        name='work_package_list_datasets'
-    ),
-
-    path(
         '<int:project_pk>/work_packages/<int:pk>/datasets/new',
         views.WorkPackageAddDataset.as_view(),
         name='work_package_add_dataset'
@@ -121,6 +103,12 @@ urlpatterns = [
         '<int:project_pk>/work_packages/<int:pk>/participants/new',
         views.WorkPackageAddParticipant.as_view(),
         name='work_package_add_participant'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/participants/edit',
+        views.WorkPackageEditParticipants.as_view(),
+        name='work_package_edit_participants'
     ),
 
     path(

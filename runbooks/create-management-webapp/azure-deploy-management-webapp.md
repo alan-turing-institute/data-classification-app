@@ -36,23 +36,20 @@ The path after `-e` describes the location of your custom environment file (if y
 
 
 
-### Set up IP restrictions for the App Service
+### Set up IP restrictions for the SCM App repository
 
 * Browse to Azure Portal -> App Services / (YOUR APP NAME) / Networking / Configure Access Restrictions
-* Under (YOUR APP NAME).azurewebsites.net, add a rule under for each IP range to enable
-* Under (YOUR APP NAME).scm.azurewebsites.net, select "Same restrictions...", or add a rule for each IP range to enable
+* Select the (YOUR APP NAME).scm.azurewebsites.net tab
+* Unselect "Same restrictions..."
+* Add a rule for each IP range to enable
+  * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
+  * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 
+### Update code when continuous deployment is disabled
 
-### Set up a deployment password 
-
-* Browse to Azure Portal -> App Services / (YOUR APP NAME) / Deployment Center
-* Click the Deployment Credentials button
-* Under USER CREDENTIALS choose a password for the deployment user
-
-
-### Deploy/update code using local deployment
-
-Run `scripts/deploy_code.sh -e scripts/.production.env` to deploy the code for the webapp.
+If your configuration file did not enable continuous deployment, you need to manually trigger a code update.
+There are two ways to do this:
+ * On the Azure portal, go to the App Service, select Deployment Center and click the *Sync* button 
+ * or, run `scripts/update_code.sh -e scripts/.production.env`.
 As above, the path after `-e` describes the location of your custom environment file and must match the file you used for provisioning.
 
-If prompted, enter the deployment password you configured above.

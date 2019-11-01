@@ -11,15 +11,26 @@
 {{ project.description }}
 </p>
 
+<p>
+  If the user you wish to add to the project does not appear below, they have not yet been created on the system.
+  {% if user.user_role.can_create_users %}
+    Please <a href="{% url 'identity:add_user' %}">add the user</a> first before continuing.
+  {% else %}
+    Please contact someone with the appropriate credentials if you wish to address this.
+  {% endif %}
+</p>
+
 <form method="POST">
   {% csrf_token %}
   {{ form.media }}
-  {{ form|crispy }}
+  {% crispy form %}
 
-  <h2>Work Packages</h2>
-  <div id="project-formset">
-    {% crispy formset helper %}
-  </div>
+  {% if formset %}
+    <h2>Work Packages</h2>
+    <div id="project-formset">
+      {% crispy formset %}
+    </div>
+  {% endif %}
 
 </form>
 
@@ -30,12 +41,7 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
-  {% url_check 'projects:list_participants' project.id as list_participants_href %}
-  {% if list_participants_href %}
-    <li class="breadcrumb-item"><a href="{{ list_participants_href }}">Participants</a></li>
-  {% else %}
-    <li class="breadcrumb-item">Participants</li>
-  {% endif %}
+  <li class="breadcrumb-item">Participants</li>
   <li class="breadcrumb-item active" aria-current="page">Add</li>
 {% endblock crumbs %}
 

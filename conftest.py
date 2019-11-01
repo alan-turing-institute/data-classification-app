@@ -33,10 +33,13 @@ def superuser():
 @pytest.fixture
 def system_manager():
     return User.objects.create_user(
+        first_name='System',
+        last_name='Manager',
         username='controller@example.com',
         email='controller@example.com',
         role=UserRole.SYSTEM_MANAGER.value,
         password=DUMMY_PASSWORD,
+        mobile='+441234567890',
     )
 
 

@@ -9,7 +9,7 @@
 {% block extra_values %}
     <td class="form-group">
 
-        {% url_check 'identity:edit_user' form.project_user.id as edit_user_href %}
+        {% url_check 'projects:edit_participant' form.instance.project.pk form.instance.pk as edit_user_href %}
         {% if edit_user_href %}
             <a href="{{ edit_user_href }}">
         {% endif %}

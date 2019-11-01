@@ -10,13 +10,9 @@
 {% with classification.work_package as work_package %}
 <p>You ({{ classification.created_by }}, {{classification.role|project_role_display}}) have classified this project as Tier {{ classification.tier }}</p>
 
-{% if not work_package.has_tier %}
-  <p><a class="btn btn-primary btn-lg" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
-{% endif %}
-
 <h2>Overall classification</h2>
 {% if work_package.has_tier %}
-  Work package is tier {{ work_package.tier }}
+  <p>Classification is complete: Work package is tier {{ work_package.tier }}</p>
 {% elif not work_package.is_classification_ready %}
   <p>Classification pending:</p>
   <ul>
@@ -28,7 +24,7 @@
 <p>Users disagree on data tier</p>
 {% endif %}
 
-{% if other_classifications.exists %}
+{% if not work_package.has_tier and other_classifications.exists %}
   <p>Classifications by other users:</p>
   <ul>
   {% for cl in other_classifications %}
@@ -39,7 +35,9 @@
 
 {% if questions_table %}
   <h2>Classification answers</h2>
+  <p>You may modify your answers until overall classification has been completed. If you wish to do so, please use the links below. If you wish to delete your answers and start again, use the button at the bottom of the table.</p>
   {% render_table questions_table %}
+  <p><a class="btn btn-primary btn-lg" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
 {% endif %}
 
 {% endwith %}
@@ -50,7 +48,7 @@
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:detail' classification.work_package.project.id %}">{{ classification.work_package.project.name }}</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:list_work_packages' classification.work_package.project.id %}">Work Packages</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
   <li class="breadcrumb-item"><a href="{{ classification.work_package.get_absolute_url }}">{{ classification.work_package.name }}</a></li>
   <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
 {% endblock crumbs %}

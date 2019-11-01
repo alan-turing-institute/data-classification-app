@@ -2,7 +2,7 @@
 {% load django_tables2 %}
 {% load haven %}
 
-{% block name %}<a href="{% url 'projects:list_datasets' project.id %}">Datasets</a>{% endblock %}
+{% block name %}Datasets{% endblock %}
 
 {% block actions %}
   {% url_check 'projects:add_dataset' project.id as add_dataset_href %}
