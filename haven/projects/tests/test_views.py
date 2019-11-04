@@ -1192,7 +1192,7 @@ class TestWorkPackageClassifyData:
 
         assert 'question' not in response.context
         assert [m.message for m in response.context['messages']] == [
-            'You have already completed classification. Please delete your classification if you '
+            'You have already completed classification. Please delete your classification and start again if you '
             'wish to change any answers.'
         ]
 

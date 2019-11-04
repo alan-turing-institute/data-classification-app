@@ -290,7 +290,7 @@ class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
             project = self.instance.project
             role_model = ProjectRole(self.cleaned_data['role'])
             if not self.user.project_role(project).can_assign_role(role_model):
-                raise ValidationError("You cannot assign role " +
+                raise ValidationError("You cannot assign the role " +
                                       ProjectRole.display_name(role) +
                                       " for this project")
         return role
