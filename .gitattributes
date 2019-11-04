@@ -1,2 +1,3 @@
 haven/static/build/**/*.js binary
 haven/static/build/**/*.js.map binary
+haven/_version.py export-subst

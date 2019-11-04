@@ -36,3 +36,5 @@ django-easy-audit==1.1
 django-bleach==0.5.3
 
 django-source-revision==0.1.0
+
+versioneer==0.18
