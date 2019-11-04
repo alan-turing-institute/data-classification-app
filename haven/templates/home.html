@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load haven %}
 
 {% block content %}
   <p>
@@ -27,6 +28,6 @@
   {% endif %}
 
   <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
-    <span class="navbar-text ml-auto">Build {{ SOURCE_REVISION }}</span>
+    <span class="navbar-text ml-auto">Build {% version_number %}</span>
   </nav>
 {% endblock content %}

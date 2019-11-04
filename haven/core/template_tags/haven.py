@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import (
 )
 from django.template import defaulttags
 from django.urls import resolve
-
+from sourcerevision.loader import get_revision
 
 register = template.Library()
 
@@ -48,7 +48,7 @@ class UrlCheckNode(template.Node):
 
 @register.tag
 def url_check(parser, token):
-    '''
+    """
     Template tag that functions like the built-in `url` tag, but renders the URL only if the user
     has permission to access the linked page.
 
@@ -65,6 +65,32 @@ def url_check(parser, token):
     This currently only works with class-based views that utilise one (or more) of the
     django.contrib.auth.mixins - for function-based views or any other views, will be identical to
     `url` tag.
-    '''
+    """
     url_node = defaulttags.url(parser, token)
     return UrlCheckNode(url_node)
+
+
+@register.simple_tag
+def version_number():
+    """
+    Template tag that returns a version/build number for the codebase.
+
+    This will use git where present, but will also use the Azure deployment
+    file where git is not available in an Azure deployment.
+    """
+
+    # Try to get the hash from sourcerevision
+    version_hash = get_revision()
+    if not version_hash:
+        # If the above failed we may be a deployed Azure instance without
+        # access to the git command. Try to get the kudu deploy hash
+        deployed_version_file = '/home/site/deployments/active'
+        try:
+            with open(deployed_version_file) as fh:
+                version_hash = fh.readline()
+        except:
+            version_hash = ""
+
+    if not version_hash:
+        version_hash = 'Unknown'
+    return version_hash
