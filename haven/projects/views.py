@@ -1267,6 +1267,16 @@ class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
     Autocomplete username from list of Users who are not currently participants in this project,
     or are DPRs
     """
+    def get_visible_users(self):
+        if not self.request.user.user_role.can_view_all_users:
+            if 'pk' in self.kwargs:
+                project_id = self.kwargs['pk']
+                return User.objects.filter(
+                    participants__project__pk=project_id,
+                    participants__role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
+                )
+        return super().get_visible_users()
+
     def get_users_to_exclude(self):
         if 'pk' in self.kwargs:
             project_id = self.kwargs['pk']
