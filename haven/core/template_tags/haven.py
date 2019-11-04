@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import (
 from django.template import defaulttags
 from django.urls import resolve
 from sourcerevision.loader import get_revision
+from haven import __version__
 
 register = template.Library()
 
@@ -79,18 +80,24 @@ def version_number():
     file where git is not available in an Azure deployment.
     """
 
-    # Try to get the hash from sourcerevision
-    version_hash = get_revision()
-    if not version_hash:
-        # If the above failed we may be a deployed Azure instance without
-        # access to the git command. Try to get the kudu deploy hash
-        deployed_version_file = '/home/site/deployments/active'
-        try:
-            with open(deployed_version_file) as fh:
-                version_hash = fh.readline()
-        except:
-            version_hash = ""
+    # Get the version from versioneer
+    version_string = __version__
 
-    if not version_hash:
-        version_hash = 'Unknown'
-    return version_hash
+    if not version_string:
+        # Try to get the hash from sourcerevision
+        version_string = get_revision()
+
+    if not version_string:
+        try:
+            # If the above failed we may be a deployed Azure instance without
+            # access to the git command. Try to get the kudu deploy hash
+            deployed_version_file = '/home/site/deployments/active'
+            with open(deployed_version_file) as fh:
+                version_string = fh.readline()
+        except:
+            version_string = ""
+
+    if not version_string:
+        version_string = "Unknown"
+
+    return version_string
