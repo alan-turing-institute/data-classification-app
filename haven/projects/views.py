@@ -1,6 +1,6 @@
 import logging
 import re
-from collections import OrderedDict
+from collections import defaultdict
 
 from braces.views import UserFormKwargsMixin
 from crispy_forms.helper import FormHelper
@@ -497,10 +497,7 @@ class ProjectCreateDataset(
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        participants = self.get_object().participants
-        participants = participants.filter(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-        users = User.objects.filter(id__in=participants.values_list('user', flat=True))
-        kwargs['representative_qs'] = users
+        kwargs['project_id'] = self.get_object().id
         return kwargs
 
     def get_form(self):
@@ -1195,24 +1192,43 @@ class WorkPackageClassifyDelete(
         return self.object.get_absolute_url()
 
 
-class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
+class GroupedSelect2QuerySetView(autocomplete.Select2QuerySetView):
+    '''
+    Extends Select2QuerySetView to allow grouping of results (in a similar way to
+    Select2GroupListView)
+
+    Subclasses should define a get_result_group method which receives the same result
+    object as get_result_value etc., and return a 2-tuple of (group_id, group_label).
+    The resulting groups will be sorted by group_id.
+    '''
+    def get_results(self, context):
+        grouped = defaultdict(list)
+        for result in context['object_list']:
+            group = self.get_result_group(result)
+            if int(self.request.GET.get('page', '1')) > 1:
+                group = (group[0], group[1] + '...')
+            grouped[group].append(result)
+
+        results = []
+        keys = sorted(grouped.keys())
+        for key in keys:
+            group = grouped[key]
+            if group:
+                results.append({
+                    'id': key[0],
+                    'text': key[1],
+                    'children': super().get_results({'object_list': group})
+                })
+        return results
+
+
+class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
     """
     Autocomplete username from list of Users who are not currently participants in this project
     """
     def get_queryset(self):
 
-        # Filter results depending on user role permissions
-        if not self.request.user.user_role.can_view_all_users:
-            return User.objects.none()
-
-        if 'pk' in self.kwargs:
-            # Autocomplete suggestions are users not already participating in this project
-            project_id = self.kwargs['pk']
-            existing_users = Project.objects.get(pk=project_id).participants.values('user')
-            qs = User.objects.exclude(pk__in=existing_users)
-        else:
-            qs = User.objects.all()
-
+        qs = self.get_visible_users()
         if self.q:
             for term in self.q.split():
                 qs = qs.filter(
@@ -1223,5 +1239,65 @@ class NewParticipantAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs
 
+    def get_visible_users(self):
+        # Filter results depending on user role permissions
+        if not self.request.user.user_role.can_view_all_users:
+            return User.objects.none()
+
+        existing_users = self.get_users_to_exclude()
+        if existing_users is not None:
+            return User.objects.exclude(pk__in=existing_users)
+
+        return User.objects.all()
+
+    def get_users_to_exclude(self):
+        if 'pk' in self.kwargs:
+            # Autocomplete suggestions are users not already participating in this project
+            project_id = self.kwargs['pk']
+            return Project.objects.get(pk=project_id).participants.values('user')
+        return None
+
     def get_result_label(self, user):
         return user.display_name()
+
+
+class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
+                                             GroupedSelect2QuerySetView):
+    """
+    Autocomplete username from list of Users who are not currently participants in this project,
+    or are DPRs
+    """
+    def get_visible_users(self):
+        if not self.request.user.user_role.can_view_all_users:
+            if 'pk' in self.kwargs:
+                project_id = self.kwargs['pk']
+                return User.objects.filter(
+                    participants__project__pk=project_id,
+                    participants__role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
+                )
+        return super().get_visible_users()
+
+    def get_users_to_exclude(self):
+        if 'pk' in self.kwargs:
+            project_id = self.kwargs['pk']
+            participants = Project.objects.get(pk=project_id).participants
+            participants = participants.exclude(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+            return participants.values('user')
+
+        return None
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if 'pk' in self.kwargs:
+            project_id = self.kwargs['pk']
+            qs = qs.annotate(you=FilteredRelation(
+                'participants',
+                condition=Q(participants__project=project_id))
+            )
+            qs = qs.annotate(project_role=F('you__role'))
+        return qs
+
+    def get_result_group(self, result):
+        if result.project_role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
+            return (0, 'Data Provider Representatives')
+        return (1, 'Other users')
