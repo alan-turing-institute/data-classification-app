@@ -200,7 +200,7 @@ class TestViewWorkPackage:
         work_package = recipes.work_package.make(project=project)
 
         response = as_standard_user.get('/projects/%d/work_packages/%d'
-                                            % (project.id, work_package.id))
+                                        % (project.id, work_package.id))
 
         assert response.status_code == 404
 
@@ -1214,8 +1214,8 @@ class TestWorkPackageClassifyData:
 
         assert 'question' not in response.context
         assert [m.message for m in response.context['messages']] == [
-            'You have already completed classification. Please delete your classification and start again if you '
-            'wish to change any answers.'
+            'You have already completed classification. Please delete your classification and '
+            'start again if you wish to change any answers.'
         ]
 
     def test_delete_classification(self, classified_work_package, as_investigator):
@@ -1787,7 +1787,7 @@ class TestAutocompleteNewParticipant:
             output = json.loads(response.content.decode('UTF-8'))
             output_set = {d['text'] for d in output['results']}
 
-            expected_set = {f'{u.first_name}{" " if u.first_name and u.last_name else ""}{u.last_name}{": " if u.first_name or u.last_name else ""}{u.username}' for u in expected_users}
+            expected_set = {u.display_name() for u in expected_users}
             assert expected_set == output_set
 
         # Test all users returned with no query string
@@ -1851,7 +1851,8 @@ class TestAutocompleteNewParticipant:
 
 @pytest.mark.django_db
 class TestAutocompleteDPR:
-    def assert_autocomplete_result(self, as_user, project, query_string, expected_dprs, expected_users):
+    def assert_autocomplete_result(self, as_user, project, query_string,
+                                   expected_dprs, expected_users):
         response = as_user.get(
             f'/projects/{project.id}/autocomplete_dpr/?q={query_string}')
         assert response.status_code == 200
@@ -1911,7 +1912,9 @@ class TestAutocompleteDPR:
         )
 
         # Test all users returned with no query string
-        self.assert_autocomplete_result(as_programme_manager, project, '', {}, {user0, user1, user2, user3, user4, user5})
+        self.assert_autocomplete_result(
+            as_programme_manager, project, '', {},
+            {user0, user1, user2, user3, user4, user5})
         self.assert_autocomplete_result(as_programme_manager, project, 'K Johnson', {}, {user1})
         self.assert_autocomplete_result(as_programme_manager, project, 'son', {}, {user1, user3})
 
@@ -1922,7 +1925,9 @@ class TestAutocompleteDPR:
         project.add_user(user=user3,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=user0)
-        self.assert_autocomplete_result(as_programme_manager, project, '', {user3}, {user0, user2, user4, user5})
+        self.assert_autocomplete_result(
+            as_programme_manager, project, '', {user3},
+            {user0, user2, user4, user5})
         self.assert_autocomplete_result(as_programme_manager, project, 'K Johnson', {}, {})
         self.assert_autocomplete_result(as_programme_manager, project, 'son', {user3}, {})
 

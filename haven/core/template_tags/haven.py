@@ -8,6 +8,7 @@ from django.template import defaulttags
 from django.urls import resolve
 from sourcerevision.loader import get_revision
 
+
 register = template.Library()
 
 
@@ -88,7 +89,7 @@ def version_number():
         try:
             with open(deployed_version_file) as fh:
                 version_hash = fh.readline()
-        except:
+        except:  # noqa E722
             version_hash = ""
 
     if not version_hash:

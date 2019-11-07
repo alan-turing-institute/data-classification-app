@@ -11,7 +11,7 @@ from projects.models import (
     PolicyGroup,
     ProjectDataset,
     WorkPackageParticipant,
-    a_or_an
+    a_or_an,
 )
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
@@ -117,7 +117,8 @@ class TestWorkPackage:
         work_package.classify_as(0, investigator.user)
 
         assert work_package.missing_classification_requirements == [
-            'A Data Provider Representative for dataset ' + work_package.datasets.get(pk=1).name + ' still needs to classify this Work Package.'
+            'A Data Provider Representative for dataset ' +
+            work_package.datasets.get(pk=1).name + ' still needs to classify this Work Package.'
         ]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
@@ -138,7 +139,8 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'A Data Provider Representative for dataset Dataset 2 still needs to classify this Work Package.']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this '
+            'Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -158,7 +160,8 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'A Data Provider Representative for dataset Dataset 2 still needs to classify this Work Package.']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this '
+            'Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -233,7 +236,7 @@ class TestWorkPackage:
         work_package.classify_as(2, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'A Referee still needs to classify this Work Package.',]
+            'A Referee still needs to classify this Work Package.', ]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 

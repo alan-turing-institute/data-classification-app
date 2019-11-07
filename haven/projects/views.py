@@ -178,15 +178,15 @@ class ProjectList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Store the user's project role on each participant
-        return super().get_queryset().\
-            get_visible_projects(self.request.user).\
-            annotate(you=FilteredRelation(
-                'participants',
-                condition=Q(participants__user=self.request.user))
-            ).\
-            annotate(your_role=F('you__role')).\
-            annotate(add_time=F('you__created_at')).\
-            order_by(F('add_time').desc(nulls_last=True), '-created_at')
+        return (
+            super().get_queryset()
+                   .get_visible_projects(self.request.user)
+                   .annotate(you=FilteredRelation(
+                       'participants', condition=Q(participants__user=self.request.user)))
+                   .annotate(your_role=F('you__role'))
+                   .annotate(add_time=F('you__created_at'))
+                   .order_by(F('add_time').desc(nulls_last=True), '-created_at')
+        )
 
 
 class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
@@ -621,7 +621,6 @@ class ProjectCreateWorkPackage(
         formset = DatasetForWorkPackageInlineFormSet(**options)
         formset.helper = SaveCancelInlineFormSetHelper('Create Work Package')
         return formset
-
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
@@ -1201,6 +1200,7 @@ class GroupedSelect2QuerySetView(autocomplete.Select2QuerySetView):
     object as get_result_value etc., and return a 2-tuple of (group_id, group_label).
     The resulting groups will be sorted by group_id.
     '''
+
     def get_results(self, context):
         grouped = defaultdict(list)
         for result in context['object_list']:
@@ -1226,6 +1226,7 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
     """
     Autocomplete username from list of Users who are not currently participants in this project
     """
+
     def get_queryset(self):
 
         qs = self.get_visible_users()
@@ -1267,6 +1268,7 @@ class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
     Autocomplete username from list of Users who are not currently participants in this project,
     or are DPRs
     """
+
     def get_visible_users(self):
         if not self.request.user.user_role.can_view_all_users:
             if 'pk' in self.kwargs:

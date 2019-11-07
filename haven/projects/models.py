@@ -265,7 +265,8 @@ class WorkPackage(CreatedByModel):
                 # Warn if role approval is required and has not been granted
                 approver = ProjectRole.display_name(
                     ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-                missing_requirements.append(f"Each {approver} for this Work Package needs to approve the {role}.")
+                missing_requirements.append(
+                    f"Each {approver} for this Work Package needs to approve the {role}.")
 
             else:
                 # Warn if classifications haven't been made by all roles
@@ -277,7 +278,8 @@ class WorkPackage(CreatedByModel):
 
         for d in missing_datasets:
             role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
-            missing_requirements.append(f"{a_or_an(role)} for dataset {d} still needs to classify this Work Package.")
+            missing_requirements.append(
+                f"{a_or_an(role)} for dataset {d} still needs to classify this Work Package.")
 
         if not self.has_datasets:
             missing_requirements.append('No datasets have been added to this Work Package')
