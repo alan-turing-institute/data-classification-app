@@ -84,6 +84,7 @@ class UserProjectPermissions:
         add_work_packages     .  Y  Y   .  Y   .   .
         list_participants     .  Y  Y   .  Y   .   .
         edit_participants     .  Y  Y   .  Y   .   .
+        view_classification   .  .  Y   Y  Y   Y   .
         classify_data         .  .  .   Y  Y   Y   .
         classify_if_approved  .  .  .   .  .   Y   .
     '''
