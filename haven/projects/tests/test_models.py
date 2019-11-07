@@ -11,6 +11,7 @@ from projects.models import (
     PolicyGroup,
     ProjectDataset,
     WorkPackageParticipant,
+    a_or_an,
 )
 from projects.policies import insert_initial_policies
 from projects.roles import ProjectRole
@@ -106,7 +107,19 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Investigator']
+            'An Investigator still needs to classify this Work Package.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+    def test_classification_not_ready_dpr(self, classified_work_package, investigator):
+        work_package = classified_work_package(None)
+
+        work_package.classify_as(0, investigator.user)
+
+        assert work_package.missing_classification_requirements == [
+            'A Data Provider Representative for dataset ' +
+            work_package.datasets.get(pk=1).name + ' still needs to classify this Work Package.'
+        ]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -126,7 +139,8 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Data Provider Representative for dataset: Dataset 2']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this '
+            'Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -146,7 +160,8 @@ class TestWorkPackage:
         work_package.classify_as(0, data_provider_representative.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by Data Provider Representative for dataset: Dataset 2']
+            'A Data Provider Representative for dataset Dataset 2 still needs to classify this '
+            'Work Package.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -220,7 +235,8 @@ class TestWorkPackage:
         work_package.classify_as(2, investigator.user)
         work_package.classify_as(2, data_provider_representative.user)
 
-        assert work_package.missing_classification_requirements == ['Not classified by Referee']
+        assert work_package.missing_classification_requirements == [
+            'A Referee still needs to classify this Work Package.', ]
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -250,10 +266,16 @@ class TestWorkPackage:
 
         work_package.classify_as(3, investigator.user)
         work_package.classify_as(3, data_provider_representative.user)
+
+        assert work_package.missing_classification_requirements == [
+            'Each Data Provider Representative for this Work Package needs to approve the Referee.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
         work_package.classify_as(3, referee.user)
 
         assert work_package.missing_classification_requirements == [
-            'Not classified by approved Referee']
+            'Each Data Provider Representative for this Work Package needs to approve the Referee.']
         assert not work_package.is_classification_ready
         assert not work_package.has_tier
 
@@ -266,6 +288,95 @@ class TestWorkPackage:
         assert not work_package.tier_conflict
         assert work_package.has_tier
         assert work_package.tier == 3
+
+    def test_referee_not_added_tier3(
+            self, investigator, data_provider_representative, programme_manager, referee):
+
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+
+        project.add_user(user=investigator.user,
+                         role=ProjectRole.INVESTIGATOR.value,
+                         creator=programme_manager)
+        work_package.add_user(investigator.user, programme_manager)
+        project.add_user(user=data_provider_representative.user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+        work_package.add_user(data_provider_representative.user, programme_manager)
+        project.add_user(user=referee.user,
+                         role=ProjectRole.REFEREE.value,
+                         creator=programme_manager)
+
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        work_package.classify_as(3, investigator.user)
+        work_package.classify_as(3, data_provider_representative.user)
+
+        assert work_package.missing_classification_requirements == [
+            'A Referee needs to be added to this Work Package.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+        work_package.add_user(referee.user, programme_manager)
+        work_package.classify_as(3, referee.user)
+
+        assert work_package.missing_classification_requirements == [
+            'Each Data Provider Representative for this Work Package needs to approve the Referee.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+        referee = work_package.project.get_participant(
+            ProjectRole.REFEREE.value)
+        p = referee.get_work_package_participant(work_package)
+        p.approve(data_provider_representative.user)
+        work_package = p.work_package
+
+        assert work_package.missing_classification_requirements == []
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 3
+
+    def test_referee_not_added_tier2(
+            self, investigator, data_provider_representative, programme_manager, referee):
+
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        dataset = recipes.dataset.make()
+
+        project.add_user(user=investigator.user,
+                         role=ProjectRole.INVESTIGATOR.value,
+                         creator=programme_manager)
+        work_package.add_user(investigator.user, programme_manager)
+        project.add_user(user=data_provider_representative.user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+        work_package.add_user(data_provider_representative.user, programme_manager)
+        project.add_user(user=referee.user,
+                         role=ProjectRole.REFEREE.value,
+                         creator=programme_manager)
+
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
+        work_package.add_dataset(dataset, investigator.user)
+
+        work_package.classify_as(2, investigator.user)
+        work_package.classify_as(2, data_provider_representative.user)
+
+        assert work_package.missing_classification_requirements == [
+            'A Referee needs to be added to this Work Package.']
+        assert not work_package.is_classification_ready
+        assert not work_package.has_tier
+
+        work_package.add_user(referee.user, programme_manager)
+        work_package.classify_as(2, referee.user)
+
+        assert work_package.missing_classification_requirements == []
+        assert work_package.is_classification_ready
+        assert not work_package.tier_conflict
+        assert work_package.has_tier
+        assert work_package.tier == 2
 
     def test_tier_conflict(self, classified_work_package, investigator,
                            data_provider_representative, referee):
@@ -801,3 +912,13 @@ class TestParticipant:
             ['data_provider_representative', True, True],
             ['referee', False, False],
         ])
+
+
+class TestUtils:
+    def test_a_or_an(self):
+        assert a_or_an('Investigator') == 'An Investigator'
+        assert a_or_an('investigator') == 'An investigator'
+        assert a_or_an('Data Provider Representative') == 'A Data Provider Representative'
+        assert a_or_an('Referee', capitalize=True) == 'A Referee'
+        assert a_or_an('referee', capitalize=False) == 'a referee'
+        assert a_or_an('Referee', capitalize=False) == 'a Referee'
