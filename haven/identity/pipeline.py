@@ -7,6 +7,8 @@ from .graph import user_client
 from .models import User
 from .roles import UserRole
 
+from django.contrib.auth.models import Group
+
 
 def azure_backend(fn):
     """
@@ -48,32 +50,42 @@ def determine_role(backend, user, response, *args, **kwargs):
     graph = user_client(user)
     graph_response = graph.get_my_memberships()
 
-    # Default user role to none
-    role = UserRole.NONE
+    new_django_groups = set()
 
-    # Preserve previous role unless System Manager
-    if user.role and user.role != UserRole.SYSTEM_MANAGER.value:
-        role = UserRole(user.role)
+    # Get user's current Django group memberships
+    current_django_groups = set(g.name for g in user.groups.all())
 
-    # System Manager is only set by being a member of the appropriate group
+    # Get user's new group memberships based on Graph group memberships
     if graph_response.ok:
-        groups = graph_response.json().get('value', [])
+        graph_groups = graph_response.json().get('value', [])
+        permission_group_dict = UserRole.security_groups()
         # System Manager overrides any other permissions
-        for group in groups:
-            if 'displayName' in group and group['displayName'] == settings.SECURITY_GROUP_SYSTEM_MANAGERS:
-                role = UserRole.SYSTEM_MANAGER
-                break
-        # If not System Manager, then Programme Manager overrides any other permissions
-        for group in groups:
-            if 'displayName' in group and group['displayName'] == settings.SECURITY_GROUP_PROGRAMME_MANAGERS:
-                role = UserRole.PROGRAMME_MANAGER
-                break
-        # If not Programme Manager, then Project Manager overrides any other permissions
-        for group in groups:
-            if 'displayName' in group and group['displayName'] == settings.SECURITY_GROUP_PROJECT_MANAGERS:
-                role = UserRole.PROJECT_MANAGER
-                break
+        for group in graph_groups:
+            if 'displayName' in group:
+                group_name = group['displayName']
+                if group_name in permission_group_dict:
+                    permission_group = permission_group_dict[group_name]
+                    new_django_groups.add(permission_group)
 
+    # Add user to Django groups they need to be added to
+    for group_name in new_django_groups - current_django_groups:
+        group, created = Group.objects.get_or_create(name=group_name)
+        user.groups.add(group)
+
+    # Remove user from Django groups they need be removed from
+    for group_name in current_django_groups - new_django_groups:
+        group = Group.objects.get(name=group_name)
+        user.groups.remove(group)
+
+    # Set user's overall membership
+    if UserRole.SYSTEM_MANAGER.value in new_django_groups:
+        role = UserRole.SYSTEM_MANAGER
+    elif UserRole.PROGRAMME_MANAGER.value in new_django_groups:
+        role = UserRole.PROGRAMME_MANAGER
+    elif UserRole.PROJECT_MANAGER.value in new_django_groups:
+        role = UserRole.PROJECT_MANAGER
+    else:
+        role = UserRole.NONE
     user.set_role(role)
 
 

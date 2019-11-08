@@ -1,5 +1,7 @@
 from enum import Enum
 
+from django.conf import settings
+
 
 class UserRole(Enum):
     """
@@ -26,6 +28,15 @@ class UserRole(Enum):
             (cls.PROGRAMME_MANAGER.value, 'Programme Manager'),
             (cls.NONE.value, 'Standard user'),
         ]
+
+    @classmethod
+    def security_groups(cls):
+        """Security groups corresponding to permissions groups"""
+        return {
+            settings.SECURITY_GROUP_SYSTEM_MANAGERS : cls.SYSTEM_MANAGER.value,
+            settings.SECURITY_GROUP_PROGRAMME_MANAGERS: cls.PROGRAMME_MANAGER.value,
+            settings.SECURITY_GROUP_PROJECT_MANAGERS: cls.PROJECT_MANAGER.value,
+        }
 
     @classmethod
     def display_name(cls, role):
