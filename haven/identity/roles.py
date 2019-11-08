@@ -9,6 +9,7 @@ class UserRole(Enum):
     # Roles which are assignable to users on the `role` field
     SYSTEM_MANAGER = 'system_manager'
     PROGRAMME_MANAGER = 'programme_manager'
+    PROJECT_MANAGER = 'project_manager'
 
     # Django admin superuser
     SUPERUSER = 'superuser'
