@@ -150,6 +150,10 @@ SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str('AZUREAD_OAUTH2_SECRET', defa
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str('AZUREAD_OAUTH2_TENANT_ID', default='')
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = 'https://graph.microsoft.com'
 
+SECURITY_GROUP_SYSTEM_MANAGERS = env.str('SECURITY_GROUP_SYSTEM_MANAGERS', default='SG SHM System Managers')
+SECURITY_GROUP_PROGRAMME_MANAGERS = env.str('SECURITY_GROUP_PROGRAMME_MANAGERS', default='SG SHM Programme Managers')
+SECURITY_GROUP_PROJECT_MANAGERS = env.str('SECURITY_GROUP_PROGRAMME_MANAGERS', default='SG SHM Project Managers')
+
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
