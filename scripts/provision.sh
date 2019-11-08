@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #
-# Script for deploying the Data Safe Haven management application on Azure.
+# Script for deploying or updating the Data Safe Haven management application on Azure.
 #
 # Requires:
 #  1. The Azure CLI to be installed:
@@ -10,7 +10,9 @@
 #  2. An environment file (.env) to be configured for your deployment.
 #      See .env.example for more information
 #
-#  3. git installed and configured to push the code
+#  3. Azure login with sufficient permissions to deploy resources and create an App Registration on the appropriate tenant
+#
+#  4. If deploying from a private GitHub repository, a GitHub login with sufficient permissions to add a deploy key
 #
 # To run this script:
 #   provision.sh -e ENV_FILENAME
@@ -138,21 +140,21 @@ function curl_with_retry() {
     exit 1
 }
 
-create_resource_group() {
-    echo "Creating resource group"
+create_or_update_resource_group() {
+    echo "Creating or updating the resource group ${RESOURCE_GROUP}"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
 
     # Create a lock to prevent accidental deletion of the resource group and the resources it contains
     az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
 }
 
-create_keyvault() {
-    echo "Creating keyvault"
+create_or_update_keyvault() {
+    echo "Creating or updating the keyvault ${KEYVAULT_NAME}"
     az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}"
 }
 
-create_app() {
-    echo "Creating the webapp"
+create_or_update_app() {
+    echo "Creating or updating the app service ${APP_NAME}"
 
     # App service plan
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
@@ -178,7 +180,9 @@ create_app() {
     local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
 }
 
-configure_deployment () {
+update_deployment_configuration () {
+    echo "Creating or updating the deployment configuration"
+
     # Get deployment URL
     local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
 
@@ -215,8 +219,8 @@ configure_deployment () {
 }
 
 
-create_mssql_db() {
-    echo "Creating the DB server"
+create_or_update_mssql_db() {
+    echo "Creating or updating the DB server"
     local db_username=${DB_USERNAME}
     local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
     local database_url="mssql://${db_username}:${db_password}@$DB_SERVER_NAME.database.windows.net:1433/$DB_NAME"
@@ -236,8 +240,8 @@ create_mssql_db() {
     az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
 }
 
-create_postgresql_db() {
-    echo "Creating the DB server"
+create_or_update_postgresql_db() {
+    echo "Creating or updating the DB server ${DB_SERVER_NAME}"
 
     local db_username=${DB_USERNAME}
     local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
@@ -259,8 +263,8 @@ create_postgresql_db() {
     az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
 }
 
-create_registration () {
-    echo "Creating app registration"
+create_or_update_registration () {
+    echo "Creating or updating the app registration"
 
     # OAuth2 - must be set to the URL to where the app's OAuth2 pipeline redirects after authentication
     local oauth2_redirect_uri="${BASE_URL}auth/complete/azuread-tenant-oauth2/"
@@ -303,7 +307,8 @@ create_registration () {
 }
 
 # Set or update settings for a deployed webapp
-deploy_settings () {
+update_app_settings () {
+    echo "Setting or updating the app configuration settings"
 
     local secret_key=$(get_azure_secret  "SECRET-KEY")
     local azuread_oauth2_key=$(get_azure_secret  "AZUREAD-OAUTH2-KEY")
@@ -340,13 +345,13 @@ deploy_settings () {
 }
 
 azure_login
-create_resource_group
-create_keyvault
-create_postgresql_db
-create_app
-create_registration
-deploy_settings
-configure_deployment
+create_or_update_resource_group
+create_or_update_keyvault
+create_or_update_postgresql_db
+create_or_update_app
+create_or_update_registration
+update_app_settings
+update_deployment_configuration
 
 # At time of writing, the following steps must be done on the Azure Portal
 cat <<EOF
