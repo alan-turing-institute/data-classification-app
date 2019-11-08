@@ -275,7 +275,7 @@ create_registration () {
     local app_uri="${BASE_URL}"
 
     # A client secret used in the OAuth2 call
-    local client_secret=$(get_or_create_azure_secret  "SECRET-KEY")
+    local client_secret=$(get_or_create_azure_secret  "AZUREAD-OAUTH2-SECRET")
 
     # The tenant we use to register the app may not be the tenant used to create the app
     switch_to_registration_tenant
