@@ -218,28 +218,6 @@ update_deployment_configuration () {
     az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
 }
 
-
-create_or_update_mssql_db() {
-    echo "Creating or updating the DB server"
-    local db_username=${DB_USERNAME}
-    local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
-    local database_url="mssql://${db_username}:${db_password}@$DB_SERVER_NAME.database.windows.net:1433/$DB_NAME"
-
-    # Create the db server
-    az sql server create --admin-user="${db_username}" --admin-password="${db_password}" --name="${DB_SERVER_NAME}" --location="${LOCATION}" --resource-group="${RESOURCE_GROUP}"
-
-    # Configure the firewall
-    az sql server firewall-rule create --server "${DB_SERVER_NAME}" --resource-group "${RESOURCE_GROUP}" --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 --name AllowAllWindowsAzureIps
-
-    # Create the database
-    az sql db create --name="${DB_NAME}" --resource-group="${RESOURCE_GROUP}" --server="${DB_SERVER_NAME}"
-
-    # Store DB credentials in keyvault
-    az keyvault secret set --name "DB-USERNAME" --vault-name "${KEYVAULT_NAME}" --value "${db_username}"
-    az keyvault secret set --name "DB-PASSWORD" --vault-name "${KEYVAULT_NAME}" --value "${db_password}"
-    az keyvault secret set --name "DB-URL" --vault-name "${KEYVAULT_NAME}" --value "${database_url}"
-}
-
 create_or_update_postgresql_db() {
     echo "Creating or updating the DB server ${DB_SERVER_NAME}"
 
