@@ -185,7 +185,8 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
     def __init__(self, work_package, *args, **kwargs):
         kwargs.setdefault('instance', WorkPackageDataset(work_package=work_package))
         super().__init__(*args, **kwargs)
-        self.fields['dataset'].queryset = work_package.project.datasets
+        qs = work_package.project.datasets.exclude(id__in=work_package.datasets.all())
+        self.fields['dataset'].queryset = qs
 
 
 class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
@@ -199,7 +200,7 @@ class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
         kwargs.setdefault('instance', WorkPackageParticipant(work_package=work_package))
         super().__init__(*args, **kwargs)
         qs = work_package.project.participants
-        qs = qs.exclude(id__in=work_package.participants.all())
+        qs = qs.exclude(pk__in=work_package.participants.all())
         self.fields['participant'].queryset = qs
 
 
