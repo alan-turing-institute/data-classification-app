@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load haven %}
 
 {% block h1_title %}Create Work Package{% endblock %}
 
 {% block content %}
 <p>
-  For this Data Safe Haven model, classification is carried out on work packages rather than individual datasets.
+  For this {% webapp_title %} model, classification is carried out on work packages rather than individual datasets.
 </p>
 
 <p>
