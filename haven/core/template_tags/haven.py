@@ -90,6 +90,7 @@ def version_number():
         try:
             with open(deployed_version_file) as fh:
                 version_hash = fh.readline()
+                version_hash = version_hash[:7]
         except:  # noqa E722
             version_hash = ""
 
