@@ -1204,6 +1204,20 @@ class TestWorkPackageClassifyData:
         response = as_programme_manager.get(self.url(work_package))
         assert response.status_code == 403
 
+    def test_returns_403_for_project_manager(self, client, researcher, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        project.add_user(researcher.user, ProjectRole.PROJECT_MANAGER.value,
+                         creator=programme_manager)
+        work_package = recipes.work_package.make(project=project, created_by=programme_manager)
+
+        client.force_login(researcher.user)
+
+        response = client.get(self.url(work_package))
+        assert response.status_code == 403
+
+        response = client.post(self.url(work_package))
+        assert response.status_code == 403
+
     def test_do_not_show_form_if_user_already_classified(
             self, classified_work_package, as_investigator):
         work_package = classified_work_package(None)
@@ -1744,6 +1758,76 @@ class TestWorkPackageClassifyData:
                 ['publishable', 'True'],
             ]
         )
+
+
+@pytest.mark.django_db
+class TestWorkPackageClassifyResults:
+    def url(self, work_package, page='classify_results'):
+        return '/projects/%d/work_packages/%d/%s' % (work_package.project.id, work_package.id, page)
+
+    def test_returns_403_for_researcher(self, client, researcher):
+        work_package = recipes.work_package.make(project=researcher.project)
+        client.force_login(researcher.user)
+
+        response = client.get(self.url(work_package))
+        assert response.status_code == 403
+
+    def test_returns_403_for_programme_manager(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get(self.url(work_package))
+        assert response.status_code == 403
+
+    def test_view_as_project_manager(self, client, classified_work_package, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project_manager = recipes.user.make()
+        investigator = recipes.user.make()
+
+        work_package = classified_work_package(None)
+        work_package.project.add_user(project_manager, ProjectRole.PROJECT_MANAGER.value,
+                                      creator=programme_manager)
+        work_package.project.add_user(investigator, ProjectRole.INVESTIGATOR.value,
+                                      creator=programme_manager)
+
+        client.force_login(project_manager)
+
+        response = client.get(self.url(work_package))
+        assert response.status_code == 200
+        assert response.context['classification'] is None
+        assert 'questions_table' not in response.context
+
+        questions = [
+            [ClassificationQuestion.objects.get(name='open_generate_new'), 'False'],
+            [ClassificationQuestion.objects.get(name='closed_personal'), 'False'],
+            [ClassificationQuestion.objects.get(name='include_commercial'), 'False'],
+            [ClassificationQuestion.objects.get(name='publishable'), 'True'],
+        ]
+        work_package.classify_as(0, investigator, questions)
+
+        response = client.get(self.url(work_package))
+        assert response.status_code == 200
+        assert response.context['classification'] is None
+
+        table = list(response.context['questions_table'].as_values())
+        assert len(table) == len(questions) + 1
+
+        def question(question):
+            return bleach.clean(question.question, tags=[], strip=True)
+
+        assert table[0] == ['Question', investigator.username]
+        assert table[1:] == [[question(q[0]), q[1]] for q in questions]
+
+    def test_redirect_if_not_classified(self, client, researcher, programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        project.add_user(researcher.user, ProjectRole.INVESTIGATOR.value, creator=programme_manager)
+        work_package = recipes.work_package.make(project=project, created_by=programme_manager)
+
+        client.force_login(researcher.user)
+
+        response = client.get(self.url(work_package))
+        assert response.status_code == 302
+        assert response.url == self.url(work_package, 'classify')
 
 
 @pytest.mark.django_db

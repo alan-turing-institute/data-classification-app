@@ -1127,15 +1127,19 @@ class WorkPackageClassifyResults(
 ):
     template_name = 'projects/work_package_classify_results.html'
 
-    def dispatch(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
         self.object = self.get_object()
 
-        # Before doing anything on this view, determine whether this user has already classified
-        # the work package. If they have not, then redirect them to the classification form.
-        classification = self.object.classification_for(self.request.user).first()
-        if not classification:
-            url = reverse('projects:classify_data', args=[self.object.project.id, self.object.id])
-            return HttpResponseRedirect(url)
+        role = self.get_project_role()
+        classification = None
+        if role.can_classify_data:
+            # Before doing anything on this view, determine whether this user has already classified
+            # the work package. If they have not, then redirect them to the classification form.
+            classification = self.object.classification_for(self.request.user).first()
+            if not classification:
+                url = reverse('projects:classify_data',
+                              args=[self.object.project.id, self.object.id])
+                return HttpResponseRedirect(url)
 
         # Show the classification result, along with that of other users (and the project's final
         # classification, if available yet)
@@ -1143,21 +1147,25 @@ class WorkPackageClassifyResults(
         other_classifications = self.object.classifications.exclude(created_by=self.request.user)
 
         context = {
+            'work_package': self.object,
             'classification': classification,
             'other_classifications': other_classifications,
-            'project_tier': self.object.tier,
         }
         if not self.object.has_tier:
-            context['questions_table'] = ClassificationOpinionQuestionTable(
-                [classification] + list(other_classifications),
-                current_user=self.request.user,
-            )
+            all_classifications = list(other_classifications)
+            current_user = None
+            if classification:
+                all_classifications.insert(0, classification)
+                current_user = self.request.user
+            if all_classifications:
+                context['questions_table'] = ClassificationOpinionQuestionTable(
+                    all_classifications, current_user=current_user)
 
         return render(self.request, 'projects/work_package_classify_results.html', context)
 
     def test_func(self):
         role = self.get_project_role()
-        return role.can_classify_data if role else False
+        return role.can_view_classification if role else False
 
 
 class WorkPackageClassifyDelete(
