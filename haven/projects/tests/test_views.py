@@ -262,14 +262,6 @@ class TestEditProject:
         assert response.context['project'].name == 'my updated project'
         assert response.context['project'].description == 'a different project'
 
-    def test_view_owned_project(self, as_programme_manager):
-        project = recipes.project.make(created_by=as_programme_manager._user)
-
-        response = as_programme_manager.get('/projects/%d/edit' % project.id)
-
-        assert response.status_code == 200
-        assert response.context['project'] == project
-
     def test_view_as_manager(self, as_project_participant):
         project = recipes.project.make()
         recipes.participant.make(project=project, user=as_project_participant._user,
