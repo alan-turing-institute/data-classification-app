@@ -80,12 +80,12 @@ class UserProjectPermissions:
         add_participants     |  Y   Y |  Y   .  Y   .   . |     *
         approve_participants |  .   . |  .   Y  .   .   . |     .
         edit                 |  .   . |  Y   .  .   .   . |     .
-        archive              |  .   Y |  Y   .  .   .   . |     .
-        view_history         |  .   Y |  Y   .  .   .   . |     .
-        add_datasets         |  .   Y |  Y   .  Y   .   . |     .
-        add_work_packages    |  .   Y |  Y   .  Y   .   . |     .
-        list_participants    |  .   . |  Y   .  Y   .   . |     .
-        edit_participants    |  .   Y |  Y   .  Y   .   . |     .
+        archive              |  Y   Y |  Y   .  .   .   . |     .
+        view_history         |  Y   Y |  Y   .  .   .   . |     .
+        add_datasets         |  Y   Y |  Y   .  Y   .   . |     .
+        add_work_packages    |  Y   Y |  Y   .  Y   .   . |     .
+        list_participants    |  Y   Y |  Y   .  Y   .   . |     .
+        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         view_classification  |  .   . |  Y   Y  Y   Y   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
         classify_if_approved |  .   . |  .   .  .   Y   . |     .
