@@ -114,11 +114,11 @@ class TestProjectRoleEditProject:
 
     def test_programme_manager_can_edit(self):
         perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
-        assert not perms.can_edit
+        assert perms.can_edit
 
     def test_system_manager_can_edit(self):
         perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
-        assert not perms.can_edit
+        assert perms.can_edit
 
 
 class TestIsValidAssignableParticipantRole:

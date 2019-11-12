@@ -1777,13 +1777,6 @@ class TestWorkPackageClassifyResults:
         response = client.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_returns_403_for_programme_manager(self, as_programme_manager):
-        project = recipes.project.make(created_by=as_programme_manager._user)
-        work_package = recipes.work_package.make(project=project)
-
-        response = as_programme_manager.get(self.url(work_package))
-        assert response.status_code == 403
-
     def test_view_as_project_manager(self, client, classified_work_package, programme_manager):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project_manager = recipes.user.make()
