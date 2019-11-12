@@ -153,6 +153,9 @@ class WorkPackage(CreatedByModel):
         if not self.project.has_dataset(dataset):
             raise ValidationError('Dataset not assigned to project')
 
+        if self.get_work_package_datasets().filter(dataset=dataset).exists():
+            raise ValidationError('Dataset already assigned to work package')
+
         return WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
                                                  created_by=creator)
 
@@ -578,6 +581,9 @@ class WorkPackageDataset(CreatedByModel):
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
                                 related_name='+', on_delete=models.SET_NULL)
+
+    class Meta(CreatedByModel.Meta):
+        unique_together = ('work_package', 'dataset')
 
 
 class WorkPackageParticipant(CreatedByModel):
