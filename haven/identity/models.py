@@ -78,8 +78,6 @@ class User(AbstractUser):
 
     @property
     def user_role(self):
-        if self.is_superuser:
-            return UserRole.SUPERUSER
         return UserRole(self.role)
 
     def set_role(self, role):

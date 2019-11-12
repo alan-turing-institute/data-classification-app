@@ -7,9 +7,6 @@ from projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestUser:
-    def test_superuser_gets_superuser_role(self, superuser):
-        assert superuser.user_role is UserRole.SUPERUSER
-
     def test_user_has_role(self, programme_manager):
         assert programme_manager.user_role is UserRole.PROGRAMME_MANAGER
 
@@ -22,10 +19,6 @@ class TestUser:
     def test_project_role_for_participant(self, researcher):
         assert researcher.user.project_role(researcher.project).role is ProjectRole.RESEARCHER
         assert researcher.user.project_participation_role(researcher.project) is ProjectRole.RESEARCHER
-
-    def test_superuser_does_not_get_participation_for_non_involed_projects(self, superuser):
-        assert superuser.get_participant(recipes.project.make()) is None
-        assert superuser.project_participation_role(recipes.project.make()) is None
 
     def test_system_manager_does_not_get_participation_for_non_involed_projects(self, system_manager):
         assert system_manager.get_participant(recipes.project.make()) == None
