@@ -71,24 +71,24 @@ class UserProjectPermissions:
     """
 
     permissions_table = '''
-                            Sys SM PgM PM DPR PI Ref Res
-        assign_pm             .  Y   Y  Y   .  .   .   .
-        assign_dpr            .  Y   Y  Y   .  .   .   .
-        assign_pi             .  Y   Y  Y   .  .   .   .
-        assign_ref            .  Y   Y  Y   .  .   .   .
-        assign_res            .  Y   Y  Y   .  Y   .   .
-        add_participants      Y  Y   Y  Y   .  Y   .   .
-        approve_participants  .  .   .  .   Y  .   .   .
-        edit                  .  .   .  Y   .  .   .   .
-        archive               .  .   Y  Y   .  .   .   .
-        view_history          .  .   Y  Y   .  .   .   .
-        add_datasets          .  .   Y  Y   .  Y   .   .
-        add_work_packages     .  .   Y  Y   .  Y   .   .
-        list_participants     .  .   .  Y   .  Y   .   .
-        edit_participants     .  .   Y  Y   .  Y   .   .
-        view_classification   .  .   .  Y   Y  Y   Y   .
-        classify_data         .  .   .  .   Y  Y   Y   .
-        classify_if_approved  .  .   .  .   .  .   Y   .
+                             | SM PgM | PM DPR PI Ref Res | Extra
+        assign_pm            |  Y   Y |  Y   .  .   .   . |     .
+        assign_dpr           |  Y   Y |  Y   .  .   .   . |     .
+        assign_pi            |  Y   Y |  Y   .  .   .   . |     .
+        assign_ref           |  Y   Y |  Y   .  .   .   . |     .
+        assign_res           |  Y   Y |  Y   .  Y   .   . |     .
+        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
+        approve_participants |  .   . |  .   Y  .   .   . |     .
+        edit                 |  .   . |  Y   .  .   .   . |     .
+        archive              |  .   Y |  Y   .  .   .   . |     .
+        view_history         |  .   Y |  Y   .  .   .   . |     .
+        add_datasets         |  .   Y |  Y   .  Y   .   . |     .
+        add_work_packages    |  .   Y |  Y   .  Y   .   . |     .
+        list_participants    |  .   . |  Y   .  Y   .   . |     .
+        edit_participants    |  .   Y |  Y   .  Y   .   . |     .
+        view_classification  |  .   . |  Y   Y  Y   Y   . |     .
+        classify_data        |  .   . |  .   Y  Y   Y   . |     .
+        classify_if_approved |  .   . |  .   .  .   Y   . |     .
     '''
     _permissions = None
     role_abbreviations = {
@@ -109,16 +109,19 @@ class UserProjectPermissions:
     @classmethod
     def permissions(cls):
         if cls._permissions is None:
-            split = cls.permissions_table.strip().splitlines()
             cls._permissions = defaultdict(lambda: defaultdict(lambda: False))
-            headers = split[0].split()
-            for s in split[1:]:
-                row = s.split()
+            lines = cls.permissions_table.strip().splitlines()
+            headers = lines[0].split()
+            for line in lines[1:]:
+                row = line.split()
                 permission = row[0]
-                for i, col in enumerate(row[2:]):
-                    if col == 'Y':
-                        header = headers[i + 1]
-                        role = cls.role_abbreviations[header]
+                for i, cell in enumerate(row[1:]):
+                    if cell == 'Y':
+                        header = headers[i]
+                        try:
+                            role = cls.role_abbreviations[header]
+                        except KeyError:
+                            continue
                         cls._permissions[permission][role] = True
         return cls._permissions
 
