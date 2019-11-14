@@ -171,6 +171,7 @@ class TestWorkPackage:
 
         project.add_dataset(dataset2, data_rep2.user, investigator.user)
         work_package.add_dataset(dataset2, investigator.user)
+        work_package.add_user(data_rep2.user, investigator.user)
 
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
@@ -409,6 +410,12 @@ class TestWorkPackage:
 
     def test_classify_work_package_not_partipant(self, classified_work_package, system_manager):
         work_package = classified_work_package(None)
+
+        with pytest.raises(ValidationError):
+            work_package.classify_as(0, system_manager)
+
+        work_package.project.add_user(system_manager, ProjectRole.REFEREE.value,
+                                      creator=system_manager)
 
         with pytest.raises(ValidationError):
             work_package.classify_as(0, system_manager)

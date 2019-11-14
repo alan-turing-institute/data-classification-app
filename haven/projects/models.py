@@ -333,6 +333,10 @@ class WorkPackage(CreatedByModel):
         role = by_user.project_participation_role(self.project)
         if not role:
             raise ValidationError("User not a participant of project")
+        participant = by_user.get_participant(self.project)
+        wpp = participant.get_work_package_participant(self)
+        if not wpp:
+            raise ValidationError("User not a participant of project")
         if not self.has_datasets:
             raise ValidationError("No datasets in work package")
 

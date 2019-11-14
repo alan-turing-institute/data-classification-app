@@ -818,7 +818,12 @@ class WorkPackageClassifyData(
 
     def test_func(self):
         role = self.get_project_role()
-        return role.can_classify_data if role else False
+        if not role.can_classify_data:
+            return False
+        participant = self.request.user.get_participant(self.get_project())
+        if not participant.get_work_package_participant(self.get_work_package()):
+            return False
+        return True
 
     def get(self, *args, **kwargs):
         response = self.check_already_classified()
