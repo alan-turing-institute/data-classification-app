@@ -33,11 +33,12 @@ def send_activation_email(user):
             'auth_url': backend.auth_url(),
             'full_name': user.get_full_name(),
             'upn': user.username,
+            'webapp_title': settings.WEBAPP_TITLE
         }
     )
 
     return send_mail(
-        subject='Invitation to the Data Safe Haven',
+        subject=f'Invitation to the { settings.WEBAPP_TITLE }',
         message=message,
         from_email=settings.DEFAULT_FROM_MAIL,
         recipient_list=[user.email]

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% load haven %}
 {% load static %}
 
 {% block h1_title %}
@@ -16,14 +17,14 @@
 {% block content %}
   {% if editing %}
     <p>
-      Please note that if the user's identity for the Data Safe Haven has already been created, changing the details below will not affect that identity.
+      Please note that if the user's identity for the {% webapp_title %} has already been created, changing the details below will not affect that identity.
       Those details must be changed separately.
     </p>
   {% else %}
     <p>
       After the user has been created below, it will be possible to assign them to projects and work packages.
-      The details will also be used to create the user's identity for the Data Safe Haven.
-      However, this is carried out separately, and until it is done the user will not be able to log in to this management application or the Safe Haven environments.
+      The details will also be used to create the user's identity for the {% webapp_title %}.
+      However, this is carried out separately, and until it is done the user will not be able to log in to this management application or the {% webapp_title %} environments.
     </p>
     <p>
       Please note that the email address provided must be suitable for receiving personal communications - it must not be unmonitored, or shared with other individuals.
