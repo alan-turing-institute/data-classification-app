@@ -2,9 +2,6 @@ from identity.roles import UserRole
 
 
 class TestUserRoleCreateUser:
-    def test_superuser_can_create_users(self):
-        assert UserRole.SUPERUSER.can_create_users
-
     def test_system_manager_can_create_users(self):
         assert UserRole.SYSTEM_MANAGER.can_create_users
 
@@ -16,11 +13,6 @@ class TestUserRoleCreateUser:
 
 
 class TestUserRoleCreatableRoles:
-    def test_superuser_can_create_any_roles(self):
-        assert UserRole.SUPERUSER.can_create(UserRole.SYSTEM_MANAGER)
-        assert UserRole.SUPERUSER.can_create(UserRole.PROGRAMME_MANAGER)
-        assert UserRole.SUPERUSER.can_create(UserRole.NONE)
-
     def test_system_manager_creatable_roles(self):
         assert UserRole.SYSTEM_MANAGER.can_create(UserRole.PROGRAMME_MANAGER)
         assert UserRole.SYSTEM_MANAGER.can_create(UserRole.NONE)
@@ -37,9 +29,6 @@ class TestUserRoleCreatableRoles:
 
 
 class TestUserRoleCreateProject:
-    def test_superuser_can_create_projects(self):
-        assert UserRole.SUPERUSER.can_create_projects
-
     def test_system_manager_can_create_projects(self):
         assert UserRole.SYSTEM_MANAGER.can_create_projects
 
@@ -51,9 +40,6 @@ class TestUserRoleCreateProject:
 
 
 class TestUserRoleViewAllProjects:
-    def test_superuser_can_view_all_projects(self):
-        assert UserRole.SUPERUSER.can_view_all_projects
-
     def test_system_manager_can_view_all_projects(self):
         assert UserRole.SYSTEM_MANAGER.can_view_all_projects
 
@@ -65,9 +51,6 @@ class TestUserRoleViewAllProjects:
 
 
 class TestUserRoleViewAllUsers:
-    def test_superuser_can_view_all_users(self):
-        assert UserRole.SUPERUSER.can_view_all_users
-
     def test_system_manager_can_view_all_users(self):
         assert UserRole.SYSTEM_MANAGER.can_view_all_users
 
@@ -79,9 +62,6 @@ class TestUserRoleViewAllUsers:
 
 
 class TestUserRoleImportUsers:
-    def test_superuser_can_import_users(self):
-        assert UserRole.SUPERUSER.can_import_users
-
     def test_system_manager_can_import_users(self):
         assert UserRole.SYSTEM_MANAGER.can_import_users
 
@@ -93,9 +73,6 @@ class TestUserRoleImportUsers:
 
 
 class TestUserRoleExportUsers:
-    def test_superuser_can_export_users(self):
-        assert UserRole.SUPERUSER.can_export_users
-
     def test_system_manager_can_export_users(self):
         assert UserRole.SYSTEM_MANAGER.can_export_users
 

@@ -10,9 +10,6 @@ class UserRole(Enum):
     SYSTEM_MANAGER = 'system_manager'
     PROGRAMME_MANAGER = 'programme_manager'
 
-    # Django admin superuser
-    SUPERUSER = 'superuser'
-
     # No user role - this means an unprivileged user who will most likely have
     # roles on individual projects but has no global / system-level role.
     NONE = ''
@@ -47,13 +44,7 @@ class UserRole(Enum):
 
         :return: list of `UserRole` objects
         """
-        if self is self.SUPERUSER:
-            return [
-                self.SYSTEM_MANAGER,
-                self.PROGRAMME_MANAGER,
-                self.NONE,
-            ]
-        elif self is self.SYSTEM_MANAGER:
+        if self is self.SYSTEM_MANAGER:
             return [
                 self.PROGRAMME_MANAGER,
                 self.NONE,
@@ -64,7 +55,6 @@ class UserRole(Enum):
     def can_view_all_projects(self):
         """Can a user with this role view all projects?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
@@ -73,7 +63,6 @@ class UserRole(Enum):
     def can_edit_all_projects(self):
         """Can a user with this role edit all projects?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
@@ -82,7 +71,6 @@ class UserRole(Enum):
     def can_create_projects(self):
         """Can a user with this role create projects?"""
         return self in [
-            self.SUPERUSER,
             self.SYSTEM_MANAGER,
             self.PROGRAMME_MANAGER,
         ]
@@ -91,7 +79,6 @@ class UserRole(Enum):
     def can_create_users(self):
         """Can a user with this role create other users?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
@@ -100,7 +87,6 @@ class UserRole(Enum):
     def can_view_all_users(self):
         """Can a user with this role view all users?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
@@ -109,7 +95,6 @@ class UserRole(Enum):
     def can_export_users(self):
         """Can a user with this role export a user list?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]
@@ -118,7 +103,6 @@ class UserRole(Enum):
     def can_import_users(self):
         """Can a user with this role create users from an imported file?"""
         return self in [
-            self.SUPERUSER,
             self.PROGRAMME_MANAGER,
             self.SYSTEM_MANAGER,
         ]

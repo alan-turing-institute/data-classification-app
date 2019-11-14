@@ -3,143 +3,121 @@ from projects.roles import ProjectRole, UserProjectPermissions
 
 
 class TestProjectRoleAddParticipants:
-    def test_project_admin_cannot_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True)
-        assert not perms.can_add_participants
-
     def test_project_manager_cannot_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert not perms.can_add_participants
 
     def test_investigator_cannot_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert not perms.can_add_participants
 
     def test_researcher_cannot_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert not perms.can_add_participants
 
     def test_referee_cannot_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert not perms.can_add_participants
 
     def test_system_manager_can_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, True)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
         assert perms.can_add_participants
 
     def test_programme_manager_can_add_participants(self):
-        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.PROGRAMME_MANAGER, True)
+        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.PROGRAMME_MANAGER)
         assert perms.can_add_participants
 
 
 class TestProjectRoleAssignableRoles:
-    def test_project_admin_can_assign_any_roles(self):
-        # Use RESEARCHER because we are verifying that PROJECT_ADMIN overrides researchers with
-        # lower permissions
-        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True)
-        assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
-        assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
-        assert permissions.can_assign_role(ProjectRole.RESEARCHER)
-        assert permissions.can_assign_role(ProjectRole.REFEREE)
-
     def test_programme_manager_can_assign_any_roles(self):
         # Use RESEARCHER because we are verifying that system-wide PROGRAMME_MANAGER overrides
         # researchers with lower permissions
-        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER,
-                                             True)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_project_manager_can_assign_any_roles(self):
-        permissions = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE, False)
+        permissions = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_system_manager_can_assign_any_roles(self):
-        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, True)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_investigator_can_only_assign_researchers(self):
-        permissions = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False)
+        permissions = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
         assert not permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert not permissions.can_assign_role(ProjectRole.REFEREE)
 
     def test_researcher_cannot_assign_roles(self):
-        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False)
+        permissions = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert permissions.assignable_roles == []
         assert not permissions.can_assign_role(ProjectRole.RESEARCHER)
 
     def test_referee_cannot_assign_roles(self):
-        permissions = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False)
+        permissions = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert permissions.assignable_roles == []
         assert not permissions.can_assign_role(ProjectRole.REFEREE)
 
 
 class TestProjectRoleListParticipants:
-    def test_project_admin_can_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True)
-        assert perms.can_list_participants
-
     def test_project_manager_can_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert perms.can_list_participants
 
     def test_investigator_can_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert perms.can_list_participants
 
     def test_researcher_cannot_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert not perms.can_list_participants
 
     def test_referee_cannot_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert not perms.can_list_participants
 
     def test_programme_manager_can_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER, False)
-        assert not perms.can_list_participants
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
+        assert perms.can_list_participants
 
     def test_system_manager_can_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, False)
-        assert not perms.can_list_participants
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
+        assert perms.can_list_participants
 
 
 class TestProjectRoleEditProject:
-    def test_project_admin_can_edit(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, True)
-        assert perms.can_edit
-
     def test_project_manager_can_edit(self):
-        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert perms.can_edit
 
     def test_investigator_can_edit(self):
-        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert not perms.can_edit
 
     def test_researcher_cannot_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert not perms.can_edit
 
     def test_referee_cannot_list_participants(self):
-        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE, False)
+        perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert not perms.can_edit
 
     def test_programme_manager_can_edit(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER, False)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
         assert not perms.can_edit
 
     def test_system_manager_can_edit(self):
-        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER, False)
+        perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
         assert not perms.can_edit
 
 
@@ -150,9 +128,6 @@ class TestIsValidAssignableParticipantRole:
         assert ProjectRole.is_valid_assignable_participant_role('investigator')
         assert ProjectRole.is_valid_assignable_participant_role('researcher')
         assert ProjectRole.is_valid_assignable_participant_role('data_provider_representative')
-
-    def test_project_admin_is_not_valid_assignable_role(self):
-        assert not ProjectRole.is_valid_assignable_participant_role('project_admin')
 
     def test_labels_are_not_valid_roles(self):
         assert not ProjectRole.is_valid_assignable_participant_role('Project Manager')

@@ -22,15 +22,6 @@ def helpers():
 
 
 @pytest.fixture
-def superuser():
-    return User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password=DUMMY_PASSWORD,
-    )
-
-
-@pytest.fixture
 def system_manager():
     return User.objects.create_user(
         first_name='System',
@@ -109,11 +100,6 @@ def client_login(client, user):
     client.force_login(user)
     client._user = user
     return client
-
-
-@pytest.fixture
-def as_superuser(client, superuser):
-    return client_login(client, superuser)
 
 
 @pytest.fixture

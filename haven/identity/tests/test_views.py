@@ -277,7 +277,7 @@ class TestExportUsers:
         response = as_project_participant.get('/users/export')
         assert response.status_code == 403
 
-    def test_export_as_pm(self, as_programme_manager, superuser, system_manager, standard_user,
+    def test_export_as_pm(self, as_programme_manager, system_manager, standard_user,
                           project_participant, user1):
         response = as_programme_manager.get('/users/export')
         assert response.status_code == 200
@@ -286,7 +286,6 @@ class TestExportUsers:
         assert parsed == [
             ['SamAccountName', 'GivenName', 'Surname', 'Mobile', 'SecondaryEmail'],
             ['coordinator', '', '', '', 'coordinator@example.com'],
-            ['admin', '', '', '', 'admin@example.com'],
             ['controller', 'System', 'Manager', '+441234567890', 'controller@example.com'],
             ['user', '', '', '', 'user@example.com'],
             ['project_participant', 'Angela', 'Zala', '+441234567890',
@@ -294,7 +293,7 @@ class TestExportUsers:
             ['user1', '', '', '', 'user@example.com'],
         ]
 
-    def test_export_by_project(self, as_programme_manager, superuser, system_manager, standard_user,
+    def test_export_by_project(self, as_programme_manager, system_manager, standard_user,
                                project_participant, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
         project.add_user(user1, role=ProjectRole.PROJECT_MANAGER.value,
