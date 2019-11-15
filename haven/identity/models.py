@@ -1,8 +1,11 @@
+import re
+import unicodedata
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Case, When
-from django.utils.text import slugify
+from django.utils.safestring import mark_safe
 from phonenumber_field.modelfields import PhoneNumberField
 
 import projects
@@ -88,14 +91,31 @@ class User(AbstractUser):
         self.aad_status = status
         self.save()
 
-    def generate_username(self):
-        prefix = '{0}.{1}'.format(slugify(self.first_name), slugify(self.last_name))
+    @staticmethod
+    def email_friendly(value):
+        """
+        Return a simplified form of the string suitable for use as part of an email username
 
-        inc = 0
+        Hyphens and alphanumeric characters are preserved.
+        Spaces between names are replaced by dots.
+        """
+        value = str(value)
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+        return mark_safe(re.sub(r'[\s]+', '.', value))
+
+    def generate_username(self):
+        """
+        Return a suitable username for this user
+        """
+        prefix = self.email_friendly(f"{self.first_name} {self.last_name}")
+
+        # If the username already exists, try adding 2,3,4 etc
+        inc = 1
         while True:
             proposed_username = '{prefix}{inc}@{domain}'.format(
                 prefix=prefix,
-                inc=inc or '',
+                inc='' if inc<2 else inc,
                 domain=settings.SAFE_HAVEN_DOMAIN,
             )
             if not User.objects.filter(username=proposed_username).exists():

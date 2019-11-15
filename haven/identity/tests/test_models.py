@@ -1,6 +1,7 @@
 import pytest
 
 from core import recipes
+from identity.models import User
 from identity.roles import UserRole
 from projects.roles import ProjectRole
 
@@ -46,3 +47,38 @@ class TestUser:
 
     def test_project_participation_role_is_None_for_non_involved_project(self, researcher):
         assert researcher.user.project_participation_role(recipes.project.make()) is None
+
+    @pytest.mark.parametrize("first,last,expected", [
+        ("Caroline", "Herschel", "caroline.herschel"),
+        ("Paul", " Erdös", "paul.erdos"),
+        ("Marie-Sophie ", "Germain", "marie-sophie.germain"),
+        ("Joan  Elisabeth Lowther", "Clarke", "joan.elisabeth.lowther.clarke"),
+        ("Jocelyn", " Bell Burnell", "jocelyn.bell.burnell"),
+        ("Henri", "Poincaré", "henri.poincare"),
+        ("Walter R.", "Talbot  ", "walter.r.talbot"),
+        ("", "Hypatia  ", "hypatia"),
+    ])
+    def test_generate_username(self, first, last, expected):
+        user1 = User(
+            first_name=first,
+            last_name=last,
+        )
+        user1.generate_username()
+        user1.save()
+        assert user1.username == f"{expected}@example.com"
+
+        user2 = User(
+            first_name=first,
+            last_name=last,
+        )
+        user2.generate_username()
+        user2.save()
+        assert user2.username == f"{expected}2@example.com"
+
+        user3 = User(
+            first_name=first,
+            last_name=last,
+        )
+        user3.generate_username()
+        user3.save()
+        assert user3.username == f"{expected}3@example.com"
