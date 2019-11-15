@@ -87,8 +87,8 @@ class TestWorkPackage:
     def test_add_dataset(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make()
-        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         programme_manager)
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
         work_package = recipes.work_package.make(project=project)
 
         project.add_dataset(dataset, user1, programme_manager)
@@ -96,6 +96,8 @@ class TestWorkPackage:
 
         assert work_package.datasets.count() == 1
         assert dataset == work_package.datasets.first()
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
 
     def test_add_dataset_multiple_times(self, programme_manager, user1):
         project = recipes.project.make()
@@ -201,7 +203,6 @@ class TestWorkPackage:
 
         project.add_dataset(dataset2, data_rep2.user, investigator.user)
         work_package.add_dataset(dataset2, investigator.user)
-        work_package.add_user(data_rep2.user, investigator.user)
 
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)

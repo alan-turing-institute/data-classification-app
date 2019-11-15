@@ -87,6 +87,7 @@ class Project(CreatedByModel):
     def add_work_package(self, work_package, creator):
         work_package.project = self
         work_package.created_by = creator
+        work_package.save()
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
             work_package.add_user(participant.user, creator)
 
@@ -161,14 +162,19 @@ class WorkPackage(CreatedByModel):
     @transaction.atomic
     def add_dataset(self, dataset, creator):
         # Verify if dataset exists on project
-        if not self.project.has_dataset(dataset):
+        project_dataset = self.project.get_project_datasets(dataset=dataset).first()
+        if not project_dataset:
             raise ValidationError('Dataset not assigned to project')
 
         if self.get_work_package_datasets().filter(dataset=dataset).exists():
             raise ValidationError('Dataset already assigned to work package')
 
-        return WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
-                                                 created_by=creator)
+        wpd = WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
+                                                created_by=creator)
+        representative = project_dataset.representative
+        if not self.get_work_package_participant(representative).exists():
+            self.add_user(representative, creator)
+        return wpd
 
     @transaction.atomic
     def add_user(self, user, creator):
@@ -184,10 +190,10 @@ class WorkPackage(CreatedByModel):
         if participant is None:
             raise ValidationError("User is not on project")
 
-        qs = WorkPackageParticipant.objects
-        if qs.filter(work_package=self, participant=participant).exists():
+        if self.get_work_package_participant(user).exists():
             raise ValidationError("User is already on work package")
 
+        qs = WorkPackageParticipant.objects
         return qs.create(work_package=self, participant=participant, created_by=creator)
 
     def get_work_package_datasets(self, representative=None):
@@ -195,6 +201,10 @@ class WorkPackage(CreatedByModel):
         if representative:
             qs = qs.filter(dataset__in=self.project.get_datasets(representative))
         return qs
+
+    def get_work_package_participant(self, user):
+        participant = user.get_participant(self.project)
+        return WorkPackageParticipant.objects.filter(work_package=self, participant=participant)
 
     @property
     def is_classification_ready(self):
