@@ -590,8 +590,7 @@ class ProjectCreateWorkPackage(
             return self.form_invalid(form)
         else:
             work_package = form.save(commit=False)
-            work_package.created_by = form.user
-            work_package.project = self.object
+            self.object.add_work_package(work_package, form.user)
             work_package.save()
             form.save_m2m()
             if formset:

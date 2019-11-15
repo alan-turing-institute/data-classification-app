@@ -83,6 +83,13 @@ class Project(CreatedByModel):
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
 
+    @transaction.atomic
+    def add_work_package(self, work_package, creator):
+        work_package.project = self
+        work_package.created_by = creator
+        for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
+            work_package.add_user(participant.user, creator)
+
     def archive(self):
         self.archived = True
         self.save()

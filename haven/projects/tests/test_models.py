@@ -65,6 +65,22 @@ class TestProject:
         assert work_package.participants.count() == 1
         assert participant == work_package.participants.first()
 
+    def test_investigator_added_to_new_wp(self, programme_manager, project_participant):
+        project = recipes.project.make()
+
+        participant = project.add_user(
+            project_participant,
+            ProjectRole.INVESTIGATOR.value,
+            programme_manager
+        )
+
+        work_package = recipes.work_package.make()
+        project.add_work_package(work_package, programme_manager)
+
+        assert project.participants.count() == 1
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
 
 @pytest.mark.django_db
 class TestWorkPackage:
