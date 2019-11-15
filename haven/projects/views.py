@@ -1132,19 +1132,15 @@ class WorkPackageClassifyResults(
 
         role = self.get_project_role()
         classification = None
+        other_classifications = []
         if role.can_classify_data:
-            # Before doing anything on this view, determine whether this user has already classified
-            # the work package. If they have not, then redirect them to the classification form.
             classification = self.object.classification_for(self.request.user).first()
-            if not classification:
-                url = reverse('projects:classify_data',
-                              args=[self.object.project.id, self.object.id])
-                return HttpResponseRedirect(url)
-
-        # Show the classification result, along with that of other users (and the project's final
-        # classification, if available yet)
-
-        other_classifications = self.object.classifications.exclude(created_by=self.request.user)
+            if classification:
+                # Only show other classifications once the user has completed classification
+                other_classifications = self.object.classifications.exclude(
+                    created_by=self.request.user)
+        else:
+            other_classifications = self.object.classifications.all()
 
         context = {
             'work_package': self.object,

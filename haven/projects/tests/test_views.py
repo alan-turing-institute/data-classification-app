@@ -1810,17 +1810,6 @@ class TestWorkPackageClassifyResults:
         assert table[0] == ['Question', investigator.username]
         assert table[1:] == [[question(q[0]), q[1]] for q in questions]
 
-    def test_redirect_if_not_classified(self, client, researcher, programme_manager):
-        project = recipes.project.make(created_by=programme_manager)
-        project.add_user(researcher.user, ProjectRole.INVESTIGATOR.value, creator=programme_manager)
-        work_package = recipes.work_package.make(project=project, created_by=programme_manager)
-
-        client.force_login(researcher.user)
-
-        response = client.get(self.url(work_package))
-        assert response.status_code == 302
-        assert response.url == self.url(work_package, 'classify')
-
 
 @pytest.mark.django_db
 class TestAutocompleteNewParticipant:
