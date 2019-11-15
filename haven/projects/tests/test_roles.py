@@ -80,11 +80,11 @@ class TestProjectRoleListParticipants:
 
     def test_researcher_cannot_list_participants(self):
         perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
-        assert not perms.can_list_participants
+        assert perms.can_list_participants
 
     def test_referee_cannot_list_participants(self):
         perms = UserProjectPermissions(ProjectRole.REFEREE, UserRole.NONE)
-        assert not perms.can_list_participants
+        assert perms.can_list_participants
 
     def test_programme_manager_can_list_participants(self):
         perms = UserProjectPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)

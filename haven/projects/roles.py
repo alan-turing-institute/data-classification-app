@@ -84,7 +84,7 @@ class UserProjectPermissions:
         view_history         |  Y   Y |  Y   .  .   .   . |     .
         add_datasets         |  Y   Y |  Y   .  Y   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  Y   .   . |     .
-        list_participants    |  Y   Y |  Y   .  Y   .   . |     .
+        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
         edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
