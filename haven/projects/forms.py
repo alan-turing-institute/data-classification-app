@@ -222,6 +222,9 @@ class DatasetForWorkPackageInlineForm(SaveCreatorMixin, forms.ModelForm):
         model = WorkPackageDataset
         fields = ('dataset',)
 
+    def save(self, **kwargs):
+        return self.instance.work_package.add_dataset(self.cleaned_data['dataset'], self.user)
+
 
 class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
     """Inline form describing a single work package assignment for a user"""
@@ -307,6 +310,9 @@ class WorkPackageForDatasetInlineForm(SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = WorkPackageDataset
         fields = ('work_package',)
+
+    def save(self, **kwargs):
+        return self.cleaned_data['work_package'].add_dataset(self.instance.dataset, self.user)
 
 
 class WorkPackageForParticipantInlineForm(SaveCreatorMixin, forms.ModelForm):

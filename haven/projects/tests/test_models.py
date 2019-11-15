@@ -51,14 +51,44 @@ class TestProject:
         with pytest.raises(ValidationError):
             project.add_dataset(dataset, user1, programme_manager)
 
+    def test_new_investigator_added_to_wp(self, programme_manager, project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        participant = project.add_user(
+            project_participant,
+            ProjectRole.INVESTIGATOR.value,
+            programme_manager
+        )
+
+        assert project.participants.count() == 1
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
+    def test_investigator_added_to_new_wp(self, programme_manager, project_participant):
+        project = recipes.project.make()
+
+        participant = project.add_user(
+            project_participant,
+            ProjectRole.INVESTIGATOR.value,
+            programme_manager
+        )
+
+        work_package = recipes.work_package.make()
+        project.add_work_package(work_package, programme_manager)
+
+        assert project.participants.count() == 1
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
 
 @pytest.mark.django_db
 class TestWorkPackage:
     def test_add_dataset(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make()
-        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         programme_manager)
+        participant = project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                                       programme_manager)
         work_package = recipes.work_package.make(project=project)
 
         project.add_dataset(dataset, user1, programme_manager)
@@ -66,6 +96,8 @@ class TestWorkPackage:
 
         assert work_package.datasets.count() == 1
         assert dataset == work_package.datasets.first()
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
 
     def test_add_dataset_multiple_times(self, programme_manager, user1):
         project = recipes.project.make()
@@ -315,7 +347,6 @@ class TestWorkPackage:
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
@@ -365,7 +396,6 @@ class TestWorkPackage:
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
@@ -409,6 +439,12 @@ class TestWorkPackage:
 
     def test_classify_work_package_not_partipant(self, classified_work_package, system_manager):
         work_package = classified_work_package(None)
+
+        with pytest.raises(ValidationError):
+            work_package.classify_as(0, system_manager)
+
+        work_package.project.add_user(system_manager, ProjectRole.REFEREE.value,
+                                      creator=system_manager)
 
         with pytest.raises(ValidationError):
             work_package.classify_as(0, system_manager)

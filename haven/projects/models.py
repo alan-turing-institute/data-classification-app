@@ -62,12 +62,16 @@ class Project(CreatedByModel):
         if user.get_participant(self):
             raise ValidationError("User is already on project")
 
-        return Participant.objects.create(
+        participant = Participant.objects.create(
             user=user,
             role=role,
             created_by=creator,
             project=self,
         )
+        if role == ProjectRole.INVESTIGATOR.value:
+            for work_package in self.work_packages.all():
+                work_package.add_user(user, creator)
+        return participant
 
     @transaction.atomic
     def add_dataset(self, dataset, representative, creator):
@@ -78,6 +82,14 @@ class Project(CreatedByModel):
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
         ProjectDataset.objects.create(project=self, dataset=dataset,
                                       representative=representative, created_by=creator)
+
+    @transaction.atomic
+    def add_work_package(self, work_package, creator):
+        work_package.project = self
+        work_package.created_by = creator
+        work_package.save()
+        for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
+            work_package.add_user(participant.user, creator)
 
     def archive(self):
         self.archived = True
@@ -150,14 +162,19 @@ class WorkPackage(CreatedByModel):
     @transaction.atomic
     def add_dataset(self, dataset, creator):
         # Verify if dataset exists on project
-        if not self.project.has_dataset(dataset):
+        project_dataset = self.project.get_project_datasets(dataset=dataset).first()
+        if not project_dataset:
             raise ValidationError('Dataset not assigned to project')
 
         if self.get_work_package_datasets().filter(dataset=dataset).exists():
             raise ValidationError('Dataset already assigned to work package')
 
-        return WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
-                                                 created_by=creator)
+        wpd = WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
+                                                created_by=creator)
+        representative = project_dataset.representative
+        if not self.get_work_package_participant(representative).exists():
+            self.add_user(representative, creator)
+        return wpd
 
     @transaction.atomic
     def add_user(self, user, creator):
@@ -173,10 +190,10 @@ class WorkPackage(CreatedByModel):
         if participant is None:
             raise ValidationError("User is not on project")
 
-        qs = WorkPackageParticipant.objects
-        if qs.filter(work_package=self, participant=participant).exists():
+        if self.get_work_package_participant(user).exists():
             raise ValidationError("User is already on work package")
 
+        qs = WorkPackageParticipant.objects
         return qs.create(work_package=self, participant=participant, created_by=creator)
 
     def get_work_package_datasets(self, representative=None):
@@ -184,6 +201,10 @@ class WorkPackage(CreatedByModel):
         if representative:
             qs = qs.filter(dataset__in=self.project.get_datasets(representative))
         return qs
+
+    def get_work_package_participant(self, user):
+        participant = user.get_participant(self.project)
+        return WorkPackageParticipant.objects.filter(work_package=self, participant=participant)
 
     @property
     def is_classification_ready(self):
@@ -333,6 +354,10 @@ class WorkPackage(CreatedByModel):
         role = by_user.project_participation_role(self.project)
         if not role:
             raise ValidationError("User not a participant of project")
+        participant = by_user.get_participant(self.project)
+        wpp = participant.get_work_package_participant(self)
+        if not wpp:
+            raise ValidationError("User not a participant of work package")
         if not self.has_datasets:
             raise ValidationError("No datasets in work package")
 

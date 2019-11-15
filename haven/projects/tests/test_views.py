@@ -1152,6 +1152,17 @@ class TestWorkPackageClassifyData:
         response = client.post(self.url(work_package), {})
         helpers.assert_login_redirect(response)
 
+    def test_unassigned_cannot_view_page(self, as_project_participant, programme_manager):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        project = recipes.project.make(created_by=programme_manager)
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(user=as_project_participant._user,
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         creator=programme_manager)
+
+        response = as_project_participant.get(self.url(work_package), follow=True)
+        assert response.status_code == 403
+
     def test_view_page(self, as_project_participant, programme_manager):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
@@ -1159,6 +1170,8 @@ class TestWorkPackageClassifyData:
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
+        work_package.add_user(user=as_project_participant._user,
+                              creator=programme_manager)
 
         response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 200
@@ -1809,17 +1822,6 @@ class TestWorkPackageClassifyResults:
 
         assert table[0] == ['Question', investigator.username]
         assert table[1:] == [[question(q[0]), q[1]] for q in questions]
-
-    def test_redirect_if_not_classified(self, client, researcher, programme_manager):
-        project = recipes.project.make(created_by=programme_manager)
-        project.add_user(researcher.user, ProjectRole.INVESTIGATOR.value, creator=programme_manager)
-        work_package = recipes.work_package.make(project=project, created_by=programme_manager)
-
-        client.force_login(researcher.user)
-
-        response = client.get(self.url(work_package))
-        assert response.status_code == 302
-        assert response.url == self.url(work_package, 'classify')
 
 
 @pytest.mark.django_db
