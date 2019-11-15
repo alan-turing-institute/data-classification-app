@@ -357,7 +357,7 @@ class WorkPackage(CreatedByModel):
         participant = by_user.get_participant(self.project)
         wpp = participant.get_work_package_participant(self)
         if not wpp:
-            raise ValidationError("User not a participant of project")
+            raise ValidationError("User not a participant of work package")
         if not self.has_datasets:
             raise ValidationError("No datasets in work package")
 
