@@ -62,12 +62,16 @@ class Project(CreatedByModel):
         if user.get_participant(self):
             raise ValidationError("User is already on project")
 
-        return Participant.objects.create(
+        participant = Participant.objects.create(
             user=user,
             role=role,
             created_by=creator,
             project=self,
         )
+        if role == ProjectRole.INVESTIGATOR.value:
+            for work_package in self.work_packages.all():
+                work_package.add_user(user, creator)
+        return participant
 
     @transaction.atomic
     def add_dataset(self, dataset, representative, creator):

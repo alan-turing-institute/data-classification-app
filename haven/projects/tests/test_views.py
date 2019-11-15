@@ -1794,7 +1794,6 @@ class TestWorkPackageClassifyResults:
                                       creator=programme_manager)
         work_package.project.add_user(investigator, ProjectRole.INVESTIGATOR.value,
                                       creator=programme_manager)
-        work_package.add_user(investigator, creator=programme_manager)
 
         client.force_login(project_manager)
 

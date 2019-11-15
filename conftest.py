@@ -142,7 +142,6 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)

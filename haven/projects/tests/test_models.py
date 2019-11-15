@@ -51,6 +51,20 @@ class TestProject:
         with pytest.raises(ValidationError):
             project.add_dataset(dataset, user1, programme_manager)
 
+    def test_new_investigator_added_to_wp(self, programme_manager, project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        participant = project.add_user(
+            project_participant,
+            ProjectRole.INVESTIGATOR.value,
+            programme_manager
+        )
+
+        assert project.participants.count() == 1
+        assert work_package.participants.count() == 1
+        assert participant == work_package.participants.first()
+
 
 @pytest.mark.django_db
 class TestWorkPackage:
@@ -316,7 +330,6 @@ class TestWorkPackage:
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
@@ -366,7 +379,6 @@ class TestWorkPackage:
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
