@@ -15,6 +15,10 @@
 {% endblock content %}
 
 {% block actions %}
+  {% url_check 'projects:edit_dataset' project.id dataset.id as edit_dataset_href %}
+  {% if edit_dataset_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_dataset_href }}">Edit Description</a>
+  {% endif %}
 {% endblock actions %}
 
 {% block crumbs %}

@@ -780,6 +780,59 @@ class TestProjectViewDataset:
 
 
 @pytest.mark.django_db
+class TestProjectEditDataset:
+    def test_anonymous_cannot_access_page(self, client, helpers, data_provider_representative,
+                                          programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
+
+        response = client.get('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
+        helpers.assert_login_redirect(response)
+
+    def test_investigator_cannot_access_page(self, data_provider_representative, programme_manager,
+                                             as_investigator):
+        project = recipes.project.make(created_by=programme_manager)
+        project.add_user(as_investigator._user, ProjectRole.INVESTIGATOR.value, programme_manager)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
+
+        response = as_investigator.get('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
+        assert response.status_code == 403
+
+        response = as_investigator.post('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
+        assert response.status_code == 403
+
+    def test_edit_dataset(self, as_programme_manager, data_provider_representative):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user,
+                                 as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+        assert response.context['dataset'] == pd
+
+        response = as_programme_manager.post(
+            '/projects/%d/datasets/%d/edit' % (project.id, pd.id),
+            {
+                'name': 'Edited Project',
+                'description': 'Edited Description',
+            }
+        )
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/datasets/%d' % (project.id, pd.id)
+
+        dataset.refresh_from_db()
+        assert dataset.name == 'Edited Project'
+        assert dataset.description == 'Edited Description'
+
+
+@pytest.mark.django_db
 class TestWorkPackageAddParticipant:
     def test_add_participant(self, as_programme_manager, user1):
         project = recipes.project.make(

@@ -64,6 +64,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/datasets/<int:pk>/edit',
+        views.ProjectEditDataset.as_view(),
+        name='edit_dataset'
+    ),
+
+    path(
         '<int:pk>/work_packages/new',
         views.ProjectCreateWorkPackage.as_view(),
         name='add_work_package'

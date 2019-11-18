@@ -83,6 +83,7 @@ class UserProjectPermissions:
         archive              |  Y   Y |  Y   .  .   .   . |     .
         view_history         |  Y   Y |  Y   .  .   .   . |     .
         add_datasets         |  Y   Y |  Y   .  Y   .   . |     .
+        edit_datasets        |  Y   Y |  Y   .  .   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  Y   .   . |     .
         list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
         edit_participants    |  Y   Y |  Y   .  Y   .   . |     .

@@ -18,7 +18,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 
 from data.forms import SingleQuestionForm
-from data.models import ClassificationGuidance, ClassificationQuestion
+from data.models import ClassificationGuidance, ClassificationQuestion, Dataset
 from identity.mixins import UserPermissionRequiredMixin
 from identity.models import User
 from identity.roles import UserRole
@@ -33,6 +33,7 @@ from .forms import (
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
     ProjectArchiveForm,
+    ProjectEditDatasetForm,
     ProjectForm,
     SaveCancelFormHelper,
     SaveCancelInlineFormSetHelper,
@@ -569,6 +570,38 @@ class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
     def get_context_data(self, **kwargs):
         kwargs['dataset'] = self.get_object()
         return super().get_context_data(**kwargs)
+
+
+class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView):
+    # This currently edits the *Dataset*, not the ProjectDataset (or the WorkPackageDatasets)
+    # This may have to be revisited once Datasets are truly global
+    model = Dataset
+    form_class = ProjectEditDatasetForm
+    template_name = 'projects/edit_dataset.html'
+
+    def test_func(self):
+        return self.get_project_role().can_edit_datasets
+
+    def get_project_dataset(self):
+        try:
+            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs['pk'])
+            return qs.first()
+        except ProjectDataset.DoesNotExist:
+            raise Http404("No dataset found matching the query")
+
+    def get_object(self):
+        pd = self.get_project_dataset()
+        return pd.dataset
+
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
+    def get_context_data(self, **kwargs):
+        kwargs['dataset'] = self.get_project_dataset()
+        return super().get_context_data(**kwargs)
+
+    def get_success_url(self):
+        return reverse('projects:dataset_detail', kwargs=self.kwargs)
 
 
 class ProjectCreateWorkPackage(
