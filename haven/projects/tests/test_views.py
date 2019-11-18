@@ -757,6 +757,29 @@ class TestProjectAddDataset:
 
 
 @pytest.mark.django_db
+class TestProjectViewDataset:
+    def test_anonymous_cannot_access_page(self, client, helpers, data_provider_representative,
+                                          programme_manager):
+        project = recipes.project.make(created_by=programme_manager)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
+
+        response = client.get('/projects/%d/datasets/%d' % (project.id, pd.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager, data_provider_representative):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user,
+                                 as_programme_manager._user)
+
+        response = as_programme_manager.get('/projects/%d/datasets/%d' % (project.id, pd.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+        assert response.context['dataset'] == pd
+
+
+@pytest.mark.django_db
 class TestWorkPackageAddParticipant:
     def test_add_participant(self, as_programme_manager, user1):
         project = recipes.project.make(

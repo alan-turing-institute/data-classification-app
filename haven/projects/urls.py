@@ -58,6 +58,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/datasets/<int:pk>',
+        views.ProjectDatasetDetail.as_view(),
+        name='dataset_detail'
+    ),
+
+    path(
         '<int:pk>/work_packages/new',
         views.ProjectCreateWorkPackage.as_view(),
         name='add_work_package'

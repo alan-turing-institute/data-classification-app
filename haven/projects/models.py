@@ -80,8 +80,8 @@ class Project(CreatedByModel):
             self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
         elif participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
-        ProjectDataset.objects.create(project=self, dataset=dataset,
-                                      representative=representative, created_by=creator)
+        return ProjectDataset.objects.create(project=self, dataset=dataset,
+                                             representative=representative, created_by=creator)
 
     @transaction.atomic
     def add_work_package(self, work_package, creator):
@@ -596,13 +596,17 @@ class PolicyAssignment(models.Model):
 
 
 class ProjectDataset(CreatedByModel):
-    project = models.ForeignKey(Project, related_name='+', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='project_datasets', on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     representative = models.ForeignKey(User, related_name='+', on_delete=models.PROTECT, null=False)
 
+    def get_absolute_url(self):
+        return reverse('projects:dataset_detail', args=[self.project.id, self.id])
+
 
 class WorkPackageDataset(CreatedByModel):
-    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    work_package = models.ForeignKey(WorkPackage, related_name='work_package_datasets',
+                                     on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
                                 related_name='+', on_delete=models.SET_NULL)

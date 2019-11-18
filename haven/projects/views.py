@@ -47,16 +47,18 @@ from .models import (
     ClassificationOpinion,
     Participant,
     Project,
+    ProjectDataset,
     WorkPackage,
     WorkPackageParticipant,
 )
 from .roles import ProjectRole
 from .tables import (
     ClassificationOpinionQuestionTable,
-    DatasetTable,
     HistoryTable,
     ParticipantTable,
     PolicyTable,
+    ProjectDatasetTable,
+    WorkPackageDatasetTable,
     WorkPackageParticipantTable,
     WorkPackageTable,
     bleach_no_links,
@@ -198,8 +200,8 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
             participants, show_edit_links=self.get_project_role().can_edit_participants)
         work_packages = project.work_packages.order_by('created_at').all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
-        datasets = project.datasets.order_by('created_at').all()
-        kwargs['datasets_table'] = DatasetTable(datasets)
+        datasets = project.project_datasets.order_by('created_at').all()
+        kwargs['datasets_table'] = ProjectDatasetTable(datasets)
         return SingleProjectMixin.get_context_data(self, **kwargs)
 
 
@@ -554,6 +556,21 @@ class ProjectCreateDataset(
         return formset
 
 
+class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
+    model = ProjectDataset
+    template_name = 'projects/dataset_detail.html'
+
+    def get_queryset(self):
+        return ProjectDataset.objects.filter(project=self.get_project())
+
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
+    def get_context_data(self, **kwargs):
+        kwargs['dataset'] = self.get_object()
+        return super().get_context_data(**kwargs)
+
+
 class ProjectCreateWorkPackage(
     LoginRequiredMixin, UserPassesTestMixin, UserFormKwargsMixin,
     FormMixin, SingleProjectMixin, DetailView
@@ -630,8 +647,8 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         kwargs['participant'] = self.request.user.get_participant(work_package.project)
         context = SingleWorkPackageMixin.get_context_data(self, **kwargs)
 
-        datasets = work_package.datasets.all()
-        context['datasets_table'] = DatasetTable(datasets)
+        datasets = work_package.work_package_datasets.all()
+        context['datasets_table'] = WorkPackageDatasetTable(datasets)
 
         participants = work_package.get_participants_with_approval(self.request.user)
         context['participants_table'] = WorkPackageParticipantTable(
