@@ -3,11 +3,11 @@ import io
 
 import pytest
 
-from core import recipes
-from identity.models import User
-from identity.roles import UserRole
-from identity.views import csv_users
-from projects.roles import ProjectRole
+from haven.core import recipes
+from haven.identity.models import User
+from haven.identity.roles import UserRole
+from haven.identity.views import csv_users
+from haven.projects.roles import ProjectRole
 
 
 @pytest.mark.django_db

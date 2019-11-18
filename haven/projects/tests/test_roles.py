@@ -1,8 +1,8 @@
-from identity.roles import UserRole
-from projects.roles import ProjectRole, UserPermissions
+from haven.identity.roles import UserRole
+from haven.projects.roles import ProjectRole, UserPermissions
 import pytest
 
-from core import recipes
+from haven.core import recipes
 
 
 class TestProjectRoleAddParticipants:

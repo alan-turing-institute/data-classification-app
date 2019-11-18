@@ -2,7 +2,7 @@
 
 import logging
 from django.db import migrations, models
-import projects.models
+import haven.projects.models
 
 
 def set_role(apps, schema_editor):
@@ -27,13 +27,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='classificationopinion',
             name='role',
-            field=models.CharField(choices=[('referee', 'Referee'), ('project_manager', 'Project Manager'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], default='researcher', help_text="The participant's role on this project at the time classification was made", max_length=50, validators=[projects.models.validate_role]),
+            field=models.CharField(choices=[('referee', 'Referee'), ('project_manager', 'Project Manager'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], default='researcher', help_text="The participant's role on this project at the time classification was made", max_length=50, validators=[haven.projects.models.validate_role]),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='participant',
             name='role',
-            field=models.CharField(choices=[('referee', 'Referee'), ('project_manager', 'Project Manager'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], help_text="The participant's role on this project", max_length=50, validators=[projects.models.validate_role]),
+            field=models.CharField(choices=[('referee', 'Referee'), ('project_manager', 'Project Manager'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], help_text="The participant's role on this project", max_length=50, validators=[haven.projects.models.validate_role]),
         ),
         migrations.RunPython(set_role, migrations.RunPython.noop),
     ]

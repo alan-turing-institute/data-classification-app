@@ -7,19 +7,19 @@ from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 from django.urls import reverse
 
-from core.forms import InlineFormSetHelper
-from data.models import Dataset
-from identity.mixins import SaveCreatorMixin
-from identity.models import User
+from haven.core.forms import InlineFormSetHelper
+from haven.data.models import Dataset
+from haven.identity.mixins import SaveCreatorMixin
+from haven.identity.models import User
 
-from .models import (
+from haven.projects.models import (
     Participant,
     Project,
     WorkPackage,
     WorkPackageDataset,
     WorkPackageParticipant,
 )
-from .roles import ProjectRole
+from haven.projects.roles import ProjectRole
 
 
 # Widgets

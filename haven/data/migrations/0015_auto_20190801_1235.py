@@ -5,12 +5,12 @@ from django.db import migrations
 from simple_history.manager import HistoryManager
 from simple_history.models import HistoricalRecords
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 def migrate_questions(apps, schema_editor):
 
-    from data import classification
+    from haven.data import classification
 
     # Update any guidance that need to change (including any new guidance)
     guidance = {g['name']: g for g in initial_guidance()}

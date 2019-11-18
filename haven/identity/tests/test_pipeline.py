@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.conf import settings
 
-from identity.pipeline import determine_role, find_existing_user, user_fields
+from haven.identity.pipeline import determine_role, find_existing_user, user_fields
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def azure_backend():
 
 @pytest.mark.django_db
 class TestUserFields:
-    @patch('identity.pipeline.user_client')
+    @patch('haven.identity.pipeline.user_client')
     def test_stores_upn_as_username(self, mock_client, azure_backend, user1):
         oauth_response = {'upn': 'azure-username@azure-domain.com'}
 
@@ -37,7 +37,7 @@ class TestUserFields:
         user1.refresh_from_db()
         assert user1.username == original_username
 
-    @patch('identity.pipeline.user_client')
+    @patch('haven.identity.pipeline.user_client')
     def test_stores_mail_as_email(self, mock_client, azure_backend, user1):
         oauth_response = {'upn': 'azure-username@azure-domain.com'}
 
@@ -53,7 +53,7 @@ class TestUserFields:
         assert user1.email == 'my-email@example.com'
 
 
-    @patch('identity.pipeline.user_client')
+    @patch('haven.identity.pipeline.user_client')
     def test_db_email_not_changed_if_return_value_empty(self, mock_client, azure_backend, user1):
         oauth_response = {'upn': 'azure-username@azure-domain.com'}
 
@@ -70,7 +70,7 @@ class TestUserFields:
 
 
 @pytest.mark.django_db
-@patch('identity.pipeline.user_client')
+@patch('haven.identity.pipeline.user_client')
 class TestDetermineRole:
     def test_detects_sys_controller(self, mock_client, azure_backend, user1):
         response = mock_client.return_value.get_my_memberships.return_value

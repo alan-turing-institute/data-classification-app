@@ -1,4 +1,4 @@
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 def insert(model_cls,

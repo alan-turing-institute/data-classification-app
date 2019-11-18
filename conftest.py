@@ -1,10 +1,10 @@
 import pytest
 
-from core import recipes
-from data.tiers import Tier
-from identity.models import User
-from identity.roles import UserRole
-from projects.roles import ProjectRole
+from haven.core import recipes
+from haven.data.tiers import Tier
+from haven.identity.models import User
+from haven.identity.roles import UserRole
+from haven.projects.roles import ProjectRole
 
 
 DUMMY_PASSWORD = 'password'

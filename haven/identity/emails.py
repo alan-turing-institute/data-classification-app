@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from social_django.utils import load_strategy
 
-from .backends import CustomAzureOAuth2Backend
+from haven.identity.backends import CustomAzureOAuth2Backend
 
 
 def send_activation_email(user):

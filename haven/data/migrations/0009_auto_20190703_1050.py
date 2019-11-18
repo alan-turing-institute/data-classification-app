@@ -4,7 +4,7 @@ from django.db import migrations
 from simple_history.manager import HistoryManager
 from simple_history.models import HistoricalRecords
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 def fix_typo(apps, schema_editor):

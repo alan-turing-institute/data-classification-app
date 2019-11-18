@@ -3,9 +3,9 @@ from functools import wraps
 from django.conf import settings
 from social_core.exceptions import AuthForbidden
 
-from .graph import user_client
-from .models import User
-from .roles import UserRole
+from haven.identity.graph import user_client
+from haven.identity.models import User
+from haven.identity.roles import UserRole
 
 
 def azure_backend(fn):

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from haven.identity import views
 
 
 app_name = 'identity'

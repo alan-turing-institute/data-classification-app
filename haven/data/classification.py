@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from simple_history.manager import HistoryManager
 from simple_history.models import HistoricalRecords
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 # Classification questions are stored in the database, but since they are important we want them

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from haven.projects import views
 
 
 app_name = 'projects'

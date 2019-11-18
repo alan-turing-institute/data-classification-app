@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from braces.views import UserFormKwargsMixin
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
 from dal import autocomplete
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -17,13 +16,11 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 
-from data.forms import SingleQuestionForm
-from data.models import ClassificationGuidance, ClassificationQuestion, Dataset
-from identity.mixins import UserPermissionRequiredMixin
-from identity.models import User
-from identity.roles import UserRole
+from haven.data.models import ClassificationGuidance, ClassificationQuestion, Dataset
+from haven.identity.mixins import UserPermissionRequiredMixin
+from haven.identity.models import User
 
-from .forms import (
+from haven.projects.forms import (
     DatasetForWorkPackageInlineFormSet,
     ParticipantForm,
     ParticipantInlineFormSetHelper,
@@ -44,7 +41,7 @@ from .forms import (
     WorkPackagesForDatasetInlineFormSet,
     WorkPackagesForParticipantInlineFormSet,
 )
-from .models import (
+from haven.projects.models import (
     ClassificationOpinion,
     Participant,
     Project,
@@ -52,8 +49,8 @@ from .models import (
     WorkPackage,
     WorkPackageParticipant,
 )
-from .roles import ProjectRole
-from .tables import (
+from haven.projects.roles import ProjectRole
+from haven.projects.tables import (
     ClassificationOpinionQuestionTable,
     HistoryTable,
     ParticipantTable,

@@ -2,9 +2,9 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import projects.models
+import haven.projects.models
 
-from projects import policies
+from haven.projects import policies
 
 
 def insert_initial_policies(apps, schema_editor):
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='participant',
             name='role',
-            field=models.CharField(choices=[('referee', 'Referee'), ('research_coordinator', 'Research Coordinator'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], help_text="The participant's role on this project", max_length=50, validators=[projects.models.validate_role]),
+            field=models.CharField(choices=[('referee', 'Referee'), ('research_coordinator', 'Research Coordinator'), ('investigator', 'Investigator'), ('researcher', 'Researcher'), ('data_provider_representative', 'Data Provider Representative')], help_text="The participant's role on this project", max_length=50, validators=[haven.projects.models.validate_role]),
         ),
         migrations.AddField(
             model_name='policy',

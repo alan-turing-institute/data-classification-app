@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from identity.roles import UserRole
+from haven.identity.roles import UserRole
 
 register = template.Library()
 
