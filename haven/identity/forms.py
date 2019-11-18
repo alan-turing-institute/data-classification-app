@@ -34,7 +34,7 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assignable_roles = [r.value for r in UserRole(self.user.role).creatable_roles]
+        assignable_roles = [r.value for r in self.user.user_role.creatable_roles]
         if assignable_roles:
             self.fields['role'].choices = [
                 (role, name)
@@ -49,10 +49,10 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role_model = UserRole(role)
         role_display = UserRole.display_name(role)
         if 'role' in self.changed_data:
-            if not UserRole(self.user.role).can_assign_role(role_model):
+            if not self.user.user_role.can_assign_role(role_model):
                 raise ValidationError(f"You cannot assign the role {role_display}")
         else:
-            if not UserRole(self.user.role).can_assign_role(role_model):
+            if not self.user.user_role.can_assign_role(role_model):
                 raise ValidationError(f"You cannot edit users with the role {role_display}")
         return role
 
@@ -66,9 +66,9 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
     def clean(self):
         super().clean()
         if self.instance:
-            role_model = UserRole(self.instance.role)
+            role_model = self.instance.user_role
             role_display = UserRole.display_name(self.instance.role)
-            if not UserRole(self.user.role).can_assign_role(role_model):
+            if not self.user.user_role.can_assign_role(role_model):
                 raise ValidationError(f"You cannot edit users with the role {role_display}")
 
 

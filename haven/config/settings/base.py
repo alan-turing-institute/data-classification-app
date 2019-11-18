@@ -26,14 +26,13 @@ env = environ.Env(
 )
 environ.Env.read_env(str(BASE_DIR / '.env'))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)
+
+WEBAPP_TITLE = env.str('WEBAPP_TITLE', default='Data Safe Haven')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 

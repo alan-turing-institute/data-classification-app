@@ -1,4 +1,5 @@
 from django import template
+from django.conf import settings
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
     PermissionRequiredMixin,
@@ -89,9 +90,19 @@ def version_number():
         try:
             with open(deployed_version_file) as fh:
                 version_hash = fh.readline()
+                version_hash = version_hash[:7]
         except:  # noqa E722
             version_hash = ""
 
     if not version_hash:
         version_hash = 'Unknown'
     return version_hash
+
+
+@register.simple_tag
+def webapp_title():
+    """
+    Template tag that returns a user visible title for the web application.
+    """
+
+    return settings.WEBAPP_TITLE

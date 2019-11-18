@@ -303,6 +303,7 @@ update_app_settings () {
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DATABASE_URL="${database_url}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings ALLOWED_HOSTS="${allowed_hosts}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBAPP_TITLE="${WEBAPP_TITLE}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"

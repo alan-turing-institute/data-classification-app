@@ -13,12 +13,12 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
-    <title>{% block page_title %}Home{% endblock %} | Data Safe Haven</title>
+    <title>{% block page_title %}Home{% endblock %} | {% webapp_title %}</title>
   </head>
   <body>
 
      <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-       <a class="navbar-brand" href="{% url 'home' %}">Data Safe Haven</a>
+       <a class="navbar-brand" href="{% url 'home' %}">{% webapp_title %}</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -94,7 +94,7 @@
             <div class="my-3" role="group">
               <div class="row my-1">
                   <div class="col-md-auto">
-                    <h1>{% block h1_title %}Data Safe Haven{% endblock %}</h1>
+                    <h1>{% block h1_title %}{% webapp_title %}{% endblock %}</h1>
                   </div>
                   <div class="col-md text-md-right">
                     {% block actions %}

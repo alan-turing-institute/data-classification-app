@@ -590,8 +590,7 @@ class ProjectCreateWorkPackage(
             return self.form_invalid(form)
         else:
             work_package = form.save(commit=False)
-            work_package.created_by = form.user
-            work_package.project = self.object
+            self.object.add_work_package(work_package, form.user)
             work_package.save()
             form.save_m2m()
             if formset:
@@ -818,7 +817,12 @@ class WorkPackageClassifyData(
 
     def test_func(self):
         role = self.get_project_role()
-        return role.can_classify_data if role else False
+        if not role.can_classify_data:
+            return False
+        participant = self.request.user.get_participant(self.get_project())
+        if not participant.get_work_package_participant(self.get_work_package()):
+            return False
+        return True
 
     def get(self, *args, **kwargs):
         response = self.check_already_classified()
@@ -1127,37 +1131,41 @@ class WorkPackageClassifyResults(
 ):
     template_name = 'projects/work_package_classify_results.html'
 
-    def dispatch(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
         self.object = self.get_object()
 
-        # Before doing anything on this view, determine whether this user has already classified
-        # the work package. If they have not, then redirect them to the classification form.
-        classification = self.object.classification_for(self.request.user).first()
-        if not classification:
-            url = reverse('projects:classify_data', args=[self.object.project.id, self.object.id])
-            return HttpResponseRedirect(url)
-
-        # Show the classification result, along with that of other users (and the project's final
-        # classification, if available yet)
-
-        other_classifications = self.object.classifications.exclude(created_by=self.request.user)
+        role = self.get_project_role()
+        classification = None
+        other_classifications = []
+        if role.can_classify_data:
+            classification = self.object.classification_for(self.request.user).first()
+            if classification:
+                # Only show other classifications once the user has completed classification
+                other_classifications = self.object.classifications.exclude(
+                    created_by=self.request.user)
+        else:
+            other_classifications = self.object.classifications.all()
 
         context = {
+            'work_package': self.object,
             'classification': classification,
             'other_classifications': other_classifications,
-            'project_tier': self.object.tier,
         }
         if not self.object.has_tier:
-            context['questions_table'] = ClassificationOpinionQuestionTable(
-                [classification] + list(other_classifications),
-                current_user=self.request.user,
-            )
+            all_classifications = list(other_classifications)
+            current_user = None
+            if classification:
+                all_classifications.insert(0, classification)
+                current_user = self.request.user
+            if all_classifications:
+                context['questions_table'] = ClassificationOpinionQuestionTable(
+                    all_classifications, current_user=current_user)
 
         return render(self.request, 'projects/work_package_classify_results.html', context)
 
     def test_func(self):
         role = self.get_project_role()
-        return role.can_classify_data if role else False
+        return role.can_view_classification if role else False
 
 
 class WorkPackageClassifyDelete(

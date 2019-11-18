@@ -22,15 +22,6 @@ def helpers():
 
 
 @pytest.fixture
-def superuser():
-    return User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password=DUMMY_PASSWORD,
-    )
-
-
-@pytest.fixture
 def system_manager():
     return User.objects.create_user(
         first_name='System',
@@ -112,11 +103,6 @@ def client_login(client, user):
 
 
 @pytest.fixture
-def as_superuser(client, superuser):
-    return client_login(client, superuser)
-
-
-@pytest.fixture
 def as_system_manager(client, system_manager):
     return client_login(client, system_manager)
 
@@ -156,7 +142,6 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
                          creator=programme_manager)
-        work_package.add_user(investigator.user, programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)

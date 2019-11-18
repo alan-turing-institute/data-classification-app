@@ -1,8 +1,11 @@
+import re
+import unicodedata
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Case, When
-from django.utils.text import slugify
+from django.utils.safestring import mark_safe
 from phonenumber_field.modelfields import PhoneNumberField
 
 import projects
@@ -78,8 +81,6 @@ class User(AbstractUser):
 
     @property
     def user_role(self):
-        if self.is_superuser:
-            return UserRole.SUPERUSER
         return UserRole(self.role)
 
     def set_role(self, role):
@@ -90,14 +91,31 @@ class User(AbstractUser):
         self.aad_status = status
         self.save()
 
-    def generate_username(self):
-        prefix = '{0}.{1}'.format(slugify(self.first_name), slugify(self.last_name))
+    @staticmethod
+    def email_friendly(value):
+        """
+        Return a simplified form of the string suitable for use as part of an email username
 
-        inc = 0
+        Hyphens and alphanumeric characters are preserved.
+        Spaces between names are replaced by dots.
+        """
+        value = str(value)
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+        return mark_safe(re.sub(r'[\s]+', '.', value))
+
+    def generate_username(self):
+        """
+        Return a suitable username for this user
+        """
+        prefix = self.email_friendly(f"{self.first_name} {self.last_name}")
+
+        # If the username already exists, try adding 2,3,4 etc
+        inc = 1
         while True:
             proposed_username = '{prefix}{inc}@{domain}'.format(
                 prefix=prefix,
-                inc=inc or '',
+                inc='' if inc<2 else inc,
                 domain=settings.SAFE_HAVEN_DOMAIN,
             )
             if not User.objects.filter(username=proposed_username).exists():
@@ -122,8 +140,7 @@ class User(AbstractUser):
         Return the administrative role of a user on this project.
         This is used for determining project permissions.
 
-        Do not use for data classification purposes, since for for some users
-        the assigned project role will be overriden by PROJECT_ADMIN.
+        Do not use for data classification purposes.
         For data classification purposes, use project_participation_role().
 
         :return: ProjectRole or None if user is not involved in project
@@ -133,16 +150,11 @@ class User(AbstractUser):
             participant = self.get_participant(project)
         project_role = ProjectRole(participant.role) if participant else None
 
-        is_project_admin = self.is_superuser or \
-            self.user_role is UserRole.SYSTEM_MANAGER or \
-            self.user_role is UserRole.PROGRAMME_MANAGER or \
-            self == project.created_by
-        return UserProjectPermissions(project_role, self.user_role, is_project_admin)
+        return UserProjectPermissions(project_role, self.user_role)
 
     def project_participation_role(self, project):
         """
         Return the assigned project role of a user.
-        This is their participation role and ignores PROJECT_ADMIN status.
 
         Use this method for classification purposes.
         For determining project permissions, use project_role().

@@ -1,4 +1,7 @@
+from collections import defaultdict
 from enum import Enum
+
+from identity.roles import UserRole
 
 
 class ProjectRole(Enum):
@@ -67,10 +70,60 @@ class UserProjectPermissions:
     Determine the permissions a User has on a particular project.
     """
 
-    def __init__(self, project_role, system_role, is_project_admin):
+    permissions_table = '''
+                             | SM PgM | PM DPR PI Ref Res | Extra
+        assign_pm            |  Y   Y |  Y   .  .   .   . |     .
+        assign_dpr           |  Y   Y |  Y   .  .   .   . |     .
+        assign_pi            |  Y   Y |  Y   .  .   .   . |     .
+        assign_ref           |  Y   Y |  Y   .  .   .   . |     .
+        assign_res           |  Y   Y |  Y   .  Y   .   . |     .
+        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
+        approve_participants |  .   . |  .   Y  .   .   . |     .
+        edit                 |  Y   Y |  Y   .  .   .   . |     .
+        archive              |  Y   Y |  Y   .  .   .   . |     .
+        view_history         |  Y   Y |  Y   .  .   .   . |     .
+        add_datasets         |  Y   Y |  Y   .  Y   .   . |     .
+        add_work_packages    |  Y   Y |  Y   .  Y   .   . |     .
+        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
+        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
+        view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
+        classify_data        |  .   . |  .   Y  Y   Y   . |     .
+        classify_if_approved |  .   . |  .   .  .   Y   . |     .
+    '''
+    _permissions = None
+    role_abbreviations = {
+        'SM': UserRole.SYSTEM_MANAGER,
+        'PgM': UserRole.PROGRAMME_MANAGER,
+        'PM': ProjectRole.PROJECT_MANAGER,
+        'DPR': ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+        'PI': ProjectRole.INVESTIGATOR,
+        'Ref': ProjectRole.REFEREE,
+        'Res': ProjectRole.RESEARCHER,
+    }
+    role_abbreviations_inverse = {v: k for k, v in role_abbreviations.items()}
+
+    def __init__(self, project_role, system_role):
         self.system_role = system_role
         self.role = project_role
-        self.is_project_admin = is_project_admin
+
+    @classmethod
+    def permissions(cls):
+        if cls._permissions is None:
+            cls._permissions = defaultdict(lambda: defaultdict(lambda: False))
+            lines = cls.permissions_table.strip().splitlines()
+            headers = lines[0].split()
+            for line in lines[1:]:
+                row = line.split()
+                permission = row[0]
+                for i, cell in enumerate(row[1:]):
+                    if cell == 'Y':
+                        header = headers[i]
+                        try:
+                            role = cls.role_abbreviations[header]
+                        except KeyError:
+                            continue
+                        cls._permissions[permission][role] = True
+        return cls._permissions
 
     @property
     def assignable_roles(self):
@@ -79,102 +132,32 @@ class UserProjectPermissions:
 
         :return: list of `ProjectRole` objects
         """
-        if self.is_project_admin or self.role is ProjectRole.PROJECT_MANAGER:
-            return [ProjectRole.PROJECT_MANAGER,
-                    ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
-                    ProjectRole.INVESTIGATOR,
-                    ProjectRole.REFEREE,
-                    ProjectRole.RESEARCHER]
-        elif self.role is ProjectRole.INVESTIGATOR:
-            return [ProjectRole.RESEARCHER]
-        return []
+        roles = [
+            ProjectRole.PROJECT_MANAGER,
+            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+            ProjectRole.INVESTIGATOR,
+            ProjectRole.REFEREE,
+            ProjectRole.RESEARCHER,
+        ]
+        return [r for r in roles if self.can_assign_role(r)]
 
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
 
         # To add a new participant, the user must also have system-level access to view users
-        return self.system_role.can_view_all_users and (self.is_project_admin or self.role in [
-                    ProjectRole.PROJECT_MANAGER,
-                    ProjectRole.INVESTIGATOR,
-                ])
+        return self.system_role.can_view_all_users and self._can('add_participants')
 
-    @property
-    def can_approve_participants(self):
-        """Is this role able to add new participants to the project?"""
+    def __getattr__(self, name):
+        if name.startswith('can_'):
+            permission = name.replace('can_', '')
+            if permission in self.permissions():
+                return self._can(permission)
+        return AttributeError(name)
 
-        # To add a new participant, the user must also have system-level access to view users
-        return self.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE
-
-    @property
-    def can_edit(self):
-        """Is this role able to edit project details?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-        ]
-
-    @property
-    def can_archive(self):
-        """Is this role able to archive the project?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-        ]
-
-    @property
-    def can_view_history(self):
-        """Is this role able to view audit history?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-        ]
-
-    @property
-    def can_add_datasets(self):
-        """Is this role able to add new datasets to the project?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-            ProjectRole.INVESTIGATOR,
-        ]
-
-    @property
-    def can_add_work_packages(self):
-        """Is this role able to add new work packages to the project?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-            ProjectRole.INVESTIGATOR,
-        ]
-
-    @property
-    def can_list_participants(self):
-        """Is this role able to list participants?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-            ProjectRole.INVESTIGATOR,
-        ]
-
-    @property
-    def can_edit_participants(self):
-        """Is this role able to edit participants?"""
-        return self.is_project_admin or self.role in [
-            ProjectRole.PROJECT_MANAGER,
-            ProjectRole.INVESTIGATOR,
-        ]
-
-    @property
-    def can_classify_data(self):
-        """Is this role able to perform a data classification?"""
-
-        # Does not include PROJECT_ADMIN because classification should only be done by appointed users
-        return self.role in [
-            ProjectRole.REFEREE,
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
-            ProjectRole.INVESTIGATOR,
-        ]
-
-    @property
-    def requires_approval(self):
-        """Do users with this role need to be approved by DPRs for higher-tier work packages?"""
-
-        return self.role.value not in ProjectRole.approved_roles()
+    def _can(self, permission):
+        permission_dict = self.permissions()[permission]
+        return permission_dict[self.role] or permission_dict[self.system_role]
 
     def can_assign_role(self, role):
         """
@@ -183,4 +166,5 @@ class UserProjectPermissions:
         :param role: `ProjectRole` to be assigned
         :return `True` if can assign role, `False` if not
         """
-        return role in self.assignable_roles
+        abbr = self.role_abbreviations_inverse[role].lower()
+        return self._can(f"assign_{abbr}")
