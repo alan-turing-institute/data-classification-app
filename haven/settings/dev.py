@@ -1,4 +1,4 @@
-from haven.config.settings.base import *  # noqa
+from haven.settings.base import *  # noqa
 
 # DEBUG must be False for production deployments
 DEBUG = False

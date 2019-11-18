@@ -16,7 +16,7 @@ matrix:
       install:
         - pip install -r requirements/test.txt
       script:
-        - ./manage.py makemigrations --check --dry-run --settings=config.settings.test
+        - ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
     - name: verify built JS files are up to date
       language: node_js
       node_js:
@@ -41,4 +41,4 @@ matrix:
       install:
         - pip install -r requirements/production.txt
       script:
-        - ./manage.py check --deploy --settings=haven.config.settings.production
+        - ./manage.py check --deploy --settings=haven.settings.production

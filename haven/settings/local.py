@@ -1,5 +1,5 @@
 # flake8: noqa F405
-from haven.config.settings.base import *  # noqa
+from haven.settings.base import *  # noqa
 
 
 # Settings specific to the local machine development environment
