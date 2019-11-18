@@ -103,7 +103,7 @@ TEMPLATES = [
                 'sourcerevision.context_processors.source_revision',
             ],
             'libraries': {
-                'haven': 'haven.core.template_tags.haven',
+                'haven': 'haven.core.templatetags.haven',
             },
         },
     },
