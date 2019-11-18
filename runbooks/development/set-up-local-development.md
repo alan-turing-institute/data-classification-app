@@ -54,7 +54,7 @@ manage.py createsuperuser
 ### Update static files
 
 ```bash
-mkdir -p haven/staticfiles
+mkdir -p staticfiles
 manage.py collectstatic
 ```
 

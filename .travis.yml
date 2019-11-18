@@ -24,7 +24,7 @@ matrix:
       before_script:
         - npm install -g gulp-cli
       script:
-        - cd haven/static
+        - cd static
         - npm install
         - gulp
         - git diff --exit-code --numstat
