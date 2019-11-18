@@ -65,6 +65,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'haven.core',
     'haven.identity',
     'haven.projects',
     'haven.data',
