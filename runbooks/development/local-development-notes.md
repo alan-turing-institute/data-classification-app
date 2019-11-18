@@ -37,7 +37,7 @@ You will need to install `gulp` and `gulp-cli` which require `node`. It is stron
 If a code update has modified the database models, you will need to run the migration on your local database.
 
 ```bash
-haven/manage.py migrate
+manage.py migrate
 ```
 
 If you modify the database model in your code, you will need to generate the required Django migration files and commit them into the repository.

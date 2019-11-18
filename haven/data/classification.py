@@ -19,7 +19,7 @@ from haven.data.tiers import Tier
 # * Update various tests to match how you expect the flowchart to work
 # * Change the constants, initial_guidance and initial_questions to match the new flowchart
 # * Once you're happy with the tests, create the migrations
-# * Run `haven/manage.py makemigrations --empty data`
+# * Run `manage.py makemigrations --empty data`
 # * Copy the contents of this module into the migration
 # * Add `migrations.RunPython(migrate_questions)` into the list of operations
 # * Update the migrate_questions method accordingly
@@ -28,7 +28,7 @@ from haven.data.tiers import Tier
 # For more complicated changes, you may need to adapt these instructions.
 #
 # If you've had to change the schema
-# * Run `haven/manage.py makemigrations` before creating your empty migration (so that you have
+# * Run `manage.py makemigrations` before creating your empty migration (so that you have
 #   two separate migrations, one schema & one data)
 #
 # If you have to change anything in this module other than the question definitions (e.g. because
@@ -43,7 +43,7 @@ from haven.data.tiers import Tier
 #   migration
 # * Delete the references to this class, e.g. delete `from data import classification` and change
 #   `classification.do_something()` to just `do_something()`
-# * Fake rollback of the migration: `haven/manage.py migrate --fake data <previous_migration_name>`
+# * Fake rollback of the migration: `manage.py migrate --fake data <previous_migration_name>`
 # * Rerun your migration
 # * This process is convoluted, but is designed to ensure you don't make a change only in the
 #   migration, and not this module, which would cause problems next time we try to write another
