@@ -25,4 +25,4 @@ python3 ./manage.py migrate
 
 echo "Running gunicorn web server..."
 # Log to stdout so it will be picked up by Azure log stream
-gunicorn --bind=0.0.0.0 --timeout 600 haven.config.wsgi --error-logfile '-' --log-level 'warning'
+gunicorn --bind=0.0.0.0 --timeout 600 haven.wsgi --error-logfile '-' --log-level 'warning'

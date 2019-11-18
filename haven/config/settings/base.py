@@ -87,7 +87,7 @@ MIDDLEWARE = [
     'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
-ROOT_URLCONF = 'haven.config.urls'
+ROOT_URLCONF = 'haven.urls'
 
 TEMPLATES = [
     {
@@ -111,7 +111,7 @@ TEMPLATES = [
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'haven.wsgi.application'
 
 
 # Database
