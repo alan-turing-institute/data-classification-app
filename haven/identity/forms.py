@@ -6,8 +6,8 @@ from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 
 from identity.roles import UserRole
 
-from .mixins import SaveCreatorMixin
-from .models import User
+from identity.mixins import SaveCreatorMixin
+from identity.models import User
 
 
 class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
@@ -35,7 +35,9 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         assignable_roles = [r.value for r in self.user.system_permissions.creatable_roles]
-        if assignable_roles:
+
+        # Hide the role field if the only allowable role is standard user
+        if assignable_roles and assignable_roles != [UserRole.NONE.value]:
             self.fields['role'].choices = [
                 (role, name)
                 for role, name in self.fields['role'].choices
