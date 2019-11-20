@@ -55,17 +55,17 @@ def determine_role(backend, user, response, *args, **kwargs):
     if user.role and user.role != UserRole.SYSTEM_MANAGER.value:
         role = UserRole(user.role)
 
-    # System Manager is only set by beiong a member of the appropriate group
+    # System Manager is only set by being a member of the appropriate group
     if graph_response.ok:
         groups = graph_response.json().get('value', [])
         # System Manager overrides any other permissions
         for group in groups:
-            if 'displayName' in group and group['displayName'] == settings.SYS_CONTROLLER_GROUP_NAME:
+            if 'displayName' in group and group['displayName'] == settings.SECURITY_GROUP_SYSTEM_MANAGERS:
                 role = UserRole.SYSTEM_MANAGER
                 break
         # If not System Manager, then Programme Manager overrides any other permissions
         for group in groups:
-            if 'displayName' in group and group['displayName'] == settings.PROG_MANAGER_GROUP_NAME:
+            if 'displayName' in group and group['displayName'] == settings.SECURITY_GROUP_PROGRAMME_MANAGERS:
                 role = UserRole.PROGRAMME_MANAGER
                 break
 

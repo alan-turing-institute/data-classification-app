@@ -76,7 +76,7 @@ class TestDetermineRole:
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {'value': [{
-            'displayName': settings.SYS_CONTROLLER_GROUP_NAME,
+            'displayName': settings.SECURITY_GROUP_SYSTEM_MANAGERS,
         }]}
 
         determine_role(azure_backend, user1, {})
@@ -88,7 +88,7 @@ class TestDetermineRole:
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {'value': [{
-            'displayName': settings.PROG_MANAGER_GROUP_NAME,
+            'displayName': settings.SECURITY_GROUP_PROGRAMME_MANAGERS,
         }]}
 
         determine_role(azure_backend, user1, {})
