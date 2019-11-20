@@ -359,7 +359,7 @@ class EditProjectListParticipants(
 
     def test_func(self):
         return (self.get_project_role().can_edit_participants
-                and self.request.user.user_role.can_view_all_users)
+                and self.request.user.system_permissions.can_view_all_users)
 
     def get_assignable_roles(self):
         project_role = self.request.user.project_role(self.get_object())
@@ -1300,7 +1300,7 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
 
     def get_visible_users(self):
         # Filter results depending on user role permissions
-        if not self.request.user.user_role.can_view_all_users:
+        if not self.request.user.system_permissions.can_view_all_users:
             return User.objects.none()
 
         existing_users = self.get_users_to_exclude()
@@ -1328,7 +1328,7 @@ class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
     """
 
     def get_visible_users(self):
-        if not self.request.user.user_role.can_view_all_users:
+        if not self.request.user.system_permissions.can_view_all_users:
             if 'pk' in self.kwargs:
                 project_id = self.kwargs['pk']
                 return User.objects.filter(

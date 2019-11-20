@@ -9,7 +9,7 @@ class CustomUserManager(UserManager):
         Return QuerySet of objects the specified user is permitted to view
         """
         default_query_set = self.get_queryset()
-        if user.user_role.can_view_all_users:
+        if user.system_permissions.can_view_all_users:
             return default_query_set
         else:
             return default_query_set.filter(

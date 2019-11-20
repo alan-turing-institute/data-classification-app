@@ -135,6 +135,16 @@ class User(AbstractUser):
         except projects.models.Participant.DoesNotExist:
             return None
 
+    @property
+    def system_permissions(self):
+        """
+        Return object for determining the user's system-level permissions
+        
+        :return: UserRole
+        """
+
+        return UserRole(self.role)
+
     def project_role(self, project, participant=None):
         """
         Return the administrative role of a user on this project.
