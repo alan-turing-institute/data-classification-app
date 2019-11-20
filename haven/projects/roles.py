@@ -65,7 +65,7 @@ class ProjectRole(Enum):
         return list(set(cls.ordered_display_role_list()) - set(cls.approved_roles()))
 
 
-class UserProjectPermissions:
+class UserPermissions:
     """
     Determine the permissions a User has on a particular project.
     """

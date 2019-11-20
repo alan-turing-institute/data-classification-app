@@ -9,10 +9,10 @@ from django.utils.safestring import mark_safe
 from phonenumber_field.modelfields import PhoneNumberField
 
 import projects
-from projects.roles import ProjectRole, UserProjectPermissions
+from projects.roles import ProjectRole, UserPermissions
 
-from .managers import CustomUserManager
-from .roles import UserRole
+from identity.managers import CustomUserManager
+from identity.roles import UserRole
 
 
 class User(AbstractUser):
@@ -150,14 +150,14 @@ class User(AbstractUser):
         Return an object which can be used to determine user permissions relating to the user's
         role on a project and their system-level role.
 
-        :return: UserProjectPermissions
+        :return: UserPermissions
         """
 
         if participant is None:
             participant = self.get_participant(project)
         project_role = ProjectRole(participant.role) if participant else None
 
-        return UserProjectPermissions(project_role, self.user_role)
+        return UserPermissions(project_role, self.user_role)
 
     def project_participation_role(self, project):
         """
