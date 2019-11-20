@@ -135,6 +135,20 @@ class User(AbstractUser):
         except projects.models.Participant.DoesNotExist:
             return None
 
+    def combined_permissions(self, project_id=None):
+        """
+        Return a UserPermissions object which may include project permissions for a particular
+        project if the project_id is specified
+
+        :return: UserPermissions object describing user permissions
+        """
+
+        if project_id:
+            project = projects.models.Project.objects.get(pk=project_id)
+            return self.project_permissions(project)
+        else:
+            return self.system_permissions
+
     @property
     def system_permissions(self):
         """

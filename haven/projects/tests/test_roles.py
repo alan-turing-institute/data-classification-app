@@ -1,11 +1,14 @@
 from identity.roles import UserRole
 from projects.roles import ProjectRole, UserPermissions
+import pytest
+
+from core import recipes
 
 
 class TestProjectRoleAddParticipants:
-    def test_project_manager_cannot_add_participants(self):
+    def test_project_manager_can_add_participants(self):
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
-        assert not perms.can_add_participants
+        assert perms.can_add_participants
 
     def test_investigator_cannot_add_participants(self):
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
@@ -138,3 +141,68 @@ class TestIsValidAssignableParticipantRole:
         assert not ProjectRole.is_valid_assignable_participant_role(None)
         assert not ProjectRole.is_valid_assignable_participant_role('data')
         assert not ProjectRole.is_valid_assignable_participant_role('inv')
+
+
+@pytest.mark.django_db
+class TestPermissions:
+    def test_project_manager_gets_permissions_on_projects(self, programme_manager, project_participant):
+        project = recipes.project.make(created_by=programme_manager)
+
+        project.add_user(
+            project_participant,
+            ProjectRole.PROJECT_MANAGER.value,
+            programme_manager
+        )
+
+        permissions = project_participant.project_permissions(project)
+        assert permissions.can_assign_pm
+        assert permissions.can_assign_dpr
+        assert permissions.can_assign_pi
+        assert permissions.can_assign_ref
+        assert permissions.can_assign_res
+        assert permissions.can_add_participants
+        assert not permissions.can_approve_participants
+        assert permissions.can_edit
+        assert permissions.can_archive
+        assert permissions.can_view_history
+        assert permissions.can_add_datasets
+        assert permissions.can_add_work_packages
+        assert permissions.can_list_participants
+        assert permissions.can_edit_participants
+        assert permissions.can_view_classification
+        assert not permissions.can_classify_data
+        assert not permissions.can_classify_if_approved
+
+    def test_project_manager_does_not_get_permissions_on_other_projects(self, programme_manager, project_participant):
+        project1 = recipes.project.make(created_by=programme_manager)
+        project2 = recipes.project.make(created_by=programme_manager)
+
+        project1.add_user(
+            project_participant,
+            ProjectRole.PROJECT_MANAGER.value,
+            programme_manager
+        )
+        project2.add_user(
+            project_participant,
+            ProjectRole.RESEARCHER.value,
+            programme_manager
+        )
+
+        permissions = project_participant.project_permissions(project2)
+        assert not permissions.can_assign_pm
+        assert not permissions.can_assign_dpr
+        assert not permissions.can_assign_pi
+        assert not permissions.can_assign_ref
+        assert not permissions.can_assign_res
+        assert not permissions.can_add_participants
+        assert not permissions.can_approve_participants
+        assert not permissions.can_edit
+        assert not permissions.can_archive
+        assert not permissions.can_view_history
+        assert not permissions.can_add_datasets
+        assert not permissions.can_add_work_packages
+        assert permissions.can_list_participants  # Researcher can see other participants
+        assert not permissions.can_edit_participants
+        assert not permissions.can_view_classification
+        assert not permissions.can_classify_data
+        assert not permissions.can_classify_if_approved

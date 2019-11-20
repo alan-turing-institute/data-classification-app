@@ -76,7 +76,7 @@ class UserPermissions:
         edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
         create_projects      |  Y   Y |  .   .  .   .   . |     .
         create_users         |  Y   Y |  .   .  .   .   . |     .
-        view_all_users       |  Y   Y |  .   .  .   .   . |     .
+        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
         export_users         |  Y   Y |  .   .  .   .   . |     .
         import_users         |  Y   Y |  .   .  .   .   . |     .
         edit_users           |  Y   Y |  .   .  .   .   . |     .
