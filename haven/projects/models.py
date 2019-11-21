@@ -532,7 +532,7 @@ class Participant(CreatedByModel):
 
     @property
     def permissions(self):
-        return self.user.project_role(self.project, participant=self)
+        return self.user.project_permissions(self.project, participant=self)
 
     def get_work_package_participant(self, work_package):
         qs = WorkPackageParticipant.objects.filter(participant=self, work_package=work_package)

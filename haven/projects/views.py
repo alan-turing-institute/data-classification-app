@@ -89,9 +89,9 @@ class ProjectMixin:
     def get_project_url_kwarg(self):
         return 'pk'
 
-    def get_project_role(self):
-        """Return the logged in user's administrative role on the project"""
-        return self.request.user.project_role(self.get_project())
+    def get_project_permissions(self):
+        """Return the logged in user's permissions on the project"""
+        return self.request.user.project_permissions(self.get_project())
 
     def get_project_participation_role(self):
         """Return the logged in user's assigned role on the project"""
@@ -99,7 +99,7 @@ class ProjectMixin:
 
     def get_context_data(self, **kwargs):
         kwargs['project'] = self.get_project()
-        kwargs['project_role'] = self.get_project_role()
+        kwargs['project_permissions'] = self.get_project_permissions()
         return super().get_context_data(**kwargs)
 
     def get_form(self, *args, **kwargs):
@@ -198,7 +198,7 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
         kwargs['participant'] = self.request.user.get_participant(project)
         participants = project.participants.all()
         kwargs['participants_table'] = ParticipantTable(
-            participants, show_edit_links=self.get_project_role().can_edit_participants)
+            participants, show_edit_links=self.get_project_permissions().can_edit_participants)
         work_packages = project.work_packages.order_by('created_at').all()
         kwargs['work_packages_table'] = WorkPackageTable(work_packages)
         datasets = project.project_datasets.order_by('created_at').all()
@@ -214,7 +214,7 @@ class ProjectEdit(
     form_class = ProjectForm
 
     def test_func(self):
-        return self.get_project_role().can_edit
+        return self.get_project_permissions().can_edit
 
     def get_success_url(self):
         obj = self.get_object()
@@ -235,7 +235,7 @@ class ProjectArchive(
     form_class = ProjectArchiveForm
 
     def test_func(self):
-        return self.get_project_role().can_archive
+        return self.get_project_permissions().can_archive
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -258,7 +258,7 @@ class ProjectHistory(
     template_name = 'projects/project_history.html'
 
     def test_func(self):
-        return self.get_project_role().can_view_history
+        return self.get_project_permissions().can_view_history
 
     def get_context_data(self, **kwargs):
         history = self.get_object().get_audit_history()
@@ -287,13 +287,13 @@ class ProjectAddUser(
     def get_form(self):
         form = super().get_form()
 
-        project_role = self.get_project_role()
+        project_permissions = self.get_project_permissions()
 
         # Restrict form dropdown to roles this user is allowed to assign on the project
         form.fields['role'].choices = [
             (role, name)
             for (role, name) in form.fields['role'].choices
-            if project_role.can_assign_role(ProjectRole(role))
+            if project_permissions.can_assign_role(ProjectRole(role))
         ]
         if not self.get_project().work_packages.exists():
             form.helper = SaveCancelFormHelper('Add Participant')
@@ -324,7 +324,7 @@ class ProjectAddUser(
         return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
-        return self.get_project_role().can_add_participants
+        return self.get_project_permissions().can_add_participants
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -358,12 +358,12 @@ class EditProjectListParticipants(
         return reverse('projects:detail', args=[self.get_object().id])
 
     def test_func(self):
-        return (self.get_project_role().can_edit_participants
+        return (self.get_project_permissions().can_edit_participants
                 and self.request.user.system_permissions.can_view_all_users)
 
     def get_assignable_roles(self):
-        project_role = self.request.user.project_role(self.get_object())
-        return [r.value for r in project_role.assignable_roles]
+        project_permissions = self.request.user.project_permissions(self.get_object())
+        return [r.value for r in project_permissions.assignable_roles]
 
     def get_participants(self):
         roles = self.get_assignable_roles()
@@ -425,13 +425,13 @@ class EditParticipant(
     def get_form(self):
         form = super().get_form()
 
-        project_role = self.get_project_role()
+        project_permissions = self.get_project_permissions()
 
         # Restrict form dropdown to roles this user is allowed to assign on the project
         form.fields['role'].choices = [
             (role, name)
             for (role, name) in form.fields['role'].choices
-            if project_role.can_assign_role(ProjectRole(role))
+            if project_permissions.can_assign_role(ProjectRole(role))
         ]
         if not self.get_project().work_packages.exists():
             form.helper = SaveCancelFormHelper('Edit Participant')
@@ -464,7 +464,7 @@ class EditParticipant(
         return reverse('projects:detail', args=[obj.id])
 
     def test_func(self):
-        return self.get_project_role().can_edit_participants
+        return self.get_project_permissions().can_edit_participants
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -534,7 +534,7 @@ class ProjectCreateDataset(
             return self.form_valid(form)
 
     def test_func(self):
-        return self.get_project_role().can_add_datasets
+        return self.get_project_permissions().can_add_datasets
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
@@ -580,7 +580,7 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
     template_name = 'projects/edit_dataset.html'
 
     def test_func(self):
-        return self.get_project_role().can_edit_datasets
+        return self.get_project_permissions().can_edit_datasets
 
     def get_project_dataset(self):
         try:
@@ -649,7 +649,7 @@ class ProjectCreateWorkPackage(
             return self.form_valid(form)
 
     def test_func(self):
-        return self.get_project_role().can_add_work_packages
+        return self.get_project_permissions().can_add_work_packages
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
@@ -715,7 +715,7 @@ class WorkPackageAddDataset(
         return self.object.get_absolute_url()
 
     def test_func(self):
-        return self.get_project_role().can_add_work_packages
+        return self.get_project_permissions().can_add_work_packages
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -741,7 +741,7 @@ class WorkPackageApproveParticipants(
     template_name = 'projects/work_package_participant_approve.html'
 
     def test_func(self):
-        return self.get_project_role().can_approve_participants
+        return self.get_project_permissions().can_approve_participants
 
     def get_context_data(self, **kwargs):
         helper = SaveCancelInlineFormSetHelper('Approve Participants')
@@ -788,7 +788,7 @@ class WorkPackageEditParticipants(
     template_name = 'projects/work_package_participants_edit.html'
 
     def test_func(self):
-        return self.get_project_role().can_edit_participants
+        return self.get_project_permissions().can_edit_participants
 
     def get_context_data(self, **kwargs):
         helper = SaveCancelInlineFormSetHelper()
@@ -841,7 +841,7 @@ class WorkPackageAddParticipant(
         return self.get_work_package().get_absolute_url()
 
     def test_func(self):
-        return self.get_project_role().can_add_participants
+        return self.get_project_permissions().can_add_participants
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -866,7 +866,7 @@ class WorkPackageClassifyData(
     template_name = 'projects/work_package_classify_data.html'
 
     def test_func(self):
-        role = self.get_project_role()
+        role = self.get_project_permissions()
         if not role.can_classify_data:
             return False
         participant = self.request.user.get_participant(self.get_project())
@@ -1184,7 +1184,7 @@ class WorkPackageClassifyResults(
     def get(self, *args, **kwargs):
         self.object = self.get_object()
 
-        role = self.get_project_role()
+        role = self.get_project_permissions()
         classification = None
         other_classifications = []
         if role.can_classify_data:
@@ -1214,7 +1214,7 @@ class WorkPackageClassifyResults(
         return render(self.request, 'projects/work_package_classify_results.html', context)
 
     def test_func(self):
-        role = self.get_project_role()
+        role = self.get_project_permissions()
         return role.can_view_classification if role else False
 
 
@@ -1237,7 +1237,7 @@ class WorkPackageClassifyDelete(
             return self.form_invalid(form)
 
     def test_func(self):
-        role = self.get_project_role()
+        role = self.get_project_permissions()
         if not role or not role.can_classify_data:
             return False
         self.object = self.get_object()
