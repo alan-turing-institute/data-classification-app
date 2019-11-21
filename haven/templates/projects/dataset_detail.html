@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load haven %}
+
+{% block page_title %}{{ dataset.dataset.name }}{% endblock %}
+{% block h1_title %}{{ dataset.dataset.name }}{% endblock %}
+
+{% block content %}
+  <p>
+  Data Provider Representative: {{ dataset.representative }}
+  </p>
+
+  <p>
+  {{ dataset.dataset.description }}
+  </p>
+{% endblock content %}
+
+{% block actions %}
+  {% url_check 'projects:edit_dataset' project.id dataset.id as edit_dataset_href %}
+  {% if edit_dataset_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_dataset_href }}">Edit Description</a>
+  {% endif %}
+{% endblock actions %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' dataset.project.id %}">{{ dataset.project.name }}</a></li>
+  <li class="breadcrumb-item">Datasets</li>
+  <li class="breadcrumb-item active" aria-current="page">{{ dataset.dataset.name }}</li>
+{% endblock crumbs %}

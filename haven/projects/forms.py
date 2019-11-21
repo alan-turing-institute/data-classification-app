@@ -118,6 +118,14 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         self.fields['default_representative'] = field
 
 
+class ProjectEditDatasetForm(forms.ModelForm):
+    helper = SaveCancelFormHelper('Save Dataset')
+
+    class Meta:
+        model = Dataset
+        fields = ('name', 'description')
+
+
 class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 

@@ -73,8 +73,18 @@ class WorkPackageTable(tables.Table):
         empty_text = 'No work packages to display'
 
 
-class DatasetTable(tables.Table):
-    name = tables.Column('Name')
+class ProjectDatasetTable(tables.Table):
+    name = tables.Column('Name', accessor='dataset.name', linkify=True)
+    representative = tables.Column('Representative')
+    created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
+
+    class Meta:
+        orderable = False
+        empty_text = 'No datasets to display'
+
+
+class WorkPackageDatasetTable(tables.Table):
+    name = tables.Column('Name', accessor='dataset.name')
     created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
 
     class Meta:
