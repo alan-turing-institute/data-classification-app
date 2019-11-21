@@ -140,10 +140,10 @@ class User(AbstractUser):
         """
         Return object for determining the user's system-level permissions
         
-        :return: UserRole
+        :return: UserPermissions object describing user permissions
         """
 
-        return UserRole(self.role)
+        return UserPermissions(None, self.user_role)
 
     def project_permissions(self, project, participant=None):
         """
