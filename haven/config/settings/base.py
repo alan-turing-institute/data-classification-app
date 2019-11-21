@@ -32,7 +32,7 @@ SECRET_KEY = env.str('SECRET_KEY', default='')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)
 
-WEBAPP_TITLE = env.str('WEBAPP_TITLE', default='Data Safe Haven')
+WEBAPP_TITLE = env.str('WEBAPP_TITLE', default='Data Classification')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
