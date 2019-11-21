@@ -38,7 +38,7 @@ def send_activation_email(user):
     )
 
     return send_mail(
-        subject=f'Invitation to the { settings.WEBAPP_TITLE }',
+        subject=f'Invitation to the { settings.WEBAPP_TITLE } tool',
         message=message,
         from_email=settings.DEFAULT_FROM_MAIL,
         recipient_list=[user.email]
