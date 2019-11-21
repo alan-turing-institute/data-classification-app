@@ -65,13 +65,27 @@ class ProjectRole(Enum):
         return list(set(cls.ordered_display_role_list()) - set(cls.approved_roles()))
 
 
-class UserProjectPermissions:
+class UserPermissions:
     """
     Determine the permissions a User has on a particular project.
     """
 
     permissions_table = '''
                              | SM PgM | PM DPR PI Ref Res | Extra
+        view_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        create_projects      |  Y   Y |  .   .  .   .   . |     .
+        create_users         |  Y   Y |  .   .  .   .   . |     .
+        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
+        export_users         |  Y   Y |  .   .  .   .   . |     .
+        import_users         |  Y   Y |  .   .  .   .   . |     .
+        edit_users           |  Y   Y |  .   .  .   .   . |     .
+        create_sm            |  .   . |  .   .  .   .   . |     .
+        create_pgm           |  Y   . |  .   .  .   .   . |     .
+        create_usr           |  Y   Y |  .   .  .   .   . |     .
+        assign_sm            |  .   . |  .   .  .   .   . |     .
+        assign_pgm           |  Y   . |  .   .  .   .   . |     .
+        assign_usr           |  Y   Y |  .   .  .   .   . |     .
         assign_pm            |  Y   Y |  Y   .  .   .   . |     .
         assign_dpr           |  Y   Y |  Y   .  .   .   . |     .
         assign_pi            |  Y   Y |  Y   .  .   .   . |     .
@@ -95,6 +109,7 @@ class UserProjectPermissions:
     role_abbreviations = {
         'SM': UserRole.SYSTEM_MANAGER,
         'PgM': UserRole.PROGRAMME_MANAGER,
+        'USR': UserRole.NONE,
         'PM': ProjectRole.PROJECT_MANAGER,
         'DPR': ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
         'PI': ProjectRole.INVESTIGATOR,
@@ -143,11 +158,25 @@ class UserProjectPermissions:
         return [r for r in roles if self.can_assign_role(r)]
 
     @property
+    def creatable_roles(self):
+        """
+        User Roles which this role is allowed to create
+
+        :return: list of `UserRole` objects
+        """
+        roles = [
+                UserRole.SYSTEM_MANAGER,
+                UserRole.PROGRAMME_MANAGER,
+                UserRole.NONE,
+            ]
+        return [] if not self.can_create_users else [r for r in roles if self.can_assign_role(r)]
+
+    @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
 
         # To add a new participant, the user must also have system-level access to view users
-        return self.system_role.can_view_all_users and self._can('add_participants')
+        return self._can('view_all_users') and self._can('add_participants')
 
     def __getattr__(self, name):
         if name.startswith('can_'):

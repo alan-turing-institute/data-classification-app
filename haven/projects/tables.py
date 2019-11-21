@@ -58,7 +58,7 @@ class WorkPackageParticipantTable(tables.Table):
         elif self.user is None:
             self.columns.hide('approved_by_you')
         else:
-            perms = self.user.project_role(self.work_package.project)
+            perms = self.user.project_permissions(self.work_package.project)
             if not perms.can_approve_participants:
                 self.columns.hide('approved_by_you')
 

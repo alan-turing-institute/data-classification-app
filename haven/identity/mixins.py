@@ -13,7 +13,7 @@ class UserPermissionRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         try:
             for p in self.user_permissions:
-                if getattr(self.request.user.user_role, p):
+                if getattr(self.request.user.system_permissions, p):
                     return True
             return False
         except AttributeError:

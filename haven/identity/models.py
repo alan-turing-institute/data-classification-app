@@ -9,10 +9,10 @@ from django.utils.safestring import mark_safe
 from phonenumber_field.modelfields import PhoneNumberField
 
 import projects
-from projects.roles import ProjectRole, UserProjectPermissions
+from projects.roles import ProjectRole, UserPermissions
 
-from .managers import CustomUserManager
-from .roles import UserRole
+from identity.managers import CustomUserManager
+from identity.roles import UserRole
 
 
 class User(AbstractUser):
@@ -135,29 +135,50 @@ class User(AbstractUser):
         except projects.models.Participant.DoesNotExist:
             return None
 
-    def project_role(self, project, participant=None):
+    def combined_permissions(self, project_id=None):
         """
-        Return the administrative role of a user on this project.
-        This is used for determining project permissions.
+        Return a UserPermissions object which may include project permissions for a particular
+        project if the project_id is specified
 
-        Do not use for data classification purposes.
-        For data classification purposes, use project_participation_role().
+        :return: UserPermissions object describing user permissions
+        """
 
-        :return: ProjectRole or None if user is not involved in project
+        if project_id:
+            project = projects.models.Project.objects.get(pk=project_id)
+            return self.project_permissions(project)
+        else:
+            return self.system_permissions
+
+    @property
+    def system_permissions(self):
+        """
+        Return object for determining the user's system-level permissions
+        
+        :return: UserPermissions object describing user permissions
+        """
+
+        return UserPermissions(None, self.user_role)
+
+    def project_permissions(self, project, participant=None):
+        """
+        Return an object which can be used to determine user permissions relating to the user's
+        role on a project and their system-level role.
+
+        :return: UserPermissions
         """
 
         if participant is None:
             participant = self.get_participant(project)
         project_role = ProjectRole(participant.role) if participant else None
 
-        return UserProjectPermissions(project_role, self.user_role)
+        return UserPermissions(project_role, self.user_role)
 
     def project_participation_role(self, project):
         """
         Return the assigned project role of a user.
 
         Use this method for classification purposes.
-        For determining project permissions, use project_role().
+        For determining project permissions, use project_permissions().
 
         :return: ProjectRole or None if user is not involved in project
         """

@@ -33,7 +33,7 @@
 {% endblock %}
 
 {% block extra_sections %}
-  {% if project_role.can_list_participants %}
+  {% if project_permissions.can_list_participants %}
     {% include "projects/includes/project_detail_participants.html" %}
   {% endif %}
   {% include "projects/includes/project_detail_work_packages.html" %}

@@ -7,7 +7,7 @@
 
 <p>
   Details that are not listed below, such as email address, can only be changed globally.
-  {% if user.user_role.can_edit_users %}
+  {% if user.system_permissions.can_edit_users %}
     Please <a href="{% url 'identity:edit_user' participant.user.id %}">edit the user</a> instead if you wish to change these.
   {% else %}
     Please contact someone with the appropriate credentials if you wish to change these.
