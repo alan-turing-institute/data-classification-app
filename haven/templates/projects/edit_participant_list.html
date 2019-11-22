@@ -34,5 +34,5 @@
 {% endblock crumbs %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', false)</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', null)</script>
 {% endblock %}
