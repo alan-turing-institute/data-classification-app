@@ -19,7 +19,7 @@
 
 <form method="POST" action="">
   {% csrf_token %}
-  <div id="participants-formset">
+  <div id="{{ formset.prefix }}-formset">
   {% crispy formset helper %}
   </div>
 </form>
@@ -34,5 +34,5 @@
 {% endblock crumbs %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#participants-formset', '{{ formset.prefix | escapejs }}', false)</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', false)</script>
 {% endblock %}

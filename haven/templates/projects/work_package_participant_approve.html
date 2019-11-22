@@ -11,7 +11,7 @@
   {{ form.media }}
   {{ form|crispy }}
 
-  <div id="participant-formset">
+  <div id="{{ formset.prefix }}-formset">
     {% crispy formset helper %}
   </div>
 
@@ -29,5 +29,5 @@
 {% endblock crumbs %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#participant-formset', '{{ formset.prefix | escapejs }}', false)</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', false)</script>
 {% endblock %}
