@@ -27,7 +27,7 @@ createdb -O haven haven
 
 ### Set up environment variables
 
-Create a file named `haven/.env` with the following entries (these can also be set as environment variables
+Create a file named `.env` in the repository root with the following entries (these can also be set as environment variables
 when the webserver is run):
 
 ```python
@@ -41,33 +41,33 @@ DATABASE_URL='postgres://haven:haven@localhost/haven'
 ### Apply migrations
 
 ```bash
-haven/manage.py migrate easyaudit
-haven/manage.py migrate
+manage.py migrate easyaudit
+manage.py migrate
 ```
 
 ### Create initial admin user account
 
 ```bash
-haven/manage.py createsuperuser
+manage.py createsuperuser
 ```
 
 ### Update static files
 
 ```bash
-mkdir -p haven/staticfiles
-haven/manage.py collectstatic
+mkdir -p staticfiles
+manage.py collectstatic
 ```
 
 ### Apply migrations
 
 ```bash
-haven/manage.py migrate
+manage.py migrate
 ```
 
 ### Run server
 
 ```bash
-haven/manage.py runserver
+manage.py runserver
 ```
 
 ### Accessing the test server

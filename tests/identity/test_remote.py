@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from identity.models import User
-from identity.remote import _connect_ldap, create_user
+from haven.identity.models import User
+from haven.identity.remote import _connect_ldap, create_user
 
 
-@patch('identity.remote.Server')
-@patch('identity.remote.Connection')
+@patch('haven.identity.remote.Server')
+@patch('haven.identity.remote.Connection')
 class TestConnectLDAP:
     def test_uses_correct_settings(self, mockConnection, mockServer, settings):
         settings.LDAP_SERVER = 'my-ldap-server'
@@ -36,7 +36,7 @@ class TestConnectLDAP:
             _connect_ldap()
 
 
-@patch('identity.remote._connect_ldap')
+@patch('haven.identity.remote._connect_ldap')
 @pytest.mark.django_db
 class TestCreateUser:
     def test_sets_status_to_pending(self, mock_conn, user1):

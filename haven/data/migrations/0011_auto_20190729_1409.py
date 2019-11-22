@@ -2,8 +2,8 @@
 
 from django.db import migrations, models
 
-from data import classification
-from data.tiers import Tier
+from haven.data import classification
+from haven.data.tiers import Tier
 
 
 class Migration(migrations.Migration):

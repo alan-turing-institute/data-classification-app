@@ -5,7 +5,7 @@ from django.db import migrations, models
 from simple_history.manager import HistoryManager
 from simple_history.models import HistoricalRecords
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 def prepare_questions(apps, schema_editor):

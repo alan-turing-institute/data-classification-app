@@ -4,10 +4,10 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 
-from identity.roles import UserRole
+from haven.identity.roles import UserRole
 
-from identity.mixins import SaveCreatorMixin
-from identity.models import User
+from haven.identity.mixins import SaveCreatorMixin
+from haven.identity.models import User
 
 
 class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):

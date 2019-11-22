@@ -1,5 +1,5 @@
-from identity.roles import UserRole
-from projects.roles import UserPermissions
+from haven.identity.roles import UserRole
+from haven.projects.roles import UserPermissions
 
 
 def permissions_user(role):

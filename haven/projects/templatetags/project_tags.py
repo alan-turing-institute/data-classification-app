@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from ..roles import ProjectRole
+from haven.projects.roles import ProjectRole
 
 
 register = template.Library()

@@ -16,13 +16,13 @@ Including another URLconf
 from django.conf import settings
 from django.urls import include, path
 from django.views.generic import TemplateView
-from core import views as core_views
+from haven.core import views as core_views
 
 
 urlpatterns = [
-    path('users/', include('identity.urls', namespace='identity')),
+    path('users/', include('haven.identity.urls', namespace='identity')),
 
-    path('projects/', include('projects.urls', namespace='projects')),
+    path('projects/', include('haven.projects.urls', namespace='projects')),
 
     path('logout/', core_views.logout, name='logout'),
 

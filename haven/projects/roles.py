@@ -1,7 +1,7 @@
 from collections import defaultdict
 from enum import Enum
 
-from identity.roles import UserRole
+from haven.identity.roles import UserRole
 
 
 class ProjectRole(Enum):

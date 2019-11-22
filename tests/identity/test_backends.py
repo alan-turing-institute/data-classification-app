@@ -1,4 +1,4 @@
-from identity.backends import CustomAzureOAuth2Backend
+from haven.identity.backends import CustomAzureOAuth2Backend
 
 
 def test_returns_correct_fields():

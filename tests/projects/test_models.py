@@ -2,10 +2,10 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
-from core import recipes
-from data.classification import insert_initial_questions
-from data.models import ClassificationGuidance, ClassificationQuestion
-from projects.models import (
+from haven.core import recipes
+from haven.data.classification import insert_initial_questions
+from haven.data.models import ClassificationGuidance, ClassificationQuestion
+from haven.projects.models import (
     Policy,
     PolicyAssignment,
     PolicyGroup,
@@ -13,8 +13,8 @@ from projects.models import (
     WorkPackageParticipant,
     a_or_an,
 )
-from projects.policies import insert_initial_policies
-from projects.roles import ProjectRole
+from haven.projects.policies import insert_initial_policies
+from haven.projects.roles import ProjectRole
 
 
 @pytest.mark.django_db

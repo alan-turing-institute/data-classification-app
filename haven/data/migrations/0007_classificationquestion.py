@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import migrations, models
 import django.db.models.deletion
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 def insert_questions(apps, schema_editor):

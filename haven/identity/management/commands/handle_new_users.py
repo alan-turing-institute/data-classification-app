@@ -2,9 +2,9 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from ...emails import send_activation_email
-from ...graph import application_client
-from ...models import User
+from haven.identity.emails import send_activation_email
+from haven.identity.graph import application_client
+from haven.identity.models import User
 
 
 logger = logging.getLogger(__name__)

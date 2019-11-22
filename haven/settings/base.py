@@ -65,9 +65,10 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'identity',
-    'projects',
-    'data',
+    'haven.core',
+    'haven.identity',
+    'haven.projects',
+    'haven.data',
 ]
 
 INSTALLED_APPS = THIRD_PARTY_PRE_APPS + DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -86,12 +87,12 @@ MIDDLEWARE = [
     'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = 'haven.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(BASE_DIR / 'templates')],
+        'DIRS': [str(BASE_DIR / 'haven' / 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -102,7 +103,7 @@ TEMPLATES = [
                 'sourcerevision.context_processors.source_revision',
             ],
             'libraries': {
-                'haven': 'core.template_tags.haven',
+                'haven': 'haven.core.templatetags.haven',
             },
         },
     },
@@ -110,7 +111,7 @@ TEMPLATES = [
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'haven.wsgi.application'
 
 
 # Database
@@ -139,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'identity.backends.CustomAzureOAuth2Backend',
+    'haven.identity.backends.CustomAzureOAuth2Backend',
 ]
 
 AUTH_USER_MODEL = 'identity.User'
@@ -158,13 +159,13 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
-    'identity.pipeline.find_existing_user',
+    'haven.identity.pipeline.find_existing_user',
     'social_core.pipeline.user.create_user',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
-    'identity.pipeline.user_fields',
-    'identity.pipeline.determine_role',
+    'haven.identity.pipeline.user_fields',
+    'haven.identity.pipeline.determine_role',
 )
 
 LOGIN_REDIRECT_URL = '/projects'

@@ -1,7 +1,7 @@
 import pytest
 
-from identity.forms import CreateUserForm
-from identity.models import User
+from haven.identity.forms import CreateUserForm
+from haven.identity.models import User
 
 
 @pytest.mark.django_db

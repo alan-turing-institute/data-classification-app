@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q
 
-from projects.roles import ProjectRole
+from haven.projects.roles import ProjectRole
 
 
 class ProjectQuerySet(models.QuerySet):

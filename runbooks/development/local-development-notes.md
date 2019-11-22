@@ -8,8 +8,8 @@ but for local development you may need to run these manually.
 ## Update static files - if you have modified CSS etc.
 
 ```bash
-mkdir -p haven/staticfiles
-haven/manage.py collectstatic
+mkdir -p staticfiles
+manage.py collectstatic
 ```
 
 For staging/production deployments, the provisioning scripts will run this during deployment.
@@ -28,7 +28,7 @@ To add a new python package to the requirements:
 ## Updating the compiled JS files
 
 If you modify the JS/CSS you may need to update the compiled files using `gulp`.
-You will need to install `gulp` and `gulp-cli` which require `node`. It is strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. The `gulpfile` is at `haven/static/gulpfile.js`.
+You will need to install `gulp` and `gulp-cli` which require `node`. It is strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. The `gulpfile` is at `static/gulpfile.js`.
 
 
 
@@ -37,7 +37,7 @@ You will need to install `gulp` and `gulp-cli` which require `node`. It is stron
 If a code update has modified the database models, you will need to run the migration on your local database.
 
 ```bash
-haven/manage.py migrate
+manage.py migrate
 ```
 
 If you modify the database model in your code, you will need to generate the required Django migration files and commit them into the repository.

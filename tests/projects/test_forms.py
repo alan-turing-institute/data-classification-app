@@ -1,9 +1,9 @@
 import pytest
 
-from core import recipes
-from identity.models import User
-from projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
-from projects.roles import ProjectRole
+from haven.core import recipes
+from haven.identity.models import User
+from haven.projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
+from haven.projects.roles import ProjectRole
 
 
 @pytest.mark.django_db

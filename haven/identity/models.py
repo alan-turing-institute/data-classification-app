@@ -8,11 +8,8 @@ from django.db.models import Case, When
 from django.utils.safestring import mark_safe
 from phonenumber_field.modelfields import PhoneNumberField
 
-import projects
-from projects.roles import ProjectRole, UserPermissions
-
-from identity.managers import CustomUserManager
-from identity.roles import UserRole
+from haven.identity.managers import CustomUserManager
+from haven.identity.roles import UserRole
 
 
 class User(AbstractUser):
@@ -130,9 +127,11 @@ class User(AbstractUser):
 
         :return: `Participant` object or None if user is not involved in project
         """
+        from haven.projects.models import Participant
+        
         try:
             return self.participants.get(project=project)
-        except projects.models.Participant.DoesNotExist:
+        except Participant.DoesNotExist:
             return None
 
     def combined_permissions(self, project_id=None):
@@ -143,8 +142,10 @@ class User(AbstractUser):
         :return: UserPermissions object describing user permissions
         """
 
+        from haven.projects.models import Project
+
         if project_id:
-            project = projects.models.Project.objects.get(pk=project_id)
+            project = Project.objects.get(pk=project_id)
             return self.project_permissions(project)
         else:
             return self.system_permissions
@@ -157,6 +158,8 @@ class User(AbstractUser):
         :return: UserPermissions object describing user permissions
         """
 
+        from haven.projects.roles import UserPermissions
+
         return UserPermissions(None, self.user_role)
 
     def project_permissions(self, project, participant=None):
@@ -166,6 +169,8 @@ class User(AbstractUser):
 
         :return: UserPermissions
         """
+
+        from haven.projects.roles import ProjectRole, UserPermissions
 
         if participant is None:
             participant = self.get_participant(project)
@@ -182,6 +187,8 @@ class User(AbstractUser):
 
         :return: ProjectRole or None if user is not involved in project
         """
+        from haven.projects.roles import ProjectRole
+
         participant = self.get_participant(project)
         return ProjectRole(participant.role) if participant else None
 

@@ -8,7 +8,7 @@ os.environ['AZUREAD_OAUTH2_TENANT_ID'] = 'notasecret'
 os.environ['DATABASE_URL'] = 'sqlite:////tmp/my-tmp-sqlite.db'
 
 
-from .base import *  # noqa
+from haven.settings.base import *  # noqa
 
 
 USE_LDAP = False

@@ -3,13 +3,13 @@ import json
 import bleach
 import pytest
 
-from core import recipes
-from data.classification import insert_initial_questions
-from data.models import ClassificationGuidance, ClassificationQuestion
-from identity.models import User
-from projects.models import Policy, PolicyAssignment, PolicyGroup, Project
-from projects.policies import insert_initial_policies
-from projects.roles import ProjectRole
+from haven.core import recipes
+from haven.data.classification import insert_initial_questions
+from haven.data.models import ClassificationGuidance, ClassificationQuestion
+from haven.identity.models import User
+from haven.projects.models import Policy, PolicyAssignment, PolicyGroup, Project
+from haven.projects.policies import insert_initial_policies
+from haven.projects.roles import ProjectRole
 
 
 @pytest.mark.django_db

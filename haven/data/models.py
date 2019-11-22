@@ -1,10 +1,10 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from data import tiers
-from identity.models import User
+from haven.data import tiers
+from haven.identity.models import User
 
-from .managers import ClassificationQuestionQuerySet
+from haven.data.managers import ClassificationQuestionQuerySet
 
 
 class Dataset(models.Model):

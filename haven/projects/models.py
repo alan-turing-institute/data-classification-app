@@ -5,12 +5,12 @@ from django.db.models import BooleanField, Case, Q, Value, When
 from django.urls import reverse
 from easyaudit.models import CRUDEvent
 
-from data.models import ClassificationQuestion, Dataset
-from data.tiers import TIER_CHOICES, Tier
-from identity.models import User
+from haven.data.models import ClassificationQuestion, Dataset
+from haven.data.tiers import TIER_CHOICES, Tier
+from haven.identity.models import User
 
-from .managers import ProjectQuerySet
-from .roles import ProjectRole
+from haven.projects.managers import ProjectQuerySet
+from haven.projects.roles import ProjectRole
 
 
 def validate_role(role):

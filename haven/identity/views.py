@@ -12,13 +12,12 @@ from django.views.generic import ListView, View
 from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
-from core.forms import InlineFormSetHelper
-from projects.forms import ProjectsForUserInlineFormSet
+from haven.core.forms import InlineFormSetHelper
+from haven.projects.forms import ProjectsForUserInlineFormSet
 
-from .forms import CreateUserForm, EditUserForm
-from .mixins import UserPermissionRequiredMixin
-from .models import User
-from .roles import UserRole
+from haven.identity.forms import CreateUserForm, EditUserForm
+from haven.identity.mixins import UserPermissionRequiredMixin
+from haven.identity.models import User
 
 
 class UserCreate(LoginRequiredMixin,
