@@ -6,14 +6,14 @@ require('bootstrap-checkbox');
 require('bootstrap/js/dist/collapse');
 require('bootstrap/js/dist/dropdown');
 
-global.formset = function(selector, prefix, show_add_button){
+global.formset = function(selector, prefix, addText){
   $(function() {
     var options = {};
 
     options.prefix = prefix;
 
-    if (show_add_button) {
-      options.addText = '<i class="fas fa-plus"></i> Add more';
+    if (addText) {
+      options.addText = '<i class="fas fa-plus"></i> ' + addText;
       options.addCssClass = 'add-row btn btn-sm btn-outline-secondary';
     }
 

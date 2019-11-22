@@ -37,7 +37,7 @@
   {{ form|crispy }}
 
   <h2>Projects</h2>
-  <div id="project-formset">
+  <div id="{{ formset.prefix }}-formset">
     {% crispy formset helper %}
   </div>
 
@@ -46,5 +46,5 @@
 {% endblock content %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#project-formset', '{{ formset.prefix | escapejs }}', true)</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', 'Add Project')</script>
 {% endblock %}
