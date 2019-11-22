@@ -26,8 +26,14 @@
   {% else %}
     <a class="btn btn-primary" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
   {% endif %}
-
-  <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
-    <span class="navbar-text ml-auto">Build {% version_number %}</span>
-  </nav>
 {% endblock content %}
+
+{% block extra_sections %}
+  <div class="row pb-5">
+    <div class="col">
+        <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
+          <span class="navbar-text ml-auto">Build {% version_number %}</span>
+        </nav>
+    </div>
+  </div>
+{% endblock extra_sections %}
