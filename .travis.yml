@@ -11,6 +11,16 @@ matrix:
         - pip install -r requirements/test.txt
       script:
         - pytest --cov-config=haven/.coveragerc --cov-report term-missing --cov haven
+    - name: check for missing migrations
+      language: python
+      python:
+        - "3.7"
+      env:
+        - PYTHONPATH=haven/
+      install:
+        - pip install -r requirements/test.txt
+      script:
+        - haven/manage.py makemigrations --check --dry-run --settings=config.settings.test
     - name: verify built JS files are up to date
       language: node_js
       node_js:
