@@ -125,12 +125,13 @@ class UserPermissions:
     @classmethod
     def permissions(cls):
         if cls._permissions is None:
-            cls._permissions = defaultdict(lambda: defaultdict(lambda: False))
+            cls._permissions = {}
             lines = cls.permissions_table.strip().splitlines()
             headers = lines[0].split()
             for line in lines[1:]:
                 row = line.split()
                 permission = row[0]
+                cls._permissions[permission] = defaultdict(lambda: False)
                 for i, cell in enumerate(row[1:]):
                     if cell == 'Y':
                         header = headers[i]
@@ -181,12 +182,17 @@ class UserPermissions:
     def __getattr__(self, name):
         if name.startswith('can_'):
             permission = name.replace('can_', '')
-            if permission in self.permissions():
+            try:
                 return self._can(permission)
-        return AttributeError(name)
+            except ValueError as e:
+                raise AttributeError(name) from e
+        raise AttributeError(name)
 
     def _can(self, permission):
-        permission_dict = self.permissions()[permission]
+        try:
+            permission_dict = self.permissions()[permission]
+        except KeyError as e:
+            raise ValueError(f"{permission} not a valid permission") from e
         return permission_dict[self.role] or permission_dict[self.system_role]
 
     def can_assign_role(self, role):

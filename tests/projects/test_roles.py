@@ -16,10 +16,10 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert not perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
         assert not perms.can_assign_pm
@@ -51,10 +51,10 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert not perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
         assert not perms.can_assign_pm
@@ -86,10 +86,10 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert not perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
         assert not perms.can_assign_pm
@@ -121,10 +121,10 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert not perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
         assert not perms.can_assign_pm
@@ -156,10 +156,10 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert not perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
         assert perms.can_assign_pm
@@ -191,10 +191,10 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert not perms.can_create_pgm
         assert perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert perms.can_assign_usr
         assert perms.can_assign_pm
@@ -226,10 +226,10 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        # assert not perms.can_create_sm
+        assert not perms.can_create_sm
         assert perms.can_create_pgm
         assert perms.can_create_usr
-        # assert not perms.can_assign_sm
+        assert not perms.can_assign_sm
         assert perms.can_assign_pgm
         assert perms.can_assign_usr
         assert perms.can_assign_pm
@@ -250,6 +250,11 @@ class TestUserPermissions:
         assert perms.can_view_classification
         assert not perms.can_classify_data
         assert not perms.can_classify_if_approved
+
+    def test_invalid_permissions(self):
+        perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
+        with pytest.raises(AttributeError):
+            perms.can_do_anything
 
 
 class TestProjectRoleAssignableRoles:
