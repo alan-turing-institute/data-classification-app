@@ -331,7 +331,7 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
         fields = ('project', 'role')
 
     def clean(self):
-        if 'project' in self.cleaned_data:
+        if 'project' in self.cleaned_data and 'role' in self.cleaned_data:
             project = self.cleaned_data['project']
             role = ProjectRole(self.cleaned_data['role'])
             if not self.user.project_permissions(project).can_assign_role(role):
