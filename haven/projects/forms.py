@@ -297,7 +297,7 @@ class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
 class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
     """Inline form describing a single work package assignment for a user"""
 
-    username = forms.CharField(disabled=True, widget=ShowValue)
+    username = forms.CharField(disabled=True, widget=ShowValue, required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
