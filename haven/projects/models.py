@@ -8,7 +8,6 @@ from easyaudit.models import CRUDEvent
 from haven.data.models import ClassificationQuestion, Dataset
 from haven.data.tiers import TIER_CHOICES, Tier
 from haven.identity.models import User
-
 from haven.projects.managers import ProjectQuerySet
 from haven.projects.roles import ProjectRole
 
@@ -48,7 +47,7 @@ class Project(CreatedByModel):
         return self.name
 
     @transaction.atomic
-    def add_user(self, user, role, creator):
+    def add_user(self, user, role, creator, work_packages=None):
         """
         Add participant to this project
         User must already exist in the database
@@ -69,7 +68,9 @@ class Project(CreatedByModel):
             project=self,
         )
         if role == ProjectRole.INVESTIGATOR.value:
-            for work_package in self.work_packages.all():
+            work_packages = self.work_packages.all()
+        if work_packages:
+            for work_package in work_packages:
                 work_package.add_user(user, creator)
         return participant
 

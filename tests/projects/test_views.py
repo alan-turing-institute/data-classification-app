@@ -339,12 +339,7 @@ class TestAddUserToProject:
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
-            'work_packages-TOTAL_FORMS': 2,
-            'work_packages-MAX_NUM_FORMS': 2,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
-            'work_packages-0-work_package': work_package.id,
-            'work_packages-1-work_package': work_package3.id,
+            'work_packages': [work_package.id, work_package3.id],
         })
 
         assert response.status_code == 302
@@ -508,23 +503,14 @@ class TestEditParticipant:
                                                   created_by=as_programme_manager._user)
 
         investigator = recipes.investigator.make(project=project)
-        p1 = work_package.add_user(investigator.user, creator=as_programme_manager._user)
-        p2 = work_package2.add_user(investigator.user, creator=as_programme_manager._user)
+        work_package.add_user(investigator.user, creator=as_programme_manager._user)
+        work_package2.add_user(investigator.user, creator=as_programme_manager._user)
 
         response = as_programme_manager.post(
             '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
             {
                 'role': ProjectRole.RESEARCHER.value,
-                'work_packages-TOTAL_FORMS': 2,
-                'work_packages-MAX_NUM_FORMS': 2,
-                'work_packages-MIN_NUM_FORMS': 0,
-                'work_packages-INITIAL_FORMS': 2,
-                'work_packages-0-id': p1.id,
-                'work_packages-0-participant': investigator.id,
-                'work_packages-1-id': p2.id,
-                'work_packages-1-participant': investigator.id,
-                'work_packages-0-work_package': work_package.id,
-                'work_packages-1-work_package': work_package3.id,
+                'work_packages': [work_package.id, work_package3.id],
             }
         )
 
@@ -565,13 +551,7 @@ class TestEditParticipant:
             '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
             {
                 'role': ProjectRole.RESEARCHER.value,
-                'work_packages-TOTAL_FORMS': 1,
-                'work_packages-MAX_NUM_FORMS': 1,
-                'work_packages-MIN_NUM_FORMS': 0,
-                'work_packages-INITIAL_FORMS': 1,
-                'work_packages-0-id': p.id,
-                'work_packages-0-participant': investigator.id,
-                'work_packages-0-work_package': work_package.id,
+                'work_packages': [work_package.id],
             }
         )
 
@@ -766,12 +746,7 @@ class TestProjectAddDataset:
             'name': 'dataset 1',
             'description': 'Dataset One',
             'default_representative': data_provider_representative.user.pk,
-            'work_packages-TOTAL_FORMS': 2,
-            'work_packages-MAX_NUM_FORMS': 2,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
-            'work_packages-0-work_package': work_package1.id,
-            'work_packages-1-work_package': work_package3.id,
+            'work_packages': [work_package1.id, work_package3.id],
         })
 
         assert response.status_code == 302
@@ -1179,12 +1154,7 @@ class TestProjectAddWorkPackage:
             'role': ProjectRole.RESEARCHER.value,
             'name': 'work package 1',
             'description': 'Work Package One',
-            'datasets-TOTAL_FORMS': 2,
-            'datasets-MAX_NUM_FORMS': 2,
-            'datasets-MIN_NUM_FORMS': 0,
-            'datasets-INITIAL_FORMS': 0,
-            'datasets-0-dataset': dataset1.id,
-            'datasets-1-dataset': dataset3.id,
+            'datasets': [dataset1.id, dataset3.id],
         })
 
         assert response.status_code == 302
