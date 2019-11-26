@@ -508,7 +508,7 @@ class WorkPackage(CreatedByModel):
         return reverse('projects:work_package_detail', args=[self.project.id, self.id])
 
     def __str__(self):
-        return f'{self.project} - {self.name}'
+        return self.name
 
 
 class Participant(CreatedByModel):
