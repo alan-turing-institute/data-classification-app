@@ -1,34 +1,260 @@
-from haven.identity.roles import UserRole
-from haven.projects.roles import ProjectRole, UserPermissions
 import pytest
 
 from haven.core import recipes
+from haven.identity.roles import UserRole
+from haven.projects.roles import ProjectRole, UserPermissions
 
 
-class TestProjectRoleAddParticipants:
-    def test_project_manager_can_add_participants(self):
-        perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
-        assert perms.can_add_participants
-
-    def test_investigator_cannot_add_participants(self):
-        perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
-        assert not perms.can_add_participants
-
-    def test_researcher_cannot_add_participants(self):
+class TestUserPermissions:
+    def test_researcher_permissions(self):
         perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
+        assert not perms.can_view_all_projects
+        assert not perms.can_edit_all_projects
+        assert not perms.can_create_projects
+        assert not perms.can_create_users
+        assert not perms.can_view_all_users
+        assert not perms.can_export_users
+        assert not perms.can_import_users
+        assert not perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert not perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert not perms.can_assign_usr
+        assert not perms.can_assign_pm
+        assert not perms.can_assign_dpr
+        assert not perms.can_assign_pi
+        assert not perms.can_assign_ref
+        assert not perms.can_assign_res
         assert not perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert not perms.can_edit
+        assert not perms.can_archive
+        assert not perms.can_view_history
+        assert not perms.can_add_datasets
+        assert not perms.can_edit_datasets
+        assert not perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert not perms.can_edit_participants
+        assert not perms.can_view_classification
+        assert not perms.can_classify_data
+        assert not perms.can_classify_if_approved
 
-    def test_referee_cannot_add_participants(self):
+    def test_referee_permissions(self):
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
+        assert not perms.can_view_all_projects
+        assert not perms.can_edit_all_projects
+        assert not perms.can_create_projects
+        assert not perms.can_create_users
+        assert not perms.can_view_all_users
+        assert not perms.can_export_users
+        assert not perms.can_import_users
+        assert not perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert not perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert not perms.can_assign_usr
+        assert not perms.can_assign_pm
+        assert not perms.can_assign_dpr
+        assert not perms.can_assign_pi
+        assert not perms.can_assign_ref
+        assert not perms.can_assign_res
         assert not perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert not perms.can_edit
+        assert not perms.can_archive
+        assert not perms.can_view_history
+        assert not perms.can_add_datasets
+        assert not perms.can_edit_datasets
+        assert not perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert not perms.can_edit_participants
+        assert perms.can_view_classification
+        assert perms.can_classify_data
+        assert perms.can_classify_if_approved
 
-    def test_system_manager_can_add_participants(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
-        assert perms.can_add_participants
+    def test_investigator_permissions(self):
+        perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
+        assert not perms.can_view_all_projects
+        assert not perms.can_edit_all_projects
+        assert not perms.can_create_projects
+        assert not perms.can_create_users
+        assert not perms.can_view_all_users
+        assert not perms.can_export_users
+        assert not perms.can_import_users
+        assert not perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert not perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert not perms.can_assign_usr
+        assert not perms.can_assign_pm
+        assert not perms.can_assign_dpr
+        assert not perms.can_assign_pi
+        assert not perms.can_assign_ref
+        assert perms.can_assign_res
+        assert not perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert not perms.can_edit
+        assert not perms.can_archive
+        assert not perms.can_view_history
+        assert not perms.can_add_datasets
+        assert not perms.can_edit_datasets
+        assert not perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert perms.can_edit_participants
+        assert perms.can_view_classification
+        assert perms.can_classify_data
+        assert not perms.can_classify_if_approved
 
-    def test_programme_manager_can_add_participants(self):
-        perms = UserPermissions(ProjectRole.REFEREE, UserRole.PROGRAMME_MANAGER)
+    def test_dpr_permissions(self):
+        perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
+        assert not perms.can_view_all_projects
+        assert not perms.can_edit_all_projects
+        assert not perms.can_create_projects
+        assert not perms.can_create_users
+        assert not perms.can_view_all_users
+        assert not perms.can_export_users
+        assert not perms.can_import_users
+        assert not perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert not perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert not perms.can_assign_usr
+        assert not perms.can_assign_pm
+        assert not perms.can_assign_dpr
+        assert not perms.can_assign_pi
+        assert not perms.can_assign_ref
+        assert not perms.can_assign_res
+        assert not perms.can_add_participants
+        assert perms.can_approve_participants
+        assert not perms.can_edit
+        assert not perms.can_archive
+        assert not perms.can_view_history
+        assert not perms.can_add_datasets
+        assert not perms.can_edit_datasets
+        assert not perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert not perms.can_edit_participants
+        assert perms.can_view_classification
+        assert perms.can_classify_data
+        assert not perms.can_classify_if_approved
+
+    def test_pm_permissions(self):
+        perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
+        assert not perms.can_view_all_projects
+        assert not perms.can_edit_all_projects
+        assert not perms.can_create_projects
+        assert not perms.can_create_users
+        assert perms.can_view_all_users
+        assert not perms.can_export_users
+        assert not perms.can_import_users
+        assert not perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert not perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert not perms.can_assign_usr
+        assert perms.can_assign_pm
+        assert perms.can_assign_dpr
+        assert perms.can_assign_pi
+        assert perms.can_assign_ref
+        assert perms.can_assign_res
         assert perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert perms.can_edit
+        assert perms.can_archive
+        assert perms.can_view_history
+        assert perms.can_add_datasets
+        assert perms.can_edit_datasets
+        assert perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert perms.can_edit_participants
+        assert perms.can_view_classification
+        assert not perms.can_classify_data
+        assert not perms.can_classify_if_approved
+
+    def test_pgm_permissions(self):
+        perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
+        assert perms.can_view_all_projects
+        assert perms.can_edit_all_projects
+        assert perms.can_create_projects
+        assert perms.can_create_users
+        assert perms.can_view_all_users
+        assert perms.can_export_users
+        assert perms.can_import_users
+        assert perms.can_edit_users
+        assert not perms.can_create_sm
+        assert not perms.can_create_pgm
+        assert perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert not perms.can_assign_pgm
+        assert perms.can_assign_usr
+        assert perms.can_assign_pm
+        assert perms.can_assign_dpr
+        assert perms.can_assign_pi
+        assert perms.can_assign_ref
+        assert perms.can_assign_res
+        assert perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert perms.can_edit
+        assert perms.can_archive
+        assert perms.can_view_history
+        assert perms.can_add_datasets
+        assert perms.can_edit_datasets
+        assert perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert perms.can_edit_participants
+        assert perms.can_view_classification
+        assert not perms.can_classify_data
+        assert not perms.can_classify_if_approved
+
+    def test_sm_permissions(self):
+        perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
+        assert perms.can_view_all_projects
+        assert perms.can_edit_all_projects
+        assert perms.can_create_projects
+        assert perms.can_create_users
+        assert perms.can_view_all_users
+        assert perms.can_export_users
+        assert perms.can_import_users
+        assert perms.can_edit_users
+        assert not perms.can_create_sm
+        assert perms.can_create_pgm
+        assert perms.can_create_usr
+        assert not perms.can_assign_sm
+        assert perms.can_assign_pgm
+        assert perms.can_assign_usr
+        assert perms.can_assign_pm
+        assert perms.can_assign_dpr
+        assert perms.can_assign_pi
+        assert perms.can_assign_ref
+        assert perms.can_assign_res
+        assert perms.can_add_participants
+        assert not perms.can_approve_participants
+        assert perms.can_edit
+        assert perms.can_archive
+        assert perms.can_view_history
+        assert perms.can_add_datasets
+        assert perms.can_edit_datasets
+        assert perms.can_add_work_packages
+        assert perms.can_list_participants
+        assert perms.can_edit_participants
+        assert perms.can_view_classification
+        assert not perms.can_classify_data
+        assert not perms.can_classify_if_approved
+
+    def test_invalid_permissions(self):
+        perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
+        with pytest.raises(AttributeError):
+            perms.can_do_anything
 
 
 class TestProjectRoleAssignableRoles:
@@ -72,58 +298,6 @@ class TestProjectRoleAssignableRoles:
         assert not permissions.can_assign_role(ProjectRole.REFEREE)
 
 
-class TestProjectRoleListParticipants:
-    def test_project_manager_can_list_participants(self):
-        perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
-        assert perms.can_list_participants
-
-    def test_investigator_can_list_participants(self):
-        perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
-        assert perms.can_list_participants
-
-    def test_researcher_cannot_list_participants(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
-        assert perms.can_list_participants
-
-    def test_referee_cannot_list_participants(self):
-        perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
-        assert perms.can_list_participants
-
-    def test_programme_manager_can_list_participants(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
-        assert perms.can_list_participants
-
-    def test_system_manager_can_list_participants(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
-        assert perms.can_list_participants
-
-
-class TestProjectRoleEditProject:
-    def test_project_manager_can_edit(self):
-        perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
-        assert perms.can_edit
-
-    def test_investigator_can_edit(self):
-        perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
-        assert not perms.can_edit
-
-    def test_researcher_cannot_list_participants(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
-        assert not perms.can_edit
-
-    def test_referee_cannot_list_participants(self):
-        perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
-        assert not perms.can_edit
-
-    def test_programme_manager_can_edit(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
-        assert perms.can_edit
-
-    def test_system_manager_can_edit(self):
-        perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.SYSTEM_MANAGER)
-        assert perms.can_edit
-
-
 class TestIsValidAssignableParticipantRole:
     def test_valid_roles(self):
         assert ProjectRole.is_valid_assignable_participant_role('referee')
@@ -144,36 +318,8 @@ class TestIsValidAssignableParticipantRole:
 
 
 @pytest.mark.django_db
-class TestPermissions:
-    def test_project_manager_gets_permissions_on_projects(self, programme_manager, project_participant):
-        project = recipes.project.make(created_by=programme_manager)
-
-        project.add_user(
-            project_participant,
-            ProjectRole.PROJECT_MANAGER.value,
-            programme_manager
-        )
-
-        permissions = project_participant.project_permissions(project)
-        assert permissions.can_assign_pm
-        assert permissions.can_assign_dpr
-        assert permissions.can_assign_pi
-        assert permissions.can_assign_ref
-        assert permissions.can_assign_res
-        assert permissions.can_add_participants
-        assert not permissions.can_approve_participants
-        assert permissions.can_edit
-        assert permissions.can_archive
-        assert permissions.can_view_history
-        assert permissions.can_add_datasets
-        assert permissions.can_add_work_packages
-        assert permissions.can_list_participants
-        assert permissions.can_edit_participants
-        assert permissions.can_view_classification
-        assert not permissions.can_classify_data
-        assert not permissions.can_classify_if_approved
-
-    def test_project_manager_does_not_get_permissions_on_other_projects(self, programme_manager, project_participant):
+class TestProjectPermissions:
+    def test_user_gets_permissions_on_correct_project(self, programme_manager, project_participant):
         project1 = recipes.project.make(created_by=programme_manager)
         project2 = recipes.project.make(created_by=programme_manager)
 
@@ -188,21 +334,8 @@ class TestPermissions:
             programme_manager
         )
 
+        permissions = project_participant.project_permissions(project1)
+        assert permissions.can_edit
+
         permissions = project_participant.project_permissions(project2)
-        assert not permissions.can_assign_pm
-        assert not permissions.can_assign_dpr
-        assert not permissions.can_assign_pi
-        assert not permissions.can_assign_ref
-        assert not permissions.can_assign_res
-        assert not permissions.can_add_participants
-        assert not permissions.can_approve_participants
         assert not permissions.can_edit
-        assert not permissions.can_archive
-        assert not permissions.can_view_history
-        assert not permissions.can_add_datasets
-        assert not permissions.can_add_work_packages
-        assert permissions.can_list_participants  # Researcher can see other participants
-        assert not permissions.can_edit_participants
-        assert not permissions.can_view_classification
-        assert not permissions.can_classify_data
-        assert not permissions.can_classify_if_approved
