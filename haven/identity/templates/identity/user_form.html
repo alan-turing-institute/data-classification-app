@@ -33,10 +33,17 @@
 <form method="POST" action="">
   {% csrf_token %}
 
-
   {{ form|crispy }}
 
   <h2>Projects</h2>
+
+  {% if formset.initial_form_count == 0 %}
+    <p>
+      You may add the user to one or more existing projects now using the drop-downs below.
+      Alternatively, you can continue without adding users to a project – to do so, press "{{ editing | yesno:"Save Changes,Add User" }}" without selecting anything.
+    </p>
+  {% endif %}
+
   <div id="{{ formset.prefix }}-formset">
     {% crispy formset helper %}
   </div>
@@ -46,5 +53,5 @@
 {% endblock content %}
 
 {% block extra_js %}
-  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', 'Add Project')</script>
+  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', 'Add to Another Project')</script>
 {% endblock %}
