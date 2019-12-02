@@ -18,14 +18,6 @@
   {% csrf_token %}
   {{ form.media }}
   {% crispy form %}
-
-  {% if formset %}
-    <h2>Work Packages</h2>
-    <div id="{{ formset.prefix }}-formset">
-      {% crispy formset %}
-    </div>
-  {% endif %}
-
 </form>
 
 {% endblock content %}
@@ -39,7 +31,3 @@
   <li class="breadcrumb-item">{{ participant.user.username }}</li>
   <li class="breadcrumb-item">Edit</li>
 {% endblock crumbs %}
-
-{% block extra_js %}
-  <script type="text/javascript">formset('#{{ formset.prefix }}-formset', '{{ formset.prefix | escapejs }}', 'Add Work Package')</script>
-{% endblock %}

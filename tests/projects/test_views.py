@@ -7,7 +7,12 @@ from haven.core import recipes
 from haven.data.classification import insert_initial_questions
 from haven.data.models import ClassificationGuidance, ClassificationQuestion
 from haven.identity.models import User
-from haven.projects.models import Policy, PolicyAssignment, PolicyGroup, Project
+from haven.projects.models import (
+    Policy,
+    PolicyAssignment,
+    PolicyGroup,
+    Project,
+)
 from haven.projects.policies import insert_initial_policies
 from haven.projects.roles import ProjectRole
 
@@ -321,20 +326,20 @@ class TestAddUserToProject:
         assert project.participants.count() == 1
         assert project.participants.first().user.username == project_participant.username
 
-    def test_add_new_user_to_project_and_work_package(self, as_programme_manager,
-                                                      project_participant):
+    def test_add_new_user_to_project_and_work_packages(self, as_programme_manager,
+                                                       project_participant):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(project=project,
                                                  created_by=as_programme_manager._user)
+        work_package2 = recipes.work_package.make(project=project,
+                                                  created_by=as_programme_manager._user)
+        work_package3 = recipes.work_package.make(project=project,
+                                                  created_by=as_programme_manager._user)
         response = as_programme_manager.post('/projects/%d/participants/add' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
             'user': project_participant.pk,
-            'work_packages-TOTAL_FORMS': 1,
-            'work_packages-MAX_NUM_FORMS': 1,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
-            'work_packages-0-work_package': work_package.id,
+            'work_packages': [work_package.id, work_package3.id],
         })
 
         assert response.status_code == 302
@@ -345,6 +350,13 @@ class TestAddUserToProject:
         assert participants.first().user.username == project_participant.username
 
         participants = work_package.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == project_participant.username
+
+        participants = work_package2.participants
+        assert participants.count() == 0
+
+        participants = work_package3.participants
         assert participants.count() == 1
         assert participants.first().user.username == project_participant.username
 
@@ -480,21 +492,25 @@ class TestEditParticipant:
         assert project.participants.first().user.username == investigator.user.username
         assert project.participants.first().role == ProjectRole.RESEARCHER.value
 
-    def test_edit_participant_and_work_package(self, as_programme_manager):
+    def test_edit_participant_and_work_packages(self, as_programme_manager):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(project=project,
                                                  created_by=as_programme_manager._user)
+        work_package2 = recipes.work_package.make(project=project,
+                                                  created_by=as_programme_manager._user)
+        work_package3 = recipes.work_package.make(project=project,
+                                                  created_by=as_programme_manager._user)
+
         investigator = recipes.investigator.make(project=project)
+        work_package.add_user(investigator.user, creator=as_programme_manager._user)
+        work_package2.add_user(investigator.user, creator=as_programme_manager._user)
+
         response = as_programme_manager.post(
             '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
             {
                 'role': ProjectRole.RESEARCHER.value,
-                'work_packages-TOTAL_FORMS': 1,
-                'work_packages-MAX_NUM_FORMS': 1,
-                'work_packages-MIN_NUM_FORMS': 0,
-                'work_packages-INITIAL_FORMS': 0,
-                'work_packages-0-work_package': work_package.id,
+                'work_packages': [work_package.id, work_package3.id],
             }
         )
 
@@ -508,6 +524,49 @@ class TestEditParticipant:
         participants = work_package.participants
         assert participants.count() == 1
         assert participants.first().user.username == investigator.user.username
+
+        participants = work_package2.participants
+        assert participants.count() == 0
+
+        participants = work_package3.participants
+        assert participants.count() == 1
+        assert participants.first().user.username == investigator.user.username
+
+    def test_edit_approved_participant(self, data_provider_representative, as_programme_manager):
+
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project,
+                                                 created_by=as_programme_manager._user)
+
+        investigator = recipes.investigator.make(project=project)
+        dataset = recipes.dataset.make()
+        project.add_dataset(dataset, data_provider_representative.user, as_programme_manager._user)
+        work_package.add_dataset(dataset, as_programme_manager._user)
+
+        p = work_package.add_user(investigator.user, creator=as_programme_manager._user)
+        p.approve(data_provider_representative.user)
+        assert p.approvals.count() == 1
+
+        response = as_programme_manager.post(
+            '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
+            {
+                'role': ProjectRole.RESEARCHER.value,
+                'work_packages': [work_package.id],
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert project.participants.count() == 2
+        assert project.participants.first().user.username == investigator.user.username
+        assert project.participants.first().role == ProjectRole.RESEARCHER.value
+
+        participants = work_package.participants
+        assert participants.count() == 2
+        assert participants.first().user.username == investigator.user.username
+        wpp = participants.first().get_work_package_participant(work_package)
+        assert wpp.approvals.count() == 1
 
     def test_returns_404_for_invisible_project(self, as_standard_user):
         project = recipes.project.make()
@@ -687,12 +746,7 @@ class TestProjectAddDataset:
             'name': 'dataset 1',
             'description': 'Dataset One',
             'default_representative': data_provider_representative.user.pk,
-            'work_packages-TOTAL_FORMS': 2,
-            'work_packages-MAX_NUM_FORMS': 2,
-            'work_packages-MIN_NUM_FORMS': 0,
-            'work_packages-INITIAL_FORMS': 0,
-            'work_packages-0-work_package': work_package1.id,
-            'work_packages-1-work_package': work_package3.id,
+            'work_packages': [work_package1.id, work_package3.id],
         })
 
         assert response.status_code == 302
@@ -1100,12 +1154,7 @@ class TestProjectAddWorkPackage:
             'role': ProjectRole.RESEARCHER.value,
             'name': 'work package 1',
             'description': 'Work Package One',
-            'datasets-TOTAL_FORMS': 2,
-            'datasets-MAX_NUM_FORMS': 2,
-            'datasets-MIN_NUM_FORMS': 0,
-            'datasets-INITIAL_FORMS': 0,
-            'datasets-0-dataset': dataset1.id,
-            'datasets-1-dataset': dataset3.id,
+            'datasets': [dataset1.id, dataset3.id],
         })
 
         assert response.status_code == 302

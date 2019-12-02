@@ -16,12 +16,14 @@ from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 
-from haven.data.models import ClassificationGuidance, ClassificationQuestion, Dataset
+from haven.data.models import (
+    ClassificationGuidance,
+    ClassificationQuestion,
+    Dataset,
+)
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
-
 from haven.projects.forms import (
-    DatasetForWorkPackageInlineFormSet,
     ParticipantForm,
     ParticipantInlineFormSetHelper,
     ParticipantsForWorkPackageApprovalInlineFormSet,
@@ -38,8 +40,6 @@ from haven.projects.forms import (
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
     WorkPackageClassifyDeleteForm,
-    WorkPackagesForDatasetInlineFormSet,
-    WorkPackagesForParticipantInlineFormSet,
 )
 from haven.projects.models import (
     ClassificationOpinion,
@@ -273,7 +273,6 @@ class ProjectAddUser(
 
     def get_context_data(self, **kwargs):
         kwargs['editing'] = False
-        kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
 
     def get_form_kwargs(self):
@@ -292,29 +291,9 @@ class ProjectAddUser(
             for (role, name) in form.fields['role'].choices
             if project_permissions.can_assign_role(ProjectRole(role))
         ]
-        if not self.get_project().work_packages.exists():
-            form.helper = SaveCancelFormHelper('Add Participant')
-        else:
-            form.helper = FormHelper()
+        form.helper = SaveCancelFormHelper('Add Participant')
         form.helper.form_tag = False
         return form
-
-    def get_formset(self, **kwargs):
-        if not self.get_project().work_packages.exists():
-            return None
-        options = {
-            'form_kwargs': {
-                'project': self.get_project(),
-                'user': self.request.user,
-            },
-            'prefix': 'work_packages',
-        }
-
-        if self.request.method == 'POST':
-            options['data'] = self.request.POST
-        formset = WorkPackagesForParticipantInlineFormSet(**options)
-        formset.helper = SaveCancelInlineFormSetHelper('Add Participant')
-        return formset
 
     def get_success_url(self):
         obj = self.get_project()
@@ -328,19 +307,10 @@ class ProjectAddUser(
             url = self.get_success_url()
             return HttpResponseRedirect(url)
         form = self.get_form()
-        formset = self.get_formset()
         self.object = None
-        if not form.is_valid():
-            return self.form_invalid(form)
-        elif formset and not formset.is_valid():
-            return self.form_invalid(form)
-        else:
-            response = self.form_valid(form)
-            participant = self.object
-            if formset:
-                formset.instance = participant
-                formset.save()
-            return response
+        if form.is_valid():
+            return self.form_valid(form)
+        return self.form_invalid(form)
 
 
 class EditProjectListParticipants(
@@ -415,9 +385,14 @@ class EditParticipant(
         return 'project_pk'
 
     def get_context_data(self, **kwargs):
-        kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True
         return super().get_context_data(**kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['project_id'] = self.kwargs[self.get_project_url_kwarg()]
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def get_form(self):
         form = super().get_form()
@@ -430,31 +405,9 @@ class EditParticipant(
             for (role, name) in form.fields['role'].choices
             if project_permissions.can_assign_role(ProjectRole(role))
         ]
-        if not self.get_project().work_packages.exists():
-            form.helper = SaveCancelFormHelper('Edit Participant')
-        else:
-            form.helper = FormHelper()
+        form.helper = SaveCancelFormHelper('Edit Participant')
         form.helper.form_tag = False
         return form
-
-    def get_formset(self, **kwargs):
-        if not self.get_project().work_packages.exists():
-            return None
-        options = {
-            'form_kwargs': {
-                'project': self.get_project(),
-                'user': self.request.user,
-            },
-            'instance': self.get_object(),
-            'prefix': 'work_packages',
-        }
-        if not self.get_project().work_packages.exists():
-            options['extra'] = 0
-        if self.request.method == 'POST':
-            options['data'] = self.request.POST
-        formset = WorkPackagesForParticipantInlineFormSet(**options)
-        formset.helper = SaveCancelInlineFormSetHelper('Edit Participant')
-        return formset
 
     def get_success_url(self):
         obj = self.get_project()
@@ -469,18 +422,9 @@ class EditParticipant(
             return HttpResponseRedirect(url)
         self.object = self.get_object()
         form = self.get_form()
-        formset = self.get_formset()
-        if not form.is_valid():
-            return self.form_invalid(form)
-        elif formset and not formset.is_valid():
-            return self.form_invalid(form)
-        else:
-            response = self.form_valid(form)
-            participant = self.object
-            if formset:
-                formset.instance = participant
-                formset.save()
-            return response
+        if form.is_valid():
+            return self.form_valid(form)
+        return self.form_invalid(form)
 
 
 class ProjectCreateDataset(
@@ -492,7 +436,6 @@ class ProjectCreateDataset(
 
     def get_context_data(self, **kwargs):
         kwargs['editing'] = False
-        kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
 
     def get_form_kwargs(self):
@@ -503,10 +446,7 @@ class ProjectCreateDataset(
     def get_form(self):
         form = super().get_form()
 
-        if not self.get_project().work_packages.exists():
-            form.helper = SaveCancelFormHelper('Create Dataset')
-        else:
-            form.helper = FormHelper()
+        form.helper = SaveCancelFormHelper('Create Dataset')
         form.helper.form_tag = False
         return form
 
@@ -516,42 +456,17 @@ class ProjectCreateDataset(
             return HttpResponseRedirect(url)
 
         form = self.get_form()
-        formset = self.get_formset()
         self.object = self.get_object()
-        if not form.is_valid():
-            return self.form_invalid(form)
-        elif formset and not formset.is_valid():
-            return self.form_invalid(form)
-        else:
-            dataset = form.save()
-            self.object.add_dataset(dataset, dataset.default_representative, request.user)
-            if formset:
-                formset.instance = dataset
-                formset.save()
+        if form.is_valid():
+            form.save()
             return self.form_valid(form)
+        return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_permissions().can_add_datasets
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
-
-    def get_formset(self, **kwargs):
-        if not self.get_project().work_packages.exists():
-            return None
-        options = {
-            'form_kwargs': {
-                'project': self.get_project(),
-                'user': self.request.user,
-            },
-            'prefix': 'work_packages',
-        }
-
-        if self.request.method == 'POST':
-            options['data'] = self.request.POST
-        formset = WorkPackagesForDatasetInlineFormSet(**options)
-        formset.helper = SaveCancelInlineFormSetHelper('Create Dataset')
-        return formset
 
 
 class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
@@ -610,16 +525,17 @@ class ProjectCreateWorkPackage(
 
     def get_context_data(self, **kwargs):
         kwargs['editing'] = False
-        kwargs['formset'] = self.get_formset()
         return super().get_context_data(**kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['project_id'] = self.kwargs['pk']
+        return kwargs
 
     def get_form(self):
         form = super().get_form()
 
-        if not self.get_project().datasets.exists():
-            form.helper = SaveCancelFormHelper('Create Work Package')
-        else:
-            form.helper = FormHelper()
+        form.helper = SaveCancelFormHelper('Create Work Package')
         form.helper.form_tag = False
         return form
 
@@ -629,44 +545,17 @@ class ProjectCreateWorkPackage(
             return HttpResponseRedirect(url)
 
         form = self.get_form()
-        formset = self.get_formset()
         self.object = self.get_object()
-        if not form.is_valid():
-            return self.form_invalid(form)
-        elif formset and not formset.is_valid():
-            return self.form_invalid(form)
-        else:
-            work_package = form.save(commit=False)
-            self.object.add_work_package(work_package, form.user)
-            work_package.save()
-            form.save_m2m()
-            if formset:
-                formset.instance = work_package
-                formset.save()
+        if form.is_valid():
+            form.save()
             return self.form_valid(form)
+        return self.form_invalid(form)
 
     def test_func(self):
         return self.get_project_permissions().can_add_work_packages
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
-
-    def get_formset(self, **kwargs):
-        if not self.get_project().datasets.exists():
-            return None
-        options = {
-            'form_kwargs': {
-                'project': self.get_project(),
-                'user': self.request.user,
-            },
-            'prefix': 'datasets',
-        }
-
-        if self.request.method == 'POST':
-            options['data'] = self.request.POST
-        formset = DatasetForWorkPackageInlineFormSet(**options)
-        formset.helper = SaveCancelInlineFormSetHelper('Create Work Package')
-        return formset
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
