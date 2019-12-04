@@ -62,7 +62,23 @@ fi
 
 
 generate_key () {
-    echo "$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
+    # To avoid sampling bias, get a large random string (head /dev/urandom), remove any characters not in the
+    # desired set (tr -dc A-Za-z0-9) then take the required number of characters (head -c32).
+    # LC_ALL=C overrides localisation settings
+    local candidate_pw="$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
+
+    # Check if password contains at least one character from each group
+    local testAZ="$(echo "${candidate_pw}" | LC_ALL=C tr -dc A-Z)"
+    local testaz="$(echo "${candidate_pw}" | LC_ALL=C tr -dc a-z)"
+    local test09="$(echo "${candidate_pw}" | LC_ALL=C tr -dc 0-9)"
+
+    # If not then use recursive call to generate another password
+    if [[ -z "$testAZ" || -z "$testaz" || -z "$test09" ]]; then
+      local candidate_pw=$(generate_key)
+    fi
+
+    # At this point we should have a valid password
+    echo "${candidate_pw}"
 }
 
 # Fetch a secret from the Azure keyvault
