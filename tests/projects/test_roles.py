@@ -16,9 +16,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -39,7 +36,6 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert not perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_referee_permissions(self):
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
@@ -51,9 +47,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -74,7 +67,6 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert perms.can_classify_if_approved
 
     def test_investigator_permissions(self):
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
@@ -86,9 +78,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -109,7 +98,6 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_dpr_permissions(self):
         perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
@@ -121,9 +109,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -144,7 +129,6 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_pm_permissions(self):
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
@@ -156,9 +140,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -179,7 +160,6 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_pgm_permissions(self):
         perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
@@ -191,9 +171,6 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert perms.can_assign_usr
@@ -214,7 +191,6 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_sm_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
@@ -226,9 +202,6 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        assert not perms.can_create_sm
-        assert perms.can_create_pgm
-        assert perms.can_create_usr
         assert not perms.can_assign_sm
         assert perms.can_assign_pgm
         assert perms.can_assign_usr
@@ -249,7 +222,6 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
 
     def test_invalid_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)

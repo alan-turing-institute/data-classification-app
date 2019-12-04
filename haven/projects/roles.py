@@ -72,38 +72,35 @@ class UserPermissions:
 
     permissions_table = '''
                              | SM PgM | PM DPR PI Ref Res | Extra
-        view_all_projects    |  Y   Y |  .   .  .   .   . |     .
-        edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
-        create_projects      |  Y   Y |  .   .  .   .   . |     .
         create_users         |  Y   Y |  .   .  .   .   . |     .
-        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
-        export_users         |  Y   Y |  .   .  .   .   . |     .
         import_users         |  Y   Y |  .   .  .   .   . |     .
-        edit_users           |  Y   Y |  .   .  .   .   . |     .
-        create_sm            |  .   . |  .   .  .   .   . |     .
-        create_pgm           |  Y   . |  .   .  .   .   . |     .
-        create_usr           |  Y   Y |  .   .  .   .   . |     .
         assign_sm            |  .   . |  .   .  .   .   . |     .
         assign_pgm           |  Y   . |  .   .  .   .   . |     .
         assign_usr           |  Y   Y |  .   .  .   .   . |     .
+        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
+        export_users         |  Y   Y |  .   .  .   .   . |     .
+        edit_users           |  Y   Y |  .   .  .   .   . |     .
+        create_projects      |  Y   Y |  .   .  .   .   . |     .
+        view_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        ---------------------------------------------------------
+        view_history         |  Y   Y |  Y   .  .   .   . |     .
+        edit                 |  Y   Y |  Y   .  .   .   . |     .
+        archive              |  Y   Y |  Y   .  .   .   . |     .
+        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
         assign_pm            |  Y   Y |  Y   .  .   .   . |     .
         assign_dpr           |  Y   Y |  Y   .  .   .   . |     .
         assign_pi            |  Y   Y |  Y   .  .   .   . |     .
         assign_ref           |  Y   Y |  Y   .  .   .   . |     .
         assign_res           |  Y   Y |  Y   .  Y   .   . |     .
-        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
+        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
+        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         approve_participants |  .   . |  .   Y  .   .   . |     .
-        edit                 |  Y   Y |  Y   .  .   .   . |     .
-        archive              |  Y   Y |  Y   .  .   .   . |     .
-        view_history         |  Y   Y |  Y   .  .   .   . |     .
         add_datasets         |  Y   Y |  Y   .  .   .   . |     .
         edit_datasets        |  Y   Y |  Y   .  .   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  .   .   . |     .
-        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
-        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
-        classify_if_approved |  .   . |  .   .  .   Y   . |     .
     '''
     _permissions = None
     role_abbreviations = {
