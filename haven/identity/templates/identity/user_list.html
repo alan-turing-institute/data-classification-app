@@ -49,7 +49,7 @@
 {% block actions %}
   {% url_check 'identity:add_user' as add_user_href %}
   {% if add_user_href %}
-    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ add_user_href }}">Create user</a>
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ add_user_href }}">Add User</a>
   {% endif %}
 
   {% url_check "identity:import_users" as import_users_href %}

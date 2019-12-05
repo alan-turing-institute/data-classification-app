@@ -405,7 +405,7 @@ class EditParticipant(
             for (role, name) in form.fields['role'].choices
             if project_permissions.can_assign_role(ProjectRole(role))
         ]
-        form.helper = SaveCancelFormHelper('Edit Participant')
+        form.helper = SaveCancelFormHelper('Save Participant')
         form.helper.form_tag = False
         return form
 
@@ -446,7 +446,7 @@ class ProjectCreateDataset(
     def get_form(self):
         form = super().get_form()
 
-        form.helper = SaveCancelFormHelper('Create Dataset')
+        form.helper = SaveCancelFormHelper('Add Dataset')
         form.helper.form_tag = False
         return form
 
@@ -535,7 +535,7 @@ class ProjectCreateWorkPackage(
     def get_form(self):
         form = super().get_form()
 
-        form.helper = SaveCancelFormHelper('Create Work Package')
+        form.helper = SaveCancelFormHelper('Add Work Package')
         form.helper.form_tag = False
         return form
 
@@ -677,7 +677,7 @@ class WorkPackageEditParticipants(
         return self.get_project_permissions().can_edit_participants
 
     def get_context_data(self, **kwargs):
-        helper = SaveCancelInlineFormSetHelper()
+        helper = SaveCancelInlineFormSetHelper('Save Participants')
         kwargs['helper'] = helper
         kwargs['formset'] = self.get_formset()
         kwargs['editing'] = True

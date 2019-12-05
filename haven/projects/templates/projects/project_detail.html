@@ -24,7 +24,7 @@
   {% endif %}
   {% url_check 'projects:history' project.id as history_href %}
   {% if history_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ history_href }}">History</a>
+    <a class="btn btn-primary btn-lg my-1" href="{{ history_href }}">View History</a>
   {% endif %}
   {% url_check 'projects:archive' project.id as archive_href %}
   {% if archive_href %}

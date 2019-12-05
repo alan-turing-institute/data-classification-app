@@ -42,7 +42,7 @@
 {% block actions %}
   {% url_check 'projects:create' as create_project_url %}
   {% if create_project_url %}
-    <a class="btn btn-primary btn-lg" href="{{ create_project_url }}">Create Project</a>
+    <a class="btn btn-primary btn-lg" href="{{ create_project_url }}">Add Project</a>
   {% endif %}
 {% endblock actions %}
 

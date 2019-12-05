@@ -31,16 +31,16 @@
             {% url_check 'identity:import_users' as import_users_href %}
             {% if add_user_href or import_users_href %}
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Create User</a>
+                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Add User</a>
                 <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
                   {% if add_user_href %}
-                    <a class="dropdown-item" href="{{ add_user_href }}">Create Single User</a>
+                    <a class="dropdown-item" href="{{ add_user_href }}">Add Single User</a>
                   {% endif %}
                   {% if import_users_href %}
                   <form style="display: contents" method="POST" action="{{ import_users_href }}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <label class="dropdown-item">
-                      Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+                      Import User List <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
                     </label>
                   </form>
                   {% endif %}
