@@ -34,7 +34,7 @@ class CreatedByModel(models.Model):
 
 
 class Project(CreatedByModel):
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, unique=True)
     description = models.TextField()
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
