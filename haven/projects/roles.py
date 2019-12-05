@@ -83,10 +83,10 @@ class UserPermissions:
         create_projects      |  Y   Y |  .   .  .   .   . |     .
         view_all_projects    |  Y   Y |  .   .  .   .   . |     .
         edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
-        ---------------------------------------------------------
-        view_history         |  Y   Y |  Y   .  .   .   . |     .
-        edit                 |  Y   Y |  Y   .  .   .   . |     .
-        archive              |  Y   Y |  Y   .  .   .   . |     .
+        ---------------------+--------+-------------------+------
+        view_project_history |  Y   Y |  Y   .  .   .   . |     .
+        edit_project         |  Y   Y |  Y   .  .   .   . |     .
+        archive_project      |  Y   Y |  Y   .  .   .   . |     .
         add_participants     |  Y   Y |  Y   .  Y   .   . |     *
         assign_pm            |  Y   Y |  Y   .  .   .   . |     .
         assign_dpr           |  Y   Y |  Y   .  .   .   . |     .

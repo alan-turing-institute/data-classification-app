@@ -26,9 +26,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -57,9 +57,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -88,9 +88,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -119,9 +119,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -150,9 +150,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -181,9 +181,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -212,9 +212,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -307,7 +307,7 @@ class TestProjectPermissions:
         )
 
         permissions = project_participant.project_permissions(project1)
-        assert permissions.can_edit
+        assert permissions.can_edit_project
 
         permissions = project_participant.project_permissions(project2)
-        assert not permissions.can_edit
+        assert not permissions.can_edit_project

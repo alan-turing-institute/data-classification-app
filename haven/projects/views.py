@@ -211,7 +211,7 @@ class ProjectEdit(
     form_class = ProjectForm
 
     def test_func(self):
-        return self.get_project_permissions().can_edit
+        return self.get_project_permissions().can_edit_project
 
     def get_success_url(self):
         obj = self.get_object()
@@ -232,7 +232,7 @@ class ProjectArchive(
     form_class = ProjectArchiveForm
 
     def test_func(self):
-        return self.get_project_permissions().can_archive
+        return self.get_project_permissions().can_archive_project
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -255,7 +255,7 @@ class ProjectHistory(
     template_name = 'projects/project_history.html'
 
     def test_func(self):
-        return self.get_project_permissions().can_view_history
+        return self.get_project_permissions().can_view_project_history
 
     def get_context_data(self, **kwargs):
         history = self.get_object().get_audit_history()
