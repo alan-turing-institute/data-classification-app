@@ -13,11 +13,10 @@ from django.views.generic.edit import CreateView, UpdateView
 from phonenumber_field.phonenumber import PhoneNumber
 
 from haven.core.forms import InlineFormSetHelper
-from haven.projects.forms import ProjectsForUserInlineFormSet
-
 from haven.identity.forms import CreateUserForm, EditUserForm
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
+from haven.projects.forms import ProjectsForUserInlineFormSet
 
 
 class UserCreate(LoginRequiredMixin,
@@ -87,7 +86,7 @@ class UserEdit(LoginRequiredMixin,
 
     def get_context_data(self, **kwargs):
         helper = InlineFormSetHelper()
-        helper.add_input(Submit('submit', 'Save Changes'))
+        helper.add_input(Submit('submit', 'Save User'))
         helper.add_input(Submit('cancel', 'Cancel',
                                 css_class='btn-secondary',
                                 formnovalidate='formnovalidate'))

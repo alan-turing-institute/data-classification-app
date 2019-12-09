@@ -74,7 +74,7 @@ class SaveCancelInlineFormSetHelper(InlineFormSetHelper):
 
 class ParticipantInlineFormSetHelper(SaveCancelInlineFormSetHelper):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('save_label', 'Save Changes')
+        kwargs.setdefault('save_label', 'Save Participants')
         super().__init__(*args, **kwargs)
         self.form_tag = False
         self.template = 'projects/includes/participants_inline_formset.html'
