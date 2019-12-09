@@ -49,6 +49,21 @@ class TestCreateProject:
         assert project.description == 'a new project'
         assert project.created_by == as_programme_manager._user
 
+    def test_cannot_create_duplicate_project(self, as_programme_manager):
+        recipes.project.make(name='my project')
+
+        response = as_programme_manager.post(
+            '/projects/new',
+            {'name': 'my project', 'description': 'a duplicate project'},
+        )
+
+        assert response.status_code == 200
+        assert response.context['form'].errors == {
+            'name': ['Project with this Name already exists.']
+        }
+
+        assert Project.objects.count() == 1
+
 
 @pytest.mark.django_db
 class TestListProjects:
