@@ -62,7 +62,23 @@ fi
 
 
 generate_key () {
-    echo "$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
+    # To avoid sampling bias, get a large random string (head /dev/urandom), remove any characters not in the
+    # desired set (tr -dc A-Za-z0-9) then take the required number of characters (head -c32).
+    # LC_ALL=C overrides localisation settings
+    local candidate_pw="$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
+
+    # Check if password contains at least one character from each group
+    local testAZ="$(echo "${candidate_pw}" | LC_ALL=C tr -dc A-Z)"
+    local testaz="$(echo "${candidate_pw}" | LC_ALL=C tr -dc a-z)"
+    local test09="$(echo "${candidate_pw}" | LC_ALL=C tr -dc 0-9)"
+
+    # If not then use recursive call to generate another password
+    if [[ -z "$testAZ" || -z "$testaz" || -z "$test09" ]]; then
+      local candidate_pw=$(generate_key)
+    fi
+
+    # At this point we should have a valid password
+    echo "${candidate_pw}"
 }
 
 # Fetch a secret from the Azure keyvault
@@ -296,13 +312,10 @@ update_app_settings () {
     local db_password=$(get_azure_secret  "DB-PASSWORD")
     local database_url=$(get_azure_secret  "DB-URL")
 
-    # Domains that Django can serve for. NB. must not contain the protocol
-    local allowed_hosts="${BASE_DOMAIN},127.0.0.1"
-
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECRET_KEY="${secret_key}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DATABASE_URL="${database_url}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings ALLOWED_HOSTS="${allowed_hosts}"
+    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBAPP_TITLE="${WEBAPP_TITLE}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECURITY_GROUP_SYSTEM_MANAGERS="${SECURITY_GROUP_SYSTEM_MANAGERS}"
@@ -346,4 +359,19 @@ Set up IP restrictions for the SCM repository
 * Add a rule for each IP range to enable.
   * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
   * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
+
+If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} is not the default Azure site ${APP_NAME}.azurewebsites.net),
+use the following steps to configure your custom domain on the Azure portal:
+* Create an Azure DNS zone for your domain. Note the required NS records listed for this zone.
+* Add the Azure NS records listed in the previous step to your domain provider.
+* On the Azure portal, In the Azure DNS zone, add a new Record set. The Value parameter shoud be set to the azurewebsites domain for your webapp
+        Name: www
+        Type: CNAME
+        Value: ${APP_NAME}.azurewebsites.net
+        TTL: 1 hour
+        Alias: No
+* In the App Service, add a new Custom Domain for your custom domain ${BASE_DOMAIN}. Note that validation may not work until the DNS records have propagated.
+* In the App Service TLS/SSL settings, under Private Key Certificates, click Create App Service Managed Certificate to create a certificate for your custom domain ${BASE_DOMAIN}
+* In the App Service Custom domains, add an SSL binding (choose SNI SSL) for your custom domain ${BASE_DOMAIN}
+
 EOF
