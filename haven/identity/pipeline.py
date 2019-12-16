@@ -80,7 +80,7 @@ def find_existing_user(backend, user, response, *args, **kwargs):
     """
     if not user:
         try:
-            user = User.objects.get(username=response['upn'])
+            user = User.objects.get_by_natural_key(username=response['upn'])
             return {'user': user}
         except User.DoesNotExist:
             pass
