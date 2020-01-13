@@ -413,14 +413,14 @@ class TestWorkPackage:
 
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package.add_user(data_provider_representative.user, programme_manager)
         project.add_user(user=referee.user,
                          role=ProjectRole.REFEREE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
 
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
@@ -464,14 +464,14 @@ class TestWorkPackage:
 
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package.add_user(data_provider_representative.user, programme_manager)
         project.add_user(user=referee.user,
                          role=ProjectRole.REFEREE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
 
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
@@ -515,7 +515,7 @@ class TestWorkPackage:
             work_package.classify_as(0, system_manager)
 
         work_package.project.add_user(system_manager, ProjectRole.REFEREE.value,
-                                      creator=system_manager)
+                                      created_by=system_manager)
 
         with pytest.raises(ValidationError):
             work_package.classify_as(0, system_manager)
@@ -964,7 +964,7 @@ class TestParticipant:
         dataset = recipes.dataset.make()
         dpr2 = work_package.project.add_user(
             user=user1, role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-            creator=programme_manager)
+            created_by=programme_manager)
         work_package.add_user(user1, programme_manager)
         work_package.project.add_dataset(dataset, dpr2.user, programme_manager)
         work_package.add_dataset(dataset, programme_manager)
@@ -996,7 +996,7 @@ class TestParticipant:
         dataset = recipes.dataset.make()
         dpr2 = work_package.project.add_user(
             user=user1, role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-            creator=programme_manager)
+            created_by=programme_manager)
         work_package.add_user(user1, programme_manager)
         work_package.project.add_dataset(dataset, dpr2.user, programme_manager)
         work_package.add_dataset(dataset, programme_manager)

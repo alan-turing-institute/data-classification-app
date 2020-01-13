@@ -32,7 +32,8 @@ class TestUser:
 
     def test_project_owner_is_participant_when_involved(self, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
-        project.add_user(user=programme_manager, role=ProjectRole.INVESTIGATOR.value, creator=programme_manager)
+        project.add_user(user=programme_manager, role=ProjectRole.INVESTIGATOR.value,
+                         created_by=programme_manager)
         assert programme_manager.get_participant(project).user == programme_manager
         assert programme_manager.project_participation_role(project) is ProjectRole.INVESTIGATOR
 

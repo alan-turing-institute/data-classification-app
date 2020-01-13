@@ -297,9 +297,9 @@ class TestExportUsers:
                                project_participant, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
         project.add_user(user1, role=ProjectRole.PROJECT_MANAGER.value,
-                         creator=as_programme_manager._user)
+                         created_by=as_programme_manager._user)
         project.add_user(project_participant, role=ProjectRole.RESEARCHER.value,
-                         creator=as_programme_manager._user)
+                         created_by=as_programme_manager._user)
         response = as_programme_manager.get(f"/users/export?project={project.pk}")
         assert response.status_code == 200
         assert response['Content-Type'] == 'text/csv'
