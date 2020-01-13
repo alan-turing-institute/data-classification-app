@@ -5,6 +5,7 @@ from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from social_django.utils import load_strategy
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,10 @@ class GraphClient:
         logger.debug("Querying AAD for logged in user's membership")
         return self._session.get(urljoin(GRAPH_URL, 'me/memberOf'))
 
+    def get_user_list(self):
+        logger.debug("Looking for AAD users")
+        return self._session.get(urljoin(GRAPH_URL, f'users'))
+
 
 def user_client(user):
     """
@@ -40,3 +45,15 @@ def user_client(user):
 
     token = social_auth.extra_data
     return GraphClient(OAuth2Session(token=token))
+
+
+def get_system_user_list(user):
+    """
+    Get a list of userPrincipalNames for AD users on the SHM
+
+    :param user: User object for authentication
+    :return: List of userPrincipalNames
+    """
+    graph_client = user_client(user)
+    names_dict = json.loads(graph_client.get_user_list().text)
+    return [item['userPrincipalName'] for item in names_dict['value']]
