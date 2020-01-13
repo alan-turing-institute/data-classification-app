@@ -14,6 +14,7 @@ from phonenumber_field.phonenumber import PhoneNumber
 
 from haven.core.forms import InlineFormSetHelper
 from haven.identity.forms import CreateUserForm, EditUserForm
+from haven.identity.graph import get_system_user_list
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
 from haven.projects.forms import ProjectsForUserInlineFormSet
@@ -162,13 +163,21 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
             'SecondaryEmail'
         ])
 
-        # Write out all users visible to the current user
-        users = User.objects
-        users = users.get_visible_users(request.user)
-        if 'project' in request.GET:
-            users = users.filter(participants__project_id=request.GET['project'])
-        for user in users:
+        # Get all users visible to the current user
+        app_users = User.objects
+        app_users = app_users.get_visible_users(request.user)
 
+        # If a project is specified, filter only users in this project
+        if 'project' in request.GET:
+            app_users = app_users.filter(participants__project_id=request.GET['project'])
+
+        # If requested, remove users that are already on the system
+        if 'new' in request.GET:
+            exclude_usernames = [system_username.lower() for system_username in get_system_user_list(request.user)]
+            app_users = [app_user for app_user in app_users if app_user.username.lower() not in exclude_usernames]
+
+        # Write out remaining users
+        for user in app_users:
             # Remove the domain from the username
             username = user.username.split('@')[0]
 
