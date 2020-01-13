@@ -64,7 +64,11 @@
 
   {% url_check 'identity:export_users' as export_users_href %}
   {% if export_users_href %}
-    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ export_users_href }}">Export UserCreate.csv</a>
+    <a type="button" class="dropdown-toggle btn btn-primary btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
+      <li><a class="dropdown-item" href="{{ export_users_href }}?new=true">Export list of users without accounts</a></li>
+      <li><a class="dropdown-item" href="{{ export_users_href }}">Export list of all users</a></li>
+    </ul>
   {% endif %}
 {% endblock actions %}
 
