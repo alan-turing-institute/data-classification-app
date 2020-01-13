@@ -196,6 +196,11 @@ class ProjectCreate(
             return HttpResponseRedirect(url)
         return super().post(request, *args, **kwargs)
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.object.add_default_work_packages(form.user)
+        return response
+
 
 class ProjectList(LoginRequiredMixin, ListView):
     context_object_name = 'projects'

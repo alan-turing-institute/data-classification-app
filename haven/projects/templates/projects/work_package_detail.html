@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bleach_tags %}
 {% load haven %}
 
 {% block page_title %}{{ work_package.name }}{% endblock %}
@@ -12,7 +13,7 @@
   {% endif %}
 
   <p>
-  {{ work_package.description }}
+  {{ work_package.description | bleach }}
   </p>
 {% endblock content %}
 

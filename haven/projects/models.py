@@ -98,6 +98,53 @@ class Project(CreatedByModel):
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
             work_package.add_user(participant.user, created_by)
 
+    def add_default_work_packages(self, created_by=None):
+        ingress = WorkPackage(
+            name='Ingress',
+            description=(
+                "<p>When considering a project, you'll need to consider all the tools and datasets "
+                "you'll be using (in combination or separately) in a single research environment, "
+                "as well as what work you'll be doing on the data, to consider the potential "
+                "sensitivity of the data you'll be using / creating, and how securely it should "
+                "be handled. Once you're finished with the project, you'll need to carry out "
+                "separate classifications on the data you'll be taking out of the environment.</p>"
+                "<p>Datasets: All inputs, including tools, data and potential products of linking "
+                "/ filtering data.</p>"
+            )
+        )
+        egress1 = WorkPackage(
+            name='Egress – Reports',
+            description=(
+                "<p>When you're finishing a project, you'll need to complete reports and any other "
+                "outputs that might be pertinent to the presentation of the research you've done. "
+                "In this workpackage, you'll be egressing the documents, graphs, pictures and any "
+                "other data you might need to make it easier to finish the report.</p><p>If there "
+                "are images or details within these outputs that might constitute a tier of 2 or "
+                "above, these should be removed temporarily for the purposes of the report "
+                "writing process, to allow you to work outside of the secure environment. A "
+                "separate discussion should be had between the lead investigator and the data "
+                "provider representative as to how such items can be suitably redacted so that "
+                "they can be included in the final document. If the report itself is classified "
+                "as Tier 2, it will need to be completed and presented within a secure "
+                "environment.</p><p>Datasets: Report inputs including text, images and code "
+                "snippets.</p>"
+            )
+        )
+        egress2 = WorkPackage(
+            name='Egress – Full',
+            description=(
+                "<p>In this work package, you'll need to include all other outputs, including "
+                "derived data sets and full code to be returned to the Data Provider for "
+                "archiving. If this returns a high tier then a conversation needs to take place "
+                "about where it should be stored, and whether some outputs should be redacted "
+                "prior to release.</p><p>Datasets: All outputs, including text, images, code and "
+                "any derived datasets.</p>"
+            )
+        )
+        self.add_work_package(ingress, created_by=created_by)
+        self.add_work_package(egress1, created_by=created_by)
+        self.add_work_package(egress2, created_by=created_by)
+
     def archive(self):
         self.archived = True
         self.save()

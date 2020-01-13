@@ -11,6 +11,7 @@ from haven.projects.models import (
     Policy,
     PolicyAssignment,
     PolicyGroup,
+    Project,
     ProjectDataset,
     WorkPackageParticipant,
     WorkPackageStatus,
@@ -22,6 +23,17 @@ from haven.projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestProject:
+    def test_add_default_work_packages(self, programme_manager):
+        project = recipes.project.make()
+        assert project.work_packages.count() == 0
+
+        project.add_default_work_packages(programme_manager)
+        assert project.work_packages.count() == 3
+        packages = project.work_packages.all()
+        assert packages[0].name == 'Ingress'
+        assert packages[1].name == 'Egress – Reports'
+        assert packages[2].name == 'Egress – Full'
+
     def test_add_new_user(self, programme_manager, project_participant):
         project = recipes.project.make()
 
