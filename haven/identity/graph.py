@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
-
+from social_django.utils import load_strategy
 
 logger = logging.getLogger(__name__)
 
@@ -32,5 +32,11 @@ def user_client(user):
     :param user: User object
     :return: `OAuth2Session` object
     """
-    token = user.social_auth.first().extra_data
+
+    social_auth = user.social_auth.first()
+
+    # load_strategy() will force a token refresh if required
+    social_auth.get_access_token(load_strategy())
+
+    token = social_auth.extra_data
     return GraphClient(OAuth2Session(token=token))
