@@ -10,6 +10,7 @@ require('bootstrap/js/dist/dropdown');
 
 global.formset = function(selector, prefix, addText){
   $(function() {
+    // A dummy change
     var options = {};
 
     options.prefix = prefix;
