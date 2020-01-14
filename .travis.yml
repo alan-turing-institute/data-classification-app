@@ -24,10 +24,20 @@ matrix:
       before_script:
         - npm install -g gulp-cli
       script:
-        - cd static
+        - pushd static
         - npm install
         - gulp
+        - popd
         - git diff --exit-code --numstat
+      after_failure:
+        - openssl aes-256-cbc -K $encrypted_348ccfbd8aab_key -iv $encrypted_348ccfbd8aab_iv -in .travis/deploy_key.enc -out .travis/deploy_key -d
+        - eval "$(ssh-agent -s)"
+        - chmod 600 .travis/deploy_key
+        - ssh-add .travis/deploy_key
+        - git add static/build/
+        - git commit -m "Add auto-generated built JS files"
+        - git remote add deploy git@github.com:alan-turing-institute/data-safe-haven-webapp.git
+        - test $TRAVIS_EVENT_TYPE = "push" && git diff --exit-code && git push deploy HEAD:$TRAVIS_BRANCH
     - name: run deployment checks
       language: python
       python:
