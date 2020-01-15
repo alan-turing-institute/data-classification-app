@@ -1261,6 +1261,7 @@ class TestWorkPackageClassifyData:
         if next:
             assert 'question' in response.context
             assert response.context['question'].name == next
+            assert response.context['explanation'].name == next
         if number:
             assert response.context['question_number'] == number
         if guidance:
@@ -1531,6 +1532,7 @@ class TestWorkPackageClassifyData:
         response = as_investigator.get(self.url(work_package), follow=True)
         assert 'question' in response.context
         assert response.context['question'].name == 'open_generate_new'
+        assert response.context['explanation'].name == 'open_generate_new'
         guidance = ['personal_data', 'living_individual']
         assert [g.name for g in response.context['guidance']] == guidance
 

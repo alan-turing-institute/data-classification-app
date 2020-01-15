@@ -901,19 +901,23 @@ class WorkPackageClassifyData(
         # Some form of HTML parser might be better, but we're looking for a very limited
         # pattern so is hopefully unnecessary
         pattern = re.compile('href="#([^"]+)"')
-        matches = [m for m in pattern.finditer(self.question.question)]
-        if matches:
-            guidance = []
-            all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
-            while matches:
-                match = matches.pop(0)
-                name = match.group(1)
-                g = all_guidance.get(name)
-                if g and g not in guidance:
-                    guidance.append(g)
-                    matches.extend([m for m in pattern.finditer(g.guidance)])
+        all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
 
-            context['guidance'] = guidance
+        explanation = None
+        guidance = []
+        matches = [m for m in pattern.finditer(self.question.question)]
+
+        explanation = all_guidance.get(self.question.name)
+        if explanation:
+            matches.extend([m for m in pattern.finditer(explanation.guidance)])
+
+        while matches:
+            match = matches.pop(0)
+            name = match.group(1)
+            g = all_guidance.get(name)
+            if g and g not in guidance:
+                guidance.append(g)
+                matches.extend([m for m in pattern.finditer(g.guidance)])
 
         context['question'] = self.question
         context['answer_yes'] = self.format_answer(self.question.answer_yes())
@@ -922,6 +926,8 @@ class WorkPackageClassifyData(
         context['question_number'] = self.get_question_number()
         if self.previous_question:
             context['previous_question'] = self.previous_question
+        context['explanation'] = explanation
+        context['guidance'] = guidance
         return context
 
     def redirect_to_question(self, question, message=None, message_level=None):

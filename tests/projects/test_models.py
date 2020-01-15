@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -533,6 +535,35 @@ class TestWorkPackage:
             'sophisticated_attack',
         ]
         assert [q.name for q in questions] == ordered
+
+    def test_default_guidance(self):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+
+        num_questions = 0
+        num_question_links = 0
+        num_guidance_links = 0
+
+        # This should match what's in WorkPackageClassifyData.get_context_data()
+        pattern = re.compile('href="#([^"]+)"')
+
+        all_guidance = {g.name: g for g in ClassificationGuidance.objects.all()}
+        for question in ClassificationQuestion.objects.all():
+            assert question.name in all_guidance, 'Question does not have explanation'
+            num_questions += 1
+
+            for name in pattern.findall(question.question):
+                assert name in all_guidance, 'Question links to missing guidance'
+                num_question_links += 1
+
+        for guidance in all_guidance.values():
+            for name in pattern.findall(guidance.guidance):
+                assert name in all_guidance, 'Guidance links to missing guidance'
+                num_guidance_links += 1
+
+        # These mostly just exist to make sure the regex is finding *something*
+        assert num_questions == 14
+        assert num_question_links == 7
+        assert num_guidance_links == 1
 
     def test_classify_questions_tier0(self):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
