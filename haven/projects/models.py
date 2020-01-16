@@ -488,7 +488,7 @@ class WorkPackage(CreatedByModel):
 
     @property
     def has_tier(self):
-        """Has this project's data been classified?"""
+        """Has this work package's data been classified?"""
         return self.tier is not None
 
     @property
