@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Open Classification{% endblock %}
+
+{% block content %}
+<p>Please note that once the classification process has been opened, you will no longer be able to carry out certain changes, such as adding new datasets.</p>
+<p>Please confirm below if you would like to open the classification process.</p>
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
+  <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Open Classification</li>
+{% endblock crumbs %}

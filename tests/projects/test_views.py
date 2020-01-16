@@ -8,10 +8,12 @@ from haven.data.classification import insert_initial_questions
 from haven.data.models import ClassificationGuidance, ClassificationQuestion
 from haven.identity.models import User
 from haven.projects.models import (
+    ClassificationOpinion,
     Policy,
     PolicyAssignment,
     PolicyGroup,
     Project,
+    WorkPackageStatus,
 )
 from haven.projects.policies import insert_initial_policies
 from haven.projects.roles import ProjectRole
@@ -957,7 +959,8 @@ class TestWorkPackageApproveParticipants:
         p2 = project.add_user(referee.user,
                               ProjectRole.REFEREE.value,
                               programme_manager)
-        work_package = recipes.work_package.make(project=project)
+        work_package = recipes.work_package.make(
+            project=project, status=WorkPackageStatus.UNDERWAY.value)
         work_package.add_user(as_data_provider_representative._user, programme_manager)
         work_package.add_user(referee.user, programme_manager)
         dataset = recipes.dataset.make()
@@ -1118,6 +1121,27 @@ class TestWorkPackageAddDataset:
         assert work_package.datasets.count() == 1
         assert ds1 == work_package.datasets.first()
 
+    def test_cannot_add_underway_work_package(self, as_programme_manager, user1):
+        ds1, ds2 = recipes.dataset.make(_quantity=2)
+        project = recipes.project.make(
+            created_by=as_programme_manager._user,
+        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                         as_programme_manager._user)
+        work_package = recipes.work_package.make(
+            project=project, status=WorkPackageStatus.UNDERWAY.value)
+        project.add_dataset(ds1, user1, as_programme_manager._user)
+        project.add_dataset(ds2, user1, as_programme_manager._user)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}/datasets/new"
+        response = as_programme_manager.get(url)
+        assert response.status_code == 403
+
+        work_package.status = WorkPackageStatus.CLASSIFIED.value
+        work_package.save()
+
+        response = as_programme_manager.get(url)
+        assert response.status_code == 403
 
 @pytest.mark.django_db
 class TestProjectAddWorkPackage:
@@ -1197,6 +1221,183 @@ class TestProjectAddWorkPackage:
         assert response.status_code == 403
 
         response = client.post('/projects/%d/work_packages/new' % researcher.project.id)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestWorkPackageOpenClassification:
+    def test_open_classification(self, classified_work_package, programme_manager,
+                                 as_standard_user):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.NEW.value
+        work_package.save()
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Open Classification' in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        response = as_standard_user.get(url)
+        assert b'Open Classification' in response.content
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 200
+
+        work_package.refresh_from_db()
+        assert work_package.status == WorkPackageStatus.UNDERWAY.value
+
+    def test_cannot_open_already_underway(self, classified_work_package, programme_manager,
+                                          as_standard_user):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+        work_package.save()
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Open Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_open_no_datasets(self, classified_work_package, programme_manager,
+                                     as_standard_user):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Open Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_open_as_investigator(self, classified_work_package, as_investigator):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.NEW.value
+        work_package.save()
+
+        project = work_package.project
+
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Open Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        response = as_investigator.get(url)
+        assert response.status_code == 403
+
+        response = as_investigator.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestWorkPackageCloseClassification:
+    def test_close_classification(self, classified_work_package, programme_manager,
+                                  as_standard_user):
+        work_package = classified_work_package(0)
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+        work_package.tier = None
+        work_package.save()
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Close Classification' in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        response = as_standard_user.get(url)
+        assert b'Close Classification' in response.content
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 200
+
+        work_package.refresh_from_db()
+        assert work_package.status == WorkPackageStatus.CLASSIFIED.value
+
+    def test_cannot_close_already_complete(self, classified_work_package, programme_manager,
+                                           as_standard_user):
+        work_package = classified_work_package(0)
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Close Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_close_not_complete(self, classified_work_package, programme_manager,
+                                       investigator, as_standard_user):
+        work_package = classified_work_package(None)
+        work_package.classify_as(0, investigator.user)
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Close Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_close_no_agreement(self, classified_work_package, programme_manager,
+                                       investigator, as_standard_user):
+        work_package = classified_work_package(0)
+        ClassificationOpinion.objects.filter(created_by=investigator.user).delete()
+        work_package.classify_as(1, investigator.user)
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Close Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_close_as_investigator(self, classified_work_package, as_investigator):
+        work_package = classified_work_package(0)
+
+        project = work_package.project
+
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Close Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        response = as_investigator.get(url)
+        assert response.status_code == 403
+
+        response = as_investigator.post(url, {}, follow=True)
         assert response.status_code == 403
 
 
@@ -1307,7 +1508,8 @@ class TestWorkPackageClassifyData:
     def test_view_page(self, as_project_participant, programme_manager):
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
-        work_package = recipes.work_package.make(project=project)
+        work_package = recipes.work_package.make(
+            project=project, status=WorkPackageStatus.UNDERWAY.value)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                          creator=programme_manager)
@@ -1363,6 +1565,27 @@ class TestWorkPackageClassifyData:
 
         response = client.post(self.url(work_package))
         assert response.status_code == 403
+
+    def test_returns_403_when_not_open(self, classified_work_package, as_investigator):
+        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.NEW.value
+        work_package.save()
+
+        response = as_investigator.get(self.url(work_package))
+        assert response.status_code == 403
+
+        work_package.status = WorkPackageStatus.CLASSIFIED.value
+        work_package.save()
+
+        response = as_investigator.get(self.url(work_package))
+        assert response.status_code == 403
+
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+        work_package.save()
+
+        response = as_investigator.get(self.url(work_package))
+        assert response.status_code == 302
 
     def test_do_not_show_form_if_user_already_classified(
             self, classified_work_package, as_investigator):

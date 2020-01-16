@@ -13,6 +13,7 @@ from haven.projects.models import (
     PolicyGroup,
     ProjectDataset,
     WorkPackageParticipant,
+    WorkPackageStatus,
     a_or_an,
 )
 from haven.projects.policies import insert_initial_policies
@@ -86,6 +87,50 @@ class TestProject:
 
 @pytest.mark.django_db
 class TestWorkPackage:
+    def test_new_permissions(self, classified_work_package):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.NEW.value
+
+        assert work_package.can_add_participants
+        assert work_package.can_list_participants
+        assert work_package.can_edit_participants
+        assert not work_package.can_approve_participants
+        assert work_package.can_add_datasets
+        assert work_package.can_edit_datasets
+        assert not work_package.can_classify_data
+        assert work_package.can_open_classification
+        assert not work_package.can_close_classification
+
+    def test_underway_permissions(self, classified_work_package):
+        work_package = classified_work_package(0)
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+
+        assert work_package.can_add_participants
+        assert work_package.can_list_participants
+        assert work_package.can_edit_participants
+        assert work_package.can_approve_participants
+        assert not work_package.can_add_datasets
+        assert not work_package.can_edit_datasets
+        assert work_package.can_view_classification
+        assert work_package.can_classify_data
+        assert not work_package.can_open_classification
+        assert work_package.can_close_classification
+
+    def test_classified_permissions(self, classified_work_package):
+        work_package = classified_work_package(0)
+        work_package.status = WorkPackageStatus.CLASSIFIED.value
+
+        assert work_package.can_add_participants
+        assert work_package.can_list_participants
+        assert work_package.can_edit_participants
+        assert work_package.can_approve_participants
+        assert not work_package.can_add_datasets
+        assert not work_package.can_edit_datasets
+        assert work_package.can_view_classification
+        assert not work_package.can_classify_data
+        assert not work_package.can_open_classification
+        assert not work_package.can_close_classification
+
     def test_add_dataset(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make()
@@ -148,6 +193,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 
@@ -220,6 +267,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 
@@ -240,6 +289,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 
@@ -261,6 +312,8 @@ class TestWorkPackage:
 
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 
@@ -275,6 +328,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 2
 
@@ -305,6 +360,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 3
 
@@ -336,6 +393,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 3
 
@@ -385,6 +444,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 3
 
@@ -423,6 +484,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 2
 
@@ -464,6 +527,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 
@@ -479,6 +544,8 @@ class TestWorkPackage:
         assert work_package.missing_classification_requirements == []
         assert work_package.is_classification_ready
         assert not work_package.tier_conflict
+
+        work_package.close_classification()
         assert work_package.has_tier
         assert work_package.tier == 0
 

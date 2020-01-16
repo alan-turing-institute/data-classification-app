@@ -106,6 +106,18 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_close',
+        views.WorkPackageClassifyClose.as_view(),
+        name='classify_close'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_open',
+        views.WorkPackageClassifyOpen.as_view(),
+        name='classify_open'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/datasets/new',
         views.WorkPackageAddDataset.as_view(),
         name='work_package_add_dataset'

@@ -65,6 +65,7 @@ class WorkPackageParticipantTable(tables.Table):
 
 class WorkPackageTable(tables.Table):
     name = tables.Column('Name', linkify=True)
+    status = tables.Column('Classification Status')
     tier = tables.Column('Tier')
     created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
 

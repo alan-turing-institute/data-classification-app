@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -5,6 +7,7 @@ from django.db.models import BooleanField, Case, Q, Value, When
 from django.urls import reverse
 from easyaudit.models import CRUDEvent
 
+from haven.core.utils import BooleanTextTable
 from haven.data.models import ClassificationQuestion, Dataset
 from haven.data.tiers import TIER_CHOICES, Tier
 from haven.identity.models import User
@@ -140,6 +143,21 @@ class Project(CreatedByModel):
         return CRUDEvent.objects.filter(this_object | related)
 
 
+class WorkPackageStatus(Enum):
+    NEW = 'new'
+    UNDERWAY = 'underway'
+    CLASSIFIED = 'classified'
+
+    @classmethod
+    def choices(cls):
+        """Dropdown choices for user roles"""
+        return [
+            (cls.NEW.value, 'New'),
+            (cls.UNDERWAY.value, 'Classification Underway'),
+            (cls.CLASSIFIED.value, 'Classified'),
+        ]
+
+
 class WorkPackage(CreatedByModel):
     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE,
                                 related_name='work_packages')
@@ -150,6 +168,8 @@ class WorkPackage(CreatedByModel):
                                           through='WorkPackageParticipant', blank=True)
     datasets = models.ManyToManyField(Dataset, related_name='work_packages',
                                       through='WorkPackageDataset', blank=True)
+    status = models.CharField(max_length=32, choices=WorkPackageStatus.choices(),
+                              default=WorkPackageStatus.NEW.value)
 
     # Classification occurs at the work package level because combinations of individual
     # datasets might have a different tier to their individual tiers
@@ -159,6 +179,39 @@ class WorkPackage(CreatedByModel):
         blank=True,
         choices=TIER_CHOICES,
     )
+
+    permissions = BooleanTextTable(
+        definition='''
+                             | new underway classified | Extra
+        add_participants     |   Y        Y          Y |
+        list_participants    |   Y        Y          Y |
+        edit_participants    |   Y        Y          Y |
+        approve_participants |   .        Y          Y |
+        add_datasets         |   Y        .          . |
+        edit_datasets        |   Y        .          . |
+        view_classification  |   .        Y          Y |
+        open_classification  |   Y        .          . | *
+        close_classification |   .        Y          . | *
+        classify_data        |   .        Y          . |
+        ''',
+        ignore=['Extra'],
+    )
+
+    def __getattr__(self, name):
+        if name.startswith('can_'):
+            permission = name.replace('can_', '')
+            try:
+                return self._can(permission)
+            except ValueError as e:
+                raise AttributeError(name) from e
+        raise AttributeError(name)
+
+    def _can(self, permission):
+        try:
+            permission_dict = self.permissions.as_dict()[permission]
+        except KeyError as e:
+            raise ValueError(f"{permission} not a valid permission") from e
+        return permission_dict[self.status]
 
     @transaction.atomic
     def add_dataset(self, dataset, creator):
@@ -206,6 +259,23 @@ class WorkPackage(CreatedByModel):
     def get_work_package_participant(self, user):
         participant = user.get_participant(self.project)
         return WorkPackageParticipant.objects.filter(work_package=self, participant=participant)
+
+    @property
+    def can_open_classification(self):
+        return self._can('open_classification') and self.has_datasets
+
+    def open_classification(self):
+        self.status = WorkPackageStatus.UNDERWAY.value
+        self.save()
+
+    @property
+    def can_close_classification(self):
+        return self._can('close_classification') and self.is_classification_ready
+
+    def close_classification(self):
+        self.status = WorkPackageStatus.CLASSIFIED.value
+        self.calculate_tier()
+        self.save()
 
     @property
     def is_classification_ready(self):
@@ -384,9 +454,6 @@ class WorkPackage(CreatedByModel):
                     answer=q[1],
                 )
 
-        # This might qualify the project for classification, so try
-        self.calculate_tier()
-
         return classification
 
     def classification_for(self, user):
@@ -395,6 +462,8 @@ class WorkPackage(CreatedByModel):
         )
 
     def show_approve_participants(self, approver):
+        if not self.can_approve_participants:
+            return False
         participant = approver.get_participant(self.project)
         if not participant:
             return False

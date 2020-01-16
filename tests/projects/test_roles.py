@@ -36,6 +36,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert not perms.can_view_classification
         assert not perms.can_classify_data
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_referee_permissions(self):
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
@@ -67,6 +69,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_investigator_permissions(self):
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
@@ -98,6 +102,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_dpr_permissions(self):
         perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
@@ -129,6 +135,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_pm_permissions(self):
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
@@ -160,6 +168,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_pgm_permissions(self):
         perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
@@ -191,6 +201,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_sm_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
@@ -222,6 +234,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_invalid_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)

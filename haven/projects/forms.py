@@ -291,6 +291,16 @@ class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
     helper.form_method = 'POST'
 
 
+class WorkPackageClassifyCloseForm(forms.Form):
+    helper = SaveCancelFormHelper('Close Classification', 'btn-danger')
+    helper.form_method = 'POST'
+
+
+class WorkPackageClassifyOpenForm(forms.Form):
+    helper = SaveCancelFormHelper('Open Classification', 'btn-danger')
+    helper.form_method = 'POST'
+
+
 # Inline forms
 
 

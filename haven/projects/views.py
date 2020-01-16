@@ -39,7 +39,9 @@ from haven.projects.forms import (
     UsersForProjectInlineFormSet,
     WorkPackageAddDatasetForm,
     WorkPackageAddParticipantForm,
+    WorkPackageClassifyCloseForm,
     WorkPackageClassifyDeleteForm,
+    WorkPackageClassifyOpenForm,
 )
 from haven.projects.models import (
     ClassificationOpinion,
@@ -573,7 +575,7 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
         context['participants_table'] = WorkPackageParticipantTable(
             participants, work_package=work_package, user=self.request.user)
 
-        context['can_classify'] = work_package.has_datasets and not work_package.has_tier
+        context['can_classify'] = work_package.can_classify_data
         context['has_classified'] = work_package.has_user_classified(self.request.user)
 
         if work_package.has_tier:
@@ -601,7 +603,8 @@ class WorkPackageAddDataset(
         return self.object.get_absolute_url()
 
     def test_func(self):
-        return self.get_project_permissions().can_add_work_packages
+        work_package = self.get_work_package()
+        return work_package.can_add_datasets and self.get_project_permissions().can_add_datasets
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -627,7 +630,9 @@ class WorkPackageApproveParticipants(
     template_name = 'projects/work_package_participant_approve.html'
 
     def test_func(self):
-        return self.get_project_permissions().can_approve_participants
+        work_package = self.get_object()
+        return (work_package.can_approve_participants
+                and self.get_project_permissions().can_approve_participants)
 
     def get_context_data(self, **kwargs):
         helper = SaveCancelInlineFormSetHelper('Approve Participants')
@@ -674,7 +679,9 @@ class WorkPackageEditParticipants(
     template_name = 'projects/work_package_participants_edit.html'
 
     def test_func(self):
-        return self.get_project_permissions().can_edit_participants
+        work_package = self.get_object()
+        return (work_package.can_edit_participants
+                and self.get_project_permissions().can_edit_participants)
 
     def get_context_data(self, **kwargs):
         helper = SaveCancelInlineFormSetHelper('Save Participants')
@@ -727,7 +734,9 @@ class WorkPackageAddParticipant(
         return self.get_work_package().get_absolute_url()
 
     def test_func(self):
-        return self.get_project_permissions().can_add_participants
+        work_package = self.get_work_package()
+        return (work_package.can_add_participants
+                and self.get_project_permissions().can_add_participants)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -746,17 +755,72 @@ class WorkPackageAddParticipant(
             return self.form_invalid(form)
 
 
+class WorkPackageClassifyOpen(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_classify_open.html'
+    form_class = WorkPackageClassifyOpenForm
+
+    def test_func(self):
+        return (self.get_project_permissions().can_open_classification
+                and self.get_work_package().can_open_classification)
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_work_package().open_classification()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.get_work_package().get_absolute_url()
+
+
+class WorkPackageClassifyClose(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_classify_close.html'
+    form_class = WorkPackageClassifyCloseForm
+
+    def test_func(self):
+        return (self.get_project_permissions().can_close_classification
+                and self.get_work_package().can_close_classification)
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_work_package().close_classification()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return self.get_work_package().get_absolute_url()
+
+
 class WorkPackageClassifyData(
     LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, TemplateView
 ):
     template_name = 'projects/work_package_classify_data.html'
 
     def test_func(self):
+        work_package = self.get_work_package()
+        if not work_package.can_classify_data:
+            return False
         role = self.get_project_permissions()
         if not role.can_classify_data:
             return False
         participant = self.request.user.get_participant(self.get_project())
-        if not participant.get_work_package_participant(self.get_work_package()):
+        if not participant.get_work_package_participant(work_package):
             return False
         return True
 
@@ -885,7 +949,6 @@ class WorkPackageClassifyData(
         if self.is_modification():
             self.object.classification_for(self.request.user).delete()
         self.object.classify_as(tier, self.request.user, questions)
-        self.object.calculate_tier()
         self.clear_answers()
         return self.redirect_to_results()
 
@@ -1106,6 +1169,9 @@ class WorkPackageClassifyResults(
         return render(self.request, 'projects/work_package_classify_results.html', context)
 
     def test_func(self):
+        work_package = self.get_object()
+        if not work_package.can_view_classification:
+            return False
         role = self.get_project_permissions()
         return role.can_view_classification if role else False
 
@@ -1129,10 +1195,12 @@ class WorkPackageClassifyDelete(
             return self.form_invalid(form)
 
     def test_func(self):
+        self.object = self.get_object()
+        if not self.object.can_classify_data:
+            return False
         role = self.get_project_permissions()
         if not role or not role.can_classify_data:
             return False
-        self.object = self.get_object()
         if self.object.has_tier:
             return False
         return self.object.classification_for(self.request.user).exists()
