@@ -41,13 +41,13 @@
 </form>
 
 {% if explanation %}
-  <h3 class="mt-4">Examples</h3>
+  <h3 class="mt-4">Additional Guidance</h3>
   <a name="{{ explanation.name }}"></a>
   {{ explanation.guidance | bleach }}
 {% endif %}
 
 {% if guidance %}
-  <h3 class="mt-4">Additional Guidance</h3>
+  <h3 class="mt-4">Definitions</h3>
   {% for g in guidance %}
     <a name="{{ g.name }}"></a>
     {{ g.guidance | bleach }}
