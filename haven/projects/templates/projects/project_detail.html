@@ -7,14 +7,15 @@
 
 {% block content %}
   {% if participant %}
-  <p>
-  Role: {{ participant.get_role_display }}
-  </p>
+    <p>Role: {{ participant.get_role_display }}</p>
   {% endif %}
 
-  <p>
-  {{ project.description }}
-  </p>
+  <p>{{ project.description }}</p>
+
+  {% for p in project.programmes.all %}
+    <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-primary">{{ p.name }}</a>
+  {% endfor %}
+
 {% endblock content %}
 
 {% block actions %}

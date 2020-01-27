@@ -126,7 +126,20 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'programmes']
+        labels = {
+            'programmes': 'Programmes',
+        }
+        help_texts = {
+            'programmes': '',
+        }
+        widgets = {
+            'programmes': autocomplete.TaggitSelect2('dummy_url')
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['programmes'].widget.url = reverse('projects:autocomplete_programme')
 
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):

@@ -15,6 +15,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
+from taggit.models import Tag
 
 from haven.data.models import (
     ClassificationGuidance,
@@ -156,6 +157,15 @@ class SingleWorkPackageMixin(WorkPackageMixin, SingleObjectMixin):
         return self.get_object()
 
 
+class ProgrammeList(LoginRequiredMixin, ListView):
+    context_object_name = 'programmes'
+    model = Tag
+    template_name = 'projects/programme_list.html'
+
+    def get_queryset(self):
+        return Project.programmes.most_common()
+
+
 class ProjectCreate(
     LoginRequiredMixin, UserPermissionRequiredMixin,
     UserFormKwargsMixin, CreateView
@@ -163,6 +173,17 @@ class ProjectCreate(
     model = Project
     form_class = ProjectForm
     user_permissions = ['can_create_projects']
+
+    def get_initial(self):
+        initial = super().get_initial()
+        programme = self.request.GET.get('programme')
+        if programme:
+            try:
+                programme = Tag.objects.get(slug=programme)
+            except Tag.DoesNotExist:
+                raise Http404("No programme found matching the query")
+            initial['programmes'] = [programme.name]
+        return initial
 
     def get_success_url(self):
         return reverse('projects:list')
@@ -178,16 +199,32 @@ class ProjectList(LoginRequiredMixin, ListView):
     context_object_name = 'projects'
     model = Project
 
+    def dispatch(self, *args, **kwargs):
+        programme = self.request.GET.get('programme')
+        self.programme = None
+        if programme:
+            try:
+                self.programme = Tag.objects.get(slug=programme)
+            except Tag.DoesNotExist:
+                raise Http404("No programme found matching the query")
+        return super().dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        kwargs['programme'] = self.programme
+        return super().get_context_data(**kwargs)
+
     def get_queryset(self):
+        qs = super().get_queryset()
+        if self.programme:
+            qs = qs.filter(programmes__in=[self.programme])
         # Store the user's project role on each participant
         return (
-            super().get_queryset()
-                   .get_visible_projects(self.request.user)
-                   .annotate(you=FilteredRelation(
-                       'participants', condition=Q(participants__user=self.request.user)))
-                   .annotate(your_role=F('you__role'))
-                   .annotate(add_time=F('you__created_at'))
-                   .order_by(F('add_time').desc(nulls_last=True), '-created_at')
+            qs.get_visible_projects(self.request.user)
+              .annotate(you=FilteredRelation(
+                  'participants', condition=Q(participants__user=self.request.user)))
+              .annotate(your_role=F('you__role'))
+              .annotate(add_time=F('you__created_at'))
+              .order_by(F('add_time').desc(nulls_last=True), '-created_at')
         )
 
 
@@ -1321,3 +1358,20 @@ class AutocompleteDataProviderRepresentative(AutocompleteNewParticipant,
         if result.project_role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
             return (0, 'Data Provider Representatives')
         return (1, 'Other users')
+
+
+class AutocompleteProgramme(autocomplete.Select2QuerySetView):
+    """
+    Autocomplete programme from list of existing tags
+    """
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Tag.objects.none()
+
+        qs = Tag.objects.all()
+
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+
+        return qs

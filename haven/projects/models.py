@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.db.models import BooleanField, Case, Q, Value, When
 from django.urls import reverse
 from easyaudit.models import CRUDEvent
+from taggit.managers import TaggableManager
 
 from haven.core.utils import BooleanTextTable
 from haven.data.models import ClassificationQuestion, Dataset
@@ -43,6 +44,7 @@ class Project(CreatedByModel):
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
                                       blank=True)
     archived = models.BooleanField(default=False)
+    programmes = TaggableManager(blank=True)
 
     objects = ProjectQuerySet.as_manager()
 
