@@ -1225,6 +1225,62 @@ class TestProjectAddWorkPackage:
 
 
 @pytest.mark.django_db
+class TestEditWorkPackage:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/work_packages/1/edit')
+        helpers.assert_login_redirect(response)
+
+    def test_investigator_cannot_access_page(self, as_investigator):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        recipes.participant.make(project=project, user=as_investigator._user,
+                                 role=ProjectRole.INVESTIGATOR.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_investigator.get(url + "/edit")
+
+        assert response.status_code == 403
+
+    def test_cannot_edit_classified(self, as_project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(
+            project=project, status=WorkPackageStatus.CLASSIFIED.value)
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_project_participant.get(url + "/edit")
+
+        assert response.status_code == 403
+
+    def test_edit(self, as_project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_project_participant.get(url + "/edit")
+
+        assert response.status_code == 200
+        assert response.context['work_package'] == work_package
+
+        response = as_project_participant.post(url + "/edit", {
+            'name': 'my updated work package',
+            'description': 'a different work package',
+        })
+
+        assert response.status_code == 302
+        assert response.url == url
+
+        response = as_project_participant.get(url)
+
+        assert response.status_code == 200
+        assert response.context['work_package'].name == 'my updated work package'
+        assert response.context['work_package'].description == 'a different work package'
+
+
+@pytest.mark.django_db
 class TestWorkPackageOpenClassification:
     def test_open_classification(self, classified_work_package, programme_manager,
                                  as_standard_user):

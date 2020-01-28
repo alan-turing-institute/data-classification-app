@@ -31,6 +31,11 @@
 {% endblock extra_sections %}
 
 {% block actions %}
+  {% url_check 'projects:work_package_edit' project.id work_package.id as edit_work_package_href %}
+  {% if edit_work_package_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_work_package_href }}">Edit Work Package</a>
+  {% endif %}
+
   {% url_check 'projects:classify_open' work_package.project.id work_package.id as classify_open_href %}
   {% if classify_open_href %}
     <a class="btn btn-primary btn-lg" href="{{ classify_open_href }}">Open Classification</a>

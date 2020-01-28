@@ -101,6 +101,7 @@ class UserPermissions:
         add_datasets         |  Y   Y |  Y   .  .   .   . |     .
         edit_datasets        |  Y   Y |  Y   .  .   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  .   .   . |     .
+        edit_work_package    |  Y   Y |  Y   .  .   .   . |     .
         view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
         open_classification  |  Y   Y |  Y   .  .   .   . |     .
         close_classification |  Y   Y |  Y   .  .   .   . |     .
