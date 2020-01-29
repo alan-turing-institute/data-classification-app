@@ -1615,6 +1615,85 @@ class TestWorkPackageOpenClassification:
 
 
 @pytest.mark.django_db
+class TestWorkPackageClearClassification:
+    def test_clear_classification(self, classified_work_package, programme_manager,
+                                  as_standard_user):
+        work_package = classified_work_package(0)
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+        work_package.tier = None
+        work_package.save()
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Clear Classification' in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        response = as_standard_user.get(url)
+        assert b'Clear Classification' in response.content
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 200
+
+        work_package.refresh_from_db()
+        assert work_package.status == WorkPackageStatus.NEW.value
+
+    def test_cannot_clear_already_complete(self, classified_work_package, programme_manager,
+                                           as_standard_user):
+        work_package = classified_work_package(0)
+
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Clear Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_clear_new(self, classified_work_package, programme_manager, investigator,
+                              as_standard_user):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.NEW.value
+        work_package.save()
+        project = work_package.project
+        project.add_user(as_standard_user._user, ProjectRole.PROJECT_MANAGER.value,
+                         programme_manager)
+
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Clear Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        response = as_standard_user.get(url)
+        assert response.status_code == 403
+
+        response = as_standard_user.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+    def test_cannot_clear_as_investigator(self, classified_work_package, as_investigator):
+        work_package = classified_work_package(0)
+
+        project = work_package.project
+
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        assert b'Clear Classification' not in response.content
+
+        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        response = as_investigator.get(url)
+        assert response.status_code == 403
+
+        response = as_investigator.post(url, {}, follow=True)
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
 class TestWorkPackageCloseClassification:
     def test_close_classification(self, classified_work_package, programme_manager,
                                   as_standard_user):

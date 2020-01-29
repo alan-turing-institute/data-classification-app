@@ -338,6 +338,11 @@ class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
         self.fields['participant'].queryset = qs
 
 
+class WorkPackageClearForm(SaveCreatorMixin, forms.Form):
+    helper = SaveCancelFormHelper('Clear Classifications', 'btn-danger')
+    helper.form_method = 'POST'
+
+
 class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper('Delete Classification', 'btn-danger')
     helper.form_method = 'POST'

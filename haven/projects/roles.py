@@ -107,6 +107,7 @@ class UserPermissions:
         delete_work_package  |  Y   Y |  Y   .  .   .   . |     .
         view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
         open_classification  |  Y   Y |  Y   .  .   .   . |     .
+        clear_classification |  Y   Y |  Y   .  .   .   . |     .
         close_classification |  Y   Y |  Y   .  .   .   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
         ''',

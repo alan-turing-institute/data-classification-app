@@ -41,6 +41,11 @@
     <a class="btn btn-primary btn-lg my-1" href="{{ delete_work_package_href }}">Delete Work Package</a>
   {% endif %}
 
+  {% url_check 'projects:classify_clear' project.id work_package.id as clear_work_package_href %}
+  {% if clear_work_package_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ clear_work_package_href }}">Clear Classifications</a>
+  {% endif %}
+
   {% url_check 'projects:classify_open' work_package.project.id work_package.id as classify_open_href %}
   {% if classify_open_href %}
     <a class="btn btn-primary btn-lg" href="{{ classify_open_href }}">Open Classification</a>
