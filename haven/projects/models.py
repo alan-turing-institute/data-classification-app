@@ -97,6 +97,21 @@ class Project(CreatedByModel):
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
             work_package.add_user(participant.user, creator)
 
+    @transaction.atomic
+    def update_representative(self, dataset, creator):
+        for pd in self.get_project_datasets(dataset=dataset):
+            pd.representative = dataset.default_representative
+            pd.save()
+
+        user = dataset.default_representative
+        if not user.get_participant(self):
+            self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+
+        for wpd in self.get_work_package_datasets(dataset=dataset):
+            wp = wpd.work_package
+            if not wp.get_work_package_participant(user).exists():
+                wp.add_user(user, creator)
+
     def archive(self):
         self.archived = True
         self.save()
@@ -142,8 +157,17 @@ class Project(CreatedByModel):
         project_dataset.delete()
         self.get_work_package_datasets(dataset=project_dataset.dataset).delete()
 
+    def can_edit_dataset(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets')
+
+    def can_edit_dataset_dpr(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets_dpr')
+
     def can_delete_dataset(self, dataset):
-        work_packages = self.work_packages.filter_by_permission('delete_datasets', exclude=True)
+        return self._can_edit_dataset(dataset, 'delete_datasets')
+
+    def _can_edit_dataset(self, dataset, permission):
+        work_packages = self.work_packages.filter_by_permission(permission, exclude=True)
         datasets = self.get_work_package_datasets(dataset=dataset, work_package__in=work_packages)
         return not datasets.exists()
 
@@ -206,6 +230,7 @@ class WorkPackage(CreatedByModel):
         approve_participants |   .        Y          Y |
         add_datasets         |   Y        .          . |
         edit_datasets        |   Y        .          . |
+        edit_datasets_dpr    |   Y        Y          Y |
         delete_datasets      |   Y        .          . |
         view_classification  |   .        Y          Y |
         open_classification  |   Y        .          . | *
@@ -274,8 +299,10 @@ class WorkPackage(CreatedByModel):
         qs = WorkPackageParticipant.objects
         return qs.create(work_package=self, participant=participant, created_by=creator)
 
-    def get_work_package_datasets(self, representative=None):
+    def get_work_package_datasets(self, representative=None, dataset=None):
         qs = WorkPackageDataset.objects.filter(work_package=self)
+        if dataset:
+            qs = qs.filter(dataset=dataset)
         if representative:
             qs = qs.filter(dataset__in=self.project.get_datasets(representative))
         return qs

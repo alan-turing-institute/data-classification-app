@@ -100,6 +100,7 @@ class UserPermissions:
         approve_participants |  .   . |  .   Y  .   .   . |     .
         add_datasets         |  Y   Y |  Y   .  .   .   . |     .
         edit_datasets        |  Y   Y |  Y   .  .   .   . |     .
+        edit_datasets_dpr    |  Y   Y |  Y   .  .   .   . |     .
         delete_datasets      |  Y   Y |  Y   .  .   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  .   .   . |     .
         edit_work_package    |  Y   Y |  Y   .  .   .   . |     .

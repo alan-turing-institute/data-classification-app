@@ -921,6 +921,12 @@ class TestProjectEditDataset:
         response = as_investigator.post('/projects/%d/datasets/%d/edit' % (project.id, pd.id))
         assert response.status_code == 403
 
+        response = as_investigator.get('/projects/%d/datasets/%d/edit_dpr' % (project.id, pd.id))
+        assert response.status_code == 403
+
+        response = as_investigator.post('/projects/%d/datasets/%d/edit_dpr' % (project.id, pd.id))
+        assert response.status_code == 403
+
     def test_edit_dataset(self, as_programme_manager, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         dataset = recipes.dataset.make()
@@ -945,6 +951,66 @@ class TestProjectEditDataset:
         dataset.refresh_from_db()
         assert dataset.name == 'Edited Project'
         assert dataset.description == 'Edited Description'
+
+    def test_cannot_edit_used_dataset(self, as_programme_manager, data_provider_representative):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(
+            project=project, created_by=as_programme_manager._user,
+            status=WorkPackageStatus.CLASSIFIED.value)
+        work_package2 = recipes.work_package.make(
+            project=project, created_by=as_programme_manager._user,
+            status=WorkPackageStatus.NEW.value)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user,
+                                 as_programme_manager._user)
+        work_package.add_dataset(dataset, as_programme_manager._user)
+        work_package2.add_dataset(dataset, as_programme_manager._user)
+
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/edit")
+        assert response.status_code == 403
+        response = as_programme_manager.post(
+            f"/projects/{project.id}/datasets/{pd.id}/edit",
+            {
+                'name': 'Edited Project',
+                'description': 'Edited Description',
+            }
+        )
+        assert response.status_code == 403
+
+        dataset.refresh_from_db()
+        assert dataset.name != 'Edited Project'
+        assert dataset.description != 'Edited Description'
+
+    def test_edit_dpr(self, as_programme_manager, data_provider_representative, user1):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(
+            project=project, created_by=as_programme_manager._user)
+        dataset = recipes.dataset.make()
+        pd = project.add_dataset(dataset, data_provider_representative.user,
+                                 as_programme_manager._user)
+        work_package.add_dataset(dataset, as_programme_manager._user)
+
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/edit_dpr")
+        assert response.status_code == 200
+        assert response.context['project'] == project
+        assert response.context['dataset'] == pd
+
+        response = as_programme_manager.post(
+            '/projects/%d/datasets/%d/edit_dpr' % (project.id, pd.id),
+            {
+                'default_representative': user1.pk,
+            }
+        )
+        assert response.status_code == 302
+        assert response.url == '/projects/%d/datasets/%d' % (project.id, pd.id)
+
+        dataset.refresh_from_db()
+        assert dataset.default_representative == user1
+        assert project.get_representative(dataset) == user1
+        participants = project.get_all_participants(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
+        assert [p.user for p in participants] == [data_provider_representative.user, user1]
+        participants = work_package.participants.all()
+        assert [p.user for p in participants] == [data_provider_representative.user, user1]
 
 
 @pytest.mark.django_db

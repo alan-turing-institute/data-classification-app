@@ -77,6 +77,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/datasets/<int:pk>/edit_dpr',
+        views.ProjectEditDatasetDPR.as_view(),
+        name='edit_dataset_dpr'
+    ),
+
+    path(
         '<int:pk>/work_packages/new',
         views.ProjectCreateWorkPackage.as_view(),
         name='add_work_package'

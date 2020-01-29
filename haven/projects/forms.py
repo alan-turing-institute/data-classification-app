@@ -182,6 +182,26 @@ class ProjectEditDatasetForm(forms.ModelForm):
         fields = ('name', 'description')
 
 
+class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Save Dataset')
+
+    class Meta:
+        model = Dataset
+        fields = ('default_representative',)
+
+    def __init__(self, *args, **kwargs):
+        project_id = kwargs.pop('project_id')
+        super().__init__(*args, **kwargs)
+        autocomplete_url = reverse('projects:autocomplete_dpr', kwargs={'pk': project_id})
+        field = UserAutocompleteChoiceField(autocomplete_url, label='Default Representative')
+        self.fields['default_representative'] = field
+
+    def save(self, *args, **kwargs):
+        dataset = super().save(*args, **kwargs)
+        self.project.update_representative(dataset, self.user)
+        return dataset
+
+
 class ProjectDeleteDatasetForm(forms.Form):
     helper = SaveCancelFormHelper('Delete Dataset', 'btn-danger')
     helper.form_method = 'POST'

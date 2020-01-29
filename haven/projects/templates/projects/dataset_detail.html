@@ -19,6 +19,10 @@
   {% if edit_dataset_href %}
     <a class="btn btn-primary btn-lg my-1" href="{{ edit_dataset_href }}">Edit Description</a>
   {% endif %}
+  {% url_check 'projects:edit_dataset_dpr' project.id dataset.id as edit_dataset_dpr_href %}
+  {% if edit_dataset_dpr_href %}
+    <a class="btn btn-primary btn-lg my-1" href="{{ edit_dataset_dpr_href }}">Edit Representative</a>
+  {% endif %}
   {% url_check 'projects:delete_dataset' project.id dataset.id as delete_dataset_href %}
   {% if delete_dataset_href %}
     <a class="btn btn-primary btn-lg my-1" href="{{ delete_dataset_href }}">Delete Dataset</a>
