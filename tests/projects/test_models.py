@@ -99,6 +99,7 @@ class TestWorkPackage:
         assert not work_package.can_approve_participants
         assert work_package.can_add_datasets
         assert work_package.can_edit_datasets
+        assert work_package.can_delete_datasets
         assert not work_package.can_classify_data
         assert work_package.can_open_classification
         assert not work_package.can_close_classification
@@ -115,6 +116,7 @@ class TestWorkPackage:
         assert work_package.can_approve_participants
         assert not work_package.can_add_datasets
         assert not work_package.can_edit_datasets
+        assert not work_package.can_delete_datasets
         assert work_package.can_view_classification
         assert work_package.can_classify_data
         assert not work_package.can_open_classification
@@ -132,6 +134,7 @@ class TestWorkPackage:
         assert work_package.can_approve_participants
         assert not work_package.can_add_datasets
         assert not work_package.can_edit_datasets
+        assert not work_package.can_delete_datasets
         assert work_package.can_view_classification
         assert not work_package.can_classify_data
         assert not work_package.can_open_classification

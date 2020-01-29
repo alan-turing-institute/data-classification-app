@@ -28,7 +28,7 @@ class ProjectQuerySet(db_models.QuerySet):
 
 
 class WorkPackageQuerySet(db_models.QuerySet):
-    def filter_by_permission(self, permission):
+    def filter_by_permission(self, permission, exclude=False):
         permission_dict = models.WorkPackage._get_permission_dict(permission)
-        statuses = [k for k, v in permission_dict.items() if v]
+        statuses = [k for k, v in permission_dict.items() if v != exclude]
         return self.filter(status__in=statuses)

@@ -31,6 +31,7 @@ class TestUserPermissions:
         assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
+        assert not perms.can_delete_datasets
         assert not perms.can_add_work_packages
         assert perms.can_list_participants
         assert not perms.can_edit_participants
@@ -64,6 +65,7 @@ class TestUserPermissions:
         assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
+        assert not perms.can_delete_datasets
         assert not perms.can_add_work_packages
         assert perms.can_list_participants
         assert not perms.can_edit_participants
@@ -97,6 +99,7 @@ class TestUserPermissions:
         assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
+        assert not perms.can_delete_datasets
         assert not perms.can_add_work_packages
         assert perms.can_list_participants
         assert perms.can_edit_participants
@@ -130,6 +133,7 @@ class TestUserPermissions:
         assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
+        assert not perms.can_delete_datasets
         assert not perms.can_add_work_packages
         assert perms.can_list_participants
         assert not perms.can_edit_participants
@@ -163,6 +167,7 @@ class TestUserPermissions:
         assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
+        assert perms.can_delete_datasets
         assert perms.can_add_work_packages
         assert perms.can_list_participants
         assert perms.can_edit_participants
@@ -196,6 +201,7 @@ class TestUserPermissions:
         assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
+        assert perms.can_delete_datasets
         assert perms.can_add_work_packages
         assert perms.can_list_participants
         assert perms.can_edit_participants
@@ -229,6 +235,7 @@ class TestUserPermissions:
         assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
+        assert perms.can_delete_datasets
         assert perms.can_add_work_packages
         assert perms.can_list_participants
         assert perms.can_edit_participants

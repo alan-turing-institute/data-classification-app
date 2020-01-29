@@ -182,6 +182,11 @@ class ProjectEditDatasetForm(forms.ModelForm):
         fields = ('name', 'description')
 
 
+class ProjectDeleteDatasetForm(forms.Form):
+    helper = SaveCancelFormHelper('Delete Dataset', 'btn-danger')
+    helper.form_method = 'POST'
+
+
 class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 

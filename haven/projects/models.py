@@ -134,6 +134,19 @@ class Project(CreatedByModel):
     def get_project_datasets(self, **kwargs):
         return ProjectDataset.objects.filter(project=self, **kwargs)
 
+    def get_work_package_datasets(self, **kwargs):
+        return WorkPackageDataset.objects.filter(work_package__project=self, **kwargs)
+
+    @transaction.atomic
+    def delete_dataset(self, project_dataset):
+        project_dataset.delete()
+        self.get_work_package_datasets(dataset=project_dataset.dataset).delete()
+
+    def can_delete_dataset(self, dataset):
+        work_packages = self.work_packages.filter_by_permission('delete_datasets', exclude=True)
+        datasets = self.get_work_package_datasets(dataset=dataset, work_package__in=work_packages)
+        return not datasets.exists()
+
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
         # This is a bit of a hack - if the model uses a different field name for example, it
@@ -193,6 +206,7 @@ class WorkPackage(CreatedByModel):
         approve_participants |   .        Y          Y |
         add_datasets         |   Y        .          . |
         edit_datasets        |   Y        .          . |
+        delete_datasets      |   Y        .          . |
         view_classification  |   .        Y          Y |
         open_classification  |   Y        .          . | *
         close_classification |   .        Y          . | *
