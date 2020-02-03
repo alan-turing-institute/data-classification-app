@@ -139,7 +139,22 @@ class UserList(LoginRequiredMixin, UserPermissionRequiredMixin, ListView):
         return User.objects.get_visible_users(self.request.user)
 
     def get_context_data(self, **kwargs):
-        kwargs['ordered_user_list'] = User.ordered_participants()
+        ordered_user_list = User.ordered_participants()
+
+        # Get list of usernames on the system
+        try:
+            system_usernames = [username.lower() for username in get_system_user_list(self.request.user)]
+        except:
+            system_usernames = None
+
+        # The context data to the webpage is a list of dictionaries. Each entry represents a webapp user and contains a
+        # property for the user object and a `has_account` property which is true/false if the username exists/does not
+        # exist on the system, or Unknown if the graph call to get the userlist failed
+        kwargs['ordered_user_list'] = [
+            {
+                'user': user,
+                'has_account': user.username.lower() in system_usernames if system_usernames is not None else 'Unknown'
+            } for user in ordered_user_list]
         return super().get_context_data(**kwargs)
 
 
