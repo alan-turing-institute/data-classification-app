@@ -154,6 +154,7 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
+        work_package.open_classification()
         if tier is not None:
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
@@ -165,6 +166,7 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
                 work_package = p.work_package
 
             assert [] == work_package.missing_classification_requirements
+            work_package.close_classification()
             assert work_package.has_tier
             assert tier == work_package.tier
         return work_package

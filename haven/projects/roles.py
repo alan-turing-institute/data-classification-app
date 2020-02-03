@@ -1,6 +1,7 @@
 from collections import defaultdict
 from enum import Enum
 
+from haven.core.utils import BooleanTextTable
 from haven.identity.roles import UserRole
 
 
@@ -67,80 +68,61 @@ class ProjectRole(Enum):
 
 class UserPermissions:
     """
-    Determine the permissions a User has on a particular project.
+    Determine the permissions a User has globally, or on a particular project.
     """
 
-    permissions_table = '''
+    permissions = BooleanTextTable(
+        definition='''
                              | SM PgM | PM DPR PI Ref Res | Extra
-        view_all_projects    |  Y   Y |  .   .  .   .   . |     .
-        edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
-        create_projects      |  Y   Y |  .   .  .   .   . |     .
         create_users         |  Y   Y |  .   .  .   .   . |     .
-        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
-        export_users         |  Y   Y |  .   .  .   .   . |     .
         import_users         |  Y   Y |  .   .  .   .   . |     .
-        edit_users           |  Y   Y |  .   .  .   .   . |     .
-        create_sm            |  .   . |  .   .  .   .   . |     .
-        create_pgm           |  Y   . |  .   .  .   .   . |     .
-        create_usr           |  Y   Y |  .   .  .   .   . |     .
         assign_sm            |  .   . |  .   .  .   .   . |     .
         assign_pgm           |  Y   . |  .   .  .   .   . |     .
         assign_usr           |  Y   Y |  .   .  .   .   . |     .
+        view_all_users       |  Y   Y |  Y   .  .   .   . |     .
+        export_users         |  Y   Y |  .   .  .   .   . |     .
+        edit_users           |  Y   Y |  .   .  .   .   . |     .
+        create_projects      |  Y   Y |  .   .  .   .   . |     .
+        view_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
+        ---------------------+--------+-------------------+------
+        view_project_history |  Y   Y |  Y   .  .   .   . |     .
+        edit_project         |  Y   Y |  Y   .  .   .   . |     .
+        archive_project      |  Y   Y |  Y   .  .   .   . |     .
+        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
         assign_pm            |  Y   Y |  Y   .  .   .   . |     .
         assign_dpr           |  Y   Y |  Y   .  .   .   . |     .
         assign_pi            |  Y   Y |  Y   .  .   .   . |     .
         assign_ref           |  Y   Y |  Y   .  .   .   . |     .
         assign_res           |  Y   Y |  Y   .  Y   .   . |     .
-        add_participants     |  Y   Y |  Y   .  Y   .   . |     *
+        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
+        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         approve_participants |  .   . |  .   Y  .   .   . |     .
-        edit                 |  Y   Y |  Y   .  .   .   . |     .
-        archive              |  Y   Y |  Y   .  .   .   . |     .
-        view_history         |  Y   Y |  Y   .  .   .   . |     .
         add_datasets         |  Y   Y |  Y   .  .   .   . |     .
         edit_datasets        |  Y   Y |  Y   .  .   .   . |     .
         add_work_packages    |  Y   Y |  Y   .  .   .   . |     .
-        list_participants    |  Y   Y |  Y   Y  Y   Y   Y |     .
-        edit_participants    |  Y   Y |  Y   .  Y   .   . |     .
         view_classification  |  Y   Y |  Y   Y  Y   Y   . |     .
+        open_classification  |  Y   Y |  Y   .  .   .   . |     .
+        close_classification |  Y   Y |  Y   .  .   .   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
-        classify_if_approved |  .   . |  .   .  .   Y   . |     .
-    '''
-    _permissions = None
-    role_abbreviations = {
-        'SM': UserRole.SYSTEM_MANAGER,
-        'PgM': UserRole.PROGRAMME_MANAGER,
-        'USR': UserRole.NONE,
-        'PM': ProjectRole.PROJECT_MANAGER,
-        'DPR': ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
-        'PI': ProjectRole.INVESTIGATOR,
-        'Ref': ProjectRole.REFEREE,
-        'Res': ProjectRole.RESEARCHER,
-    }
-    role_abbreviations_inverse = {v: k for k, v in role_abbreviations.items()}
+        ''',
+        abbreviations={
+            'SM': UserRole.SYSTEM_MANAGER,
+            'PgM': UserRole.PROGRAMME_MANAGER,
+            'USR': UserRole.NONE,
+            'PM': ProjectRole.PROJECT_MANAGER,
+            'DPR': ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+            'PI': ProjectRole.INVESTIGATOR,
+            'Ref': ProjectRole.REFEREE,
+            'Res': ProjectRole.RESEARCHER,
+        },
+        ignore=['Extra'],
+        default=lambda: False,
+    )
 
     def __init__(self, project_role, system_role):
         self.system_role = system_role
         self.role = project_role
-
-    @classmethod
-    def permissions(cls):
-        if cls._permissions is None:
-            cls._permissions = {}
-            lines = cls.permissions_table.strip().splitlines()
-            headers = lines[0].split()
-            for line in lines[1:]:
-                row = line.split()
-                permission = row[0]
-                cls._permissions[permission] = defaultdict(lambda: False)
-                for i, cell in enumerate(row[1:]):
-                    if cell == 'Y':
-                        header = headers[i]
-                        try:
-                            role = cls.role_abbreviations[header]
-                        except KeyError:
-                            continue
-                        cls._permissions[permission][role] = True
-        return cls._permissions
 
     @property
     def assignable_roles(self):
@@ -190,7 +172,7 @@ class UserPermissions:
 
     def _can(self, permission):
         try:
-            permission_dict = self.permissions()[permission]
+            permission_dict = self.permissions.as_dict()[permission]
         except KeyError as e:
             raise ValueError(f"{permission} not a valid permission") from e
         return permission_dict[self.role] or permission_dict[self.system_role]
@@ -202,5 +184,5 @@ class UserPermissions:
         :param role: `ProjectRole` to be assigned
         :return `True` if can assign role, `False` if not
         """
-        abbr = self.role_abbreviations_inverse[role].lower()
+        abbr = self.permissions.abbreviations_inverse[role].lower()
         return self._can(f"assign_{abbr}")

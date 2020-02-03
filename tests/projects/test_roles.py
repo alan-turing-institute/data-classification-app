@@ -16,9 +16,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -29,9 +26,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -39,7 +36,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert not perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_referee_permissions(self):
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
@@ -51,9 +49,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -64,9 +59,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -74,7 +69,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert perms.can_classify_if_approved
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_investigator_permissions(self):
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
@@ -86,9 +82,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -99,9 +92,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert not perms.can_add_participants
         assert not perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -109,7 +102,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_dpr_permissions(self):
         perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
@@ -121,9 +115,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -134,9 +125,9 @@ class TestUserPermissions:
         assert not perms.can_assign_res
         assert not perms.can_add_participants
         assert perms.can_approve_participants
-        assert not perms.can_edit
-        assert not perms.can_archive
-        assert not perms.can_view_history
+        assert not perms.can_edit_project
+        assert not perms.can_archive_project
+        assert not perms.can_view_project_history
         assert not perms.can_add_datasets
         assert not perms.can_edit_datasets
         assert not perms.can_add_work_packages
@@ -144,7 +135,8 @@ class TestUserPermissions:
         assert not perms.can_edit_participants
         assert perms.can_view_classification
         assert perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert not perms.can_open_classification
+        assert not perms.can_close_classification
 
     def test_pm_permissions(self):
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
@@ -156,9 +148,6 @@ class TestUserPermissions:
         assert not perms.can_export_users
         assert not perms.can_import_users
         assert not perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert not perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert not perms.can_assign_usr
@@ -169,9 +158,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -179,7 +168,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_pgm_permissions(self):
         perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
@@ -191,9 +181,6 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        assert not perms.can_create_sm
-        assert not perms.can_create_pgm
-        assert perms.can_create_usr
         assert not perms.can_assign_sm
         assert not perms.can_assign_pgm
         assert perms.can_assign_usr
@@ -204,9 +191,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -214,7 +201,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_sm_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
@@ -226,9 +214,6 @@ class TestUserPermissions:
         assert perms.can_export_users
         assert perms.can_import_users
         assert perms.can_edit_users
-        assert not perms.can_create_sm
-        assert perms.can_create_pgm
-        assert perms.can_create_usr
         assert not perms.can_assign_sm
         assert perms.can_assign_pgm
         assert perms.can_assign_usr
@@ -239,9 +224,9 @@ class TestUserPermissions:
         assert perms.can_assign_res
         assert perms.can_add_participants
         assert not perms.can_approve_participants
-        assert perms.can_edit
-        assert perms.can_archive
-        assert perms.can_view_history
+        assert perms.can_edit_project
+        assert perms.can_archive_project
+        assert perms.can_view_project_history
         assert perms.can_add_datasets
         assert perms.can_edit_datasets
         assert perms.can_add_work_packages
@@ -249,7 +234,8 @@ class TestUserPermissions:
         assert perms.can_edit_participants
         assert perms.can_view_classification
         assert not perms.can_classify_data
-        assert not perms.can_classify_if_approved
+        assert perms.can_open_classification
+        assert perms.can_close_classification
 
     def test_invalid_permissions(self):
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
@@ -335,7 +321,7 @@ class TestProjectPermissions:
         )
 
         permissions = project_participant.project_permissions(project1)
-        assert permissions.can_edit
+        assert permissions.can_edit_project
 
         permissions = project_participant.project_permissions(project2)
-        assert not permissions.can_edit
+        assert not permissions.can_edit_project
