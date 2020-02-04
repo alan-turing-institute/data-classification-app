@@ -82,6 +82,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/delete',
+        views.WorkPackageDelete.as_view(),
+        name='work_package_delete'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/edit',
         views.WorkPackageEdit.as_view(),
         name='work_package_edit'

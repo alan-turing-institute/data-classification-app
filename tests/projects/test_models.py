@@ -92,6 +92,7 @@ class TestWorkPackage:
         work_package.status = WorkPackageStatus.NEW.value
 
         assert work_package.can_edit_work_package
+        assert work_package.can_delete_work_package
         assert work_package.can_add_participants
         assert work_package.can_list_participants
         assert work_package.can_edit_participants
@@ -107,6 +108,7 @@ class TestWorkPackage:
         work_package.status = WorkPackageStatus.UNDERWAY.value
 
         assert not work_package.can_edit_work_package
+        assert not work_package.can_delete_work_package
         assert work_package.can_add_participants
         assert work_package.can_list_participants
         assert work_package.can_edit_participants
@@ -123,6 +125,7 @@ class TestWorkPackage:
         work_package.status = WorkPackageStatus.CLASSIFIED.value
 
         assert not work_package.can_edit_work_package
+        assert not work_package.can_delete_work_package
         assert work_package.can_add_participants
         assert work_package.can_list_participants
         assert work_package.can_edit_participants

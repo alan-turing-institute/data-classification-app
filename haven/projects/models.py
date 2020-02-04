@@ -184,6 +184,7 @@ class WorkPackage(CreatedByModel):
         definition='''
                              | new underway classified | Extra
         edit_work_package    |   Y        .          . |
+        delete_work_package  |   Y        .          . |
         add_participants     |   Y        Y          Y |
         list_participants    |   Y        Y          Y |
         edit_participants    |   Y        Y          Y |

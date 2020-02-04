@@ -1281,6 +1281,57 @@ class TestEditWorkPackage:
 
 
 @pytest.mark.django_db
+class TestDeleteWorkPackage:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        response = client.get('/projects/1/work_packages/1/delete')
+        helpers.assert_login_redirect(response)
+
+    def test_investigator_cannot_access_page(self, as_investigator):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        recipes.participant.make(project=project, user=as_investigator._user,
+                                 role=ProjectRole.INVESTIGATOR.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_investigator.get(url + "/delete")
+
+        assert response.status_code == 403
+
+    def test_cannot_delete_classified(self, as_project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(
+            project=project, status=WorkPackageStatus.CLASSIFIED.value)
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_project_participant.get(url + "/delete")
+
+        assert response.status_code == 403
+
+    def test_delete(self, as_project_participant):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        recipes.participant.make(project=project, user=as_project_participant._user,
+                                 role=ProjectRole.PROJECT_MANAGER.value)
+
+        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        response = as_project_participant.get(url + "/delete")
+
+        assert response.status_code == 200
+        assert response.context['work_package'] == work_package
+
+        response = as_project_participant.post(url + "/delete")
+
+        assert response.status_code == 302
+        assert response.url == f"/projects/{project.id}"
+
+        response = as_project_participant.get(url)
+
+        assert response.status_code == 404
+
+
+@pytest.mark.django_db
 class TestWorkPackageOpenClassification:
     def test_open_classification(self, classified_work_package, programme_manager,
                                  as_standard_user):
