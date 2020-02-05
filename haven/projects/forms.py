@@ -157,7 +157,8 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         self.fields['default_representative'] = field
 
         self.project = Project.objects.get(pk=project_id)
-        self.fields['work_packages'].queryset = self.project.work_packages
+        self.fields['work_packages'].queryset = (
+            self.project.work_packages.filter_by_permission('add_datasets'))
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),

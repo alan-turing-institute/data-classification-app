@@ -12,7 +12,7 @@ from haven.core.utils import BooleanTextTable
 from haven.data.models import ClassificationQuestion, Dataset
 from haven.data.tiers import TIER_CHOICES, Tier
 from haven.identity.models import User
-from haven.projects.managers import ProjectQuerySet
+from haven.projects.managers import ProjectQuerySet, WorkPackageQuerySet
 from haven.projects.roles import ProjectRole
 
 
@@ -201,6 +201,8 @@ class WorkPackage(CreatedByModel):
         ignore=['Extra'],
     )
 
+    objects = WorkPackageQuerySet.as_manager()
+
     def __getattr__(self, name):
         if name.startswith('can_'):
             permission = name.replace('can_', '')
@@ -210,11 +212,15 @@ class WorkPackage(CreatedByModel):
                 raise AttributeError(name) from e
         raise AttributeError(name)
 
-    def _can(self, permission):
+    @classmethod
+    def _get_permission_dict(cls, permission):
         try:
-            permission_dict = self.permissions.as_dict()[permission]
+            return cls.permissions.as_dict()[permission]
         except KeyError as e:
             raise ValueError(f"{permission} not a valid permission") from e
+
+    def _can(self, permission):
+        permission_dict = self._get_permission_dict(permission)
         return permission_dict[self.status]
 
     @transaction.atomic
