@@ -43,6 +43,8 @@ from haven.projects.forms import (
     WorkPackageClassifyCloseForm,
     WorkPackageClassifyDeleteForm,
     WorkPackageClassifyOpenForm,
+    WorkPackageDeleteForm,
+    WorkPackageEditForm,
 )
 from haven.projects.models import (
     ClassificationOpinion,
@@ -595,6 +597,56 @@ class ProjectCreateWorkPackage(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+
+class WorkPackageEdit(
+    LoginRequiredMixin, UserPassesTestMixin,
+    SingleWorkPackageMixin, UserFormKwargsMixin, UpdateView
+):
+    model = WorkPackage
+    form_class = WorkPackageEditForm
+    template_name = 'projects/work_package_edit.html'
+
+    def test_func(self):
+        return (self.get_work_package().can_edit_work_package
+                and self.get_project_permissions().can_edit_work_package)
+
+    def get_success_url(self):
+        project = self.get_project()
+        work_package = self.get_work_package()
+        return reverse('projects:work_package_detail', args=[project.id, work_package.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        return super().post(request, *args, **kwargs)
+
+
+class WorkPackageDelete(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_delete.html'
+    form_class = WorkPackageDeleteForm
+
+    def test_func(self):
+        return (self.get_work_package().can_delete_work_package
+                and self.get_project_permissions().can_delete_work_package)
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_work_package().delete()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse('projects:detail', args=[self.get_project().id])
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):

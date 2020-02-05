@@ -265,6 +265,19 @@ class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
         return work_package
 
 
+class WorkPackageEditForm(UserKwargModelFormMixin, forms.ModelForm):
+    helper = SaveCancelFormHelper('Save Work Package')
+
+    class Meta:
+        model = WorkPackage
+        fields = ('name', 'description')
+
+
+class WorkPackageDeleteForm(forms.Form):
+    helper = SaveCancelFormHelper('Delete Work Package', 'btn-danger')
+    helper.form_method = 'POST'
+
+
 class ProjectArchiveForm(forms.Form):
     helper = SaveCancelFormHelper('Archive Project', 'btn-danger')
     helper.form_method = 'POST'

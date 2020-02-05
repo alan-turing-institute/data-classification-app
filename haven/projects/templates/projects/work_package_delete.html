@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Delete Work Package{% endblock %}
+
+{% block content %}
+<p>
+  Deleting the work package means it will no longer be avaiable for any user, and no further action can be taken on it.
+  Please confirm below if you would like to delete the work package.
+</p>
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
+  <li class="breadcrumb-item">{{ work_package.name }}</li>
+  <li class="breadcrumb-item active" aria-current="page">Delete</li>
+{% endblock crumbs %}

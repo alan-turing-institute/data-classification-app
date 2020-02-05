@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load haven %}
+
+{% block h1_title %}Edit Work Package{% endblock %}
+
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  {{ form.media }}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
+  <li class="breadcrumb-item">{{ work_package.name }}</li>
+  <li class="breadcrumb-item active" aria-current="page">Edit</li>
+{% endblock crumbs %}
