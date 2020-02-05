@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% load haven %}
+{% load project_tags %}
+
+{% block page_title %}Programmes{% endblock %}
+{% block h1_title %}Programmes{% endblock %}
+
+{% block content %}
+  {% if programmes %}
+    <p class="lead">
+      All existing programmes are listed below.
+      Please click on a programme name to see a list of projects for that programme.
+      Note that not all projects may be visible - you will only be able to see projects that you have been assigned to.
+    </p>
+    <ul class="list-group">
+      {% for programme in programmes %}
+      <li class="list-group-item">
+          <h4>
+            <a href="{% url "projects:list" %}?programme={{ programme.slug }}">{{ programme.name }}</a>
+          </h4>
+          <p>
+            Number of projects: {{ programme.num_times }}
+          </p>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="lead">
+      No programmes have been created.
+      {% url_check 'projects:create' as create_project_url %}
+      {% if create_project_url %}
+        Please use the button to create a project and add it to a programme.
+      {% else %}
+        Please contact someone with the appropriate credentials to add a new project.
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Programmes</li>
+{% endblock crumbs %}

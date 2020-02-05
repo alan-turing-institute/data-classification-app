@@ -62,6 +62,7 @@ THIRD_PARTY_APPS = [
     'easyaudit',
     'simple_history',
     'social_django',
+    'taggit',
 ]
 
 LOCAL_APPS = [

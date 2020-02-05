@@ -40,7 +40,11 @@ class TestCreateProject:
     def test_create_project(self, as_programme_manager):
         response = as_programme_manager.post(
             '/projects/new',
-            {'name': 'my project', 'description': 'a new project'},
+            {
+                'name': 'my project',
+                'description': 'a new project',
+                'programmes': 'prog1, prog2',
+            },
         )
 
         assert response.status_code == 302
@@ -49,6 +53,8 @@ class TestCreateProject:
         project = Project.objects.get()
         assert project.name == 'my project'
         assert project.description == 'a new project'
+        programmes = set(p.name for p in project.programmes.all())
+        assert programmes == set(('prog1', 'prog2'))
         assert project.created_by == as_programme_manager._user
 
     def test_cannot_create_duplicate_project(self, as_programme_manager):
@@ -65,6 +71,25 @@ class TestCreateProject:
         }
 
         assert Project.objects.count() == 1
+
+    def test_create_project_for_programme(self, as_programme_manager):
+        response = as_programme_manager.get('/projects/new')
+        assert response.context['form'].initial == {}
+
+        response = as_programme_manager.post(
+            '/projects/new',
+            {
+                'name': 'my project',
+                'description': 'a new project',
+                'programmes': 'prog1',
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/'
+
+        response = as_programme_manager.get('/projects/new?programme=prog1')
+        assert response.context['form'].initial == {'programmes': ['prog1']}
 
 
 @pytest.mark.django_db
@@ -106,6 +131,25 @@ class TestListProjects:
         response = as_system_manager.get('/projects/')
 
         assert list(response.context['projects']) == [other_project]
+
+    def test_list_projects_by_programme(self, as_system_manager):
+        project1, project2 = recipes.project.make(_quantity=2)
+
+        project1.programmes.add('prog1', 'prog2')
+        project2.programmes.add('prog2', 'prog3')
+
+        response = as_system_manager.get('/projects/?programme=prog1')
+        assert list(response.context['projects']) == [project1]
+
+        response = as_system_manager.get('/projects/?programme=prog2')
+        assert list(response.context['projects']) == [project2, project1]
+
+        response = as_system_manager.get('/projects/?programme=prog3')
+        assert list(response.context['projects']) == [project2]
+
+    def test_missing_programme(self, as_system_manager):
+        response = as_system_manager.get('/projects/?programme=prog1')
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

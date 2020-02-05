@@ -24,6 +24,7 @@ django-phonenumber-field==2.1.0
 django-simple-history==2.7.2
 django-source-revision==0.1.0
 django-tables2==2.0.6
+django-taggit==1.1.0
 django==2.1
 et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via cryptography, requests

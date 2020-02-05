@@ -8,6 +8,7 @@ app_name = 'projects'
 urlpatterns = [
     path('', views.ProjectList.as_view(), name='list'),
     path('new', views.ProjectCreate.as_view(), name='create'),
+    path('programmes', views.ProgrammeList.as_view(), name='programmes'),
 
     path(
         '<int:pk>',
@@ -152,4 +153,11 @@ urlpatterns = [
         views.AutocompleteNewParticipant.as_view(),
         name='autocomplete_new_participant'
     ),
+
+    path(
+        'autocomplete_programme/',
+        views.AutocompleteProgramme.as_view(),
+        name='autocomplete_programme'
+    ),
+
 ]
