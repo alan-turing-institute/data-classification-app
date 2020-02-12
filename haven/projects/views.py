@@ -694,9 +694,7 @@ class WorkPackageEdit(
                 and self.get_project_permissions().can_edit_work_package)
 
     def get_success_url(self):
-        project = self.get_project()
-        work_package = self.get_work_package()
-        return reverse('projects:work_package_detail', args=[project.id, work_package.id])
+        return self.get_work_package().get_absolute_url()
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -828,8 +826,7 @@ class WorkPackageEditDatasets(
         return DatasetsForWorkPackageInlineFormSet(**options)
 
     def get_success_url(self):
-        obj = self.get_project()
-        return reverse('projects:detail', args=[obj.id])
+        return self.get_work_package().get_absolute_url()
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -877,8 +874,7 @@ class WorkPackageApproveParticipants(
         return ParticipantsForWorkPackageApprovalInlineFormSet(**options)
 
     def get_success_url(self):
-        obj = self.get_project()
-        return reverse('projects:detail', args=[obj.id])
+        return self.get_work_package().get_absolute_url()
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
@@ -926,8 +922,7 @@ class WorkPackageEditParticipants(
         return ParticipantsForWorkPackageInlineFormSet(**options)
 
     def get_success_url(self):
-        obj = self.get_project()
-        return reverse('projects:detail', args=[obj.id])
+        return self.get_work_package().get_absolute_url()
 
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:

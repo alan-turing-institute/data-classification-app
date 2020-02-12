@@ -1259,7 +1259,7 @@ class TestWorkPackageEditParticipants:
         )
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d' % project.id
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
 
         assert work_package.participants.count() == 1
         assert work_package.participants.first().role == ProjectRole.REFEREE.value
@@ -1395,7 +1395,7 @@ class TestWorkPackageEditDatasets:
         )
 
         assert response.status_code == 302
-        assert response.url == '/projects/%d' % project.id
+        assert response.url == '/projects/%d/work_packages/%d' % (project.id, work_package.id)
 
         assert work_package.datasets.count() == 1
         assert work_package.datasets.first() == dataset2
