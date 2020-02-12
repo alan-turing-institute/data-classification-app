@@ -25,6 +25,7 @@ from haven.data.models import (
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
 from haven.projects.forms import (
+    DatasetsForWorkPackageInlineFormSet,
     ParticipantForm,
     ParticipantInlineFormSetHelper,
     ParticipantsForWorkPackageApprovalInlineFormSet,
@@ -792,6 +793,55 @@ class WorkPackageAddDataset(
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
+
+
+class WorkPackageEditDatasets(
+    LoginRequiredMixin, UserPassesTestMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_datasets_edit.html'
+
+    def test_func(self):
+        work_package = self.get_object()
+        return (work_package.can_edit_datasets
+                and self.get_project_permissions().can_edit_datasets)
+
+    def get_context_data(self, **kwargs):
+        helper = SaveCancelInlineFormSetHelper('Save Datasets')
+        kwargs['helper'] = helper
+        kwargs['formset'] = self.get_formset()
+        kwargs['editing'] = True
+        return super().get_context_data(**kwargs)
+
+    def get_formset(self, **kwargs):
+        work_package = self.get_object()
+        user = self.request.user
+        options = {
+            'form_kwargs': {
+                'user': user,
+            },
+            'instance': work_package,
+            'prefix': 'datasets',
+            'queryset': work_package.work_package_datasets,
+        }
+        if self.request.method == 'POST':
+            options['data'] = self.request.POST
+        return DatasetsForWorkPackageInlineFormSet(**options)
+
+    def get_success_url(self):
+        obj = self.get_project()
+        return reverse('projects:detail', args=[obj.id])
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        self.object = self.get_object()
+        formset = self.get_formset()
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.render_to_response(self.get_context_data())
 
 
 class WorkPackageApproveParticipants(

@@ -15,4 +15,8 @@
   {% if add_dataset_href %}
     <a class="btn btn-primary btn-lg" href="{{ add_dataset_href }}">Add Dataset</a>
   {% endif %}
+  {% url 'projects:work_package_edit_datasets' work_package.project.id work_package.id as edit_datasets_href %}
+  {% if edit_datasets_href %}
+    <a class="btn btn-primary btn-lg" href="{{ edit_datasets_href }}">Edit Datasets</a>
+  {% endif %}
 {% endblock actions %}

@@ -1346,6 +1346,103 @@ class TestWorkPackageAddDataset:
         response = as_programme_manager.get(url)
         assert response.status_code == 403
 
+
+@pytest.mark.django_db
+class TestWorkPackageEditDatasets:
+    def test_anonymous_cannot_access_page(self, client, helpers):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+        response = client.get(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        helpers.assert_login_redirect(response)
+
+        response = client.post(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        helpers.assert_login_redirect(response)
+
+    def test_view_page(self, as_programme_manager):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+
+        response = as_programme_manager.get(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 200
+        assert response.context['project'] == project
+
+    def test_edit_datasets(self, as_programme_manager, referee, data_provider_representative):
+        project = recipes.project.make(created_by=as_programme_manager._user)
+        work_package = recipes.work_package.make(project=project)
+        dataset1 = recipes.dataset.make()
+        project.add_dataset(dataset1, data_provider_representative.user, as_programme_manager._user)
+        wpd1 = work_package.add_dataset(dataset1, as_programme_manager._user)
+        dataset2 = recipes.dataset.make()
+        project.add_dataset(dataset2, data_provider_representative.user, as_programme_manager._user)
+        wpd2 = work_package.add_dataset(dataset2, as_programme_manager._user)
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id),
+            {
+                'datasets-TOTAL_FORMS': 2,
+                'datasets-MAX_NUM_FORMS': 2,
+                'datasets-MIN_NUM_FORMS': 0,
+                'datasets-INITIAL_FORMS': 2,
+                'datasets-0-id': wpd1.id,
+                'datasets-0-work_package': work_package.id,
+                'datasets-0-DELETE': 'on',
+                'datasets-1-id': wpd2.id,
+                'datasets-1-work_package': work_package.id,
+            }
+        )
+
+        assert response.status_code == 302
+        assert response.url == '/projects/%d' % project.id
+
+        assert work_package.datasets.count() == 1
+        assert work_package.datasets.first() == dataset2
+
+    def test_returns_404_for_invisible_project(self, as_standard_user):
+        project = recipes.project.make()
+        work_package = recipes.work_package.make(project=project)
+
+        # Programme manager shouldn't have visibility of this other project at all
+        # so pretend it doesn't exist and raise a 404
+        response = as_standard_user.get(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 404
+
+        response = as_standard_user.post(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 404
+
+    def test_returns_403_if_no_add_permissions(self, client, researcher):
+        project = researcher.project
+        work_package = recipes.work_package.make(project=project)
+        # Researchers can't add datasets, so do not display the page
+        client.force_login(researcher.user)
+
+        response = client.get(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+        response = client.post(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+    def test_cannot_edit_underway(self, classified_work_package, as_programme_manager):
+        work_package = classified_work_package(None)
+        work_package.status = WorkPackageStatus.UNDERWAY.value
+        work_package.save()
+        project = work_package.project
+
+        response = as_programme_manager.get(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+        response = as_programme_manager.post(
+            '/projects/%d/work_packages/%d/datasets/edit' % (project.id, work_package.id))
+        assert response.status_code == 403
+
+
 @pytest.mark.django_db
 class TestProjectAddWorkPackage:
     def test_anonymous_cannot_access_page(self, client, helpers):
