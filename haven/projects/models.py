@@ -12,7 +12,7 @@ from haven.core.utils import BooleanTextTable
 from haven.data.models import ClassificationQuestion, Dataset
 from haven.data.tiers import TIER_CHOICES, Tier
 from haven.identity.models import User
-from haven.projects.managers import ProjectQuerySet
+from haven.projects.managers import ProjectQuerySet, WorkPackageQuerySet
 from haven.projects.roles import ProjectRole
 
 
@@ -97,6 +97,21 @@ class Project(CreatedByModel):
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
             work_package.add_user(participant.user, creator)
 
+    @transaction.atomic
+    def update_representative(self, dataset, creator):
+        for pd in self.get_project_datasets(dataset=dataset):
+            pd.representative = dataset.default_representative
+            pd.save()
+
+        user = dataset.default_representative
+        if not user.get_participant(self):
+            self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+
+        for wpd in self.get_work_package_datasets(dataset=dataset):
+            wp = wpd.work_package
+            if not wp.get_work_package_participant(user).exists():
+                wp.add_user(user, creator)
+
     def archive(self):
         self.archived = True
         self.save()
@@ -133,6 +148,28 @@ class Project(CreatedByModel):
 
     def get_project_datasets(self, **kwargs):
         return ProjectDataset.objects.filter(project=self, **kwargs)
+
+    def get_work_package_datasets(self, **kwargs):
+        return WorkPackageDataset.objects.filter(work_package__project=self, **kwargs)
+
+    @transaction.atomic
+    def delete_dataset(self, project_dataset):
+        project_dataset.delete()
+        self.get_work_package_datasets(dataset=project_dataset.dataset).delete()
+
+    def can_edit_dataset(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets')
+
+    def can_edit_dataset_dpr(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets_dpr')
+
+    def can_delete_dataset(self, dataset):
+        return self._can_edit_dataset(dataset, 'delete_datasets')
+
+    def _can_edit_dataset(self, dataset, permission):
+        work_packages = self.work_packages.filter_by_permission(permission, exclude=True)
+        datasets = self.get_work_package_datasets(dataset=dataset, work_package__in=work_packages)
+        return not datasets.exists()
 
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
@@ -193,6 +230,8 @@ class WorkPackage(CreatedByModel):
         approve_participants |   .        Y          Y |
         add_datasets         |   Y        .          . |
         edit_datasets        |   Y        .          . |
+        edit_datasets_dpr    |   Y        Y          Y |
+        delete_datasets      |   Y        .          . |
         view_classification  |   .        Y          Y |
         open_classification  |   Y        .          . | *
         close_classification |   .        Y          . | *
@@ -200,6 +239,8 @@ class WorkPackage(CreatedByModel):
         ''',
         ignore=['Extra'],
     )
+
+    objects = WorkPackageQuerySet.as_manager()
 
     def __getattr__(self, name):
         if name.startswith('can_'):
@@ -210,11 +251,15 @@ class WorkPackage(CreatedByModel):
                 raise AttributeError(name) from e
         raise AttributeError(name)
 
-    def _can(self, permission):
+    @classmethod
+    def _get_permission_dict(cls, permission):
         try:
-            permission_dict = self.permissions.as_dict()[permission]
+            return cls.permissions.as_dict()[permission]
         except KeyError as e:
             raise ValueError(f"{permission} not a valid permission") from e
+
+    def _can(self, permission):
+        permission_dict = self._get_permission_dict(permission)
         return permission_dict[self.status]
 
     @transaction.atomic
@@ -254,8 +299,10 @@ class WorkPackage(CreatedByModel):
         qs = WorkPackageParticipant.objects
         return qs.create(work_package=self, participant=participant, created_by=creator)
 
-    def get_work_package_datasets(self, representative=None):
+    def get_work_package_datasets(self, representative=None, dataset=None):
         qs = WorkPackageDataset.objects.filter(work_package=self)
+        if dataset:
+            qs = qs.filter(dataset=dataset)
         if representative:
             qs = qs.filter(dataset__in=self.project.get_datasets(representative))
         return qs

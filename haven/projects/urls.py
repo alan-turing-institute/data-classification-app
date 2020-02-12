@@ -65,9 +65,21 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/datasets/<int:pk>/delete',
+        views.ProjectDeleteDataset.as_view(),
+        name='delete_dataset'
+    ),
+
+    path(
         '<int:project_pk>/datasets/<int:pk>/edit',
         views.ProjectEditDataset.as_view(),
         name='edit_dataset'
+    ),
+
+    path(
+        '<int:project_pk>/datasets/<int:pk>/edit_dpr',
+        views.ProjectEditDatasetDPR.as_view(),
+        name='edit_dataset_dpr'
     ),
 
     path(

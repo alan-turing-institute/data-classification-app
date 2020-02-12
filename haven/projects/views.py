@@ -33,6 +33,8 @@ from haven.projects.forms import (
     ProjectAddUserForm,
     ProjectAddWorkPackageForm,
     ProjectArchiveForm,
+    ProjectDeleteDatasetForm,
+    ProjectEditDatasetDPRForm,
     ProjectEditDatasetForm,
     ProjectForm,
     SaveCancelFormHelper,
@@ -533,7 +535,8 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
     template_name = 'projects/edit_dataset.html'
 
     def test_func(self):
-        return self.get_project_permissions().can_edit_datasets
+        return (self.get_project_permissions().can_edit_datasets
+                and self.get_project().can_edit_dataset(self.get_object()))
 
     def get_project_dataset(self):
         try:
@@ -555,6 +558,84 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
 
     def get_success_url(self):
         return reverse('projects:dataset_detail', kwargs=self.kwargs)
+
+
+class ProjectEditDatasetDPR(LoginRequiredMixin, UserPassesTestMixin, UserFormKwargsMixin,
+                            ProjectMixin, UpdateView):
+    # This currently edits both the *Dataset*, and the ProjectDataset (not the WorkPackageDatasets)
+    # This may have to be revisited once Datasets are truly global
+    model = Dataset
+    form_class = ProjectEditDatasetDPRForm
+    template_name = 'projects/edit_dataset_dpr.html'
+
+    def test_func(self):
+        return (self.get_project_permissions().can_edit_datasets_dpr
+                and self.get_project().can_edit_dataset_dpr(self.get_object()))
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['project_id'] = self.get_project().id
+        return kwargs
+
+    def get_project_dataset(self):
+        try:
+            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs['pk'])
+            return qs.first()
+        except ProjectDataset.DoesNotExist:
+            raise Http404("No dataset found matching the query")
+
+    def get_object(self):
+        pd = self.get_project_dataset()
+        return pd.dataset
+
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
+    def get_context_data(self, **kwargs):
+        kwargs['dataset'] = self.get_project_dataset()
+        return super().get_context_data(**kwargs)
+
+    def get_success_url(self):
+        return reverse('projects:dataset_detail', kwargs=self.kwargs)
+
+
+class ProjectDeleteDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, FormMixin,
+                           DetailView):
+    model = ProjectDataset
+    template_name = 'projects/project_delete_dataset.html'
+    form_class = ProjectDeleteDatasetForm
+
+    def test_func(self):
+        return (self.get_project_permissions().can_delete_datasets
+                and self.get_project().can_delete_dataset(self.get_object().dataset))
+
+    def get_object(self):
+        try:
+            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs['pk'])
+            return qs.first()
+        except ProjectDataset.DoesNotExist:
+            raise Http404("No dataset found matching the query")
+
+    def get_context_data(self, **kwargs):
+        kwargs['dataset'] = self.get_object()
+        return super().get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_project().delete_dataset(self.get_object())
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_project_url_kwarg(self):
+        return 'project_pk'
+
+    def get_success_url(self):
+        return reverse('projects:detail', args=[self.get_project().id])
 
 
 class ProjectCreateWorkPackage(
