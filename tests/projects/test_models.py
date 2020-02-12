@@ -182,6 +182,28 @@ class TestWorkPackage:
         with pytest.raises(ValidationError):
             work_package.add_dataset(dataset, programme_manager)
 
+    def test_classification_reset(
+            self, classified_work_package, investigator, data_provider_representative):
+        work_package = classified_work_package(None)
+        dataset = work_package.datasets.first()
+
+        work_package.classify_as(3, investigator.user)
+        work_package.classify_as(3, data_provider_representative.user)
+
+        assert work_package.classifications.count() == 2
+        assert work_package.missing_classification_requirements == [
+            'Each Data Provider Representative for this Work Package needs to approve the Referee.'
+        ]
+
+        work_package.clear_classifications()
+        assert work_package.status == WorkPackageStatus.NEW.value
+        assert work_package.classifications.count() == 0
+        assert work_package.missing_classification_requirements == [
+            'An Investigator still needs to classify this Work Package.',
+            f"A Data Provider Representative for dataset {dataset.name} still needs to classify "
+            f"this Work Package.",
+        ]
+
     def test_classify_work_package_no_dataset(
             self, classified_work_package, investigator, data_provider_representative):
         work_package = classified_work_package(None)

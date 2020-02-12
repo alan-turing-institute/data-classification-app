@@ -45,6 +45,7 @@ from haven.projects.forms import (
     WorkPackageClassifyCloseForm,
     WorkPackageClassifyDeleteForm,
     WorkPackageClassifyOpenForm,
+    WorkPackageClearForm,
     WorkPackageDeleteForm,
     WorkPackageEditForm,
 )
@@ -678,6 +679,34 @@ class ProjectCreateWorkPackage(
 
     def get_success_url(self):
         return reverse('projects:detail', args=[self.get_object().id])
+
+
+class WorkPackageClear(
+    LoginRequiredMixin, UserPassesTestMixin,
+    FormMixin, SingleWorkPackageMixin, DetailView
+):
+    template_name = 'projects/work_package_clear.html'
+    form_class = WorkPackageClearForm
+
+    def test_func(self):
+        return (self.get_work_package().can_clear_classification
+                and self.get_project_permissions().can_clear_classification)
+
+    def post(self, request, *args, **kwargs):
+        if "cancel" in request.POST:
+            url = self.get_success_url()
+            return HttpResponseRedirect(url)
+        form = self.get_form()
+        if form.is_valid():
+            self.get_work_package().clear_classifications()
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        return reverse(
+            'projects:work_package_detail',
+            args=[self.get_project().id, self.get_work_package().id])
 
 
 class WorkPackageEdit(

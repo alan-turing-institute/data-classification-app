@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Clear Classifications{% endblock %}
+
+{% block content %}
+<p>
+  Clearing the classifications will restore the ability to make changes such as adding and editing datasets.
+  However, all required participants will have to complete the classification process again.
+  Please confirm below if you would like to clear the existing classifications.
+</p>
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
+  <li class="breadcrumb-item">{{ work_package.name }}</li>
+  <li class="breadcrumb-item active" aria-current="page">Clear Classifications</li>
+{% endblock crumbs %}

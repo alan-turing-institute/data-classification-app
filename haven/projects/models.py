@@ -234,6 +234,7 @@ class WorkPackage(CreatedByModel):
         delete_datasets      |   Y        .          . |
         view_classification  |   .        Y          Y |
         open_classification  |   Y        .          . | *
+        clear_classification |   .        Y          . |
         close_classification |   .        Y          . | *
         classify_data        |   .        Y          . |
         ''',
@@ -511,6 +512,12 @@ class WorkPackage(CreatedByModel):
         return self.classifications.filter(
             created_by=user
         )
+
+    def clear_classifications(self):
+        self.status = WorkPackageStatus.NEW.value
+        for c in self.classifications.all():
+            c.delete()
+        self.save()
 
     def show_approve_participants(self, approver):
         if not self.can_approve_participants:
