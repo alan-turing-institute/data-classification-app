@@ -361,6 +361,22 @@ class WorkPackageClassifyOpenForm(forms.Form):
 # Inline forms
 
 
+class DatasetForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+    """Inline form describing a single work package assignment for a dataset"""
+
+    name = forms.CharField(disabled=True, widget=ShowValue, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = kwargs.get('instance')
+        if instance:
+            self.fields['name'].initial = instance.dataset.name
+
+    class Meta:
+        model = WorkPackageDataset
+        fields = ()
+
+
 class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
     """Inline form describing a single work package assignment for a user"""
 
@@ -437,6 +453,16 @@ class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
 
 
 # Form factories
+
+DatasetsForWorkPackageInlineFormSet = inlineformset_factory(
+    WorkPackage,
+    WorkPackageDataset,
+    form=DatasetForWorkPackageInlineForm,
+    fk_name='work_package',
+    extra=0,
+    can_delete=True,
+)
+
 
 ParticipantsForWorkPackageInlineFormSet = inlineformset_factory(
     WorkPackage,

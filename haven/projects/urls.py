@@ -155,6 +155,12 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/datasets/edit',
+        views.WorkPackageEditDatasets.as_view(),
+        name='work_package_edit_datasets'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/participants/new',
         views.WorkPackageAddParticipant.as_view(),
         name='work_package_add_participant'
