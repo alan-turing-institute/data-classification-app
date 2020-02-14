@@ -17,6 +17,6 @@
   {% endif %}
   {% url_check 'projects:work_package_edit_datasets' work_package.project.id work_package.id as edit_datasets_href %}
   {% if edit_datasets_href %}
-    <a class="btn btn-primary btn-lg" href="{{ edit_datasets_href }}">Edit Datasets</a>
+    <a class="btn btn-primary btn-lg" href="{{ edit_datasets_href }}">Remove Datasets</a>
   {% endif %}
 {% endblock actions %}
