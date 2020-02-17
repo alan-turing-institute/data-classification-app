@@ -52,14 +52,14 @@ class Project(CreatedByModel):
         return self.name
 
     @transaction.atomic
-    def add_user(self, user, role, creator, work_packages=None):
+    def add_user(self, user, role, created_by, work_packages=None):
         """
         Add participant to this project
         User must already exist in the database
 
         :param user: user to add
         :param role: Role user will have on the project
-        :param creator: `User` who is doing the adding
+        :param created_by: `User` who is doing the adding
         """
 
         # Verify if user already exists on project
@@ -69,33 +69,81 @@ class Project(CreatedByModel):
         participant = Participant.objects.create(
             user=user,
             role=role,
-            created_by=creator,
+            created_by=created_by,
             project=self,
         )
         if role == ProjectRole.INVESTIGATOR.value:
             work_packages = self.work_packages.all()
         if work_packages:
             for work_package in work_packages:
-                work_package.add_user(user, creator)
+                work_package.add_user(user, created_by)
         return participant
 
     @transaction.atomic
-    def add_dataset(self, dataset, representative, creator):
+    def add_dataset(self, dataset, representative, created_by):
         participant = representative.get_participant(self)
         if not participant:
-            self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+            self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                          created_by)
         elif participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
         return ProjectDataset.objects.create(project=self, dataset=dataset,
-                                             representative=representative, created_by=creator)
+                                             representative=representative, created_by=created_by)
 
     @transaction.atomic
-    def add_work_package(self, work_package, creator):
+    def add_work_package(self, work_package, created_by):
         work_package.project = self
-        work_package.created_by = creator
+        work_package.created_by = created_by
         work_package.save()
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
-            work_package.add_user(participant.user, creator)
+            work_package.add_user(participant.user, created_by)
+
+    def add_default_work_packages(self, created_by=None):
+        ingress = WorkPackage(
+            name='Ingress',
+            description=(
+                "<p>When considering a project, you'll need to consider all the tools and datasets "
+                "you'll be using (in combination or separately) in a single research environment, "
+                "as well as what work you'll be doing on the data, to consider the potential "
+                "sensitivity of the data you'll be using / creating, and how securely it should "
+                "be handled. Once you're finished with the project, you'll need to carry out "
+                "separate classifications on the data you'll be taking out of the environment.</p>"
+                "<p>Datasets: All inputs, including tools, data and potential products of linking "
+                "/ filtering data.</p>"
+            )
+        )
+        egress1 = WorkPackage(
+            name='Egress – Reports',
+            description=(
+                "<p>When you're finishing a project, you'll need to complete reports and any other "
+                "outputs that might be pertinent to the presentation of the research you've done. "
+                "In this workpackage, you'll be egressing the documents, graphs, pictures and any "
+                "other data you might need to make it easier to finish the report.</p><p>If there "
+                "are images or details within these outputs that might constitute a tier of 2 or "
+                "above, these should be removed temporarily for the purposes of the report "
+                "writing process, to allow you to work outside of the secure environment. A "
+                "separate discussion should be had between the lead investigator and the data "
+                "provider representative as to how such items can be suitably redacted so that "
+                "they can be included in the final document. If the report itself is classified "
+                "as Tier 2, it will need to be completed and presented within a secure "
+                "environment.</p><p>Datasets: Report inputs including text, images and code "
+                "snippets.</p>"
+            )
+        )
+        egress2 = WorkPackage(
+            name='Egress – Full',
+            description=(
+                "<p>In this work package, you'll need to include all other outputs, including "
+                "derived data sets and full code to be returned to the Data Provider for "
+                "archiving. If this returns a high tier then a conversation needs to take place "
+                "about where it should be stored, and whether some outputs should be redacted "
+                "prior to release.</p><p>Datasets: All outputs, including text, images, code and "
+                "any derived datasets.</p>"
+            )
+        )
+        self.add_work_package(ingress, created_by=created_by)
+        self.add_work_package(egress1, created_by=created_by)
+        self.add_work_package(egress2, created_by=created_by)
 
     @transaction.atomic
     def update_representative(self, dataset, creator):
@@ -264,7 +312,7 @@ class WorkPackage(CreatedByModel):
         return permission_dict[self.status]
 
     @transaction.atomic
-    def add_dataset(self, dataset, creator):
+    def add_dataset(self, dataset, created_by):
         # Verify if dataset exists on project
         project_dataset = self.project.get_project_datasets(dataset=dataset).first()
         if not project_dataset:
@@ -274,20 +322,20 @@ class WorkPackage(CreatedByModel):
             raise ValidationError('Dataset already assigned to work package')
 
         wpd = WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
-                                                created_by=creator)
+                                                created_by=created_by)
         representative = project_dataset.representative
         if not self.get_work_package_participant(representative).exists():
-            self.add_user(representative, creator)
+            self.add_user(representative, created_by)
         return wpd
 
     @transaction.atomic
-    def add_user(self, user, creator):
+    def add_user(self, user, created_by):
         """
         Add user to this work package
         User must already exist on project, and not on work package
 
         :param user: user to add
-        :param creator: `User` who is doing the adding
+        :param created_by: `User` who is doing the adding
         """
 
         participant = user.get_participant(self.project)
@@ -298,7 +346,7 @@ class WorkPackage(CreatedByModel):
             raise ValidationError("User is already on work package")
 
         qs = WorkPackageParticipant.objects
-        return qs.create(work_package=self, participant=participant, created_by=creator)
+        return qs.create(work_package=self, participant=participant, created_by=created_by)
 
     def get_work_package_datasets(self, representative=None, dataset=None):
         qs = WorkPackageDataset.objects.filter(work_package=self)

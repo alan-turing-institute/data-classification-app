@@ -564,8 +564,8 @@ class TestEditParticipant:
                                                   created_by=as_programme_manager._user)
 
         investigator = recipes.investigator.make(project=project)
-        work_package.add_user(investigator.user, creator=as_programme_manager._user)
-        work_package2.add_user(investigator.user, creator=as_programme_manager._user)
+        work_package.add_user(investigator.user, created_by=as_programme_manager._user)
+        work_package2.add_user(investigator.user, created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
             '/projects/%d/participants/%d/edit' % (project.id, investigator.id),
@@ -604,7 +604,7 @@ class TestEditParticipant:
         project.add_dataset(dataset, data_provider_representative.user, as_programme_manager._user)
         work_package.add_dataset(dataset, as_programme_manager._user)
 
-        p = work_package.add_user(investigator.user, creator=as_programme_manager._user)
+        p = work_package.add_user(investigator.user, created_by=as_programme_manager._user)
         p.approve(data_provider_representative.user)
         assert p.approvals.count() == 1
 
@@ -798,7 +798,7 @@ class TestProjectAddDataset:
         pm = as_programme_manager._user
         project = recipes.project.make(created_by=pm)
         project.add_user(data_provider_representative.user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator=pm)
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, created_by=pm)
         work_package1 = recipes.work_package.make(project=project, created_by=pm)
         recipes.work_package.make(project=project, created_by=pm)
         work_package3 = recipes.work_package.make(project=project, created_by=pm)
@@ -1481,13 +1481,16 @@ class TestProjectAddWorkPackage:
         pm = as_programme_manager._user
         project = recipes.project.make(created_by=pm)
         project.add_user(data_provider_representative.user,
-                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator=pm)
+                         role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, created_by=pm)
         dataset1 = recipes.dataset.make(created_by=pm)
         dataset2 = recipes.dataset.make(created_by=pm)
         dataset3 = recipes.dataset.make(created_by=pm)
-        project.add_dataset(dataset1, representative=data_provider_representative.user, creator=pm)
-        project.add_dataset(dataset2, representative=data_provider_representative.user, creator=pm)
-        project.add_dataset(dataset3, representative=data_provider_representative.user, creator=pm)
+        project.add_dataset(dataset1, representative=data_provider_representative.user,
+                            created_by=pm)
+        project.add_dataset(dataset2, representative=data_provider_representative.user,
+                            created_by=pm)
+        project.add_dataset(dataset3, representative=data_provider_representative.user,
+                            created_by=pm)
 
         response = as_programme_manager.post('/projects/%d/work_packages/new' % project.id, {
             'role': ProjectRole.RESEARCHER.value,
@@ -1986,7 +1989,7 @@ class TestWorkPackageClassifyData:
         work_package = recipes.work_package.make(project=project)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
 
         response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 403
@@ -1998,9 +2001,9 @@ class TestWorkPackageClassifyData:
             project=project, status=WorkPackageStatus.UNDERWAY.value)
         project.add_user(user=as_project_participant._user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package.add_user(user=as_project_participant._user,
-                              creator=programme_manager)
+                              created_by=programme_manager)
 
         response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 200
@@ -2041,7 +2044,7 @@ class TestWorkPackageClassifyData:
     def test_returns_403_for_project_manager(self, client, researcher, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
         project.add_user(researcher.user, ProjectRole.PROJECT_MANAGER.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package = recipes.work_package.make(project=project, created_by=programme_manager)
 
         client.force_login(researcher.user)
@@ -2635,9 +2638,9 @@ class TestWorkPackageClassifyResults:
 
         work_package = classified_work_package(None)
         work_package.project.add_user(project_manager, ProjectRole.PROJECT_MANAGER.value,
-                                      creator=programme_manager)
+                                      created_by=programme_manager)
         work_package.project.add_user(investigator, ProjectRole.INVESTIGATOR.value,
-                                      creator=programme_manager)
+                                      created_by=programme_manager)
 
         client.force_login(project_manager)
 
@@ -2765,7 +2768,7 @@ class TestAutocompleteNewParticipant:
         # Check autocomplete does not return users who are already in a project
         project.add_user(user=user1,
                          role=ProjectRole.RESEARCHER.value,
-                         creator=user0)
+                         created_by=user0)
         assert_autocomplete_result('', {user0, user2, user3, user4, user5})
         assert_autocomplete_result('K Johnson', {})
         assert_autocomplete_result('son', {user3})
@@ -2843,10 +2846,10 @@ class TestAutocompleteDPR:
         # Check autocomplete does not return users who are already in a project
         project.add_user(user=user1,
                          role=ProjectRole.RESEARCHER.value,
-                         creator=user0)
+                         created_by=user0)
         project.add_user(user=user3,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=user0)
+                         created_by=user0)
         self.assert_autocomplete_result(
             as_programme_manager, project, '', {user3},
             {user0, user2, user4, user5})
@@ -2893,10 +2896,10 @@ class TestAutocompleteDPR:
         # Check autocomplete does not return users who are already in a project
         project.add_user(user=user1,
                          role=ProjectRole.RESEARCHER.value,
-                         creator=user0)
+                         created_by=user0)
         project.add_user(user=user3,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=user0)
+                         created_by=user0)
         self.assert_autocomplete_result(as_project_participant, project, '', {user3}, {})
         self.assert_autocomplete_result(as_project_participant, project, 'K Johnson', {}, {})
         self.assert_autocomplete_result(as_project_participant, project, 'son', {user3}, {})

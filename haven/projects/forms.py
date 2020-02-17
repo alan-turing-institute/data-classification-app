@@ -260,7 +260,7 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role = self.cleaned_data['role']
         user = self.cleaned_data['user']
         work_packages = self.cleaned_data['work_packages']
-        return self.project.add_user(user, role, work_packages=work_packages, creator=self.user)
+        return self.project.add_user(user, role, work_packages=work_packages, created_by=self.user)
 
 
 class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
