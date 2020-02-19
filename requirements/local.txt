@@ -42,7 +42,6 @@ ipython==7.7.0            # via ipdb
 isort==4.3.4
 jdcal==1.4.1
 jedi==0.14.1              # via ipython
-ldap3==2.5.1
 mccabe==0.6.1             # via flake8
 model-mommy==1.6.0
 more-itertools==7.2.0
@@ -59,7 +58,6 @@ prompt-toolkit==2.0.9     # via ipython
 psycopg2==2.8.3
 ptyprocess==0.6.0         # via pexpect
 py==1.8.0
-pyasn1==0.4.5
 pycodestyle==2.3.1        # via flake8
 pycparser==2.19
 pyflakes==1.6.0           # via flake8

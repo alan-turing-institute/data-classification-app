@@ -1,9 +1,0 @@
-Hi {{ full_name }}
-
-You have been invited to the {{ webapp_title }} tool.
-
-To activate your account, please visit the following URL to set up your password:
-
-https://passwordreset.microsoftonline.com/?ru={{ auth_url|urlencode:"" }}&username={{ upn }}
-
-The {{ webapp_title }} Team

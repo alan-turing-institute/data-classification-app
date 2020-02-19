@@ -29,11 +29,9 @@ django==2.1
 et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via cryptography, requests
 jdcal==1.4.1              # via openpyxl
-ldap3==2.5.1
 oauthlib==3.0.2           # via requests-oauthlib, social-auth-core
 openpyxl==2.6.1
 phonenumbers==8.10.1
-pyasn1==0.4.5             # via ldap3
 pycparser==2.19           # via cffi
 pyjwt==1.7.1              # via social-auth-core
 python3-openid==3.1.0     # via social-auth-core
