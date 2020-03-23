@@ -68,7 +68,9 @@
   {% if export_users_href %}
     <a type="button" class="dropdown-toggle btn btn-primary btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
     <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
+      {% if can_read_system_userlist %}
       <li><a class="dropdown-item" href="{{ export_users_href }}?new=true">Export list of users without accounts</a></li>
+      {% endif %}
       <li><a class="dropdown-item" href="{{ export_users_href }}">Export list of all users</a></li>
     </ul>
   {% endif %}
