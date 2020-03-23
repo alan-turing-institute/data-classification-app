@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from oauthlib.oauth2 import BackendApplicationClient
+from requests import RequestException
 from requests_oauthlib import OAuth2Session
 from social_django.utils import load_strategy
 import json
@@ -11,6 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 GRAPH_URL = 'https://graph.microsoft.com/v1.0/'
+
+
+class GraphClientException(IOError):
+    """The graph API returned an error code or the call raised a RequestException"""
+    pass
 
 
 class GraphClient:
@@ -27,7 +33,13 @@ class GraphClient:
 
     def get_user_list(self):
         logger.debug("Looking for AAD users")
-        return self._session.get(urljoin(GRAPH_URL, f'users'))
+        try:
+            response = self._session.get(urljoin(GRAPH_URL, f'users'))
+            response.raise_for_status()
+            return response
+        except RequestException as e:
+            raise GraphClientException('The Graph call to get the user list failed with error: '
+                                       + str(e)) from e
 
 
 def user_client(user):
@@ -39,6 +51,9 @@ def user_client(user):
     """
 
     social_auth = user.social_auth.first()
+
+    if not social_auth:
+        raise GraphClientException('The user is not logged into an identitiy provider')
 
     # load_strategy() will force a token refresh if required
     social_auth.get_access_token(load_strategy())
