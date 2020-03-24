@@ -13,32 +13,34 @@
       <th>Mobile</th>
       <th>Personal email</th>
       <th>Created</th>
+      <th>Has account</th>
     </tr>
     {% if users %}
       {% for next_user in ordered_user_list %}
           <tr>
             <td>
 
-              {% url_check 'identity:edit_user' next_user.id as edit_user_href %}
+              {% url_check 'identity:edit_user' next_user.user.id as edit_user_href %}
               {% if edit_user_href %}
                 <a href="{{ edit_user_href }}">
               {% endif %}
 
-              {{ next_user.display_name }}
+              {{ next_user.user.display_name }}
 
               {% if edit_user_href %}
                 </a>
               {% endif %}
               <br/>
-              {{ next_user.role|role_display }}
+              {{ next_user.user.role|role_display }}
             </td>
 
-            <td>{{ next_user.mobile }}</td>
-            <td>{{ next_user.email }}</td>
+            <td>{{ next_user.user.mobile }}</td>
+            <td>{{ next_user.user.email }}</td>
             <td>
-              <small>{{ next_user.date_joined|date:'d M Y H:i' }}
+              <small>{{ next_user.user.date_joined|date:'d M Y H:i' }}
                 <br/>
-                by {{ next_user.created_by }}</small></td>
+                by {{ next_user.user.created_by }}</small></td>
+            <td>{{ next_user.has_account }}</td>
           </tr>
       {% endfor %}
     {% endif %}
@@ -64,7 +66,13 @@
 
   {% url_check 'identity:export_users' as export_users_href %}
   {% if export_users_href %}
-    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ export_users_href }}">Export UserCreate.csv</a>
+    <a type="button" class="dropdown-toggle btn btn-primary btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
+      {% if can_read_system_userlist %}
+      <li><a class="dropdown-item" href="{{ export_users_href }}?new=true">Export list of users without accounts</a></li>
+      {% endif %}
+      <li><a class="dropdown-item" href="{{ export_users_href }}">Export list of all users</a></li>
+    </ul>
   {% endif %}
 {% endblock actions %}
 
