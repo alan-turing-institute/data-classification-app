@@ -34,9 +34,31 @@ class GraphClient:
     def get_user_list(self):
         logger.debug("Looking for AAD users")
         try:
-            response = self._session.get(urljoin(GRAPH_URL, f'users'))
-            response.raise_for_status()
-            return response
+            # Only return specified properties
+            user_list = []
+            next_url = f'users?$select=userPrincipalName&$top=100'
+
+            # Loop over pages of results with page size of 100
+            while next_url:
+                response = self._session.get(urljoin(GRAPH_URL, next_url))
+
+                # Raise exception if an the call failed
+                response.raise_for_status()
+
+                # Parse the response
+                response_json = json.loads(response.text)
+
+                # Get the next set of users
+                next_user_list = [item['userPrincipalName'] for item in response_json['value']]
+                user_list = user_list + next_user_list
+
+                # Check if there are additional pages of users to be returned
+                if '@odata.nextLink' in response_json:
+                    next_url = response_json['@odata.nextLink']
+                else:
+                    next_url = None
+
+            return user_list
         except RequestException as e:
             raise GraphClientException('The Graph call to get the user list failed with error: '
                                        + str(e)) from e
@@ -69,6 +91,4 @@ def get_system_user_list(user):
     :param user: User object for authentication
     :return: List of userPrincipalNames
     """
-    graph_client = user_client(user)
-    names_dict = json.loads(graph_client.get_user_list().text)
-    return [item['userPrincipalName'] for item in names_dict['value']]
+    return user_client(user).get_user_list()
