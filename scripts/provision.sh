@@ -364,7 +364,7 @@ If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} 
 use the following steps to configure your custom domain on the Azure portal:
 * Create an Azure DNS zone for your domain. Note the required NS records listed for this zone.
 * Add the Azure NS records listed in the previous step to your domain provider.
-* On the Azure portal, In the Azure DNS zone, add a new Record set. The Value parameter shoud be set to the azurewebsites domain for your webapp
+* On the Azure portal, In the Azure DNS zone, add a new Record set. The Value parameter should be set to the azurewebsites domain for your webapp
         Name: www
         Type: CNAME
         Value: ${APP_NAME}.azurewebsites.net

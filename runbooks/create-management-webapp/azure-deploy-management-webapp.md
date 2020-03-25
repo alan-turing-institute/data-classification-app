@@ -114,3 +114,8 @@ Note that re-running the provision script will overwrite any changes you made on
   * Wait for deployment to complete/fail 
   * Under `Configuration`/`General Settings`/`Stack Settings`, change `Startup Command` from blank to `/home/site/repository/deploy_linux.sh`.
   * Under `Deployment Centre` click `Sync`
+
+* If you are redeploying the webapp and setting a custom webapp domain, the `Create App Service Managed Certificate` action may succeed but no private key certificate appears on the portal.
+  This may indicate a certificate was left behind when the webapp was deleted and you may need to manually delete this. 
+  To delete a redundant certificate, on the Azure portal, go to the resource group, select Settings > Resources, check `Show hidden types`, select the redundant certificate and delete.
+
