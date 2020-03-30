@@ -56,10 +56,8 @@
   </p>
 
   <a class="btn btn-primary btn-lg" href="{{ classify_data_href }}">Classify Work Package</a>
-{% elif add_participant_href %}
-  <p>You cannot classify this work package as you have not been assigned to it. Please <a href="{{ add_participant_href }}">add yourself to the work package</a> with a relevant role if you need to go through the classification process.</p>
 {% else %}
-  <p>You cannot classify this work package as you have not been assigned to it. Please contact a Project Manager if you feel this is incorrect.</p>
+  <p>You cannot classify this work package as you do not have the appropriate role.</p>
 {% endif %}
 
 <h2>Overall classification</h2>
