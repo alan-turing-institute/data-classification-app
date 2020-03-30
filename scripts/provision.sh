@@ -353,25 +353,43 @@ cat <<EOF
 
 To complete the deployment:
 
-Set up IP restrictions for the SCM repository
+1. Set up IP restrictions for the SCM repository
 * Browse to Azure Portal -> App Services / ${APP_NAME} / Networking / Configure Access Restrictions
+* Unselect "Same restrictions..."
 * Select the ${APP_NAME}.scm.azurewebsites.net tab
 * Add a rule for each IP range to enable.
   * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
   * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 
-If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} is not the default Azure site ${APP_NAME}.azurewebsites.net),
+2. Enforce MFA for useres logging into the web app
+* Log into the Azure portal and switch to the AD tenant
+* Switch to Azure Active Directory -> Security -> Conditional Access
+* Click "New Policy"
+* Set the options as follows:
+  - Name: "Require MFA for classification webapp"
+  - Users: All users
+  - Cloud apps or actions:
+     - Select what this policy applies to: Cloud Apps
+     - Include: Select apps
+     - Select: name of webapp App Registration (eg Data Safe Haven Development)
+  - Access controls: Grant access -> Require multi-factor authentication
+  - Enable policy: On
+* Click "Save"
+* Save
+
+3. If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} is not the default Azure site ${APP_NAME}.azurewebsites.net),
 use the following steps to configure your custom domain on the Azure portal:
 * Create an Azure DNS zone for your domain. Note the required NS records listed for this zone.
-* Add the Azure NS records listed in the previous step to your domain provider.
+* If the parent domain `some.domain.com` does not already have an Azure DNS zone, then you need to create one and copy the NS records to the parent domain. __NB. You don't need to do this if your SHM domain is `some.domain.com` and your website is `www.some.domain.com` as you will have created the DNS Zone `some.domain.com` during the SHM deployment.__
+    * On the Azure portal, create an Azure DNS Zone for your custom domain. Note the required NS records listed for this zone.
+    * Add the Azure NS records listed in the previous step to your domain provider.
 * On the Azure portal, In the Azure DNS zone, add a new Record set. The Value parameter should be set to the azurewebsites domain for your webapp
-        Name: www
-        Type: CNAME
-        Value: ${APP_NAME}.azurewebsites.net
-        TTL: 1 hour
-        Alias: No
+  - Name: www
+  - Type: CNAME
+  - Value: ${APP_NAME}.azurewebsites.net
+  - TTL: 1 hour
+  - Alias: No
 * In the App Service, add a new Custom Domain for your custom domain ${BASE_DOMAIN}. Note that validation may not work until the DNS records have propagated.
 * In the App Service TLS/SSL settings, under Private Key Certificates, click Create App Service Managed Certificate to create a certificate for your custom domain ${BASE_DOMAIN}
 * In the App Service Custom domains, add an SSL binding (choose SNI SSL) for your custom domain ${BASE_DOMAIN}
-
 EOF
