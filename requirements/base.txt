@@ -6,6 +6,7 @@
 #
 asn1crypto==0.24.0        # via cryptography
 babel==2.7.0              # via django-phonenumber-field
+beautifulsoup4==4.8.2     # via django-easy-audit
 bleach==3.1.0             # via django-bleach
 certifi==2019.6.16        # via requests
 cffi==1.12.3              # via cryptography
@@ -17,7 +18,7 @@ django-bleach==0.5.3
 django-braces==1.13.0
 django-crispy-forms==1.7.2
 django-debug-toolbar==1.10.1
-django-easy-audit==1.1
+django-easy-audit==1.2
 django-environ==0.4.5
 django-formtools==2.1
 django-phonenumber-field==2.1.0
@@ -41,6 +42,7 @@ requests==2.22.0          # via requests-oauthlib, social-auth-core
 six==1.12.0               # via bleach, cryptography, django-simple-history, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0   # via social-auth-app-django
+soupsieve==2.0            # via beautifulsoup4
 sqlparse==0.3.0           # via django-debug-toolbar
 urllib3==1.25.3           # via requests
 webencodings==0.5.1       # via bleach
