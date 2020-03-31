@@ -5,8 +5,8 @@ __pycache__/
 *$py.class
 
 # Environment files
-scripts/.env*
-!scripts/.env.example
+deployment/.env*
+!deployment/.env.example
 
 # C extensions
 *.so

@@ -15,7 +15,7 @@ You will need
 
 ### Configure your environment settings
 
-Copy the template file `scripts/.env.example` to a custom file for your deplyment, eg. `scripts/.env.staging`. Set the required parameters in `scripts/.env.staging` for your environment and deployment.
+Copy the template file `deployment/.env.example` to a custom file for your deplyment, eg. `deployment/.env.staging`. Set the required parameters in `deployment/.env.staging` for your environment and deployment.
 You use this environment file by adding a parameter to the `provision.sh` script as described below. The script will set environment variables
 in the Azure Django app. These variables can be modified later using the Azure CLI or the Azure Portal.
 
@@ -28,8 +28,8 @@ Use `az login` to log in on the command line.
 
 Check that the values in your `.env.staging` file are correct.
 
-Then run `scripts/provision.sh -e scripts/.staging.env` to create the webapp and relevant resources.
-The path after `-e` describes the location of your custom environment file (if you omit `-e` and the following filename, it will look for `scripts/.env`).
+Then run `deployment/provision.sh -e deployment/.staging.env` to create the webapp and relevant resources.
+The path after `-e` describes the location of your custom environment file (if you omit `-e` and the following filename, it will look for `deployment/.env`).
 
 
 * If deployment fails immediately with a subscription error, you may be logged into a different tenant or subscription.
