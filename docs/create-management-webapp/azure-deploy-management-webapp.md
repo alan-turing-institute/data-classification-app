@@ -28,7 +28,7 @@ You need to create an environment settings file before deploying the webapp for 
 This file is used by the provisioning script to create the webapp deployment and configure the application settings. It can also be used to modify the deployment in future. 
 It is recommended (but not required) that you keep a copy of the file as it will make it easier to modify an existing deployment.
 
-Copy the template file `scripts/.env.example` to a custom file for your deployment, eg. `scripts/.env.production`. Set the required parameters in `scripts/.env.production` for your environment and deployment.
+Copy the template file `deployment/.env.example` to a custom file for your deployment, eg. `deployment/.env.production`. Set the required parameters in `deployment/.env.production` for your environment and deployment.
 You use this environment file by adding a parameter to the `provision.sh` script as described below. The script will set environment variables
 in the Azure Django app. These variables can be modified later using the Azure CLI or the Azure Portal.
 
@@ -41,8 +41,8 @@ Use `az login` to log in on the command line.
 
 Check that the values in your `.env.production` file are correct.
 
-Then run `scripts/provision.sh -e scripts/.production.env` to create the webapp and relevant resources.
-The path after `-e` describes the location of your custom environment file (if you omit `-e` and the following filename, it will look for `scripts/.env`).
+Then run `deployment/provision.sh -e deployment/.production.env` to create the webapp and relevant resources.
+The path after `-e` describes the location of your custom environment file (if you omit `-e` and the following filename, it will look for `deployment/.env`).
 
 You will need to enter your GitHub credentials if required for configuring continuous deployment or deployment from a private repository.  
 
@@ -125,7 +125,7 @@ When continuous deployment is configured through GitHub, pushing new code to the
 If your configuration file did not enable continuous deployment, you need to manually trigger a code update.
 There are several ways to do this:
  * On the Azure portal, go to the App Service, select Deployment Center and click the *Sync* button 
- * or, run `scripts/update_code.sh -e scripts/.production.env`.
+ * or, run `deployment/update_code.sh -e deployment/.production.env`.
 As above, the path after `-e` describes the location of your custom environment file and must match the file you used for provisioning.
 
 
