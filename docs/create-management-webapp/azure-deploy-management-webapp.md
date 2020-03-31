@@ -1,6 +1,6 @@
 # Data Safe Haven web management application: deploying a production server
 
-These instructions for for deploying a production instance of the management web application from a GitHub repository.
+These instructions are for deploying a production instance of the management web application from a GitHub repository.
 
 [1. Set up a production server](#1.-Set-up-a-production-server)
 
