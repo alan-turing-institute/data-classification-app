@@ -37,6 +37,9 @@ urlpatterns = [
 ]
 
 
+handler404 = 'haven.core.views.handler404'
+handler500 = 'haven.core.views.handler500'
+
 # These features are only enabled for local testing
 if settings.DEBUG:
     # Enable debug toolbar
