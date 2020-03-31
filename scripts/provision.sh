@@ -324,10 +324,6 @@ update_app_settings () {
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_TENANT_ID="${azuread_oauth2_tenant_id}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings USE_LDAP="${USE_LDAP}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_SERVER="${LDAP_SERVER}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_USER="${LDAP_USER}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings LDAP_PASSWORD="${LDAP_PASSWORD}"
 
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST="${EMAIL_HOST}"
     az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
