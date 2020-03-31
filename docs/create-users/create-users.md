@@ -5,4 +5,4 @@
  * Log into the management webapp as the a System Manager user
  * Under `Users` click `Import user list` and select the file you created above.
  * When the users have been imported into the system, click `Export UserCreate.csv`
- * Use the downloaded `UserCreate.csv` file to create the other users on Azure following the appropriate runbook.
+ * Use the downloaded `UserCreate.csv` file to create the other users on Azure following the appropriate instructions.
