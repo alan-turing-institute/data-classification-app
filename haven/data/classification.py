@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from simple_history.manager import HistoryManager
 from simple_history.models import HistoricalRecords
 
-from data.tiers import Tier
+from haven.data.tiers import Tier
 
 
 # Classification questions are stored in the database, but since they are important we want them
@@ -19,7 +19,7 @@ from data.tiers import Tier
 # * Update various tests to match how you expect the flowchart to work
 # * Change the constants, initial_guidance and initial_questions to match the new flowchart
 # * Once you're happy with the tests, create the migrations
-# * Run `haven/manage.py makemigrations --empty data`
+# * Run `manage.py makemigrations --empty data`
 # * Copy the contents of this module into the migration
 # * Add `migrations.RunPython(migrate_questions)` into the list of operations
 # * Update the migrate_questions method accordingly
@@ -28,7 +28,7 @@ from data.tiers import Tier
 # For more complicated changes, you may need to adapt these instructions.
 #
 # If you've had to change the schema
-# * Run `haven/manage.py makemigrations` before creating your empty migration (so that you have
+# * Run `manage.py makemigrations` before creating your empty migration (so that you have
 #   two separate migrations, one schema & one data)
 #
 # If you have to change anything in this module other than the question definitions (e.g. because
@@ -43,7 +43,7 @@ from data.tiers import Tier
 #   migration
 # * Delete the references to this class, e.g. delete `from data import classification` and change
 #   `classification.do_something()` to just `do_something()`
-# * Fake rollback of the migration: `haven/manage.py migrate --fake data <previous_migration_name>`
+# * Fake rollback of the migration: `manage.py migrate --fake data <previous_migration_name>`
 # * Rerun your migration
 # * This process is convoluted, but is designed to ensure you don't make a change only in the
 #   migration, and not this module, which would cause problems next time we try to write another
@@ -176,6 +176,88 @@ LIVING_INDIVIDUAL_TEXT = (
     'guide-to-archiving-personal-data.pdf">National Archives, 2018</a>).</p>')
 
 
+CLOSED_PERSONAL_GUIDANCE_TEXT = (
+    '<p>Will you be using any personal data at all throughout the research, even if it\'s publicly '
+    'available? For example:</p><ul><li>Personal data such as newspaper articles on celebrities, '
+    'or details of patients in a medical trial</li><li>Facebook or twitter posts</li></ul>')
+FINANCIAL_LOW_GUIDANCE_TEXT = (
+    '<p>Is there <strong>no risk</strong> that the reputation of the researcher or data provider '
+    'will be damaged '
+    'by this data being made public, or that legal action can be taken as a result? For example:'
+    '</p><ul><li>Financial reports that an organisation sells to businesses for commercial '
+    'profit</li><li>Anonymised non-controversial user research</li></ul>')
+FINANCIAL_LOW_PERSONAL_GUIDANCE_TEXT = (
+    '<p>Is there <strong>no risk</strong> that the reputation of the researcher or data provider '
+    'will be damaged '
+    'by this data being made public, or that legal action can be taken as a result? For example:'
+    '</p><ul><li>Financial reports that an organisation sells to businesses for commercial '
+    'profit</li><li>Anonymised non-controversial user research</li></ul>')
+INCLUDE_COMMERCIAL_GUIDANCE_TEXT = (
+    '<p>This is any information that the data provider would not be comfortable with you '
+    'publishing, including purchased or requested data. For example:</p><ul><li>Pay to view news '
+    'articles are private third-party intellectual property</li><li>Plans for marketing '
+    'campaigns, or purchasing strategies, for companies, are commercial in-confidence data</li>'
+    '</ul>')
+INCLUDE_COMMERCIAL_PERSONAL_GUIDANCE_TEXT = (
+    '<p>This is any information that the data provider would not be comfortable with you '
+    'publishing, including purchased or requested data. For example:</p><ul><li>Pay to view news '
+    'articles are private third-party intellectual property </li><li>Plans for marketing '
+    'campaigns, or purchasing strategies, for companies, are commercial in-confidence data</li>'
+    '</ul>')
+NO_REIDENTIFY_GUIDANCE_TEXT = (
+    '<p>Have steps been taken so that information can no longer be directly linked to a particular '
+    'individual, without additional information? For example:</p><ul><li>Replacing names of '
+    'patients with patient ID numbers</li><li>Customer records with all name and address details '
+    'removed</li></ul>')
+NO_REIDENTIFY_ABSOLUTE_GUIDANCE_TEXT = (
+    '<p>Any data pseudonymised to this degree cannot be connected back to individuals through '
+    'analysis, even in combination with other datasets. For example:</p><ul><li>Research results '
+    'with generated fake names, where the pseudonymisation key is deleted, never to be used again '
+    '</li><li>Anonymous responses to a public survey without any identifying information</li></ul>')
+NO_REIDENTIFY_STRONG_GUIDANCE_TEXT = (
+    '<p>Any data pseudonymised to this degree cannot be connected with individuals, unless '
+    'combined with data not publicly available, <strong>or</strong> the effort required to '
+    'de-pseudonymise would be '
+    'too high to be feasible for a person acting on their own. For example:</p><ul><li>Medical '
+    'test results with generated fake names, where only the pseudonymisation key be used to '
+    'identify the patients in this one study</li><li>Anonymous responses to a public survey, '
+    'where questions may lead to identifying information in combination with purchasable IP '
+    'address data</li></ul>')
+OPEN_GENERATE_NEW_GUIDANCE_TEXT = (
+    '<p>Generating personal data means creating any <strong>new</strong> personal data, regardless '
+    'of what data '
+    'you\'re starting with. For example:</p><ul><li>Linking diseases to particular patients</li>'
+    '<li>Spotting trends in tweets mentioning a particular individual</li></ul>')
+OPEN_PUBLICATION_GUIDANCE_TEXT = (
+    '<p>This includes data that may be planned for publication in the future, or could be '
+    'published without any issue, but is not yet publicly available. For example:</p><ul><li>'
+    'Results from a study, that a research team hopes to submit to Nature.</li><li>Visualisations '
+    'of existing publicly available data</li></ul>')
+PUBLIC_AND_OPEN_GUIDANCE_TEXT = (
+    '<p>Data is legally accessible if it is <strong>not</strong> behind a paywall, can be accessed '
+    'without having '
+    'to request it, and has <strong>no</strong> conditions on its use. For example:</p><ul><li>'
+    'Voter registration '
+    'records are <strong>not</strong> available, as they have restrictions on access and use</li>'
+    '<li>Academic '
+    'articles that are not open source require subscription to a journal, or a request for access '
+    'from the author, are <strong>not</strong> legally accessible</li></ul>')
+PUBLISHABLE_GUIDANCE_TEXT = (
+    '<p>Would the data providers be prepared to release their data (accidentally or deliberately)? '
+    'For example:</p><ul><li>Results that a data provider has indicated they are happy to go into '
+    'a research publication</li><li>Fully anonymised data on trends not linked to a company or '
+    'commercial interests</li></ul>')
+SOPHISTICATED_ATTACK_GUIDANCE_TEXT = (
+    '<p>Could this data be used to blackmail, target or persecute individuals? For example:</p> '
+    '<ul><li>Linking location data to members of a controversial group</li><li>Information on the '
+    'sexuality of individuals in a region where this may lead to arrest or abuse</li></ul>')
+SUBSTANTIAL_THREAT_GUIDANCE_TEXT = (
+    '<p>Could this data be used to blackmail, target or persecute individuals? Is it likely that '
+    'motivated teams might try to access this data illegally? For example:</p><ul><li>Linking '
+    'location data to members of a controversial group</li><li>Information on the sexuality of '
+    'individuals in a region where this may lead to arrest or abuse</li></ul>')
+
+
 def initial_guidance():
     guidance = [
         {
@@ -193,6 +275,62 @@ def initial_guidance():
         {
             'name': PSEUDONYMIZED_DATA,
             'guidance': PSEUDONYMIZED_DATA_TEXT,
+        },
+        {
+            'name': CLOSED_PERSONAL,
+            'guidance': CLOSED_PERSONAL_GUIDANCE_TEXT,
+        },
+        {
+            'name': FINANCIAL_LOW,
+            'guidance': FINANCIAL_LOW_GUIDANCE_TEXT,
+        },
+        {
+            'name': FINANCIAL_LOW_PERSONAL,
+            'guidance': FINANCIAL_LOW_PERSONAL_GUIDANCE_TEXT,
+        },
+        {
+            'name': INCLUDE_COMMERCIAL,
+            'guidance': INCLUDE_COMMERCIAL_GUIDANCE_TEXT,
+        },
+        {
+            'name': INCLUDE_COMMERCIAL_PERSONAL,
+            'guidance': INCLUDE_COMMERCIAL_PERSONAL_GUIDANCE_TEXT,
+        },
+        {
+            'name': NO_REIDENTIFY,
+            'guidance': NO_REIDENTIFY_GUIDANCE_TEXT,
+        },
+        {
+            'name': NO_REIDENTIFY_ABSOLUTE,
+            'guidance': NO_REIDENTIFY_ABSOLUTE_GUIDANCE_TEXT,
+        },
+        {
+            'name': NO_REIDENTIFY_STRONG,
+            'guidance': NO_REIDENTIFY_STRONG_GUIDANCE_TEXT,
+        },
+        {
+            'name': OPEN_GENERATE_NEW,
+            'guidance': OPEN_GENERATE_NEW_GUIDANCE_TEXT,
+        },
+        {
+            'name': OPEN_PUBLICATION,
+            'guidance': OPEN_PUBLICATION_GUIDANCE_TEXT,
+        },
+        {
+            'name': PUBLIC_AND_OPEN,
+            'guidance': PUBLIC_AND_OPEN_GUIDANCE_TEXT,
+        },
+        {
+            'name': PUBLISHABLE,
+            'guidance': PUBLISHABLE_GUIDANCE_TEXT,
+        },
+        {
+            'name': SOPHISTICATED_ATTACK,
+            'guidance': SOPHISTICATED_ATTACK_GUIDANCE_TEXT,
+        },
+        {
+            'name': SUBSTANTIAL_THREAT,
+            'guidance': SUBSTANTIAL_THREAT_GUIDANCE_TEXT,
         },
     ]
     return guidance
@@ -324,6 +462,9 @@ def insert_initial_questions(ClassificationQuestion, ClassificationGuidance):
 
 def migrate_questions(apps, schema_editor):
     # Template method for use in migrations
+    # You should add/remove calls to insert_*/migrate_*/hide_* functions as appropriate,
+    # using the constants defined at the start of this module e.g. COMMERCIAL_DATA,
+    # CLOSED_PERSONAL etc.
 
     # Add any brand-new guidance
     # insert_blank_guidance_if_necessary(apps, GUIDANCE2)

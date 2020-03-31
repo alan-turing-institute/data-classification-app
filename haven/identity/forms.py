@@ -4,10 +4,10 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 
-from identity.roles import UserRole
+from haven.identity.roles import UserRole
 
-from .mixins import SaveCreatorMixin
-from .models import User
+from haven.identity.mixins import SaveCreatorMixin
+from haven.identity.models import User
 
 
 class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
@@ -34,8 +34,10 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assignable_roles = [r.value for r in self.user.user_role.creatable_roles]
-        if assignable_roles:
+        assignable_roles = [r.value for r in self.user.system_permissions.creatable_roles]
+
+        # Hide the role field if the only allowable role is standard user
+        if assignable_roles and assignable_roles != [UserRole.NONE.value]:
             self.fields['role'].choices = [
                 (role, name)
                 for role, name in self.fields['role'].choices
@@ -49,10 +51,10 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role_model = UserRole(role)
         role_display = UserRole.display_name(role)
         if 'role' in self.changed_data:
-            if not self.user.user_role.can_assign_role(role_model):
+            if not self.user.system_permissions.can_assign_role(role_model):
                 raise ValidationError(f"You cannot assign the role {role_display}")
         else:
-            if not self.user.user_role.can_assign_role(role_model):
+            if not self.user.system_permissions.can_assign_role(role_model):
                 raise ValidationError(f"You cannot edit users with the role {role_display}")
         return role
 
@@ -68,7 +70,7 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
         if self.instance:
             role_model = self.instance.user_role
             role_display = UserRole.display_name(self.instance.role)
-            if not self.user.user_role.can_assign_role(role_model):
+            if not self.user.system_permissions.can_assign_role(role_model):
                 raise ValidationError(f"You cannot edit users with the role {role_display}")
 
 

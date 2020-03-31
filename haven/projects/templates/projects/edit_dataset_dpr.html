@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load haven %}
+
+{% block h1_title %}Edit Representative{% endblock %}
+
+{% block content %}
+
+<p>
+  If you change the Dataset Provider Representative for a dataset, the new representative will be added to all future work packages that use that dataset, and to any existing work packages.
+  Please note however that the current representative will <em>not</em> be removed from any existing work packages, nor from the project.
+  You may carry out these actions afterwards if required.
+</p>
+
+<form method="POST">
+  {% csrf_token %}
+  {{ form.media }}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Datasets</li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:dataset_detail' project.id dataset.id %}">{{ dataset.dataset.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Edit Representative<li>
+{% endblock crumbs %}

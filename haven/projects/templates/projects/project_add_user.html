@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load haven %}
+
+{% block page_title %}{{ project.name }}: Add Participant{% endblock %}
+{% block h1_title %}{{ project.name }}: Add Participant{% endblock %}
+
+{% block content %}
+
+<p>
+{{ project.description }}
+</p>
+
+<p>
+  If the user you wish to add to the project does not appear below, they have not yet been created on the system.
+  {% if user.system_permissions.can_create_users %}
+    Please <a href="{% url 'identity:add_user' %}">add the user</a> first before continuing.
+  {% else %}
+    Please contact someone with the appropriate credentials if you wish to address this.
+  {% endif %}
+</p>
+
+<form method="POST">
+  {% csrf_token %}
+  {{ form.media }}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Participants</li>
+  <li class="breadcrumb-item active" aria-current="page">Add</li>
+{% endblock crumbs %}

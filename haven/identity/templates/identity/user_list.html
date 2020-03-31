@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load haven %}
+{% load identity_tags %}
+
+{% block page_title %}Users{% endblock %}
+{% block h1_title %}Users{% endblock %}
+
+{% block content %}
+<table class="table table-sm">
+  <tbody>
+    <tr>
+      <th>User</th>
+      <th>Mobile</th>
+      <th>Personal email</th>
+      <th>Created</th>
+      <th>Has account</th>
+    </tr>
+    {% if users %}
+      {% for next_user in ordered_user_list %}
+          <tr>
+            <td>
+
+              {% url_check 'identity:edit_user' next_user.user.id as edit_user_href %}
+              {% if edit_user_href %}
+                <a href="{{ edit_user_href }}">
+              {% endif %}
+
+              {{ next_user.user.display_name }}
+
+              {% if edit_user_href %}
+                </a>
+              {% endif %}
+              <br/>
+              {{ next_user.user.role|role_display }}
+            </td>
+
+            <td>{{ next_user.user.mobile }}</td>
+            <td>{{ next_user.user.email }}</td>
+            <td>
+              <small>{{ next_user.user.date_joined|date:'d M Y H:i' }}
+                <br/>
+                by {{ next_user.user.created_by }}</small></td>
+            <td>{{ next_user.has_account }}</td>
+          </tr>
+      {% endfor %}
+    {% endif %}
+  </tbody>
+</table>
+{% endblock content %}
+
+{% block actions %}
+  {% url_check 'identity:add_user' as add_user_href %}
+  {% if add_user_href %}
+    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ add_user_href }}">Add User</a>
+  {% endif %}
+
+  {% url_check "identity:import_users" as import_users_href %}
+  {% if import_users_href %}
+  <form style="display: contents" method="POST" action="{{ import_users_href }}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label class="btn btn-primary btn-lg mx-2 my-1">
+      Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+    </label>
+  </form>
+  {% endif %}
+
+  {% url_check 'identity:export_users' as export_users_href %}
+  {% if export_users_href %}
+    <a type="button" class="dropdown-toggle btn btn-primary btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
+      {% if can_read_system_userlist %}
+      <li><a class="dropdown-item" href="{{ export_users_href }}?new=true">Export list of users without accounts</a></li>
+      {% endif %}
+      <li><a class="dropdown-item" href="{{ export_users_href }}">Export list of all users</a></li>
+    </ul>
+  {% endif %}
+{% endblock actions %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Users</li>
+{% endblock crumbs %}

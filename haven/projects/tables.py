@@ -58,13 +58,14 @@ class WorkPackageParticipantTable(tables.Table):
         elif self.user is None:
             self.columns.hide('approved_by_you')
         else:
-            perms = self.user.project_role(self.work_package.project)
+            perms = self.user.project_permissions(self.work_package.project)
             if not perms.can_approve_participants:
                 self.columns.hide('approved_by_you')
 
 
 class WorkPackageTable(tables.Table):
     name = tables.Column('Name', linkify=True)
+    status = tables.Column('Classification Status')
     tier = tables.Column('Tier')
     created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
 
@@ -73,8 +74,18 @@ class WorkPackageTable(tables.Table):
         empty_text = 'No work packages to display'
 
 
-class DatasetTable(tables.Table):
-    name = tables.Column('Name')
+class ProjectDatasetTable(tables.Table):
+    name = tables.Column('Name', accessor='dataset.name', linkify=True)
+    representative = tables.Column('Representative')
+    created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
+
+    class Meta:
+        orderable = False
+        empty_text = 'No datasets to display'
+
+
+class WorkPackageDatasetTable(tables.Table):
+    name = tables.Column('Name', accessor='dataset.name')
     created_at = tables.DateTimeColumn(verbose_name='Created', short=False)
 
     class Meta:

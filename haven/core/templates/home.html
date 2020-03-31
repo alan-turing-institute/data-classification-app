@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load haven %}
+
+{% block content %}
+  <p>
+    Welcome to the {% webapp_title %} tool.
+    This is a tool to help you carry out research projects on secure organisational and personal data, by guiding you through the classification process, and giving instruction on how to handle personal data.
+  </p>
+  <p>
+    It is essential that sensitive or confidential datasets are kept secure, to enable analysis of personal data in compliance with data protection law.
+    Classification is based on considering the sensitivity of all information handled in the project, and does not depend only on the input datasets, but on combining information with other information.
+  </p>
+  <p>
+    In the data classification model, there are three key roles:
+  </p>
+  <ul>
+    <li><strong>Investigator</strong> – The research project lead, this individual is responsible for ensuring that project staff comply with the Environment's security policies.</li>
+    <li>The <strong>Dataset Provider</strong> is the organisation who provided the dataset under analysis. The Dataset Provider will designate a single representative contact to liaise with the Investigator, authorised to certify sharing of datasets with the researchers.</li>
+    <li><strong>Referee</strong> – A Referee volunteers to review code or derived data (data which is computed from the original dataset), providing evidence to the Investigator and Dataset Provider Representative that the researchers are complying with data handling practices.</li>
+  </ul>
+  <p>
+    To classify a work package, each individual will go through a series of questions, to help understand the legal sensitivity of the data involved, and the consequences of a data breach.
+  </p>
+  {% if request.user.is_authenticated %}
+    <a class="btn btn-primary" href="{% url 'projects:list' %}">View Your Projects</a>
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
+  {% endif %}
+{% endblock content %}
+
+{% block extra_sections %}
+  <div class="row pb-5">
+    <div class="col">
+        <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
+          <span class="navbar-text ml-auto">Build {% version_number %}</span>
+        </nav>
+    </div>
+  </div>
+{% endblock extra_sections %}

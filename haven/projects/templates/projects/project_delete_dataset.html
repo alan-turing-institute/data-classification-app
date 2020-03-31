@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}Delete Dataset{% endblock %}
+
+{% block content %}
+<p>
+  Please confirm below if you would like to delete the dataset.
+</p>
+<form method="POST">
+  {% csrf_token %}
+  {% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item">Datasets</li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:dataset_detail' project.id dataset.id %}">{{ dataset.dataset.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Delete</li>
+{% endblock crumbs %}

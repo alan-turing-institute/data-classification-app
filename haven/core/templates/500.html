@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load haven %}
+
+{% block page_title %}Something went wrong{% endblock %}
+{% block h1_title %}Something went wrong{% endblock %}
+
+
+{% block content %}
+  <p>
+    An error occurred on the {% webapp_title %} server. The task you were performing may not have
+    been completed.
+  </p>
+  <p>
+    If you continue to experience issues, please contact the {% webapp_title %} administrators.
+  </p>
+  {% if request.user.is_authenticated %}
+    <a class="btn btn-primary" href="{% url 'projects:list' %}">View Your Projects</a>
+  {% else %}
+    <a class="btn btn-primary" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
+  {% endif %}
+{% endblock content %}
+
+{% block extra_sections %}
+  <div class="row pb-5">
+    <div class="col">
+        <nav class="navbar navbar-expand-md navbar-light bg-light fixed-bottom">
+          <span class="navbar-text ml-auto">Build {% version_number %}</span>
+        </nav>
+    </div>
+  </div>
+{% endblock extra_sections %}

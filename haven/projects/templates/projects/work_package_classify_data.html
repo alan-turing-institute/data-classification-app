@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load bleach_tags %}
+{% load crispy_forms_tags %}
+
+{% block h1_title %}<small class="h6 text-muted">Question {{ question_number }}<br/></small> {{ question.question | bleach }}{% endblock %}
+
+{% block content %}
+<form action="{{ request.path }}" method="post">
+  {% csrf_token %}
+  <div class="my-5">
+    <div class="form-group form-row">
+      <div class="col-sm-3 col-md-2 col-lg-1">
+        <input type="submit" value="Yes" name="submit_yes" class="btn btn-primary btn-lg btn-block" />
+      </div>
+      <div class="col d-flex">
+        <div class="mx-1">→</div>
+        <div class="mx-1">{{ answer_yes | safe }}</div>
+      </div>
+    </div>
+    <div class="form-group form-row">
+      <div class="col-sm-3 col-md-2 col-lg-1">
+        <input type="submit" value="No" name="submit_no" class="btn btn-primary btn-lg btn-block" />
+      </div>
+      <div class="col d-flex">
+        <div class="mx-1">→</div>
+        <div class="mx-1">{{ answer_no | safe }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="form-group form-row">
+    <div class="col">
+      {% if previous_question and previous_question != question %}
+        <a class="btn btn-secondary btn-sm" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Previous Question</a>
+      {% endif %}
+      {% if starting_question and starting_question != question and starting_question != previous_question %}
+        <a class="btn btn-secondary btn-sm" href="{% url 'projects:classify_data' project.id work_package.id starting_question.id %}">Start Over</a>
+      {% endif %}
+      <a class="btn btn-secondary btn-sm" href="{{ work_package.get_absolute_url }}">Cancel Classification</a>
+    </div>
+  </div>
+</form>
+
+{% if explanation %}
+  <h3 class="mt-4">Additional Guidance</h3>
+  <a name="{{ explanation.name }}"></a>
+  {{ explanation.guidance | bleach }}
+{% endif %}
+
+{% if guidance %}
+  <h3 class="mt-4">Definitions</h3>
+  {% for g in guidance %}
+    <a name="{{ g.name }}"></a>
+    {{ g.guidance | bleach }}
+  {% endfor %}
+{% endif %}
+
+{% endblock content %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item">Work Packages</li>
+  <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Data Classification</li>
+{% endblock crumbs %}

@@ -27,12 +27,12 @@ django-phonenumber-field==2.1.0
 django-simple-history==2.7.2
 django-source-revision==0.1.0
 django-tables2==2.0.6
+django-taggit==1.1.0
 django==2.1
 et-xmlfile==1.0.1         # via openpyxl
 idna==2.8                 # via cryptography, requests
 importlib-metadata==0.19  # via pluggy, pytest
 jdcal==1.4.1              # via openpyxl
-ldap3==2.5.1
 model-mommy==1.6.0
 more-itertools==7.2.0     # via pytest
 oauthlib==3.0.2           # via requests-oauthlib, social-auth-core
@@ -41,7 +41,6 @@ packaging==19.1           # via pytest
 phonenumbers==8.10.1
 pluggy==0.12.0            # via pytest
 py==1.8.0                 # via pytest
-pyasn1==0.4.5             # via ldap3
 pycparser==2.19           # via cffi
 pyjwt==1.7.1              # via social-auth-core
 pyparsing==2.4.2          # via packaging

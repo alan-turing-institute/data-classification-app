@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% load haven %}
+{% load project_tags %}
+
+{% block page_title %}Projects{% if programme %} ({{ programme.name }}){% endif %}{% endblock %}
+{% block h1_title %}Projects{% if programme %} ({{ programme.name }}){% endif %}{% endblock %}
+
+
+{% block content %}
+  {% if projects %}
+    <ul class="list-group">
+      {% for project in projects %}
+      <li class="list-group-item">
+          <div class="float-left">
+            <h4><a href="{% url "projects:detail" project.id %}">{{ project.name }}</a>
+              {% if project.your_role %}
+                ({{ project.your_role|project_role_display }})
+              {% endif %}
+            </h4>
+            <p>{{ project.description }}</p>
+            {% for p in project.programmes.all %}
+              <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-primary">{{ p.name }}</a>
+            {% endfor %}
+          </div>
+          <div class="float-right">
+            <small>{{ project.created_at }}</small>
+          </div>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="lead">
+      You are not currently a member of any projects{% if programme %} for this programme{% endif %}.
+      {% url_check 'projects:create' as create_project_url %}
+      {% if create_project_url %}
+        Please use the button to create a project.
+      {% else %}
+        Please contact someone with the appropriate credentials to add you to the relevant projects.
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock content %}
+
+{% block actions %}
+  {% url_check 'projects:create' as create_project_url %}
+  {% if create_project_url %}
+    <a class="btn btn-primary btn-lg" href="{{ create_project_url }}{% if programme %}?programme={{ programme.slug }}{% endif %}">Add Project</a>
+  {% endif %}
+{% endblock actions %}
+
+{% block crumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+  {% if programme %}
+    <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ programme.name }}</li>
+  {% else %}
+    <li class="breadcrumb-item active" aria-current="page">Projects</li>
+  {% endif %}
+{% endblock crumbs %}

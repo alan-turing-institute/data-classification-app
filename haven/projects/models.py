@@ -1,16 +1,19 @@
+from enum import Enum
+
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import BooleanField, Case, Q, Value, When
 from django.urls import reverse
 from easyaudit.models import CRUDEvent
+from taggit.managers import TaggableManager
 
-from data.models import ClassificationQuestion, Dataset
-from data.tiers import TIER_CHOICES, Tier
-from identity.models import User
-
-from .managers import ProjectQuerySet
-from .roles import ProjectRole
+from haven.core.utils import BooleanTextTable
+from haven.data.models import ClassificationQuestion, Dataset
+from haven.data.tiers import TIER_CHOICES, Tier
+from haven.identity.models import User
+from haven.projects.managers import ProjectQuerySet, WorkPackageQuerySet
+from haven.projects.roles import ProjectRole
 
 
 def validate_role(role):
@@ -35,12 +38,13 @@ class CreatedByModel(models.Model):
 
 
 class Project(CreatedByModel):
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, unique=True)
     description = models.TextField()
 
     datasets = models.ManyToManyField(Dataset, related_name='projects', through='ProjectDataset',
                                       blank=True)
     archived = models.BooleanField(default=False)
+    programmes = TaggableManager(blank=True)
 
     objects = ProjectQuerySet.as_manager()
 
@@ -48,14 +52,14 @@ class Project(CreatedByModel):
         return self.name
 
     @transaction.atomic
-    def add_user(self, user, role, creator):
+    def add_user(self, user, role, created_by, work_packages=None):
         """
         Add participant to this project
         User must already exist in the database
 
         :param user: user to add
         :param role: Role user will have on the project
-        :param creator: `User` who is doing the adding
+        :param created_by: `User` who is doing the adding
         """
 
         # Verify if user already exists on project
@@ -65,31 +69,96 @@ class Project(CreatedByModel):
         participant = Participant.objects.create(
             user=user,
             role=role,
-            created_by=creator,
+            created_by=created_by,
             project=self,
         )
         if role == ProjectRole.INVESTIGATOR.value:
-            for work_package in self.work_packages.all():
-                work_package.add_user(user, creator)
+            work_packages = self.work_packages.all()
+        if work_packages:
+            for work_package in work_packages:
+                work_package.add_user(user, created_by)
         return participant
 
     @transaction.atomic
-    def add_dataset(self, dataset, representative, creator):
+    def add_dataset(self, dataset, representative, created_by):
         participant = representative.get_participant(self)
         if not participant:
-            self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+            self.add_user(representative, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
+                          created_by)
         elif participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
             raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
-        ProjectDataset.objects.create(project=self, dataset=dataset,
-                                      representative=representative, created_by=creator)
+        return ProjectDataset.objects.create(project=self, dataset=dataset,
+                                             representative=representative, created_by=created_by)
 
     @transaction.atomic
-    def add_work_package(self, work_package, creator):
+    def add_work_package(self, work_package, created_by):
         work_package.project = self
-        work_package.created_by = creator
+        work_package.created_by = created_by
         work_package.save()
         for participant in self.get_all_participants(ProjectRole.INVESTIGATOR.value):
-            work_package.add_user(participant.user, creator)
+            work_package.add_user(participant.user, created_by)
+
+    def add_default_work_packages(self, created_by=None):
+        ingress = WorkPackage(
+            name='Ingress',
+            description=(
+                "<p>When considering a project, you'll need to consider all the tools and datasets "
+                "you'll be using (in combination or separately) in a single research environment, "
+                "as well as what work you'll be doing on the data, to consider the potential "
+                "sensitivity of the data you'll be using / creating, and how securely it should "
+                "be handled. Once you're finished with the project, you'll need to carry out "
+                "separate classifications on the data you'll be taking out of the environment.</p>"
+                "<p>Datasets: All inputs, including tools, data and potential products of linking "
+                "/ filtering data.</p>"
+            )
+        )
+        egress1 = WorkPackage(
+            name='Egress – Reports',
+            description=(
+                "<p>When you're finishing a project, you'll need to complete reports and any other "
+                "outputs that might be pertinent to the presentation of the research you've done. "
+                "In this workpackage, you'll be egressing the documents, graphs, pictures and any "
+                "other data you might need to make it easier to finish the report.</p><p>If there "
+                "are images or details within these outputs that might constitute a tier of 2 or "
+                "above, these should be removed temporarily for the purposes of the report "
+                "writing process, to allow you to work outside of the secure environment. A "
+                "separate discussion should be had between the lead investigator and the data "
+                "provider representative as to how such items can be suitably redacted so that "
+                "they can be included in the final document. If the report itself is classified "
+                "as Tier 2, it will need to be completed and presented within a secure "
+                "environment.</p><p>Datasets: Report inputs including text, images and code "
+                "snippets.</p>"
+            )
+        )
+        egress2 = WorkPackage(
+            name='Egress – Full',
+            description=(
+                "<p>In this work package, you'll need to include all other outputs, including "
+                "derived data sets and full code to be returned to the Data Provider for "
+                "archiving. If this returns a high tier then a conversation needs to take place "
+                "about where it should be stored, and whether some outputs should be redacted "
+                "prior to release.</p><p>Datasets: All outputs, including text, images, code and "
+                "any derived datasets.</p>"
+            )
+        )
+        self.add_work_package(ingress, created_by=created_by)
+        self.add_work_package(egress1, created_by=created_by)
+        self.add_work_package(egress2, created_by=created_by)
+
+    @transaction.atomic
+    def update_representative(self, dataset, creator):
+        for pd in self.get_project_datasets(dataset=dataset):
+            pd.representative = dataset.default_representative
+            pd.save()
+
+        user = dataset.default_representative
+        if not user.get_participant(self):
+            self.add_user(user, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, creator)
+
+        for wpd in self.get_work_package_datasets(dataset=dataset):
+            wp = wpd.work_package
+            if not wp.get_work_package_participant(user).exists():
+                wp.add_user(user, creator)
 
     def archive(self):
         self.archived = True
@@ -128,6 +197,28 @@ class Project(CreatedByModel):
     def get_project_datasets(self, **kwargs):
         return ProjectDataset.objects.filter(project=self, **kwargs)
 
+    def get_work_package_datasets(self, **kwargs):
+        return WorkPackageDataset.objects.filter(work_package__project=self, **kwargs)
+
+    @transaction.atomic
+    def delete_dataset(self, project_dataset):
+        project_dataset.delete()
+        self.get_work_package_datasets(dataset=project_dataset.dataset).delete()
+
+    def can_edit_dataset(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets')
+
+    def can_edit_dataset_dpr(self, dataset):
+        return self._can_edit_dataset(dataset, 'edit_datasets_dpr')
+
+    def can_delete_dataset(self, dataset):
+        return self._can_edit_dataset(dataset, 'delete_datasets')
+
+    def _can_edit_dataset(self, dataset, permission):
+        work_packages = self.work_packages.filter_by_permission(permission, exclude=True)
+        datasets = self.get_work_package_datasets(dataset=dataset, work_package__in=work_packages)
+        return not datasets.exists()
+
     def get_audit_history(self):
         this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
         # This is a bit of a hack - if the model uses a different field name for example, it
@@ -137,6 +228,21 @@ class Project(CreatedByModel):
         # storing the data as actual JSON and using the JSON operators, but that's database-specific
         related = Q(object_json_repr__regex=f'"project": {self.pk}[,}}]')
         return CRUDEvent.objects.filter(this_object | related)
+
+
+class WorkPackageStatus(Enum):
+    NEW = 'new'
+    UNDERWAY = 'underway'
+    CLASSIFIED = 'classified'
+
+    @classmethod
+    def choices(cls):
+        """Dropdown choices for user roles"""
+        return [
+            (cls.NEW.value, 'New'),
+            (cls.UNDERWAY.value, 'Classification Underway'),
+            (cls.CLASSIFIED.value, 'Classified'),
+        ]
 
 
 class WorkPackage(CreatedByModel):
@@ -149,6 +255,8 @@ class WorkPackage(CreatedByModel):
                                           through='WorkPackageParticipant', blank=True)
     datasets = models.ManyToManyField(Dataset, related_name='work_packages',
                                       through='WorkPackageDataset', blank=True)
+    status = models.CharField(max_length=32, choices=WorkPackageStatus.choices(),
+                              default=WorkPackageStatus.NEW.value)
 
     # Classification occurs at the work package level because combinations of individual
     # datasets might have a different tier to their individual tiers
@@ -159,8 +267,52 @@ class WorkPackage(CreatedByModel):
         choices=TIER_CHOICES,
     )
 
+    permissions = BooleanTextTable(
+        definition='''
+                             | new underway classified | Extra
+        edit_work_package    |   Y        .          . |
+        delete_work_package  |   Y        .          . |
+        add_participants     |   Y        Y          Y |
+        list_participants    |   Y        Y          Y |
+        edit_participants    |   Y        Y          Y |
+        approve_participants |   .        Y          Y |
+        add_datasets         |   Y        .          . |
+        edit_datasets        |   Y        .          . |
+        edit_datasets_dpr    |   Y        Y          Y |
+        delete_datasets      |   Y        .          . |
+        view_classification  |   .        Y          Y |
+        open_classification  |   Y        .          . | *
+        clear_classification |   .        Y          . |
+        close_classification |   .        Y          . | *
+        classify_data        |   .        Y          . |
+        ''',
+        ignore=['Extra'],
+    )
+
+    objects = WorkPackageQuerySet.as_manager()
+
+    def __getattr__(self, name):
+        if name.startswith('can_'):
+            permission = name.replace('can_', '')
+            try:
+                return self._can(permission)
+            except ValueError as e:
+                raise AttributeError(name) from e
+        raise AttributeError(name)
+
+    @classmethod
+    def _get_permission_dict(cls, permission):
+        try:
+            return cls.permissions.as_dict()[permission]
+        except KeyError as e:
+            raise ValueError(f"{permission} not a valid permission") from e
+
+    def _can(self, permission):
+        permission_dict = self._get_permission_dict(permission)
+        return permission_dict[self.status]
+
     @transaction.atomic
-    def add_dataset(self, dataset, creator):
+    def add_dataset(self, dataset, created_by):
         # Verify if dataset exists on project
         project_dataset = self.project.get_project_datasets(dataset=dataset).first()
         if not project_dataset:
@@ -170,20 +322,20 @@ class WorkPackage(CreatedByModel):
             raise ValidationError('Dataset already assigned to work package')
 
         wpd = WorkPackageDataset.objects.create(work_package=self, dataset=dataset,
-                                                created_by=creator)
+                                                created_by=created_by)
         representative = project_dataset.representative
         if not self.get_work_package_participant(representative).exists():
-            self.add_user(representative, creator)
+            self.add_user(representative, created_by)
         return wpd
 
     @transaction.atomic
-    def add_user(self, user, creator):
+    def add_user(self, user, created_by):
         """
         Add user to this work package
         User must already exist on project, and not on work package
 
         :param user: user to add
-        :param creator: `User` who is doing the adding
+        :param created_by: `User` who is doing the adding
         """
 
         participant = user.get_participant(self.project)
@@ -194,10 +346,12 @@ class WorkPackage(CreatedByModel):
             raise ValidationError("User is already on work package")
 
         qs = WorkPackageParticipant.objects
-        return qs.create(work_package=self, participant=participant, created_by=creator)
+        return qs.create(work_package=self, participant=participant, created_by=created_by)
 
-    def get_work_package_datasets(self, representative=None):
+    def get_work_package_datasets(self, representative=None, dataset=None):
         qs = WorkPackageDataset.objects.filter(work_package=self)
+        if dataset:
+            qs = qs.filter(dataset=dataset)
         if representative:
             qs = qs.filter(dataset__in=self.project.get_datasets(representative))
         return qs
@@ -205,6 +359,23 @@ class WorkPackage(CreatedByModel):
     def get_work_package_participant(self, user):
         participant = user.get_participant(self.project)
         return WorkPackageParticipant.objects.filter(work_package=self, participant=participant)
+
+    @property
+    def can_open_classification(self):
+        return self._can('open_classification') and self.has_datasets
+
+    def open_classification(self):
+        self.status = WorkPackageStatus.UNDERWAY.value
+        self.save()
+
+    @property
+    def can_close_classification(self):
+        return self._can('close_classification') and self.is_classification_ready
+
+    def close_classification(self):
+        self.status = WorkPackageStatus.CLASSIFIED.value
+        self.calculate_tier()
+        self.save()
 
     @property
     def is_classification_ready(self):
@@ -383,9 +554,6 @@ class WorkPackage(CreatedByModel):
                     answer=q[1],
                 )
 
-        # This might qualify the project for classification, so try
-        self.calculate_tier()
-
         return classification
 
     def classification_for(self, user):
@@ -393,7 +561,15 @@ class WorkPackage(CreatedByModel):
             created_by=user
         )
 
+    def clear_classifications(self):
+        self.status = WorkPackageStatus.NEW.value
+        for c in self.classifications.all():
+            c.delete()
+        self.save()
+
     def show_approve_participants(self, approver):
+        if not self.can_approve_participants:
+            return False
         participant = approver.get_participant(self.project)
         if not participant:
             return False
@@ -487,7 +663,7 @@ class WorkPackage(CreatedByModel):
 
     @property
     def has_tier(self):
-        """Has this project's data been classified?"""
+        """Has this work package's data been classified?"""
         return self.tier is not None
 
     @property
@@ -507,7 +683,7 @@ class WorkPackage(CreatedByModel):
         return reverse('projects:work_package_detail', args=[self.project.id, self.id])
 
     def __str__(self):
-        return f'{self.project} - {self.name}'
+        return self.name
 
 
 class Participant(CreatedByModel):
@@ -532,7 +708,7 @@ class Participant(CreatedByModel):
 
     @property
     def permissions(self):
-        return self.user.project_role(self.project, participant=self)
+        return self.user.project_permissions(self.project, participant=self)
 
     def get_work_package_participant(self, work_package):
         qs = WorkPackageParticipant.objects.filter(participant=self, work_package=work_package)
@@ -596,13 +772,17 @@ class PolicyAssignment(models.Model):
 
 
 class ProjectDataset(CreatedByModel):
-    project = models.ForeignKey(Project, related_name='+', on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name='project_datasets', on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     representative = models.ForeignKey(User, related_name='+', on_delete=models.PROTECT, null=False)
 
+    def get_absolute_url(self):
+        return reverse('projects:dataset_detail', args=[self.project.id, self.id])
+
 
 class WorkPackageDataset(CreatedByModel):
-    work_package = models.ForeignKey(WorkPackage, related_name='+', on_delete=models.CASCADE)
+    work_package = models.ForeignKey(WorkPackage, related_name='work_package_datasets',
+                                     on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, related_name='+', on_delete=models.PROTECT)
     opinion = models.ForeignKey('ClassificationOpinion', null=True,
                                 related_name='+', on_delete=models.SET_NULL)

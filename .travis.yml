@@ -5,12 +5,18 @@ matrix:
       language: python
       python:
         - "3.7"
-      env:
-        - PYTHONPATH=haven/
       install:
         - pip install -r requirements/test.txt
       script:
-        - pytest --cov-config=haven/.coveragerc --cov-report term-missing --cov haven
+        - pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
+    - name: check for missing migrations
+      language: python
+      python:
+        - "3.7"
+      install:
+        - pip install -r requirements/test.txt
+      script:
+        - ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
     - name: verify built JS files are up to date
       language: node_js
       node_js:
@@ -18,7 +24,7 @@ matrix:
       before_script:
         - npm install -g gulp-cli
       script:
-        - cd haven/static
+        - cd static
         - npm install
         - gulp
         - git diff --exit-code --numstat
@@ -27,7 +33,6 @@ matrix:
       python:
         - "3.7"
       env:
-        - PYTHONPATH=haven/
         - SECRET_KEY='notasecret'
       addons:
         apt:
@@ -36,4 +41,4 @@ matrix:
       install:
         - pip install -r requirements/production.txt
       script:
-        - haven/manage.py check --deploy --settings=config.settings.production
+        - ./manage.py check --deploy --settings=haven.settings.production

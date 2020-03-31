@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from haven.projects import views
 
 
 app_name = 'projects'
@@ -8,6 +8,7 @@ app_name = 'projects'
 urlpatterns = [
     path('', views.ProjectList.as_view(), name='list'),
     path('new', views.ProjectCreate.as_view(), name='create'),
+    path('programmes', views.ProgrammeList.as_view(), name='programmes'),
 
     path(
         '<int:pk>',
@@ -58,6 +59,30 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/datasets/<int:pk>',
+        views.ProjectDatasetDetail.as_view(),
+        name='dataset_detail'
+    ),
+
+    path(
+        '<int:project_pk>/datasets/<int:pk>/delete',
+        views.ProjectDeleteDataset.as_view(),
+        name='delete_dataset'
+    ),
+
+    path(
+        '<int:project_pk>/datasets/<int:pk>/edit',
+        views.ProjectEditDataset.as_view(),
+        name='edit_dataset'
+    ),
+
+    path(
+        '<int:project_pk>/datasets/<int:pk>/edit_dpr',
+        views.ProjectEditDatasetDPR.as_view(),
+        name='edit_dataset_dpr'
+    ),
+
+    path(
         '<int:pk>/work_packages/new',
         views.ProjectCreateWorkPackage.as_view(),
         name='add_work_package'
@@ -67,6 +92,18 @@ urlpatterns = [
         '<int:project_pk>/work_packages/<int:pk>',
         views.WorkPackageDetail.as_view(),
         name='work_package_detail'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/delete',
+        views.WorkPackageDelete.as_view(),
+        name='work_package_delete'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/edit',
+        views.WorkPackageEdit.as_view(),
+        name='work_package_edit'
     ),
 
     path(
@@ -88,15 +125,39 @@ urlpatterns = [
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_clear',
+        views.WorkPackageClear.as_view(),
+        name='classify_clear'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/classify_delete',
         views.WorkPackageClassifyDelete.as_view(),
         name='classify_delete'
     ),
 
     path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_close',
+        views.WorkPackageClassifyClose.as_view(),
+        name='classify_close'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/classify_open',
+        views.WorkPackageClassifyOpen.as_view(),
+        name='classify_open'
+    ),
+
+    path(
         '<int:project_pk>/work_packages/<int:pk>/datasets/new',
         views.WorkPackageAddDataset.as_view(),
         name='work_package_add_dataset'
+    ),
+
+    path(
+        '<int:project_pk>/work_packages/<int:pk>/datasets/edit',
+        views.WorkPackageEditDatasets.as_view(),
+        name='work_package_edit_datasets'
     ),
 
     path(
@@ -128,4 +189,11 @@ urlpatterns = [
         views.AutocompleteNewParticipant.as_view(),
         name='autocomplete_new_participant'
     ),
+
+    path(
+        'autocomplete_programme/',
+        views.AutocompleteProgramme.as_view(),
+        name='autocomplete_programme'
+    ),
+
 ]

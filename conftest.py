@@ -1,10 +1,10 @@
 import pytest
 
-from core import recipes
-from data.tiers import Tier
-from identity.models import User
-from identity.roles import UserRole
-from projects.roles import ProjectRole
+from haven.core import recipes
+from haven.data.tiers import Tier
+from haven.identity.models import User
+from haven.identity.roles import UserRole
+from haven.projects.roles import ProjectRole
 
 
 DUMMY_PASSWORD = 'password'
@@ -141,19 +141,20 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
 
         project.add_user(user=investigator.user,
                          role=ProjectRole.INVESTIGATOR.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         project.add_user(user=data_provider_representative.user,
                          role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package.add_user(data_provider_representative.user, programme_manager)
         project.add_user(user=referee.user,
                          role=ProjectRole.REFEREE.value,
-                         creator=programme_manager)
+                         created_by=programme_manager)
         work_package.add_user(referee.user, programme_manager)
 
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
+        work_package.open_classification()
         if tier is not None:
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
@@ -165,6 +166,7 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
                 work_package = p.work_package
 
             assert [] == work_package.missing_classification_requirements
+            work_package.close_classification()
             assert work_package.has_tier
             assert tier == work_package.tier
         return work_package

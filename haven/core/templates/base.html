@@ -1,0 +1,128 @@
+{% load haven %}
+{% load identity_tags %}
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+    <title>{% block page_title %}Home{% endblock %} | {% webapp_title %}</title>
+  </head>
+  <body>
+
+     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+       <a class="navbar-brand" href="{% url 'home' %}">{% webapp_title %}</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          {% if request.user.is_authenticated %}
+            {% url_check 'identity:add_user' as add_user_href %}
+            {% url_check 'identity:import_users' as import_users_href %}
+            {% if add_user_href or import_users_href %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aris-haspopup="true" aria-expanded="false">Add User</a>
+                <div class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+                  {% if add_user_href %}
+                    <a class="dropdown-item" href="{{ add_user_href }}">Add Single User</a>
+                  {% endif %}
+                  {% if import_users_href %}
+                  <form style="display: contents" method="POST" action="{{ import_users_href }}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <label class="dropdown-item">
+                      Import User List <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
+                    </label>
+                  </form>
+                  {% endif %}
+                </div>
+              </li>
+              {% endif %}
+              {% url_check 'identity:list' as list_users_href %}
+              {% if list_users_href %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ list_users_href }}">Users</a>
+                </li>
+              {% endif %}
+
+              {% url_check 'projects:list' as list_projects_href %}
+              {% if list_projects_href %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ list_projects_href }}">Projects</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'projects:programmes' %}">Programmes</a>
+                </li>
+              {% endif %}
+            {% endif %}
+        </ul>
+
+        <span class="navbar-text">
+          {% if request.user.is_authenticated %}
+            Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
+          {% else %}
+          <a class="nav-link" href="{% url "social:begin" "azuread-tenant-oauth2" %}">Log In</a>
+          {% endif %}
+        </span>
+
+        {% if request.user.is_authenticated %}
+          <span class="navbar-text">
+            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
+          </span>
+        {% endif %}
+      </div>
+    </nav>
+
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        {% block crumbs %}
+          <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        {% endblock %}
+      </ol>
+    </nav>
+
+    <main role="main" class="container">
+      {% include 'includes/messages.html' %}
+      <div class="row">
+        <div class="col-lg mt-4">
+          <div class="container">
+            <div class="my-3" role="group">
+              <div class="row my-1">
+                  <div class="col-md-auto">
+                    <h1>{% block h1_title %}{% webapp_title %}{% endblock %}</h1>
+                  </div>
+                  <div class="col-md text-md-right">
+                    {% block actions %}
+                    {% endblock %}
+                  </div>
+              </div>
+              <div class="row my-1">
+                  <div class="col">
+                    {% block content %}
+                    {% endblock %}
+                  </div>
+              </div>
+            </div>
+            {% block extra_sections %}
+            {% endblock %}
+          </div>
+        </div>
+      </div>
+    </main>
+
+    {% block js %}
+      <script src="{% static "build/js/main.js" %}"></script>
+      {% block extra_js %}
+      {% endblock %}
+    {% endblock %}
+  </body>
+</html>
