@@ -357,7 +357,17 @@ To complete the deployment:
   * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
   * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 
-2. Enforce MFA for useres logging into the web app
+2. Add a UPN claim to allow guest users to log in
+* Log into the Azure portal and switch to the AD tenant
+* Select "App Registrations" and select your app
+* Under Manage, select "Token Configuration"
+* Click "Add optional claim"
+* Select "ID", "upn" and click "Add"
+* Edit the claim by clicking the pencil icon at the right
+* Switch "Externally authenticated" to Yes
+* Click "Save"
+
+3. Enforce MFA for useres logging into the web app
 * Log into the Azure portal and switch to the AD tenant
 * Switch to Azure Active Directory -> Security -> Conditional Access
 * Click "New Policy"
@@ -373,7 +383,7 @@ To complete the deployment:
 * Click "Save"
 * Save
 
-3. If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} is not the default Azure site ${APP_NAME}.azurewebsites.net),
+4. If you are using a custom domain for your webapp (ie your domain ${BASE_DOMAIN} is not the default Azure site ${APP_NAME}.azurewebsites.net),
 use the following steps to configure your custom domain on the Azure portal:
 * Create an Azure DNS zone for your domain. Note the required NS records listed for this zone.
 * If the parent domain `some.domain.com` does not already have an Azure DNS zone, then you need to create one and copy the NS records to the parent domain. __NB. You don't need to do this if your SHM domain is `some.domain.com` and your website is `www.some.domain.com` as you will have created the DNS Zone `some.domain.com` during the SHM deployment.__

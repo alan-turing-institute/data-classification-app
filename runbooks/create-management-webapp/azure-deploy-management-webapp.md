@@ -57,6 +57,16 @@ Note: the provisioning script is idempotent. If run on an existing installation,
   * If you plan to deploy using Cloud Shell ensure the IP ranges are added during the time of deployment
   * For continuous deployment, include IP ranges for GitHub hooks: https://api.github.com/meta
 
+### Add a UPN claim to allow guest users to log in
+* Log into the Azure portal and switch to the AD tenant
+* Select "App Registrations" and select your app
+* Under Manage, select "Token Configuration"
+* Click "Add optional claim"
+* Select "ID", "upn" and click "Add"
+* Edit the claim by clicking the pencil icon at the right
+* Switch "Externally authenticated" to Yes
+* Click "Save"
+
 ### Enforce MFA for useres logging into the web app
 
 * Log into the Azure portal and switch to the AD tenant
