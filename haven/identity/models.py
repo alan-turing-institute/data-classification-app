@@ -105,6 +105,9 @@ class User(AbstractUser):
         """
         Return a suitable username for this user
         """
+        if self.username:
+            return
+
         prefix = self.email_friendly(f"{self.first_name} {self.last_name}")
 
         # If the username already exists, try adding 2,3,4 etc
@@ -128,7 +131,7 @@ class User(AbstractUser):
         :return: `Participant` object or None if user is not involved in project
         """
         from haven.projects.models import Participant
-        
+
         try:
             return self.participants.get(project=project)
         except Participant.DoesNotExist:
@@ -154,7 +157,7 @@ class User(AbstractUser):
     def system_permissions(self):
         """
         Return object for determining the user's system-level permissions
-        
+
         :return: UserPermissions object describing user permissions
         """
 

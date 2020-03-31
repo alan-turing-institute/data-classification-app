@@ -26,7 +26,11 @@ def user_fields(backend, user, response, *args, **kwargs):
 
     Convert values from oauth2 to user fields
     """
-    user.username = response['upn']
+    try:
+        user.username = response['upn']
+    except KeyError:
+        # upn is not provided for AD guest users
+        pass
 
     graph = user_client(user)
     graph_response = graph.get_me()
@@ -77,13 +81,22 @@ def find_existing_user(backend, user, response, *args, **kwargs):
     """
     Look up an existing user by UPN / username and load them
     into the pipeline
+
     """
-    if not user:
-        try:
-            user = User.objects.get(username=response['upn'])
-            return {'user': user}
-        except User.DoesNotExist:
-            pass
-        # A missing upn key likely indicates log in from a personal account
-        except KeyError:
-            raise AuthForbidden('azuread-tenant-oauth2')
+    if user:
+        # Normally, the user has already been loaded by the previous step in the pipeline, by
+        # matching the 'sub' claim to the social_auth_usersocialauth table
+        return
+
+    # User has not logged in before
+    # Different claims are provided depending on what type of user is in AD (e.g. Member or Guest)
+    username = response.get('unique_name') or response.get('upn')
+    if not username:
+        raise AuthForbidden('azuread-tenant-oauth2')
+
+    try:
+        user = User.objects.get(username=username)
+        return {'user': user}
+    except User.DoesNotExist:
+        # User hasn't logged in, doesn't already exist. A later pipeline step will create a new user
+        pass

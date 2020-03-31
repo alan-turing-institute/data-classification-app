@@ -4,10 +4,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from phonenumber_field.widgets import PhoneNumberInternationalFallbackWidget
 
-from haven.identity.roles import UserRole
-
 from haven.identity.mixins import SaveCreatorMixin
 from haven.identity.models import User
+from haven.identity.roles import UserRole
 
 
 class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
@@ -75,6 +74,15 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
 
 
 class CreateUserForm(SaveCreatorMixin, EditUserForm):
+
+    username = forms.CharField(
+        required=False,
+        help_text='For normal users, leave blank. For guest users, this must match the full '
+                  'username in Active Directory.'
+        )
+
+    class Meta(EditUserForm.Meta):
+        fields = ['first_name', 'last_name', 'mobile', 'email', 'role', 'username']
 
     def save(self, **kwargs):
         self.instance.generate_username()
