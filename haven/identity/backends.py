@@ -30,7 +30,7 @@ class CustomAzureOAuth2Backend(AzureADTenantOAuth2):
         extra_arguments.update({'prompt': 'select_account'})
 
         # Adds an extra parameter domain_hint which filters the list of
-        # accounts the user selects from when they have multuple Microsoft
+        # accounts the user selects from when they have multiple Microsoft
         # accounts
         extra_arguments.update({'domain_hint': settings.SAFE_HAVEN_DOMAIN})
         return extra_arguments

@@ -67,7 +67,7 @@ Note: the provisioning script is idempotent. If run on an existing installation,
 * Switch "Externally authenticated" to Yes
 * Click "Save"
 
-### Enforce MFA for useres logging into the web app
+### Enforce MFA for users logging into the web app
 
 * Log into the Azure portal and switch to the AD tenant
 * Switch to Azure Active Directory -> Security -> Conditional Access
