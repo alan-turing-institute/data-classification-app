@@ -98,7 +98,6 @@ Note: the `staticfiles` folder must exist before running the tests.
 
 
 ```
-cd haven
 pytest
 
 ```
