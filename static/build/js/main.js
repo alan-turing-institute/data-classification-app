@@ -1,35 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-(function (global){
-var $ = require('jquery');
-global.jQuery = $;
-global.$ = $;
-require('django-formset');
-require('bootstrap-checkbox');
-require('bootstrap/js/dist/collapse');
-require('bootstrap/js/dist/dropdown');
-
-global.formset = function(selector, prefix, addText){
-  $(function() {
-    var options = {};
-
-    options.prefix = prefix;
-
-    if (addText) {
-      options.addText = '<i class="fas fa-plus"></i> ' + addText;
-      options.addCssClass = 'add-row btn btn-sm btn-outline-secondary';
-    }
-
-    $(selector).find(".formset tbody tr").formset(options);
-  });
-}
-
-$(function() {
-  $(":checkbox").not(".delete-row :checkbox").checkboxpicker();
-});
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-
-},{"bootstrap-checkbox":2,"bootstrap/js/dist/collapse":3,"bootstrap/js/dist/dropdown":4,"django-formset":6,"jquery":7}],2:[function(require,module,exports){
 /*!
  * Bootstrap-checkbox v1.5.0 (https://vsn4ik.github.io/bootstrap-checkbox/)
  * Copyright 2013-2018 Vasilii A. (https://github.com/vsn4ik)
@@ -342,7 +311,7 @@ $(function() {
   return $.fn.checkboxpicker;
 });
 
-},{"jquery":7}],3:[function(require,module,exports){
+},{"jquery":6}],2:[function(require,module,exports){
 /*!
   * Bootstrap collapse.js v4.3.1 (https://getbootstrap.com/)
   * Copyright 2011-2019 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
@@ -772,7 +741,7 @@ $(function() {
 }));
 
 
-},{"./util.js":5,"jquery":7}],4:[function(require,module,exports){
+},{"./util.js":4,"jquery":6}],3:[function(require,module,exports){
 /*!
   * Bootstrap dropdown.js v4.3.1 (https://getbootstrap.com/)
   * Copyright 2011-2019 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
@@ -1369,7 +1338,7 @@ $(function() {
 }));
 
 
-},{"./util.js":5,"jquery":7,"popper.js":8}],5:[function(require,module,exports){
+},{"./util.js":4,"jquery":6,"popper.js":7}],4:[function(require,module,exports){
 /*!
   * Bootstrap util.js v4.3.1 (https://getbootstrap.com/)
   * Copyright 2011-2019 The Bootstrap Authors (https://github.com/twbs/bootstrap/graphs/contributors)
@@ -1543,7 +1512,7 @@ $(function() {
 }));
 
 
-},{"jquery":7}],6:[function(require,module,exports){
+},{"jquery":6}],5:[function(require,module,exports){
 'use strict';
 
 /**
@@ -1905,7 +1874,7 @@ $.fn.formset.defaults = {
     formfieldClass: 'formfield-group', // The formfield container.
     formfieldErrorClass: 'error'
 };
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.4.1
  * https://jquery.com/
@@ -12505,7 +12474,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (global){
 /**!
  * @fileOverview Kickass library to create and place poppers near their reference elements.
@@ -15122,6 +15091,37 @@ return Popper;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}]},{},[1])
+},{}],8:[function(require,module,exports){
+(function (global){
+var $ = require('jquery');
+global.jQuery = $;
+global.$ = $;
+require('django-formset');
+require('bootstrap-checkbox');
+require('bootstrap/js/dist/collapse');
+require('bootstrap/js/dist/dropdown');
+
+global.formset = function(selector, prefix, addText){
+  $(function() {
+    var options = {};
+
+    options.prefix = prefix;
+
+    if (addText) {
+      options.addText = '<i class="fas fa-plus"></i> ' + addText;
+      options.addCssClass = 'add-row btn btn-sm btn-outline-secondary';
+    }
+
+    $(selector).find(".formset tbody tr").formset(options);
+  });
+}
+
+$(function() {
+  $(":checkbox").not(".delete-row :checkbox").checkboxpicker();
+});
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"bootstrap-checkbox":1,"bootstrap/js/dist/collapse":2,"bootstrap/js/dist/dropdown":3,"django-formset":5,"jquery":6}]},{},[8])
 
 //# sourceMappingURL=../maps/js/main.js.map

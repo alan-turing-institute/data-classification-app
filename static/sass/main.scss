@@ -3,11 +3,56 @@ body {
   padding-top: 4.5rem;
 }
 
+
 main {
   padding: 1rem 1.5rem;
+
+  .row {
+    background-color: #f9f9f9;
+  }
 }
+
 
 /* Adjust Select2 entry field height to match Bootstrap */
 span.select2-selection.select2-selection--single {
   height: 38px;
+}
+
+
+.custom-btn {
+   
+  border: #495057;
+  color: #ffffff;
+  background-color: #53c5d4;
+  width: 200px;
+
+  &:hover { 
+    background-color: #52a3ad;
+    color: #ffffff;
+  }
+}
+
+.save-btn {
+  border: #495057;
+  color: #ffffff;
+  background-color: #2fd1ae;
+  width: 155px;
+  padding: 6px 12px;
+  line-height: 26px;
+
+  &:hover { 
+    background-color: #229b81;
+  }
+}
+
+a { 
+  color: #32669e;
+}
+
+.project-badge{
+  font-size: 1.1em;
+}
+
+.project-details {
+  padding: 40px 0;
 }

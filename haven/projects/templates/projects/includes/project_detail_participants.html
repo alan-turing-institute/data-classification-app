@@ -7,15 +7,15 @@
 {% block actions %}
   {% url_check 'projects:add_user' project.id as add_user_href %}
   {% if add_user_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ add_user_href }}">Add Participant</a>
+    <a class="btn btn-lg my-1 custom-btn" href="{{ add_user_href }}">Add Participant</a>
   {% endif %}
   {% url_check 'projects:edit_participants' project.id as edit_user_href %}
   {% if edit_user_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ edit_user_href }}">Edit Participants</a>
+    <a class="btn btn-lg my-1 custom-btn" href="{{ edit_user_href }}">Edit Participants</a>
   {% endif %}
   {% url_check 'identity:export_users' as export_users_href %}
   {% if export_users_href %}
-    <a type="button" class="dropdown-toggle btn btn-primary btn-lg my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
+    <a type="button" class="dropdown-toggle btn btn-lg my-1 custom-btn" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
     <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
       <li><a class="dropdown-item" href="{{ export_users_href }}?project={{ project.id }}&new=true">Export list of users without accounts</a></li>
       <li><a class="dropdown-item" href="{{ export_users_href }}?project={{ project.id }}">Export list of all users</a></li>
