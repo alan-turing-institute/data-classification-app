@@ -1,4 +1,0 @@
--r base.txt
-
-django-pyodbc-azure==2.1.0.0
-psycopg2==2.8.3
