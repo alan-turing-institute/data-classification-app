@@ -11,11 +11,11 @@ class ProjectRole(Enum):
     """
 
     # Roles which are assignable to users on a project
-    REFEREE = 'referee'
-    PROJECT_MANAGER = 'project_manager'
-    INVESTIGATOR = 'investigator'
-    RESEARCHER = 'researcher'
-    DATA_PROVIDER_REPRESENTATIVE = 'data_provider_representative'
+    REFEREE = "referee"
+    PROJECT_MANAGER = "project_manager"
+    INVESTIGATOR = "investigator"
+    RESEARCHER = "researcher"
+    DATA_PROVIDER_REPRESENTATIVE = "data_provider_representative"
 
     @classmethod
     def is_valid_assignable_participant_role(cls, role):
@@ -28,11 +28,11 @@ class ProjectRole(Enum):
     def choices(cls):
         """Dropdown choices for project roles"""
         return [
-            (cls.REFEREE.value, 'Referee'),
-            (cls.PROJECT_MANAGER.value, 'Project Manager'),
-            (cls.INVESTIGATOR.value, 'Investigator'),
-            (cls.RESEARCHER.value, 'Researcher'),
-            (cls.DATA_PROVIDER_REPRESENTATIVE.value, 'Data Provider Representative'),
+            (cls.REFEREE.value, "Referee"),
+            (cls.PROJECT_MANAGER.value, "Project Manager"),
+            (cls.INVESTIGATOR.value, "Investigator"),
+            (cls.RESEARCHER.value, "Researcher"),
+            (cls.DATA_PROVIDER_REPRESENTATIVE.value, "Data Provider Representative"),
         ]
 
     @classmethod
@@ -72,7 +72,7 @@ class UserPermissions:
     """
 
     permissions = BooleanTextTable(
-        definition='''
+        definition="""
                              | SM PgM | PM DPR PI Ref Res | Extra
         create_users         |  Y   Y |  .   .  .   .   . |     .
         import_users         |  Y   Y |  .   .  .   .   . |     .
@@ -110,18 +110,18 @@ class UserPermissions:
         clear_classification |  Y   Y |  Y   .  .   .   . |     .
         close_classification |  Y   Y |  Y   .  .   .   . |     .
         classify_data        |  .   . |  .   Y  Y   Y   . |     .
-        ''',
+        """,
         abbreviations={
-            'SM': UserRole.SYSTEM_MANAGER,
-            'PgM': UserRole.PROGRAMME_MANAGER,
-            'USR': UserRole.NONE,
-            'PM': ProjectRole.PROJECT_MANAGER,
-            'DPR': ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
-            'PI': ProjectRole.INVESTIGATOR,
-            'Ref': ProjectRole.REFEREE,
-            'Res': ProjectRole.RESEARCHER,
+            "SM": UserRole.SYSTEM_MANAGER,
+            "PgM": UserRole.PROGRAMME_MANAGER,
+            "USR": UserRole.NONE,
+            "PM": ProjectRole.PROJECT_MANAGER,
+            "DPR": ProjectRole.DATA_PROVIDER_REPRESENTATIVE,
+            "PI": ProjectRole.INVESTIGATOR,
+            "Ref": ProjectRole.REFEREE,
+            "Res": ProjectRole.RESEARCHER,
         },
-        ignore=['Extra'],
+        ignore=["Extra"],
         default=lambda: False,
     )
 
@@ -153,22 +153,26 @@ class UserPermissions:
         :return: list of `UserRole` objects
         """
         roles = [
-                UserRole.SYSTEM_MANAGER,
-                UserRole.PROGRAMME_MANAGER,
-                UserRole.NONE,
-            ]
-        return [] if not self.can_create_users else [r for r in roles if self.can_assign_role(r)]
+            UserRole.SYSTEM_MANAGER,
+            UserRole.PROGRAMME_MANAGER,
+            UserRole.NONE,
+        ]
+        return (
+            []
+            if not self.can_create_users
+            else [r for r in roles if self.can_assign_role(r)]
+        )
 
     @property
     def can_add_participants(self):
         """Is this role able to add new participants to the project?"""
 
         # To add a new participant, the user must also have system-level access to view users
-        return self._can('view_all_users') and self._can('add_participants')
+        return self._can("view_all_users") and self._can("add_participants")
 
     def __getattr__(self, name):
-        if name.startswith('can_'):
-            permission = name.replace('can_', '')
+        if name.startswith("can_"):
+            permission = name.replace("can_", "")
             try:
                 return self._can(permission)
             except ValueError as e:
