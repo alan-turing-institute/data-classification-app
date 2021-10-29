@@ -4,17 +4,17 @@ matrix:
     - name: run unit tests
       language: python
       python:
-        - "3.7"
+        - "3.8"
       install:
-        - pip install -r requirements/test.txt
+        - poetry install --dev
       script:
-        - pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
+        - make test
     - name: check for missing migrations
       language: python
       python:
-        - "3.7"
+        - "3.8"
       install:
-        - pip install -r requirements/test.txt
+        - poetry install --dev
       script:
         - ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
     - name: verify built JS files are up to date
@@ -31,7 +31,7 @@ matrix:
     - name: run deployment checks
       language: python
       python:
-        - "3.7"
+        - "3.8"
       env:
         - SECRET_KEY='notasecret'
       addons:
@@ -39,6 +39,6 @@ matrix:
           packages:
             - unixodbc-dev
       install:
-        - pip install -r requirements/production.txt
+        - poetry install
       script:
         - ./manage.py check --deploy --settings=haven.settings.production
