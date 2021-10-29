@@ -5,16 +5,18 @@ matrix:
       language: python
       python:
         - "3.8"
+      before_install:
+        - pip install poetry
       install:
-        - poetry install --dev
+        - poetry install
       script:
-        - make test
+        - poetry run pytest ./tests/ --cov-report term-missing --cov-fail-under 100 --cov haven
     - name: check for missing migrations
       language: python
       python:
         - "3.8"
       install:
-        - poetry install --dev
+        - poetry install
       script:
         - ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
     - name: verify built JS files are up to date
@@ -38,7 +40,9 @@ matrix:
         apt:
           packages:
             - unixodbc-dev
+      before_install:
+        - pip install poetry
       install:
-        - poetry install
+        - poetry install --no-dev
       script:
         - ./manage.py check --deploy --settings=haven.settings.production
