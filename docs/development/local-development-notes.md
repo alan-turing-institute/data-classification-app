@@ -16,13 +16,12 @@ For staging/production deployments, the provisioning scripts will run this durin
 
 
 ## Updating requirements
-
-Python dependencies are managed via [`pip-tools`](https://pypi.org/project/pip-tools/).
+Python dependencies are managed via [`poetry`](https://python-poetry.org/docs/basic-usage/) and our version of python is managed by [`pyenv`](https://github.com/pyenv/pyenv). See how to configure both using this [demo](https://blog.jayway.com/2019/12/28/pyenv-poetry-saviours-in-the-python-chaos/py)
 
 To add a new python package to the requirements:
 
-* Add the package name and version to the relevant `.in` file in `requirements/` (usually `requirements/base.in`)
-* Run `make -C requirements/` to rebuild the requirements txt files
+* in the root porject directory run `poetry add <package-name>`
+* Run `poetry update` to rebuild the `poetry.lock` file
 
 
 ## Updating the compiled JS files
@@ -37,7 +36,7 @@ You will need to install `gulp` and `gulp-cli` which require `node`. It is stron
 If a code update has modified the database models, you will need to run the migration on your local database.
 
 ```bash
-manage.py migrate
+python manage.py migrate
 ```
 
 If you modify the database model in your code, you will need to generate the required Django migration files and commit them into the repository.
