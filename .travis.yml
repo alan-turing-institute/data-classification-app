@@ -10,11 +10,13 @@ matrix:
       install:
         - poetry install
       script:
-        - pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
+        - poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
     - name: check for missing migrations
       language: python
       python:
         - "3.8"
+      before_install:
+        - pip install poetry
       install:
         - poetry install
       script:
