@@ -15,12 +15,10 @@ help:
 	@echo ""
 	@echo "Check the Makefile to know exactly what each target is doing."
 
-install: $(INSTALL_STAMP)
-	$(INSTALL_STAMP): pyproject.toml poetry.lock
+install:
 	@if [ -z $(POETRY) ]; then echo "Poetry could not be found. See https://python-poetry.org/docs/"; exit 2;
 	fi
 	$(POETRY) install
-	touch $(INSTALL_STAMP)
 
 .PHONY: clean
 clean:
