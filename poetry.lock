@@ -271,7 +271,7 @@ sqlparse = ">=0.2.0"
 name = "django-easy-audit"
 version = "1.3.0"
 description = "Yet another Django audit log app, hopefully the simplest one."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -969,7 +969,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "fecebfb182a6ef77fdc305ee2a6295050640d1b867b4e0b69c7d586214819c7e"
+content-hash = "ea4d082029dd626d9153e8c1c07f8c24877cd549fd1deef49bc88690f8c5c1bc"
 
 [metadata.files]
 appnope = [
