@@ -42,4 +42,4 @@ format:
 
 .PHONY: test
 test:
-	$(POETRY) run --cov-config=./.coveragerc --cov-report term-missing $(NAME)
+	$(POETRY) run pytest --cov-config=./.coveragerc --cov-report term-missing $(NAME)
