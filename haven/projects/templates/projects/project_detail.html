@@ -13,33 +13,39 @@
   <p>{{ project.description }}</p>
 
   {% for p in project.programmes.all %}
-    <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-primary">{{ p.name }}</a>
+    <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-info project-badge">{{ p.name }}</a>
   {% endfor %}
 
 {% endblock content %}
 
 {% block actions %}
+
   {% url_check 'projects:edit' project.id as edit_project_href %}
   {% if edit_project_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ edit_project_href }}">Edit Project</a>
+    <a class="btn btn-lg my-2 custom-btn" href="{{ edit_project_href }}">Edit Project</a>
   {% endif %}
   {% url_check 'projects:history' project.id as history_href %}
   {% if history_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ history_href }}">View History</a>
+    <a class="btn btn-lg my-2 custom-btn" href="{{ history_href }}">View History</a>
   {% endif %}
   {% url_check 'projects:archive' project.id as archive_href %}
   {% if archive_href %}
-    <a class="btn btn-primary btn-lg my-1" href="{{ archive_href }}">Archive Project</a>
+    <a class="btn btn-lg my-2 custom-btn" href="{{ archive_href }}">Archive Project</a>
   {% endif %}
+
 {% endblock %}
 
 {% block extra_sections %}
+  <div class="project-details">
   {% if project_permissions.can_list_participants %}
     {% include "projects/includes/project_detail_participants.html" %}
   {% endif %}
   {% include "projects/includes/project_detail_work_packages.html" %}
   {% include "projects/includes/project_detail_datasets.html" %}
+  </div>
 {% endblock extra_sections %}
+
+
 
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>

@@ -51,14 +51,14 @@
 {% block actions %}
   {% url_check 'identity:add_user' as add_user_href %}
   {% if add_user_href %}
-    <a class="btn btn-primary btn-lg mx-2 my-1" href="{{ add_user_href }}">Add User</a>
+    <a class="btn custom-btn btn-lg mx-2 my-1" href="{{ add_user_href }}">Add User</a>
   {% endif %}
 
   {% url_check "identity:import_users" as import_users_href %}
   {% if import_users_href %}
   <form style="display: contents" method="POST" action="{{ import_users_href }}" enctype="multipart/form-data">
     {% csrf_token %}
-    <label class="btn btn-primary btn-lg mx-2 my-1">
+    <label class="btn custom-btn btn-lg mx-2 my-1">
       Import user list <input type="file" name="upload_file" id="upload_file" required="True" style="display: none;" onchange="this.form.submit()"/>
     </label>
   </form>
@@ -66,7 +66,7 @@
 
   {% url_check 'identity:export_users' as export_users_href %}
   {% if export_users_href %}
-    <a type="button" class="dropdown-toggle btn btn-primary btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
+    <a type="button" class="dropdown-toggle btn custom-btn btn-lg mx-2 my-1" href="#" id="navbarUserDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Export user list</a>
     <ul class="dropdown-menu" role="menu" aria-labelledby="navbarUserDropdown">
       {% if can_read_system_userlist %}
       <li><a class="dropdown-item" href="{{ export_users_href }}?new=true">Export list of users without accounts</a></li>

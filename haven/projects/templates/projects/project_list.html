@@ -20,7 +20,7 @@
             </h4>
             <p>{{ project.description }}</p>
             {% for p in project.programmes.all %}
-              <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-primary">{{ p.name }}</a>
+              <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-info project-badge">{{ p.name }}</a>
             {% endfor %}
           </div>
           <div class="float-right">
@@ -45,7 +45,7 @@
 {% block actions %}
   {% url_check 'projects:create' as create_project_url %}
   {% if create_project_url %}
-    <a class="btn btn-primary btn-lg" href="{{ create_project_url }}{% if programme %}?programme={{ programme.slug }}{% endif %}">Add Project</a>
+    <a class="btn btn-lg custom-btn" href="{{ create_project_url }}{% if programme %}?programme={{ programme.slug }}{% endif %}">Add Project</a>
   {% endif %}
 {% endblock actions %}
 
