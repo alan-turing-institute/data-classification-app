@@ -67,7 +67,7 @@ python manage.py createsuperuser
 
 ```bash
 mkdir -p staticfiles
-manage.py collectstatic
+python manage.py collectstatic
 ```
 
 ### Apply migrations
