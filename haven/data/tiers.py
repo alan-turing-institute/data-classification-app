@@ -1,8 +1,8 @@
-
 class Tier:
     """
     Define data tiers
     """
+
     # Tier zero: public
     ZERO = 0
 
@@ -20,9 +20,9 @@ class Tier:
 
 
 TIER_CHOICES = [
-    (Tier.ZERO, 'Tier 0'),
-    (Tier.ONE, 'Tier 1'),
-    (Tier.TWO, 'Tier 2'),
-    (Tier.THREE, 'Tier 3'),
-    (Tier.FOUR, 'Tier 4'),
+    (Tier.ZERO, "Tier 0"),
+    (Tier.ONE, "Tier 1"),
+    (Tier.TWO, "Tier 2"),
+    (Tier.THREE, "Tier 3"),
+    (Tier.FOUR, "Tier 4"),
 ]

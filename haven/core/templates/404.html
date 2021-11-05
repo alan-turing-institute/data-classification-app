@@ -17,9 +17,9 @@
     If you continue to experience issues, please contact the {% webapp_title %} administrators.
   </p>
   {% if request.user.is_authenticated %}
-    <a class="btn btn-primary" href="{% url 'projects:list' %}">View Your Projects</a>
+    <a class="btn custom-btn" href="{% url 'projects:list' %}">View Your Projects</a>
   {% else %}
-    <a class="btn btn-primary" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
+    <a class="btn custom-btn" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
   {% endif %}
 {% endblock content %}
 
