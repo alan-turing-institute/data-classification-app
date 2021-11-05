@@ -10,10 +10,22 @@ These instructions are for running a local test instance of the management web a
 * Python 3.7+
 * Postgres 10+ (with dev headers)
 
-### Install requirements into virtualenv
+### Create a virtual environment
+Do this one time only
+```bash
+python3 -m venv .venv
+```
+
+Activate the virtual environment
+```bash
+source .venv/bin/activate
+```
+
+### Install requirements into virtual environment
 
 ```bash
-poetry install --dev
+pip install poetry
+poetry install
 ```
 
 ### Set up PostgreSQL
