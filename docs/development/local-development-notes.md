@@ -20,7 +20,7 @@ Python dependencies are managed via [`poetry`](https://python-poetry.org/docs/ba
 
 To add a new python package to the requirements:
 
-* in the root porject directory run `poetry add <package-name>`
+* in the root project directory run `poetry add <package-name>`
 * Run `poetry update` to rebuild the `poetry.lock` file
 
 
