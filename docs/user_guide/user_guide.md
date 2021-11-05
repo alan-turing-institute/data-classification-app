@@ -4,6 +4,14 @@ Welcome to the Data Safe Haven web-app. This is a tool to help you carry out res
 
 In this documentation we’ll take you, as through the process of getting set on to the web-app, and deciding on the classification of your data.
 
+## Notes
+* Projects are created in the management system by a Programme Manager, and an Investigator and Project Manager assigned.
+* Programme Managers and Project Managers may add users to groups corresponding to specific projects or work packages through the management framework.
+* The Project Manager has the authority to assign Referees and Data Provider Representatives to a project or work package.
+* At some tiers, new Referees or members of the research team must also be approved by the Dataset Provider Representative.
+* Before joining a project or work package, Researchers, Investigators and Referees must agree to any additional commitments specific to that project or work package.
+* Users are removed from a project or work package promptly once their involvement with it ends.
+
 ## Why classify?
 
 It is essential that sensitive or confidential datasets are kept secure, to enable analysis of personal data in compliance with data protection law. Classification is based on considering the sensitivity of all information handled in the project, and does not depend only on the input datasets, but on combining information with other information.
