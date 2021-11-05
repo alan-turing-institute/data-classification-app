@@ -3,197 +3,145 @@ from django.urls import path
 from haven.projects import views
 
 
-app_name = 'projects'
+app_name = "projects"
 
 urlpatterns = [
-    path('', views.ProjectList.as_view(), name='list'),
-    path('new', views.ProjectCreate.as_view(), name='create'),
-    path('programmes', views.ProgrammeList.as_view(), name='programmes'),
-
+    path("", views.ProjectList.as_view(), name="list"),
+    path("new", views.ProjectCreate.as_view(), name="create"),
+    path("programmes", views.ProgrammeList.as_view(), name="programmes"),
+    path("<int:pk>", views.ProjectDetail.as_view(), name="detail"),
+    path("<int:pk>/edit", views.ProjectEdit.as_view(), name="edit"),
+    path("<int:pk>/history", views.ProjectHistory.as_view(), name="history"),
+    path("<int:pk>/archive", views.ProjectArchive.as_view(), name="archive"),
     path(
-        '<int:pk>',
-        views.ProjectDetail.as_view(),
-        name='detail'
-    ),
-
-    path(
-        '<int:pk>/edit',
-        views.ProjectEdit.as_view(),
-        name='edit'
-    ),
-
-    path(
-        '<int:pk>/history',
-        views.ProjectHistory.as_view(),
-        name='history'
-    ),
-
-    path(
-        '<int:pk>/archive',
-        views.ProjectArchive.as_view(),
-        name='archive'
-    ),
-
-    path(
-        '<int:pk>/participants/edit',
+        "<int:pk>/participants/edit",
         views.EditProjectListParticipants.as_view(),
-        name='edit_participants'
+        name="edit_participants",
     ),
-
+    path("<int:pk>/participants/add", views.ProjectAddUser.as_view(), name="add_user"),
     path(
-        '<int:pk>/participants/add',
-        views.ProjectAddUser.as_view(),
-        name='add_user'
-    ),
-
-    path(
-        '<int:project_pk>/participants/<int:pk>/edit',
+        "<int:project_pk>/participants/<int:pk>/edit",
         views.EditParticipant.as_view(),
-        name='edit_participant'
+        name="edit_participant",
     ),
-
     path(
-        '<int:pk>/datasets/new',
+        "<int:pk>/datasets/new",
         views.ProjectCreateDataset.as_view(),
-        name='add_dataset'
+        name="add_dataset",
     ),
-
     path(
-        '<int:project_pk>/datasets/<int:pk>',
+        "<int:project_pk>/datasets/<int:pk>",
         views.ProjectDatasetDetail.as_view(),
-        name='dataset_detail'
+        name="dataset_detail",
     ),
-
     path(
-        '<int:project_pk>/datasets/<int:pk>/delete',
+        "<int:project_pk>/datasets/<int:pk>/delete",
         views.ProjectDeleteDataset.as_view(),
-        name='delete_dataset'
+        name="delete_dataset",
     ),
-
     path(
-        '<int:project_pk>/datasets/<int:pk>/edit',
+        "<int:project_pk>/datasets/<int:pk>/edit",
         views.ProjectEditDataset.as_view(),
-        name='edit_dataset'
+        name="edit_dataset",
     ),
-
     path(
-        '<int:project_pk>/datasets/<int:pk>/edit_dpr',
+        "<int:project_pk>/datasets/<int:pk>/edit_dpr",
         views.ProjectEditDatasetDPR.as_view(),
-        name='edit_dataset_dpr'
+        name="edit_dataset_dpr",
     ),
-
     path(
-        '<int:pk>/work_packages/new',
+        "<int:pk>/work_packages/new",
         views.ProjectCreateWorkPackage.as_view(),
-        name='add_work_package'
+        name="add_work_package",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>',
+        "<int:project_pk>/work_packages/<int:pk>",
         views.WorkPackageDetail.as_view(),
-        name='work_package_detail'
+        name="work_package_detail",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/delete',
+        "<int:project_pk>/work_packages/<int:pk>/delete",
         views.WorkPackageDelete.as_view(),
-        name='work_package_delete'
+        name="work_package_delete",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/edit',
+        "<int:project_pk>/work_packages/<int:pk>/edit",
         views.WorkPackageEdit.as_view(),
-        name='work_package_edit'
+        name="work_package_edit",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify',
+        "<int:project_pk>/work_packages/<int:pk>/classify",
         views.WorkPackageClassifyData.as_view(),
-        name='classify_data'
+        name="classify_data",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify/<int:question_pk>',
+        "<int:project_pk>/work_packages/<int:pk>/classify/<int:question_pk>",
         views.WorkPackageClassifyData.as_view(),
-        name='classify_data'
+        name="classify_data",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify_results',
+        "<int:project_pk>/work_packages/<int:pk>/classify_results",
         views.WorkPackageClassifyResults.as_view(),
-        name='classify_results'
+        name="classify_results",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify_clear',
+        "<int:project_pk>/work_packages/<int:pk>/classify_clear",
         views.WorkPackageClear.as_view(),
-        name='classify_clear'
+        name="classify_clear",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify_delete',
+        "<int:project_pk>/work_packages/<int:pk>/classify_delete",
         views.WorkPackageClassifyDelete.as_view(),
-        name='classify_delete'
+        name="classify_delete",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify_close',
+        "<int:project_pk>/work_packages/<int:pk>/classify_close",
         views.WorkPackageClassifyClose.as_view(),
-        name='classify_close'
+        name="classify_close",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/classify_open',
+        "<int:project_pk>/work_packages/<int:pk>/classify_open",
         views.WorkPackageClassifyOpen.as_view(),
-        name='classify_open'
+        name="classify_open",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/datasets/new',
+        "<int:project_pk>/work_packages/<int:pk>/datasets/new",
         views.WorkPackageAddDataset.as_view(),
-        name='work_package_add_dataset'
+        name="work_package_add_dataset",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/datasets/edit',
+        "<int:project_pk>/work_packages/<int:pk>/datasets/edit",
         views.WorkPackageEditDatasets.as_view(),
-        name='work_package_edit_datasets'
+        name="work_package_edit_datasets",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/participants/new',
+        "<int:project_pk>/work_packages/<int:pk>/participants/new",
         views.WorkPackageAddParticipant.as_view(),
-        name='work_package_add_participant'
+        name="work_package_add_participant",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/participants/edit',
+        "<int:project_pk>/work_packages/<int:pk>/participants/edit",
         views.WorkPackageEditParticipants.as_view(),
-        name='work_package_edit_participants'
+        name="work_package_edit_participants",
     ),
-
     path(
-        '<int:project_pk>/work_packages/<int:pk>/participants/approve',
+        "<int:project_pk>/work_packages/<int:pk>/participants/approve",
         views.WorkPackageApproveParticipants.as_view(),
-        name='work_package_approve_participants'
+        name="work_package_approve_participants",
     ),
-
     path(
-        '<int:pk>/autocomplete_dpr/',
+        "<int:pk>/autocomplete_dpr/",
         views.AutocompleteDataProviderRepresentative.as_view(),
-        name='autocomplete_dpr'
+        name="autocomplete_dpr",
     ),
-
     path(
-        '<int:pk>/autocomplete_new_participant/',
+        "<int:pk>/autocomplete_new_participant/",
         views.AutocompleteNewParticipant.as_view(),
-        name='autocomplete_new_participant'
+        name="autocomplete_new_participant",
     ),
-
     path(
-        'autocomplete_programme/',
+        "autocomplete_programme/",
         views.AutocompleteProgramme.as_view(),
-        name='autocomplete_programme'
+        name="autocomplete_programme",
     ),
-
 ]

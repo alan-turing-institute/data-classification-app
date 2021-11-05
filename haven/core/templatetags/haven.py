@@ -26,9 +26,9 @@ class UrlCheckNode(template.Node):
 
         match = resolve(url)
         view_func = match.func
-        if hasattr(view_func, 'view_class'):
+        if hasattr(view_func, "view_class"):
             view = view_func.view_class(**view_func.view_initkwargs)
-            view.request = context['request']
+            view.request = context["request"]
             view.args = match.args
             view.kwargs = match.kwargs
             if isinstance(view, LoginRequiredMixin):
@@ -43,7 +43,7 @@ class UrlCheckNode(template.Node):
 
         if self.wrapped_node.asvar:
             context[self.wrapped_node.asvar] = url
-            url = ''
+            url = ""
 
         return url
 
@@ -86,7 +86,7 @@ def version_number():
     if not version_hash:
         # If the above failed we may be a deployed Azure instance without
         # access to the git command. Try to get the kudu deploy hash
-        deployed_version_file = '/home/site/deployments/active'
+        deployed_version_file = "/home/site/deployments/active"
         try:
             with open(deployed_version_file) as fh:
                 version_hash = fh.readline()
@@ -95,7 +95,7 @@ def version_number():
             version_hash = ""
 
     if not version_hash:
-        version_hash = 'Unknown'
+        version_hash = "Unknown"
     return version_hash
 
 

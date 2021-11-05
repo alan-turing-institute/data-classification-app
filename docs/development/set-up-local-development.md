@@ -13,7 +13,7 @@ These instructions are for running a local test instance of the management web a
 ### Install requirements into virtualenv
 
 ```bash
-pip install -r requirements/local.txt
+poetry install --dev
 ```
 
 ### Set up PostgreSQL
@@ -41,14 +41,14 @@ DATABASE_URL='postgres://haven:haven@localhost/haven'
 ### Apply migrations
 
 ```bash
-manage.py migrate easyaudit
-manage.py migrate
+python manage.py migrate easyaudit
+python manage.py migrate
 ```
 
 ### Create initial admin user account
 
 ```bash
-manage.py createsuperuser
+python manage.py createsuperuser
 ```
 
 ### Update static files
@@ -61,13 +61,13 @@ manage.py collectstatic
 ### Apply migrations
 
 ```bash
-manage.py migrate
+python manage.py migrate
 ```
 
 ### Run server
 
 ```bash
-manage.py runserver
+python manage.py runserver
 ```
 
 ### Accessing the test server
@@ -98,8 +98,7 @@ Note: the `staticfiles` folder must exist before running the tests.
 
 
 ```
-cd haven
-pytest
+make test
 
 ```
 ### More information and Troubleshooting
