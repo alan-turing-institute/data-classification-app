@@ -9,7 +9,7 @@ but for local development you may need to run these manually.
 
 ```bash
 mkdir -p staticfiles
-manage.py collectstatic
+python manage.py collectstatic
 ```
 
 For staging/production deployments, the provisioning scripts will run this during deployment.
