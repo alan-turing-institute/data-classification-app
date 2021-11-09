@@ -10,10 +10,22 @@ These instructions are for running a local test instance of the management web a
 * Python 3.7+
 * Postgres 10+ (with dev headers)
 
-### Install requirements into virtualenv
+### Create a virtual environment
+Do this one time only
+```bash
+python3 -m venv .venv
+```
+
+Activate the virtual environment
+```bash
+source .venv/bin/activate
+```
+
+### Install requirements into virtual environment
 
 ```bash
-poetry install --dev
+pip install poetry
+poetry install
 ```
 
 ### Set up PostgreSQL
@@ -55,7 +67,7 @@ python manage.py createsuperuser
 
 ```bash
 mkdir -p staticfiles
-manage.py collectstatic
+python manage.py collectstatic
 ```
 
 ### Apply migrations
@@ -97,10 +109,10 @@ Note that you need to use the full username, e.g. `user1@dsgroupdev.co.uk`.
 Note: the `staticfiles` folder must exist before running the tests.
 
 
-```
+```bash
 make test
-
 ```
+
 ### More information and Troubleshooting
 
-See the [Local Development Notes][local-development-notes]
+See the [Local Development Notes](local-development-notes)
