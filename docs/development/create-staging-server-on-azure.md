@@ -1,6 +1,6 @@
 # Data Safe Haven web management application: set up staging server
 
-These instructions for deploying a staging/test instance of the management web application in a testing environment.
+These instructions are for deploying a staging/test instance of the management web application in a testing environment.
 
 
 ## Prerequisites
