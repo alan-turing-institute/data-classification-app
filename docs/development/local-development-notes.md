@@ -38,6 +38,14 @@ If a code update has modified the database models, you will need to run the migr
 ```bash
 python manage.py migrate
 ```
+### Renaming migrations
+We are implementing a dev workflow to rename migrations to more intuitive names, describing the update to the model structure a migration executes.
+Please follow these steps to ensure safe renaming:
+1. After running `python manage.py migrate` you will see an automated migration file in the app's `/migrations/`directory. Rename the file.
+2. Repoint any dependencies to the new file with the new filename.
+3. If the renamed migration was already applied, apply it again using --fake
+
+**HINT:** If it's a brand new migration, 2 and 3 won't apply, and it's perfectly fine to rename them.
 
 If you modify the database model in your code, you will need to generate the required Django migration files and commit them into the repository.
 For staging/production deployments, the provisioning scripts will run migrations automatically during deployment.
