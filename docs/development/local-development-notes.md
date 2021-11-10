@@ -40,7 +40,7 @@ python manage.py migrate
 ```
 ### Renaming migrations
 We are implementing a dev workflow to rename migrations to more intuitive names, describing the update to the model structure a migration executes.
-Please follow these steps to ensure dafe renaming:
+Please follow these steps to ensure safe renaming:
 1. After running `python manage.py migrate` you will see an automated migration file in the app's `/migrations/`directory. Rename the file.
 2. Repoint any dependencies to the new file with the new filename.
 3. If the renamed migration was already applied, apply it again using --fake
