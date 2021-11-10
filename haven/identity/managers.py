@@ -1,5 +1,6 @@
-from django.db.models import Q
 from django.contrib.auth.models import UserManager
+from django.db.models import Q
+
 
 class CustomUserManager(UserManager):
     """UserManager with custom QuerySet method"""
@@ -12,6 +13,4 @@ class CustomUserManager(UserManager):
         if user.system_permissions.can_view_all_users:
             return default_query_set
         else:
-            return default_query_set.filter(
-                Q(created_by=user)
-            ).distinct()
+            return default_query_set.filter(Q(created_by=user)).distinct()

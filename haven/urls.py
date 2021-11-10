@@ -16,50 +16,44 @@ Including another URLconf
 from django.conf import settings
 from django.urls import include, path
 from django.views.generic import TemplateView
+
 from haven.core import views as core_views
 
 
 urlpatterns = [
-    path('users/', include('haven.identity.urls', namespace='identity')),
-
-    path('projects/', include('haven.projects.urls', namespace='projects')),
-
-    path('logout/', core_views.logout, name='logout'),
-
+    path("users/", include("haven.identity.urls", namespace="identity")),
+    path("projects/", include("haven.projects.urls", namespace="projects")),
+    path("logout/", core_views.logout, name="logout"),
     # Externally-driven single sign out
-    path('ssologout/', core_views.sso_logout, name='sso_logout'),
-
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
-
-    path('auth/', include('social_django.urls', namespace='social')),
-
-    path('error/', TemplateView.as_view(template_name='error.html'), name="error-page"),
+    path("ssologout/", core_views.sso_logout, name="sso_logout"),
+    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+    path("auth/", include("social_django.urls", namespace="social")),
+    path("error/", TemplateView.as_view(template_name="error.html"), name="error-page"),
 ]
 
 
-handler404 = 'haven.core.views.handler404'
-handler500 = 'haven.core.views.handler500'
+handler404 = "haven.core.views.handler404"
+handler500 = "haven.core.views.handler500"
 
 # These features are only enabled for local testing
 if settings.DEBUG:
     # Enable debug toolbar
     import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)),] + urlpatterns
 
     # Enable admin interface
     from django.contrib import admin
-    urlpatterns = [
-        path('admin/', admin.site.urls),
-    ] + urlpatterns
+
+    urlpatterns = [path("admin/", admin.site.urls),] + urlpatterns
 
     # Enable local user login
     from django.contrib.auth import views as auth_views
+
     urlpatterns = [
         path(
-            'accounts/login/',
-            auth_views.LoginView.as_view(template_name='identity/login.html'),
-            name='login'
+            "accounts/login/",
+            auth_views.LoginView.as_view(template_name="identity/login.html"),
+            name="login",
         )
     ] + urlpatterns

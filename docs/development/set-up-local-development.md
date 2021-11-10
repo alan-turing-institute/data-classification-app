@@ -10,10 +10,22 @@ These instructions are for running a local test instance of the management web a
 * Python 3.7+
 * Postgres 10+ (with dev headers)
 
-### Install requirements into virtualenv
+### Create a virtual environment
+Do this one time only
+```bash
+python3 -m venv .venv
+```
+
+Activate the virtual environment
+```bash
+source .venv/bin/activate
+```
+
+### Install requirements into virtual environment
 
 ```bash
-pip install -r requirements/local.txt
+pip install poetry
+poetry install
 ```
 
 ### Set up PostgreSQL
@@ -41,33 +53,33 @@ DATABASE_URL='postgres://haven:haven@localhost/haven'
 ### Apply migrations
 
 ```bash
-manage.py migrate easyaudit
-manage.py migrate
+python manage.py migrate easyaudit
+python manage.py migrate
 ```
 
 ### Create initial admin user account
 
 ```bash
-manage.py createsuperuser
+python manage.py createsuperuser
 ```
 
 ### Update static files
 
 ```bash
 mkdir -p staticfiles
-manage.py collectstatic
+python manage.py collectstatic
 ```
 
 ### Apply migrations
 
 ```bash
-manage.py migrate
+python manage.py migrate
 ```
 
 ### Run server
 
 ```bash
-manage.py runserver
+python manage.py runserver
 ```
 
 ### Accessing the test server
@@ -97,11 +109,10 @@ Note that you need to use the full username, e.g. `user1@dsgroupdev.co.uk`.
 Note: the `staticfiles` folder must exist before running the tests.
 
 
+```bash
+make test
 ```
-cd haven
-pytest
 
-```
 ### More information and Troubleshooting
 
-See the [Local Development Notes][local-development-notes]
+See the [Local Development Notes](local-development-notes)

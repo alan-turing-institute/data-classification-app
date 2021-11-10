@@ -8,6 +8,7 @@ class UserPermissionRequiredMixin(UserPassesTestMixin):
 
     The user must have one or more of the listed permissions
     """
+
     user_permissions = []
 
     def test_func(self):
@@ -27,6 +28,7 @@ class SaveCreatorMixin(UserKwargModelFormMixin):
     Must be used on a `ModelForm` on which the model class has a `created_by`
     foreign key to `identity.User`
     """
+
     def save(self, **kwargs):
         obj = super().save(commit=False)
         obj.created_by = self.user
