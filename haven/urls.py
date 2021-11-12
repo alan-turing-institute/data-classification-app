@@ -26,7 +26,7 @@ urlpatterns = [
     path("projects/", include("haven.projects.urls", namespace="projects")),
     path("logout/", core_views.logout, name="logout"),
     #mfa auth
-    path('', include(tf_urls)),
+    path('', include(tf_urls, namespace="two_factor")),
     # Externally-driven single sign out
     path("ssologout/", core_views.sso_logout, name="sso_logout"),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
