@@ -63,6 +63,10 @@ THIRD_PARTY_APPS = [
     "simple_history",
     "social_django",
     "taggit",
+    "django_otp",
+    "django_otp.plugins.otp_static",
+    "django_otp.plugins.otp_totp",
+    "two_factor"
 ]
 
 LOCAL_APPS = [
@@ -83,6 +87,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -172,7 +177,9 @@ SOCIAL_AUTH_PIPELINE = (
 
 LOGIN_REDIRECT_URL = "/projects"
 LOGOUT_REDIRECT_URL = "home"
-LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
+#LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
+LOGIN_URL = "two_factor:login"
+#LOGIN_REDIRECT_URL = "two_factor:profile"
 
 
 # Internationalization
