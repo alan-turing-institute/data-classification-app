@@ -178,7 +178,7 @@ SOCIAL_AUTH_PIPELINE = (
 LOGIN_REDIRECT_URL = "/projects"
 LOGOUT_REDIRECT_URL = "home"
 #LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
-LOGIN_URL = "two_factor:login"
+#LOGIN_URL = "/haven/core/two_factor:login"
 #LOGIN_REDIRECT_URL = "two_factor:profile"
 
 
