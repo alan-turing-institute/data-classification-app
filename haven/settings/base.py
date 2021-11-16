@@ -177,9 +177,8 @@ SOCIAL_AUTH_PIPELINE = (
 
 LOGIN_REDIRECT_URL = "/projects"
 LOGOUT_REDIRECT_URL = "home"
-#LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
-#LOGIN_URL = "/haven/core/two_factor:login"
-#LOGIN_REDIRECT_URL = "two_factor:profile"
+LOGIN_URL = "two_factor:login"
+LOGIN_REDIRECT_URL = "two_factor:profile"
 
 
 # Internationalization
@@ -252,3 +251,5 @@ SILENCED_SYSTEM_CHECKS = [
 # security.W008: SSL termination and redirection by Azure
 # security.W009: SECRET_KEY is set in deployment
 # security.W020: ALLOWED_HOSTS is set in deployment
+
+

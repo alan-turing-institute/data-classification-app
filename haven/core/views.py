@@ -10,15 +10,12 @@ SIGNOUT_URL = (
 
 
 def logout(request):
-    """Log out of application and out of social auth account"""
+    """Log out of application"""
 
     # Get the site URL from the current request, so logout will redirect to the same domain the user is browsing
     base_url = request.build_absolute_uri("/").rstrip("/")
     auth_logout(request)
-    url = SIGNOUT_URL.format(
-        settings.SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID, base_url
-    )
-    return HttpResponseRedirect(url)
+    return HttpResponseRedirect(base_url)
 
 
 def sso_logout(request):
