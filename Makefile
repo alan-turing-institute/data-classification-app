@@ -42,4 +42,6 @@ format:
 
 .PHONY: test
 test:
+    # exclude node-modules as node-gyp triggers error on Windows 10
 	$(POETRY) run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
+
