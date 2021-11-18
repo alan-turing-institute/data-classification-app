@@ -1,8 +1,11 @@
-{% extends "two_factor/_base_focus.html" %}
+{% extends "base.html" %}
 {% load i18n two_factor %}
 
-{% block content %}
-  <h1>{% block title %}{% trans "Login" %}{% endblock %}</h1>
+{% block login-content %}
+
+  <p>Haven accounts template (in 2 factor)</p> 
+
+  <h3>{% block title %}{% trans "Login" %}{% endblock %}</h3>
 
   {% if wizard.steps.current == 'auth' %}
     <p>{% blocktrans %}Enter your credentials.{% endblocktrans %}</p>
@@ -24,7 +27,7 @@
   {% endif %}
 
   <form action="" method="post">{% csrf_token %}
-    {% include "two_factor/_wizard_forms.html" %}
+    {% include "../_wizard_forms.html" %}
 
     {# hidden submit button to enable [enter] key #}
     <input type="submit" value="" class="d-none" />
@@ -47,6 +50,6 @@
       </p>
     {% endif %}
 
-    {% include "two_factor/_wizard_actions.html" %}
+    {% include "../_wizard_actions.html" %}
   </form>
 {% endblock %}

@@ -70,7 +70,7 @@
           {% if request.user.is_authenticated %}
             Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
           {% else %}
-          <a class="nav-link" href="{% url 'home' %}">Log In (Base)</a>
+          <a class="nav-link" href="{% url 'login' %}">Log In (Base)</a>
           {% endif %}
         </span>
 
@@ -107,10 +107,11 @@
               </div>
               <div class="row my-1">
                   <div class="col">
-                    {% block content %}
+                    {% block login-content %}
                     {% endblock %}
                   </div>
               </div>
+            </div>
             </div>
             {% block extra_sections %}
             {% endblock %}

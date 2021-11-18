@@ -20,6 +20,12 @@ from two_factor.urls import urlpatterns as tf_urls
 
 from haven.core import views as core_views
 
+# uncomment to enforce mfa on the admin site
+
+#from django.contrib import admin
+#from django_otp.admin import OTPAdminSite
+#admin.site.__class__ = OTPAdminSite
+
 
 urlpatterns = [
     path("users/", include("haven.identity.urls", namespace="identity")),
@@ -56,7 +62,7 @@ if settings.DEBUG:
     urlpatterns = [
         path(
             "accounts/login/",
-            auth_views.LoginView.as_view(template_name="identity/login.html"),
+            auth_views.LoginView.as_view(template_name="accounts/two_factor/core/login.html"),
             name="login",
         )
     ] + urlpatterns
