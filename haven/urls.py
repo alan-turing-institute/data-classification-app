@@ -28,11 +28,14 @@ from haven.core import views as core_views
 
 
 urlpatterns = [
+
     path("users/", include("haven.identity.urls", namespace="identity")),
     path("projects/", include("haven.projects.urls", namespace="projects")),
+ 
     path("logout/", core_views.logout, name="logout"),
     #mfa auth
     path('', include(tf_urls, namespace="two_factor")),
+   
     # Externally-driven single sign out
     path("ssologout/", core_views.sso_logout, name="sso_logout"),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
@@ -59,10 +62,21 @@ if settings.DEBUG:
     # Enable local user login
     from django.contrib.auth import views as auth_views
 
+    # urlpatterns = [
+    #       path(
+    #          "accounts/login/",
+    #          auth_views.LoginView.as_view(template_name="accounts/two_factor/core/login.html"),
+    #           name="login",
+    #       )
+    # ] + urlpatterns
+
+
     urlpatterns = [
         path(
             "accounts/login/",
-            auth_views.LoginView.as_view(template_name="accounts/two_factor/core/login.html"),
+            auth_views.LoginView.as_view(template_name="identity/login.html"),
             name="login",
         )
     ] + urlpatterns
+
+    
