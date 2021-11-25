@@ -509,6 +509,7 @@ class ProjectCreateDataset(
     def get_form(self):
         form = super().get_form()
 
+        # sets the save button title
         form.helper = SaveCancelFormHelper("Add Dataset")
         form.helper.form_tag = False
         return form

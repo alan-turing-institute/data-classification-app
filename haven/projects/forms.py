@@ -58,7 +58,7 @@ class UserAutocompleteChoiceField(forms.ModelChoiceField):
 
 
 class SaveCancelFormHelper(FormHelper):
-    def __init__(self, save_label="Save", save_class="btn-success", *args, **kwargs):
+    def __init__(self, save_label="Save", save_class="save-btn", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_input(Submit("submit", save_label, css_class=save_class))
         self.add_input(
@@ -72,7 +72,7 @@ class SaveCancelFormHelper(FormHelper):
 
 
 class SaveCancelInlineFormSetHelper(InlineFormSetHelper):
-    def __init__(self, save_label="Save", save_class="btn-success", *args, **kwargs):
+    def __init__(self, save_label="Save", save_class="save-btn", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_input(Submit("submit", save_label, css_class=save_class))
         self.add_input(
