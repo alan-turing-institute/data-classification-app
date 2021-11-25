@@ -15399,9 +15399,6 @@ global.formset = function(selector, prefix, addText){
   });
 }
 
-/*$(function() {
-  $(":checkbox").not(".delete-row :checkbox").checkboxpicker();
-}); */
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
