@@ -83,6 +83,9 @@ switch_to_app_tenant () {
     fi
 }
 
+create_rbac_for_user () {
+  az ad sp create-for-rbac -n "$APP_NAME" --role Contributor --scopes /subscriptions/{"$SUBSCRIPTION_ID"}/resourceGroups/{"$RESOURCE_GROUP"}
+}
 get_ids () {
   subscription_details=$(az account show --subscription "$SUBSCRIPTION")
   # The Azure AD tenant where the app will be registered
@@ -348,6 +351,7 @@ update_app_settings () {
 
 azure_login
 get_ids
+create_rbac_for_user
 create_or_update_resource_group
 create_or_update_keyvault
 create_or_update_postgresql_db
