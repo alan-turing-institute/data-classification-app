@@ -148,21 +148,9 @@ class Project(CreatedByModel):
                 "any derived datasets.</p>"
             ),
         )
-        egress3 = WorkPackage(
-            name="TEST",
-            description=(
-                "<p>In this work package, you'll need to include all other outputs, including "
-                "derived data sets and full code to be returned to the Data Provider for "
-                "archiving. If this returns a high tier then a conversation needs to take place "
-                "about where it should be stored, and whether some outputs should be redacted "
-                "prior to release.</p><p>Datasets: All outputs, including text, images, code and "
-                "any derived datasets.</p>"
-            ),
-        )
         self.add_work_package(ingress, created_by=created_by)
         self.add_work_package(egress1, created_by=created_by)
         self.add_work_package(egress2, created_by=created_by)
-        self.add_work_package(egress3, created_by=created_by)
 
     @transaction.atomic
     def update_representative(self, dataset, creator):
