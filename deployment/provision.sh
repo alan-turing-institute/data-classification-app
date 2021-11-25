@@ -59,7 +59,36 @@ else
     exit 1
 fi
 
+if jq ; then
+  :
+else
+  brew install jq
+fi
 
+azure_login () {
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        az login
+    fi
+    switch_to_app_tenant
+}
+
+# Switch Azure CLI to the tenant used for app creation
+switch_to_app_tenant () {
+    # We need to explicitly set the subscription in order to change the default tenant.
+    # This is because Azure CLI does not always respect the --subscription argument.
+
+    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
+        echo "Preparing to switch to $SUBSCRIPTION"
+        az account set --subscription "${SUBSCRIPTION}"
+    fi
+}
+
+get_ids () {
+  subscription_details=$(az account show --subscription "$SUBSCRIPTION")
+  # The Azure AD tenant where the app will be registered
+  REGISTRATION_TENANT=$(jq -M -r '.homeTenantId'<<< "$subscription_details")
+  SUBSCRIPTION_ID=$(jq -M -r '.id'<<< "$subscription_details")
+}
 
 generate_key () {
     # To avoid sampling bias, get a large random string (head /dev/urandom), remove any characters not in the
@@ -102,24 +131,6 @@ function get_or_create_azure_secret() {
     fi
 
     echo "${keyvault_value}"
-}
-
-azure_login() {
-    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
-        az login
-        switch_to_app_tenant
-    fi
-}
-
-# Switch Azure CLI to the tenant used for app creation
-switch_to_app_tenant () {
-    # We need to explicitly set the subscription in order to change the default tenant.
-    # This is because Azure CLI does not always respect the --subscription argument.
-
-    if [ -z "${SKIP_AZURE_LOGIN}" ]; then
-        echo "Preparing to switch to $SUBSCRIPTION"
-        az account set --subscription "${SUBSCRIPTION}"
-    fi
 }
 
 # Switch Azure CLI to the tenant used for app registration
@@ -336,6 +347,7 @@ update_app_settings () {
 }
 
 azure_login
+get_ids
 create_or_update_resource_group
 create_or_update_keyvault
 create_or_update_postgresql_db
