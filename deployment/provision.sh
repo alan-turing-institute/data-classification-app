@@ -83,9 +83,6 @@ switch_to_app_tenant () {
     fi
 }
 
-create_rbac_for_user () {
-  az ad sp create-for-rbac -n "$APP_NAME" --role Contributor --scopes /subscriptions/{"$SUBSCRIPTION_ID"}/resourceGroups/{"$RESOURCE_GROUP"}
-}
 get_ids () {
   subscription_details=$(az account show --subscription "$SUBSCRIPTION")
   # The Azure AD tenant where the app will be registered
@@ -114,8 +111,9 @@ generate_key () {
 }
 
 # Fetch a secret from the Azure keyvault
-function get_azure_secret() {
+function get_azure_secret () {
     local SECRET_NAME="$1"
+    echo ${SECRET_NAME}
     az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
 }
 
@@ -170,17 +168,31 @@ function curl_with_retry() {
     exit 1
 }
 
-create_or_update_resource_group() {
+create_or_update_resource_group () {
     echo "Creating or updating the resource group ${RESOURCE_GROUP}"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
-
-    # Create a lock to prevent accidental deletion of the resource group and the resources it contains
-    az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
+    # # Create a lock to prevent accidental deletion of the resource group and the resources it contains
+    # az lock create --name LockDataSafeHaven --lock-type CanNotDelete --resource-group "${RESOURCE_GROUP}" --notes "Prevents accidental deletion of Data Safe Haven management webapp and its resources"
 }
 
 create_or_update_keyvault() {
     echo "Creating or updating the keyvault ${KEYVAULT_NAME}"
-    az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}"
+    if az keyvault show --name ${KEYVAULT_NAME} ; then
+      az keyvault update --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}"
+    else
+      az keyvault create --name "${KEYVAULT_NAME}" --resource-group "${RESOURCE_GROUP}" --location "${LOCATION}"
+    fi
+
+}
+
+configure_keyvault_name () {
+    if [[ "$APP_NAME" =~ '^[a-zA-Z0-9-]{3,24}$' ]]; then
+        echo "Using ${APP_NAME} as KEYVAULT_NAME"
+        KEYVAULT_NAME=${APP_NAME}
+    else
+        echo "${APP_NAME} incorrectly formatted for KEYVAULT_NAME, replacing '-' with '_' "
+        KEYVAULT_NAME="${APP_NAME//-/}KeyVault"
+    fi
 }
 
 create_or_update_app() {
@@ -207,7 +219,7 @@ create_or_update_app() {
     az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
     # Create Django secret key
-    local django_secret_key=$(get_or_create_azure_secret  "SECRET-KEY")
+    local django_secret_key=$(get_or_create_azure_secret "SECRET-KEY")
 }
 
 update_deployment_configuration () {
@@ -248,9 +260,9 @@ update_deployment_configuration () {
     az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
 }
 
-create_or_update_postgresql_db() {
+create_or_update_postgresql_db () {
     echo "Creating or updating the DB server ${DB_SERVER_NAME}"
-
+    DB_USERNAME="${KEYVAULT_NAME}admin"
     local db_username=${DB_USERNAME}
     local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
 
@@ -288,7 +300,7 @@ create_or_update_registration () {
 
     # A client secret used in the OAuth2 call
     local client_secret=$(get_or_create_azure_secret  "AZUREAD-OAUTH2-SECRET")
-
+      echo ${client_secret}
     # The tenant we use to register the app may not be the tenant used to create the app
     switch_to_registration_tenant
 
@@ -351,8 +363,8 @@ update_app_settings () {
 
 azure_login
 get_ids
-create_rbac_for_user
 create_or_update_resource_group
+configure_keyvault_name
 create_or_update_keyvault
 create_or_update_postgresql_db
 create_or_update_app
