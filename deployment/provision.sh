@@ -33,7 +33,7 @@ usage() {
 }
 
 CURRENT_DIR=$(dirname "$0")
-ENVFILE="${CURRENT_DIR}/.env"
+ENVFILE="${CURRENT_DIR}/.staging.env"
 
 # Read command line arguments, overriding defaults where necessary
 while getopts "h:e:" opt; do
@@ -88,6 +88,10 @@ get_ids () {
   # The Azure AD tenant where the app will be registered
   REGISTRATION_TENANT=$(jq -M -r '.homeTenantId'<<< "$subscription_details")
   SUBSCRIPTION_ID=$(jq -M -r '.id'<<< "$subscription_details")
+}
+
+convert_server_name_to_admin_name () {
+  "$DB_SERVER_NAME" | tr '-' '_'
 }
 
 generate_key () {
@@ -262,7 +266,8 @@ update_deployment_configuration () {
 
 create_or_update_postgresql_db () {
     echo "Creating or updating the DB server ${DB_SERVER_NAME}"
-    DB_USERNAME="${KEYVAULT_NAME}admin"
+    echo "Generating admin username for ${DB_SERVER_NAME}"
+    DB_USERNAME=$(convert_server_name_to_admin_name)+"_admin"
     local db_username=${DB_USERNAME}
     local db_password=$(get_or_create_azure_secret  "DB-PASSWORD")
 
