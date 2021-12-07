@@ -206,10 +206,10 @@ create_or_update_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.7"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.8"
 
     # Configure webapp logging
-    az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --application-logging true --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
+    az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}"  --application-logging filesystem --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
 
     # Force the proxy to redirect non-https traffic to https
     az webapp update --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --https-only true
