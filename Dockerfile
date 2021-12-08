@@ -23,4 +23,6 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
 
 COPY haven ./haven
+COPY static ./static
+COPY staticfiles ./staticfiles
 COPY manage.py ./

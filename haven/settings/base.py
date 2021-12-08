@@ -245,3 +245,18 @@ SILENCED_SYSTEM_CHECKS = [
 # security.W008: SSL termination and redirection by Azure
 # security.W009: SECRET_KEY is set in deployment
 # security.W020: ALLOWED_HOSTS is set in deployment
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST' : "db",
+        'NAME' : "postgres",
+        'USER' : "postgres",
+        'PASSWORD' : "hello",
+        'PORT':5432,
+    }
+}
+
+
+
+
