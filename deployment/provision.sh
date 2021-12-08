@@ -117,7 +117,6 @@ generate_key () {
 # Fetch a secret from the Azure keyvault
 function get_azure_secret () {
     local SECRET_NAME="$1"
-    echo ${SECRET_NAME}
     az keyvault secret show --name "${SECRET_NAME}" --vault-name "${KEYVAULT_NAME}" --query "value" -otsv
 }
 
@@ -135,7 +134,6 @@ function get_or_create_azure_secret() {
           az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}" --output none
     fi
 
-    echo "${keyvault_value}"
 }
 
 # Switch Azure CLI to the tenant used for app registration
@@ -157,9 +155,7 @@ function curl_with_retry() {
     until [ "$retry" -gt 20 ]; do
       local result
       result=$(curl --fail --silent "${url}")
-      status="$?"
-
-      if [ $status -eq 0 ]; then
+      if [ $? -eq 0 ]; then
         echo "${result}"
         return
       fi
@@ -310,6 +306,7 @@ create_or_update_registration () {
     switch_to_registration_tenant
 
     # Create app registration
+    # this stage can only be comleted by IT
     echo "... registering app"
     az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${oauth2_redirect_uri}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${app_uri}" --required-resource-accesses "${app_permissions}"
 
@@ -343,27 +340,27 @@ update_app_settings () {
     local db_password=$(get_azure_secret  "DB-PASSWORD")
     local database_url=$(get_azure_secret  "DB-URL")
 
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECRET_KEY="${secret_key}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DATABASE_URL="${database_url}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBAPP_TITLE="${WEBAPP_TITLE}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECURITY_GROUP_SYSTEM_MANAGERS="${SECURITY_GROUP_SYSTEM_MANAGERS}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECURITY_GROUP_PROGRAMME_MANAGERS="${SECURITY_GROUP_PROGRAMME_MANAGERS}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings SECURITY_GROUP_PROJECT_MANAGERS="${SECURITY_GROUP_PROJECT_MANAGERS}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings AZUREAD_OAUTH2_TENANT_ID="${azuread_oauth2_tenant_id}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings SECRET_KEY="${secret_key}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings DATABASE_URL="${database_url}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings ALLOWED_HOSTS="${ALLOWED_HOSTS}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings WEBAPP_TITLE="${WEBAPP_TITLE}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings SAFE_HAVEN_DOMAIN="${SAFE_HAVEN_DOMAIN}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings SECURITY_GROUP_SYSTEM_MANAGERS="${SECURITY_GROUP_SYSTEM_MANAGERS}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings SECURITY_GROUP_PROGRAMME_MANAGERS="${SECURITY_GROUP_PROGRAMME_MANAGERS}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings SECURITY_GROUP_PROJECT_MANAGERS="${SECURITY_GROUP_PROJECT_MANAGERS}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings AZUREAD_OAUTH2_KEY="${azuread_oauth2_key}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings AZUREAD_OAUTH2_SECRET="${azuread_oauth2_secret}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings AZUREAD_OAUTH2_TENANT_ID="${azuread_oauth2_tenant_id}"
 
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST="${EMAIL_HOST}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings EMAIL_HOST="${EMAIL_HOST}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings EMAIL_HOST_USER="${EMAIL_HOST_USER}"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings EMAIL_HOST_PASSWORD="${EMAIL_HOST_PASSWORD}"
 
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings BASE_URL="${BASE_URL}"
+    az webapp config appsettings set ---name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings BASE_URL="${BASE_URL}"
 
     # Prevent App Service for Linux from maintaining storage between deployments, which causes problems with the startup command not being found
-    az webapp config appsettings set --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE="False"
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings WEBSITES_ENABLE_APP_SERVICE_STORAGE="False"
 }
 
 azure_login
@@ -371,7 +368,6 @@ get_ids
 create_or_update_resource_group
 configure_keyvault_name
 create_or_update_keyvault
-create_or_update_postgresql_db
 create_or_update_app
 create_or_update_registration
 update_app_settings
