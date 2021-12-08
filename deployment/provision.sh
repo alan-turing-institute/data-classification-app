@@ -225,14 +225,11 @@ create_or_update_app() {
 update_deployment_configuration () {
     echo "Creating or updating the deployment configuration"
 
-    # Get deployment URL
     local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
 
-    # Fetch deploy hook
     local deploy_hook="${scm_uri}/deploy"
     az keyvault secret set --name "DEPLOY-HOOK" --vault-name "${KEYVAULT_NAME}" --value "${deploy_hook}"
 
-    # Fetch deploy key
     local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
     local key_with_quotes=$(curl_with_retry "${deploy_key_request}" "Requesting deploy key from SCM")
     local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
@@ -243,7 +240,8 @@ update_deployment_configuration () {
     else
         echo "Adding GitHub deploy key."
         echo "Please enter your GitHub username and password when prompted."
-        read -p "Enter your GitHub username: " github_username
+        echo -n "Enter your GitHub username: "
+        read github_username
         local scm_base_url="${APP_NAME}.scm.azurewebsites.net"
         local deploy_key_args="{\"title\":\"${scm_base_url}\",\"key\":\"${deploy_key}\",\"read_only\":true}"
         curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/keys"
@@ -256,7 +254,6 @@ update_deployment_configuration () {
         fi
     fi
 
-    # Set the source code URL and branch
     az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
 }
 
