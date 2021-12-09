@@ -59,12 +59,6 @@ else
     exit 1
 fi
 
-if jq ; then
-  :
-else
-  brew install jq
-fi
-
 azure_login () {
     if [ -z "${SKIP_AZURE_LOGIN}" ]; then
         az login
@@ -84,10 +78,9 @@ switch_to_app_tenant () {
 }
 
 get_ids () {
-  subscription_details=$(az account show --subscription "$SUBSCRIPTION")
   # The Azure AD tenant where the app will be registered
-  REGISTRATION_TENANT=$(jq -M -r '.homeTenantId'<<< "$subscription_details")
-  SUBSCRIPTION_ID=$(jq -M -r '.id'<<< "$subscription_details")
+  local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query ".homeTenantId")
+  local subscription_id=$(az account show --subscription "$SUBSCRIPTION" --query ".id")
 }
 
 convert_server_name_to_admin_name () {
@@ -202,7 +195,9 @@ create_or_update_app() {
     az appservice plan create --name "${PLAN_NAME}" --resource-group "${RESOURCE_GROUP}" --sku S1 --is-linux
 
     # Webapp
-    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.8"
+    az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.8" --deployment-local-git
+
+    local url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url")
 
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}"  --application-logging filesystem --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
@@ -231,7 +226,7 @@ update_deployment_configuration () {
     az keyvault secret set --name "DEPLOY-HOOK" --vault-name "${KEYVAULT_NAME}" --value "${deploy_hook}"
 
     local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
-    local key_with_quotes=$(curl_with_retry "${deploy_key_request}" "Requesting deploy key from SCM")
+    local key_with_quotes=$(curl_with_retry "${EC}" "Requesting deploy key from SCM")
     local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
     az keyvault secret set --name "DEPLOY-KEY" --vault-name "${KEYVAULT_NAME}" --value "${deploy_key}"
 
