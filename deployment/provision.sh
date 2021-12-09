@@ -77,12 +77,6 @@ switch_to_app_tenant () {
     fi
 }
 
-get_ids () {
-  # The Azure AD tenant where the app will be registered
-  local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query ".homeTenantId")
-  local subscription_id=$(az account show --subscription "$SUBSCRIPTION" --query ".id")
-}
-
 convert_server_name_to_admin_name () {
   "$DB_SERVER_NAME" | tr '-' '_'
 }
@@ -135,19 +129,20 @@ switch_to_registration_tenant () {
     # 'az account set --subscription'. Instead we need to set the tenant by calling 'az login' with
     # the --allow-no-subscriptions flag.
     if [ -z "${SKIP_AZURE_LOGIN}" ]; then
-        az login --tenant "${REGISTRATION_TENANT}" --allow-no-subscriptions
+        az login --tenant "${registration_tenant}" --allow-no-subscriptions
     fi
 }
 
 # Return response from a get call
 function curl_with_retry() {
     local url="$1"
+    local deploy_url=$(sed -e 's/^"//' -e 's/"$//' <<<"${url}")
     local description="$2"
 
     local retry=0
     until [ "$retry" -gt 20 ]; do
       local result
-      result=$(curl --fail --silent "${url}")
+      result=$(curl --fail --silent "${deploy_url}")
       if [ $? -eq 0 ]; then
         echo "${result}"
         return
@@ -162,6 +157,7 @@ function curl_with_retry() {
 }
 
 create_or_update_resource_group () {
+    local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query ".homeTenantId")
     echo "Creating or updating the resource group ${RESOURCE_GROUP}"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
     # # Create a lock to prevent accidental deletion of the resource group and the resources it contains
@@ -197,7 +193,8 @@ create_or_update_app() {
     # Webapp
     az webapp create --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --plan "${PLAN_NAME}" --runtime "PYTHON|3.8" --deployment-local-git
 
-    local url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url")
+
+    az webapp config appsettings set --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --settings DEPLOYMENT_BRANCH="${DEPLOYMENT_BRANCH}"
 
     # Configure webapp logging
     az webapp log config --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}"  --application-logging filesystem --web-server-logging filesystem --docker-container-logging filesystem --detailed-error-messages true --level warning
@@ -210,6 +207,7 @@ create_or_update_app() {
 
     # Get deployment URL
     local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
+
     local deployment_url="${scm_uri}:443/${APP_NAME}.git/"
     az keyvault secret set --name "DEPLOYMENT-URL" --vault-name "${KEYVAULT_NAME}" --value "${deployment_url}"
 
@@ -220,13 +218,11 @@ create_or_update_app() {
 update_deployment_configuration () {
     echo "Creating or updating the deployment configuration"
 
-    local scm_uri=$(az webapp deployment list-publishing-credentials --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "scmUri" -otsv)
-
     local deploy_hook="${scm_uri}/deploy"
     az keyvault secret set --name "DEPLOY-HOOK" --vault-name "${KEYVAULT_NAME}" --value "${deploy_hook}"
 
     local deploy_key_request="${scm_uri}/api/sshkey?ensurePublicKey=1"
-    local key_with_quotes=$(curl_with_retry "${EC}" "Requesting deploy key from SCM")
+    local key_with_quotes=$(curl_with_retry "${deploy_key_request}" "Requesting deploy key from SCM")
     local deploy_key=$(sed -e 's/^"//' -e 's/"$//' <<<"${key_with_quotes}")
     az keyvault secret set --name "DEPLOY-KEY" --vault-name "${KEYVAULT_NAME}" --value "${deploy_key}"
 
@@ -238,18 +234,24 @@ update_deployment_configuration () {
         echo -n "Enter your GitHub username: "
         read github_username
         local scm_base_url="${APP_NAME}.scm.azurewebsites.net"
+
         local deploy_key_args="{\"title\":\"${scm_base_url}\",\"key\":\"${deploy_key}\",\"read_only\":true}"
         curl --user "${github_username}" --request POST --data "${deploy_key_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/keys"
 
         if [ ! -z ${DEPLOYMENT_AUTO_UPDATE} ]; then
             echo "Adding GitHub deploy hook to enable auto-deployment."
             echo "Please enter your GitHub password when prompted."
+
             local deploy_hook_args="{\"config\":{\"url\": \"${deploy_hook}\"}}"
             curl --user "${github_username}" --request POST --data "${deploy_hook_args}" "https://api.github.com/repos/${DEPLOYMENT_GITHUB_REPO}/hooks"
+
+            local url=$(az webapp deployment source config-local-git --name "${APP_NAME}" --resource-group "${RESOURCE_GROUP}" --query "url")
+            local deploy_url=$(sed -e 's/^"//' -e 's/"$//' <<<"${url}")
+
+            git remote add azure ${deploy_url}
+            git push azure ${DEPLOYMENT_BRANCH}
         fi
     fi
-
-    az webapp deployment source config --branch "${DEPLOYMENT_BRANCH}" --name "${APP_NAME}" --repo-url "${DEPLOYMENT_SOURCE}" --resource-group "${RESOURCE_GROUP}"
 }
 
 create_or_update_postgresql_db () {
@@ -286,7 +288,7 @@ create_or_update_registration () {
     local app_permissions='[{"resourceAppId": "00000003-0000-0000-c000-000000000000","resourceAccess": [{"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d","type": "Scope"},{"id": "06da0dbc-49e2-44d2-8312-53f166ab848a","type": "Scope"}]}]'
 
     # Tenant where the app registration will be created
-    local tenant_id="${REGISTRATION_TENANT}"
+    local tenant_id="${registration_tenant}"
 
     # Azure URI for this app registration
     local app_uri="${BASE_URL}"
