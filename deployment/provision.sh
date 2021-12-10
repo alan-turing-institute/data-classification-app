@@ -358,7 +358,6 @@ update_app_settings () {
 }
 
 azure_login
-get_ids
 create_or_update_resource_group
 configure_keyvault_name
 create_or_update_keyvault
