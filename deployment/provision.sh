@@ -157,7 +157,7 @@ function curl_with_retry() {
 }
 
 create_or_update_resource_group () {
-    local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query ".homeTenantId")
+    local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query "tenantId")
     echo "Creating or updating the resource group ${RESOURCE_GROUP}"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
     # # Create a lock to prevent accidental deletion of the resource group and the resources it contains
