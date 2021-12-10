@@ -5,11 +5,11 @@ services:
     image: postgres 
     ports:                      
       - '5432:5432'
-    container_name: test_deploy_db
+    container_name: data_classification_app_db
     environment:
-      - POSTGRES_NAME=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=hello
+      - POSTGRES_NAME=haven
+      - POSTGRES_USER=haven
+      - POSTGRES_PASSWORD=haven
   
   web:
     build: .

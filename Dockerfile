@@ -21,6 +21,9 @@ COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
+#RUN npm install -g gulp
+#RUN npm install gulp
+
 
 COPY haven ./haven
 COPY static ./static
@@ -29,6 +32,8 @@ COPY manage.py ./
 COPY entrypoint.sh ./
 #RUN sed -i 's/\r$//g' /app/entrypoint.sh
 #RUN chmod +x /app/entrypoint.sh
+
+#CMD gulp --version && gulp
 
 # run entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
