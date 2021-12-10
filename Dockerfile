@@ -1,5 +1,6 @@
 
-FROM python:3.7
+#FROM python:3.7
+FROM nikolaik/python-nodejs:python3.8-nodejs16
 
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
@@ -21,8 +22,9 @@ COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
-#RUN npm install -g gulp
-#RUN npm install gulp
+# GULP Installation
+RUN npm install -g gulp
+RUN npm install gulp
 
 
 COPY haven ./haven
@@ -32,8 +34,6 @@ COPY manage.py ./
 COPY entrypoint.sh ./
 #RUN sed -i 's/\r$//g' /app/entrypoint.sh
 #RUN chmod +x /app/entrypoint.sh
-
-#CMD gulp --version && gulp
 
 # run entrypoint.sh
 ENTRYPOINT ["/app/entrypoint.sh"]
