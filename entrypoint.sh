@@ -11,5 +11,6 @@ then
     echo "PostgreSQL started"
 fi
 
+gulp
 
 exec "$@"
