@@ -26,3 +26,9 @@ COPY haven ./haven
 COPY static ./static
 COPY staticfiles ./staticfiles
 COPY manage.py ./
+COPY entrypoint.sh ./
+#RUN sed -i 's/\r$//g' /app/entrypoint.sh
+#RUN chmod +x /app/entrypoint.sh
+
+# run entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
