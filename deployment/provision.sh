@@ -86,7 +86,6 @@ generate_key () {
     # desired set (tr -dc A-Za-z0-9) then take the required number of characters (head -c32).
     # LC_ALL=C overrides localisation settings
     local candidate_pw="$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c32)"
-
     # Check if password contains at least one character from each group
     local testAZ="$(echo "${candidate_pw}" | LC_ALL=C tr -dc A-Z)"
     local testaz="$(echo "${candidate_pw}" | LC_ALL=C tr -dc a-z)"
@@ -110,17 +109,14 @@ function get_azure_secret () {
 # Fetch a secret from the Azure keyvault, but generate and store one if it does not exist
 function get_or_create_azure_secret() {
     local SECRET_NAME="$1"
-
     # Get current value from keyvault
     local keyvault_value=$(get_azure_secret  "$1")
 
     # If there is no current key then generate a new one
-    if [ -z "${keyvault_value}" ]
-    then
+    if [ -z "${keyvault_value}" ]; then
           keyvault_value=$(generate_key)
           az keyvault secret set --name "$1" --vault-name "${KEYVAULT_NAME}" --value "${keyvault_value}" --output none
     fi
-
 }
 
 # Switch Azure CLI to the tenant used for app registration
@@ -158,6 +154,7 @@ function curl_with_retry() {
 
 create_or_update_resource_group () {
     local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query "tenantId")
+    echo $registration_tenant
     echo "Creating or updating the resource group ${RESOURCE_GROUP}"
     az group create --name "${RESOURCE_GROUP}" --location "${LOCATION}"
     # # Create a lock to prevent accidental deletion of the resource group and the resources it contains
@@ -292,18 +289,21 @@ create_or_update_registration () {
 
     # Azure URI for this app registration
     local app_uri="${BASE_URL}"
-
     # A client secret used in the OAuth2 call
-    local client_secret=$(get_or_create_azure_secret  "AZUREAD-OAUTH2-SECRET")
-      echo ${client_secret}
+    $(get_or_create_azure_secret "AZUREAD-OAUTH2-SECRET")
+    local client_secret=$(get_azure_secret "AZUREAD-OAUTH2-SECRET")
+
     # The tenant we use to register the app may not be the tenant used to create the app
+    local registration_tenant=$(az account show --subscription "$SUBSCRIPTION" --query "tenantId")
+    local registration_tenant=$(sed -e 's/^"//' -e 's/"$//' <<<"${registration_tenant}")
     switch_to_registration_tenant
 
     # Create app registration
-    # this stage can only be comleted by IT
-    echo "... registering app"
-    az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${oauth2_redirect_uri}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${app_uri}" --required-resource-accesses "${app_permissions}"
-
+    if [ ! -z ${REGISTER_APP} ]; then
+      # this stage can only be comleted by IT
+      echo "... registering app"
+      az ad app create --display-name "${DISPLAY_NAME}" --homepage "${BASE_URL}" --reply-urls "${oauth2_redirect_uri}" --password "${client_secret}" --credential-description "Client secret" --end-date "2299-12-31" --identifier-uris "${app_uri}" --required-resource-accesses "${app_permissions}"
+    fi
     # Get the Application ID (Client ID) which is set when the app is created
     local client_id=$(az ad app list --identifier-uri "${app_uri}" --query "[].appId" -o tsv)
 
