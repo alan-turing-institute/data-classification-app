@@ -248,12 +248,12 @@ SILENCED_SYSTEM_CHECKS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST' : "db",
-        'NAME' : "haven",
-        'USER' : "haven",
-        'PASSWORD' : "haven",
-        'PORT':5432,
+        'ENGINE': os.environ.get("DB_ENGINE"),
+        'HOST' : os.environ.get("DB_HOST"),
+        'NAME' :  os.environ.get("DB_NAME"),
+        'USER' : os.environ.get("DB_USER"),
+        'PASSWORD' : os.environ.get("DB_PASSWORD"),
+        'PORT': os.environ.get("SQL_PORT"),
     }
 }
 

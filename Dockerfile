@@ -22,6 +22,7 @@ COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
+RUN poetry add --dev gunicorn
 # GULP Installation
 RUN npm install -g gulp
 RUN npm install gulp
