@@ -17,20 +17,25 @@ import environ
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = Path(os.path.abspath(__file__)).parents[2]
-
+BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
 )
 environ.Env.read_env(str(BASE_DIR / '.env'))
+READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
+if READ_DOT_ENV_FILE:
+    # OS environment variables take precedence over variables from .env
+    env.read_env(str(ROOT_DIR / ".env"))
+
+# GENERAL
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#debug
+DEBUG = env.bool("DJANGO_DEBUG", False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str('SECRET_KEY', default='')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG', default=False)
 
 WEBAPP_TITLE = env.str('WEBAPP_TITLE', default='Data Classification')
 
@@ -118,9 +123,11 @@ WSGI_APPLICATION = 'haven.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-DATABASES = {
-    'default': env.db_url('DATABASE_URL', default='postgres:///haven'),
-}
+DATABASES = {'default': env.db("DATABASE_URL")}
+
+# Following update to django 3.2
+# see https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 
 # Password validation

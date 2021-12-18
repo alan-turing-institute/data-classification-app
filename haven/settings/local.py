@@ -12,6 +12,11 @@ INSTALLED_APPS.extend([
     'debug_toolbar',
 ])
 
+# django-extensions
+# ------------------------------------------------------------------------------
+# https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
+INSTALLED_APPS += ["django_extensions"]  # noqa F405
+
 # Add debug toolbar
 MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
