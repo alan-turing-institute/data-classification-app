@@ -35,6 +35,7 @@ COPY staticfiles ./staticfiles
 COPY static/gulpfile.js ./ 
 COPY manage.py ./
 COPY entrypoint.prod.sh ./
+RUN sed -i 's/\r$//g'  /app/entrypoint.prod.sh
 RUN chmod +x /app/entrypoint.prod.sh
 
 # run entrypoint.sh
