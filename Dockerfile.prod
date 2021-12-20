@@ -16,8 +16,12 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 RUN pip install poetry
 # RUN pip install "poetry==$POETRY_VERSION"
 
-RUN mkdir /app
-WORKDIR /app
+# create the appropriate directories
+ENV APP_HOME=/app
+RUN mkdir $APP_HOME
+RUN mkdir $APP_HOME/staticfiles
+WORKDIR $APP_HOME
+
 COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
@@ -35,7 +39,7 @@ COPY staticfiles ./staticfiles
 COPY static/gulpfile.js ./ 
 COPY manage.py ./
 COPY entrypoint.prod.sh ./
-RUN sed -i 's/\r$//g'  /app/entrypoint.prod.sh
+RUN sed -i 's/\r$//g' /app/entrypoint.prod.sh
 RUN chmod +x /app/entrypoint.prod.sh
 
 # run entrypoint.sh
