@@ -16,6 +16,9 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
 RUN pip install poetry
 # RUN pip install "poetry==$POETRY_VERSION"
 
+# needed for the entrypoint file
+RUN apt-get update && apt-get install -y netcat
+
 # create the appropriate directories
 ENV APP_HOME=/app
 RUN mkdir $APP_HOME
@@ -26,7 +29,7 @@ COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
-RUN poetry add --dev gunicorn
+RUN poetry add gunicorn
 # GULP Installation
 RUN npm install -g gulp
 RUN npm install gulp

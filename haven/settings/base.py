@@ -249,11 +249,11 @@ SILENCED_SYSTEM_CHECKS = [
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get("DB_ENGINE"),
-        'HOST' : os.environ.get("DB_HOST"),
+        'HOST' : os.environ.get("DB_HOST", "localhost"),
         'NAME' :  os.environ.get("DB_NAME"),
         'USER' : os.environ.get("DB_USER"),
         'PASSWORD' : os.environ.get("DB_PASSWORD"),
-        'PORT': os.environ.get("SQL_PORT"),
+        'PORT': os.environ.get("DB_PORT"),
     }
 }
 

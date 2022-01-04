@@ -6,6 +6,8 @@ services:
     ports:                      
       - '5432:5432'
     container_name: data_classification_app_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_NAME=haven
       - POSTGRES_USER=haven
@@ -13,8 +15,8 @@ services:
   
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    #command: gunicorn --bind 0.0.0.0:8000 haven.wsgi
+    #command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn --bind 0.0.0.0:8000 haven.wsgi:application
     ports:
       - "8000:8000"
     env_file:
