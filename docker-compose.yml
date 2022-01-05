@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_NAME=haven
+      - POSTGRES_DB=haven
       - POSTGRES_USER=haven
       - POSTGRES_PASSWORD=haven
   
