@@ -19,8 +19,7 @@ services:
     command: sh -c "python manage.py makemigrations &&
                     python manage.py migrate easyaudit &&
                     python manage.py migrate &&
-                    python manage.py initiate_admin &&
-                    python manage.py collectstatic &&
+                    python manage.py collectstatic --no-input --clear &&
                     gunicorn haven.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - static_volume:/app/staticfiles
@@ -28,9 +27,6 @@ services:
       - "8000:8000"
     env_file:
       - ./.env.prod
-    networks: 
-      - nginx_network
-      - db_network
     #restart: "on-failure"
     depends_on:
       - db  
@@ -44,13 +40,8 @@ services:
       - "80:80"
     depends_on:
       - web
+      - db
     #restart: "on-failure"  
-
-networks: 
-  nginx_network:
-    driver: bridge
-  db_network:  
-    driver: bridge  
 
 volumes:
   postgres_data:
