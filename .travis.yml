@@ -12,7 +12,9 @@ matrix:
       env:
         - DB_NAME="haven"
         - DJANGO_SETTINGS_MODULE="haven.settings.test"
-        - DB_ENGINE="django.db.backends.postgresql"
+        - ENGINE="django.db.backends.postgresql"
+        - DB_USER="haven"
+        - DB_PASSWORD="haven"
       script:
         - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
     - name: check for missing migrations
