@@ -481,7 +481,13 @@ class TestImportUsers:
             "em3@email.com,ln3,fn3,03456789012,other3"
         )
         f.name = "import.csv"
-        return client.post("/users/import", {"upload_file": f,}, follow=follow)
+        return client.post(
+            "/users/import",
+            {
+                "upload_file": f,
+            },
+            follow=follow,
+        )
 
     def test_import_as_anonymous(self, client, helpers):
         response = self.post_csv(client, follow=False)

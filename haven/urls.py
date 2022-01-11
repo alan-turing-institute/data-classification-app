@@ -40,12 +40,16 @@ if settings.DEBUG:
     # Enable debug toolbar
     import debug_toolbar
 
-    urlpatterns = [path("__debug__/", include(debug_toolbar.urls)),] + urlpatterns
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ] + urlpatterns
 
     # Enable admin interface
     from django.contrib import admin
 
-    urlpatterns = [path("admin/", admin.site.urls),] + urlpatterns
+    urlpatterns = [
+        path("admin/", admin.site.urls),
+    ] + urlpatterns
 
     # Enable local user login
     from django.contrib.auth import views as auth_views

@@ -33,7 +33,11 @@ class User(AbstractUser):
         help_text="User who created this user",
     )
 
-    email = models.EmailField(max_length=254, verbose_name="email address", null=True,)
+    email = models.EmailField(
+        max_length=254,
+        verbose_name="email address",
+        null=True,
+    )
 
     mobile = PhoneNumberField(null=True)
 
@@ -152,7 +156,7 @@ class User(AbstractUser):
     def system_permissions(self):
         """
         Return object for determining the user's system-level permissions
-        
+
         :return: UserPermissions object describing user permissions
         """
 

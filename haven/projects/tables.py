@@ -141,7 +141,10 @@ class ClassificationOpinionQuestionTable(tables.Table):
         data = self._get_sorted_data(all_questions, unique_questions)
 
         super().__init__(
-            data, extra_columns=columns, *args, **kwargs,
+            data,
+            extra_columns=columns,
+            *args,
+            **kwargs,
         )
 
     @staticmethod
@@ -171,7 +174,12 @@ class ClassificationOpinionQuestionTable(tables.Table):
     def _populate_column_data(column_name, questions, unique_questions, current_user):
         for question in questions:
             key = question.question_at_time.question
-            row = unique_questions.setdefault(key, {"question": key,})
+            row = unique_questions.setdefault(
+                key,
+                {
+                    "question": key,
+                },
+            )
             row[column_name] = question.answer
             if current_user == question.opinion.created_by:
                 args = [

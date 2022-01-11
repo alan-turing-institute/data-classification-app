@@ -9,7 +9,9 @@ ALLOWED_HOSTS = ["*"]
 
 # Enable debug toolbar
 INSTALLED_APPS.extend(
-    ["debug_toolbar",]
+    [
+        "debug_toolbar",
+    ]
 )
 
 # Add debug toolbar
@@ -27,7 +29,10 @@ AUTH_PASSWORD_VALIDATORS = []
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "root": {"level": "DEBUG", "handlers": ["console"],},
+    "root": {
+        "level": "DEBUG",
+        "handlers": ["console"],
+    },
     "formatters": {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "

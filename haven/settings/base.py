@@ -104,7 +104,9 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "sourcerevision.context_processors.source_revision",
             ],
-            "libraries": {"haven": "haven.core.templatetags.haven",},
+            "libraries": {
+                "haven": "haven.core.templatetags.haven",
+            },
         },
     },
 ]
@@ -128,9 +130,15 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -247,16 +255,12 @@ SILENCED_SYSTEM_CHECKS = [
 # security.W020: ALLOWED_HOSTS is set in deployment
 
 DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get("DB_ENGINE"),
-        'HOST' : os.environ.get("DB_HOST", "localhost"),
-        'NAME' :  os.environ.get("DB_NAME"),
-        'USER' : os.environ.get("DB_USER"),
-        'PASSWORD' : os.environ.get("DB_PASSWORD"),
-        'PORT': os.environ.get("DB_PORT"),
+    "default": {
+        "ENGINE": os.environ.get("DB_ENGINE"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "PORT": os.environ.get("DB_PORT"),
     }
 }
-
-
-
-

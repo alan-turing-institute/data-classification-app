@@ -294,33 +294,78 @@ SUBSTANTIAL_THREAT_GUIDANCE_TEXT = (
 
 def initial_guidance():
     guidance = [
-        {"name": COMMERCIAL_DATA, "guidance": COMMERCIAL_DATA_TEXT,},
-        {"name": PERSONAL_DATA, "guidance": PERSONAL_DATA_TEXT,},
-        {"name": LIVING_INDIVIDUAL, "guidance": LIVING_INDIVIDUAL_TEXT,},
-        {"name": PSEUDONYMIZED_DATA, "guidance": PSEUDONYMIZED_DATA_TEXT,},
-        {"name": CLOSED_PERSONAL, "guidance": CLOSED_PERSONAL_GUIDANCE_TEXT,},
-        {"name": FINANCIAL_LOW, "guidance": FINANCIAL_LOW_GUIDANCE_TEXT,},
+        {
+            "name": COMMERCIAL_DATA,
+            "guidance": COMMERCIAL_DATA_TEXT,
+        },
+        {
+            "name": PERSONAL_DATA,
+            "guidance": PERSONAL_DATA_TEXT,
+        },
+        {
+            "name": LIVING_INDIVIDUAL,
+            "guidance": LIVING_INDIVIDUAL_TEXT,
+        },
+        {
+            "name": PSEUDONYMIZED_DATA,
+            "guidance": PSEUDONYMIZED_DATA_TEXT,
+        },
+        {
+            "name": CLOSED_PERSONAL,
+            "guidance": CLOSED_PERSONAL_GUIDANCE_TEXT,
+        },
+        {
+            "name": FINANCIAL_LOW,
+            "guidance": FINANCIAL_LOW_GUIDANCE_TEXT,
+        },
         {
             "name": FINANCIAL_LOW_PERSONAL,
             "guidance": FINANCIAL_LOW_PERSONAL_GUIDANCE_TEXT,
         },
-        {"name": INCLUDE_COMMERCIAL, "guidance": INCLUDE_COMMERCIAL_GUIDANCE_TEXT,},
+        {
+            "name": INCLUDE_COMMERCIAL,
+            "guidance": INCLUDE_COMMERCIAL_GUIDANCE_TEXT,
+        },
         {
             "name": INCLUDE_COMMERCIAL_PERSONAL,
             "guidance": INCLUDE_COMMERCIAL_PERSONAL_GUIDANCE_TEXT,
         },
-        {"name": NO_REIDENTIFY, "guidance": NO_REIDENTIFY_GUIDANCE_TEXT,},
+        {
+            "name": NO_REIDENTIFY,
+            "guidance": NO_REIDENTIFY_GUIDANCE_TEXT,
+        },
         {
             "name": NO_REIDENTIFY_ABSOLUTE,
             "guidance": NO_REIDENTIFY_ABSOLUTE_GUIDANCE_TEXT,
         },
-        {"name": NO_REIDENTIFY_STRONG, "guidance": NO_REIDENTIFY_STRONG_GUIDANCE_TEXT,},
-        {"name": OPEN_GENERATE_NEW, "guidance": OPEN_GENERATE_NEW_GUIDANCE_TEXT,},
-        {"name": OPEN_PUBLICATION, "guidance": OPEN_PUBLICATION_GUIDANCE_TEXT,},
-        {"name": PUBLIC_AND_OPEN, "guidance": PUBLIC_AND_OPEN_GUIDANCE_TEXT,},
-        {"name": PUBLISHABLE, "guidance": PUBLISHABLE_GUIDANCE_TEXT,},
-        {"name": SOPHISTICATED_ATTACK, "guidance": SOPHISTICATED_ATTACK_GUIDANCE_TEXT,},
-        {"name": SUBSTANTIAL_THREAT, "guidance": SUBSTANTIAL_THREAT_GUIDANCE_TEXT,},
+        {
+            "name": NO_REIDENTIFY_STRONG,
+            "guidance": NO_REIDENTIFY_STRONG_GUIDANCE_TEXT,
+        },
+        {
+            "name": OPEN_GENERATE_NEW,
+            "guidance": OPEN_GENERATE_NEW_GUIDANCE_TEXT,
+        },
+        {
+            "name": OPEN_PUBLICATION,
+            "guidance": OPEN_PUBLICATION_GUIDANCE_TEXT,
+        },
+        {
+            "name": PUBLIC_AND_OPEN,
+            "guidance": PUBLIC_AND_OPEN_GUIDANCE_TEXT,
+        },
+        {
+            "name": PUBLISHABLE,
+            "guidance": PUBLISHABLE_GUIDANCE_TEXT,
+        },
+        {
+            "name": SOPHISTICATED_ATTACK,
+            "guidance": SOPHISTICATED_ATTACK_GUIDANCE_TEXT,
+        },
+        {
+            "name": SUBSTANTIAL_THREAT,
+            "guidance": SUBSTANTIAL_THREAT_GUIDANCE_TEXT,
+        },
     ]
     return guidance
 
