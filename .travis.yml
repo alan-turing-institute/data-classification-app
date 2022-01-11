@@ -12,7 +12,7 @@ matrix:
       env:
         - DB_NAME="haven"
         - DJANGO_SETTINGS_MODULE="haven.settings.test"
-        - ENGINE="django.db.backends.postgresql"
+        - DB_ENGINE="django.db.backends.postgresql"
         - DB_USER="haven"
         - DB_PASSWORD="haven"
       script:
