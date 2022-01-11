@@ -337,14 +337,6 @@ class TestExportUsers:
         parsed = self.parse_csv_response(response)
         assert parsed == [
             ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
-            [
-                "controller",
-                "System",
-                "Manager",
-                "+441234567890",
-                "controller@example.com",
-            ],
             ["user", "", "", "", "user@example.com"],
             [
                 "project_participant",
@@ -354,6 +346,14 @@ class TestExportUsers:
                 "project_participant@example.com",
             ],
             ["user1", "", "", "", "user@example.com"],
+            ["coordinator", "", "", "", "coordinator@example.com"],
+            [
+                "controller",
+                "System",
+                "Manager",
+                "+441234567890",
+                "controller@example.com",
+            ],
         ]
 
     def test_export_new_as_pm(
@@ -415,7 +415,6 @@ class TestExportUsers:
         parsed = self.parse_csv_response(response)
         assert parsed == [
             ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["user1", "", "", "", "user@example.com"],
             [
                 "project_participant",
                 "Angela",
@@ -423,6 +422,7 @@ class TestExportUsers:
                 "+441234567890",
                 "project_participant@example.com",
             ],
+            ["user1", "", "", "", "user@example.com"],
         ]
 
     def test_export_new_by_project(
