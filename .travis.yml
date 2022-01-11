@@ -10,6 +10,7 @@ matrix:
       install:
         - poetry install
       env:
+        - DB_NAME="haven"
         - DJANGO_SETTINGS_MODULE="haven.settings.test"
       script:
         - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
