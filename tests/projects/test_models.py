@@ -265,7 +265,7 @@ class TestWorkPackage:
 
         assert work_package.missing_classification_requirements == [
             "A Data Provider Representative for dataset "
-            + work_package.datasets.get(pk=1).name
+            + work_package.datasets.first().name
             + " still needs to classify this Work Package."
         ]
         assert not work_package.is_classification_ready
@@ -287,7 +287,6 @@ class TestWorkPackage:
 
         work_package.classify_as(0, investigator.user)
         work_package.classify_as(0, data_provider_representative.user)
-
         assert work_package.missing_classification_requirements == [
             "A Data Provider Representative for dataset Dataset 2 still needs to classify this "
             "Work Package."
