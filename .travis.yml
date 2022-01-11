@@ -21,6 +21,8 @@ matrix:
         - pip install poetry
       install:
         - poetry install
+      env:
+        - SECRET_KEY="notasecret"
       script:
         - ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
     - name: verify built JS files are up to date
@@ -38,6 +40,7 @@ matrix:
       language: python
       python:
         - "3.8"
+
       addons:
         apt:
           packages:
