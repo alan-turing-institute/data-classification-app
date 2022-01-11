@@ -7,6 +7,7 @@ matrix:
         - "3.8"
       before_install:
         - pip install poetry
+        - psql -c 'create database haven;' -U postgres
       install:
         - poetry install
       env:
