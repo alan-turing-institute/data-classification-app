@@ -9,8 +9,11 @@ matrix:
         - pip install poetry
       install:
         - poetry install
+      env:
+        - DB_HOST="localhost"
+        - DJANGO_SETTINGS_MODULE="haven.settings.test"
       script:
-        - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
+        - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing $DB_HOST $DJANGO_SETTINGS_MODULE
     - name: check for missing migrations
       language: python
       python:
@@ -36,8 +39,6 @@ matrix:
       language: python
       python:
         - "3.8"
-      env:
-        - SECRET_KEY='notasecret'
       addons:
         apt:
           packages:
