@@ -7,21 +7,9 @@ matrix:
         - "3.8"
       before_install:
         - pip install poetry
-        - psql -c 'create database haven;' -U postgres
       install:
         - poetry install
       env:
-        - APP_NAME="data-classification-app"
-        - BASE_DOMAIN="${APP_NAME}.azurewebsites.net"
-        - ALLOWED_HOSTS="${BASE_DOMAIN},127.0.0.1,localhost,0.0.0.0"
-        - DEBUG=1
-        - DATABASE="postgres"
-        - DB_HOST="localhost"
-        - DB_PASSWORD="haven"
-        - DB_USER="haven"
-        - DB_NAME="haven"
-        - DB_PORT="5432"
-        - DB_ENGINE="django.db.backends.postgresql"
         - DJANGO_SETTINGS_MODULE="haven.settings.test"
       script:
         - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing

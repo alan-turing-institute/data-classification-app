@@ -20,7 +20,7 @@ def bleach_no_links(value):
 class ParticipantTable(tables.Table):
     username = tables.Column(
         "Username",
-        accessor="user.display_name",
+        accessor="user__display_name",
         linkify=lambda table, record: table.link_username(record),
     )
     role = tables.Column("Role", accessor="role")
@@ -41,8 +41,8 @@ class ParticipantTable(tables.Table):
 
 
 class WorkPackageParticipantTable(tables.Table):
-    username = tables.Column("Username", accessor="participant.user.display_name")
-    role = tables.Column("Role", accessor="participant.role")
+    username = tables.Column("Username", accessor="participant__user__display_name")
+    role = tables.Column("Role", accessor="participant__role")
     approved = tables.BooleanColumn()
     approved_by_you = tables.BooleanColumn()
 
@@ -80,7 +80,7 @@ class WorkPackageTable(tables.Table):
 
 
 class ProjectDatasetTable(tables.Table):
-    name = tables.Column("Name", accessor="dataset.name", linkify=True)
+    name = tables.Column("Name", accessor="dataset__name", linkify=True)
     representative = tables.Column("Representative")
     created_at = tables.DateTimeColumn(verbose_name="Created", short=False)
 
@@ -90,7 +90,7 @@ class ProjectDatasetTable(tables.Table):
 
 
 class WorkPackageDatasetTable(tables.Table):
-    name = tables.Column("Name", accessor="dataset.name")
+    name = tables.Column("Name", accessor="dataset__name")
     created_at = tables.DateTimeColumn(verbose_name="Created", short=False)
 
     class Meta:
@@ -111,8 +111,8 @@ class HistoryTable(tables.Table):
 
 
 class PolicyTable(tables.Table):
-    group = tables.Column("Policy", accessor="policy.group.description")
-    policy = tables.Column("Description", accessor="policy.description")
+    group = tables.Column("Policy", accessor="policy__group__description")
+    policy = tables.Column("Description", accessor="policy__description")
 
     class Meta:
         orderable = False

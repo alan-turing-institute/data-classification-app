@@ -24,7 +24,7 @@ env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
 )
-environ.Env.read_env(str(BASE_DIR / ".env"))
+environ.Env.read_env(str(BASE_DIR / ".env.prod"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY", default="")
