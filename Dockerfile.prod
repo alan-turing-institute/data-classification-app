@@ -37,7 +37,6 @@ RUN npm install gulp
 
 COPY haven ./haven
 COPY static ./static
-COPY staticfiles ./staticfiles
 
 COPY static/gulpfile.js ./ 
 COPY manage.py ./
