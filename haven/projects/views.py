@@ -558,8 +558,9 @@ class ProjectEditDataset(
     template_name = "projects/edit_dataset.html"
 
     def test_func(self):
-        return self.get_project_permissions().can_edit_datasets and self.get_project().can_edit_dataset(
-            self.get_object()
+        return (
+            self.get_project_permissions().can_edit_datasets
+            and self.get_project().can_edit_dataset(self.get_object())
         )
 
     def get_project_dataset(self):
@@ -600,8 +601,9 @@ class ProjectEditDatasetDPR(
     template_name = "projects/edit_dataset_dpr.html"
 
     def test_func(self):
-        return self.get_project_permissions().can_edit_datasets_dpr and self.get_project().can_edit_dataset_dpr(
-            self.get_object()
+        return (
+            self.get_project_permissions().can_edit_datasets_dpr
+            and self.get_project().can_edit_dataset_dpr(self.get_object())
         )
 
     def get_form_kwargs(self):
@@ -641,8 +643,9 @@ class ProjectDeleteDataset(
     form_class = ProjectDeleteDatasetForm
 
     def test_func(self):
-        return self.get_project_permissions().can_delete_datasets and self.get_project().can_delete_dataset(
-            self.get_object().dataset
+        return (
+            self.get_project_permissions().can_delete_datasets
+            and self.get_project().can_delete_dataset(self.get_object().dataset)
         )
 
     def get_object(self):
@@ -912,7 +915,9 @@ class WorkPackageEditDatasets(
         work_package = self.get_object()
         user = self.request.user
         options = {
-            "form_kwargs": {"user": user,},
+            "form_kwargs": {
+                "user": user,
+            },
             "instance": work_package,
             "prefix": "datasets",
             "queryset": work_package.work_package_datasets,
@@ -960,7 +965,9 @@ class WorkPackageApproveParticipants(
         work_package = self.get_object()
         user = self.request.user
         options = {
-            "form_kwargs": {"user": user,},
+            "form_kwargs": {
+                "user": user,
+            },
             "instance": work_package,
             "prefix": "participants",
             "queryset": work_package.get_work_package_participants_to_approve(user),
@@ -1008,7 +1015,9 @@ class WorkPackageEditParticipants(
         work_package = self.get_object()
         user = self.request.user
         options = {
-            "form_kwargs": {"user": user,},
+            "form_kwargs": {
+                "user": user,
+            },
             "instance": work_package,
             "prefix": "participants",
             "queryset": work_package.work_package_participants,

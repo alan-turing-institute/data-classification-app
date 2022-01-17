@@ -49,7 +49,10 @@ class UserAutocompleteChoiceField(forms.ModelChoiceField):
         autocomplete_url = autocomplete_url or "dummy_url"
 
         widget = autocomplete.ModelSelect2(
-            url=autocomplete_url, attrs={"data-placeholder": "Search for user",},
+            url=autocomplete_url,
+            attrs={
+                "data-placeholder": "Search for user",
+            },
         )
         super().__init__(queryset=User.objects.all(), widget=widget, *args, **kwargs)
 
