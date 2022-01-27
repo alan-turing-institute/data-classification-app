@@ -1,8 +1,8 @@
 ---
 name: User story issue template
-about: 'This template provides a basic structure for user story issues '
+about: 'This template provides a basic structure for user story issues'
 title: As a [user/stakeholder] I want to [task/feature] so I can [do something]
-labels: ''
+labels: 'user story'
 assignees: ''
 
 ---

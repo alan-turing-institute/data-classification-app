@@ -2,7 +2,7 @@
 name: Task issue template
 about: 'This template provides a basic structure for task issues '
 title: ''
-labels: ''
+labels: 'task'
 assignees: ''
 
 ---
