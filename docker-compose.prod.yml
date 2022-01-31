@@ -39,9 +39,9 @@ services:
       - "443:443"
     volumes:
       - static_volume:/app/staticfiles
-      - .data/nginx:/etc/nginx/conf.d
-      - .data/certbot/conf:/etc/letsencrypt
-      - .data/certbot/www:/var/www/certbot
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     depends_on:
       - web
       - db
