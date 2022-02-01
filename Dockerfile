@@ -18,7 +18,6 @@ RUN pip install poetry
 
 RUN mkdir /app
 WORKDIR /app
-RUN mkdir /staticfiles
 COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
@@ -30,7 +29,6 @@ RUN npm install gulp
 
 COPY haven ./haven
 COPY static ./static
-COPY staticfiles ./staticfiles
 
 COPY static/gulpfile.js ./ 
 COPY manage.py ./
