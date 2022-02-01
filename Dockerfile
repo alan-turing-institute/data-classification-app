@@ -18,6 +18,7 @@ RUN pip install poetry
 
 RUN mkdir /app
 WORKDIR /app
+RUN mkdir /staticfiles
 COPY poetry.lock pyproject.toml /app/
 
 RUN poetry config virtualenvs.create false
