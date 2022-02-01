@@ -1,0 +1,291 @@
+---
+  - name: open_generate_new
+    format: markdown
+    text: |
+        Will the research generate (including by selecting, or sorting 
+        or combining) any [personal data](#personal_data)?
+    guidance: |
+        Generating personal data means creating any **new** personal data, 
+        regardless of what data you're starting with. For example:
+        
+        * Linking diseases to particular patients
+        * Spotting trends in tweets mentioning a particular individual
+    yes: substantial_threat
+    no: closed_personal
+  - name: closed_personal
+    format: markdown
+    text: |
+        Will any project input be [personal data](#personal_data)?
+    guidance: |
+        Will you be using any personal data at all throughout the research, 
+        even if it's publicly available? For example:
+        
+        * Personal data such as newspaper articles on celebrities, 
+        or details of patients in a medical trial
+        * Facebook or twitter posts
+    yes: public_and_open
+    no: include_commercial
+  - name: public_and_open
+    format: markdown
+    text: |
+        Is that [personal data](#personal_data) legally accessible 
+        by the general public with no restrictions on use?
+    guidance: |
+        Data is legally accessible if it is **not** behind a 
+        paywall, can be accessed without having to request it, and has 
+        **no** conditions on its use. For example:
+        
+        * Voter registration records are **not** available, as they have 
+        restrictions on access and use
+        * Academic articles that are not open source require subscription 
+        to a journal, or a request for access from the author, are **not** 
+        legally accessible
+    yes: include_commercial
+    no: no_reidentify
+  - name: no_reidentify
+    format: markdown
+    text: |
+        Is that [personal data](#personal_data) [pseudonymized](#pseudonymized_data)?
+    guidance: |
+        Have steps been taken so that information can no longer be directly 
+        linked to a particular individual, without additional information? 
+        For example:
+        
+        * Replacing names of patients with patient ID numbers
+        * Customer records with all name and address details removed
+    yes: no_reidentify_absolute
+    no: substantial_threat
+  - name: no_reidentify_absolute
+    format: markdown
+    text: |
+        Do you have absolute confidence that it is not possible to identify 
+        individuals from the data, either at the point of entry or as a 
+        result of any analysis that may be carried out?
+    guidance: |
+        Any data pseudonymised to this degree cannot be connected back to 
+        individuals through analysis, even in combination with other datasets. 
+        For example:
+        
+        * Research results with generated fake names, where the 
+        pseudonymisation key is deleted, never to be used again
+        * Anonymous responses to a public survey without any identifying 
+        information
+    yes: include_commercial
+    no: no_reidentify_strong
+  - name: include_commercial
+    format: markdown
+    text: |
+        Will you be working with [commercial-in-confidence information
+        ](#commercial_data) or private third-party intellectual property, or 
+        legally or politically sensitive data?
+    guidance: |
+        This is any information that the data provider would not be 
+        comfortable with you publishing, including purchased or requested data. 
+        For example:
+        
+        * Pay to view news articles are private third-party intellectual 
+        property
+        * Plans for marketing campaigns, or purchasing strategies, for 
+        companies, are commercial in-confidence data
+    yes: financial_low
+    no: open_publication
+  - name: open_publication
+    format: markdown
+    text: |
+        Will releasing any of the datasets or results impact on the competitive 
+        advantage of the research team?
+    guidance: |
+        This includes data that may be planned for publication in the future, 
+        or could be published without any issue, but is not yet publicly 
+        available. For example:
+        
+        * Results from a study, that a research team hopes to submit to 
+        Nature.
+        * Visualisations of existing publicly available data
+    yes: tier_1
+    no: tier_0
+  - name: substantial_threat
+    format: markdown
+    text: |
+        Would disclosure pose a substantial threat to the personal safety, 
+        health or security of the data subjects?
+    guidance: |
+        Could this data be used to blackmail, target or persecute individuals? 
+        Is it likely that motivated teams might try to access this data 
+        illegally? For example:
+        
+        * Linking location data to members of a controversial group
+        * Information on the sexuality of individuals in a region where this 
+        may lead to arrest or abuse
+    yes: tier_4
+    no: tier_3
+  - name: financial_low
+    format: markdown
+    text: |
+        Do you have high confidence that the commercial, legal, reputational or 
+        political consequences of unauthorised disclosure of this data will be 
+        low?
+    guidance: |
+        Is there **no risk** that the reputation of the 
+        researcher or data provider will be damaged by this data being made 
+        public, or that legal action can be taken as a result? For example:
+        
+        * Financial reports that an organisation sells to businesses for 
+        commercial profit
+        * Anonymised non-controversial user research
+    yes: publishable
+    no: sophisticated_attack
+  - name: publishable
+    format: markdown
+    text: |
+        Do you have high confidence that the commercial, legal, reputational or 
+        political consequences of unauthorised disclosure of this data will be 
+        so low as to be trivial?
+    guidance: |
+        Would the data providers be prepared to release their data 
+        (accidentally or deliberately)? For example:
+        
+        * Results that a data provider has indicated they are happy to go 
+        into a research publication
+        * Fully anonymised data on trends not linked to a company or 
+        commercial interests
+    yes: tier_1
+    no: tier_2
+  - name: no_reidentify_strong
+    format: markdown
+    text: |
+        Do you have strong confidence that it is not possible to identify 
+        individuals from the data, either at the point of entry or as a 
+        result of any analysis that may be carried out?
+    guidance: |
+        Any data pseudonymised to this degree cannot be connected with 
+        individuals, unless combined with data not publicly available, **or** 
+        the effort required to de-pseudonymise would be too high to 
+        be feasible for a person acting on their own. For example:
+        
+        * Medical test results with generated fake names, where only the 
+        pseudonymisation key be used to identify the patients in this one 
+        study
+        * Anonymous responses to a public survey, where questions may lead 
+        to identifying information in combination with purchasable IP address 
+        data
+    yes: include_commercial_personal
+    no: sophisticated_attack
+  - name: include_commercial_personal
+    format: markdown
+    text: |
+        Will you also be working with [commercial-in-confidence information]
+        (#commercial_data) or private third-party intellectual property, or 
+        legally or politically sensitive data?
+    guidance: |
+        This is any information that the data provider would not be comfortable 
+        with you publishing, including purchased or requested data. 
+        For example:
+        
+        * Pay to view news articles are private third-party intellectual 
+        property
+        * Plans for marketing campaigns, or purchasing strategies, for 
+        companies, are commercial in-confidence data
+    yes: financial_low_personal
+    no: tier_2
+  - name: financial_low_personal
+    format: markdown
+    text: |
+        Do you have high confidence that the commercial, legal, reputational 
+        or political consequences of unauthorised disclosure of this data will 
+        be low?
+    guidance: |
+        Is there **no risk** that the reputation of the 
+        researcher or data provider will be damaged by this data being made 
+        public, or that legal action can be taken as a result? For example:
+        
+        * Financial reports that an organisation sells to businesses for 
+        commercial profit
+        * Anonymised non-controversial user research
+    yes: tier_2
+    no: sophisticated_attack
+  - name: sophisticated_attack
+    format: markdown
+    text: |
+        Do likely attackers include sophisticated, well-resourced and determined 
+        threats, such as highly capable serious organised crime groups and state 
+        actors?
+    guidance: |
+        Could this data be used to blackmail, target or persecute individuals? 
+        For example:
+        
+        * Linking location data to members of a controversial group
+        * Information on the sexuality of individuals in a region where this 
+        may lead to arrest or abuse
+    yes: tier_4
+    no: tier_3
+  - name: commercial_data
+    format: markdown
+    guidance: |
+        **Commercial-in-confidence data** is information which, 
+        if disclosed, may result in damage to a party’s commercial interest, 
+        intellectual property, or trade secrets.
+  - name: personal_data
+    format: markdown
+    guidance: |
+        **Personal data** is any information relating to an 
+        identified or identifiable [living individual](#living_individual); an 
+        'identifiable' living individual is one who can be 
+        identified, directly or indirectly, in particular by reference to an 
+        identifier such as a name, an identification number, location data, 
+        an online identifier or to one or more factors specific to the physical, 
+        physiological, genetic, mental, economic, cultural or social identity 
+        of that natural person.
+
+        The term 'indirectly' here indicates that this includes data where 
+        identification is made possible by combining one or more sets of data, 
+        including synthetic data or trained models.
+  - name: pseudonymized_data
+    format: markdown
+    guidance: |
+        **Pseudonymised data** is personal data that has been 
+        processed in such a manner that it can no longer be attributed to a 
+        specific living individual without the use of additional information, 
+        which is kept separately and subject to technical and organisational 
+        measures that ensure that the personal data are not attributed to an 
+        identified or identifiable living individual.
+
+        Two important things to note are that pseudonymised data:
+        
+        * is still personal data - it becomes anonymised data, and is no 
+        longer personal data, only if *both* the key data connecting 
+        pseudonyms to real numbers is securely destroyed, *and* no 
+        other data exists in the world which could be used statistically to 
+        re-identify individuals from the data
+        * depending on the method used, it normally includes synthetic data 
+        and models that have been trained on personal data. Expert review is 
+        needed to determine the degree to which such datasets could allow 
+        individuals to be identified.
+        
+        It is important that both researchers and Dataset Providers consider 
+        the level of confidence they have in the likelihood of identifying 
+        individuals from data. Anonymised data is data which under no 
+        circumstances can be used to identify an individual, and this is less 
+        common than many realise ([Rocher et al., 2019](https://doi.org/10.1038
+        /s41467-019-10933-3)).
+
+        Our model specifies three levels of confidence that classifiers can 
+        have about the likelihood of reidentification, with each pointing to a 
+        different tier - absolute confidence, where no doubt is involved, strong 
+        confidence, or weak confidence. Classifiers should give sufficient 
+        thought to this question to ensure they are classifying data to the 
+        appropriate sensitivity.
+  - name: living_individual
+    format: markdown
+    guidance: |
+        A **living individual** is an individual for whom you do 
+        not have reasonable evidence that they are deceased. If you’re unsure if 
+        the data subject is alive or dead, assume they have a lifespan of 100 
+        years and act accordingly. If you’re unsure of their age, assume 16 for 
+        any adult and 0 for any child, unless you have contextual evidence that 
+        allows you to make a reasonable assumption otherwise ([National Archives, 
+        2018](https://www.nationalarchives.gov.uk/documents/information-management
+        /guide-to-archiving-personal-data.pdf)).
+
+
+
