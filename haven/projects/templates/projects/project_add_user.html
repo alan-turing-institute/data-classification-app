@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
-{% load haven %}
+{% load crispy_forms_tags haven static %}
 
 {% block page_title %}{{ project.name }}: Add Participant{% endblock %}
 {% block h1_title %}{{ project.name }}: Add Participant{% endblock %}
@@ -20,9 +19,9 @@
   {% endif %}
 </p>
 
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
 <form method="POST">
-  {% csrf_token %}
-  {{ form.media }}
   {% crispy form %}
 </form>
 
@@ -36,3 +35,5 @@
   <li class="breadcrumb-item">Participants</li>
   <li class="breadcrumb-item active" aria-current="page">Add</li>
 {% endblock crumbs %}
+
+
