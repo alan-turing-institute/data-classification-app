@@ -9,7 +9,11 @@ domains=(dca.uksouth.cloudapp.azure.com)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="rebecca.osselton@newcastle.ac.uk" # Adding a valid address is strongly recommended
-staging=1 # Set to 1 if you're testing your setup to avoid hitting request limits
+
+
+# important!
+# Set to 1 if you're testing your setup to avoid hitting request limits, but for a real request this should be set to 0.
+staging=1 
 
 if [ -d "$data_path" ]; then
   read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision
@@ -53,9 +57,12 @@ echo
 echo "### Requesting Let's Encrypt certificate for $domains ..."
 #Join $domains to -d args
 domain_args=""
-for domain in "${domains[@]}"; do
-  domain_args="$domain_args -d $domain"
-done
+
+# single domain at the moment, no need to loop as below
+
+#for domain in "${domains[@]}"; do
+#  domain_args="$domain_args -d $domain"
+#done
 
 # Select appropriate email arg
 case "$email" in
