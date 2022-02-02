@@ -11,6 +11,9 @@ services:
       - POSTGRES_DB=haven
       - POSTGRES_USER=haven
       - POSTGRES_PASSWORD=haven
+      - POSTGRESQL_TLS_CERT_FILE=/etc/letsencrypt/live/dca.uksouth.cloudapp.azure.com/fullchain.pem
+      - POSTGRESQL_TLS_KEY_FILE=/etc/letsencrypt/live/dca.uksouth.cloudapp.azure.com/privkey.pem;
+    
 
   web:
     build:
@@ -37,6 +40,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
     volumes:
       - static_volume:/app/staticfiles
       - ./nginx:/etc/nginx/conf.d
@@ -45,10 +49,11 @@ services:
     depends_on:
       - web
       - db
-    #restart: "on-failure"
+    restart: always
 
   certbot:
     image: certbot/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     volumes:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
