@@ -6,7 +6,6 @@ then
 fi
 
 # Run migrations 
-python /app/manage.py flush --no-input 
 python /app/manage.py migrate easyaudit
 python /app/manage.py migrate
 # collectstatic 
