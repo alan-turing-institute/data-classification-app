@@ -17,7 +17,9 @@ WORKDIR /app
 
 RUN pip install poetry
 # RUN pip install "poetry==$POETRY_VERSION"
+COPY poetry.lock pyproject.toml .
 RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-ansi
 
 # GULP Installation
 RUN npm install -g gulp
