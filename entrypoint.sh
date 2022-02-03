@@ -5,9 +5,11 @@ then
     echo "PostgreSQL started"
 fi
 
+# Install dependencies
+poetry install --no-interaction --no-ansi
+
 # Run migrations 
-python /app/manage.py migrate easyaudit
-python /app/manage.py migrate
+python manage.py migrate
 # collectstatic 
 python manage.py collectstatic --no-input --clear
 

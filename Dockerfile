@@ -13,30 +13,23 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_NO_CACHE_DIR=1 \
     POETRY_VERSION=1.0.5
 
+WORKDIR /app
+
 RUN pip install poetry
 # RUN pip install "poetry==$POETRY_VERSION"
-
-RUN mkdir /app
-WORKDIR /app
-COPY poetry.lock pyproject.toml /app/
-
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi
+
 # GULP Installation
 RUN npm install -g gulp
 RUN npm install gulp
 
 
-COPY haven ./haven
-COPY static ./static
-
 COPY static/gulpfile.js ./ 
-COPY manage.py ./
-COPY entrypoint.sh ./
-RUN sed -i 's/\r$//g' /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+COPY entrypoint.sh /
+RUN sed -i 's/\r$//g' /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # run entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["gulp"]
