@@ -9,14 +9,8 @@ matrix:
         - pip install poetry
       install:
         - poetry install
-      env:
-        - DB_NAME="haven"
-        - DJANGO_SETTINGS_MODULE="haven.settings.test"
-        - DB_ENGINE="django.db.backends.postgresql"
-        - DB_USER="haven"
-        - DB_PASSWORD="haven"
       script:
-        - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
+        - poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
     - name: check for missing migrations
       language: python
       python:
@@ -43,7 +37,7 @@ matrix:
       python:
         - "3.8"
       env:
-        - SECRET_KEY="notasecret"
+        - SECRET_KEY='notasecret'
       addons:
         apt:
           packages:
