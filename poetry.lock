@@ -259,7 +259,7 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-autocomplete-light"
-version = "3.8.2"
+version = "3.5.1"
 description = "Fresh autocompletes for Django"
 category = "main"
 optional = false
@@ -1130,7 +1130,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9332a534802310be3028bcf39d20adb10269e32120ddabfde158236af55b3f2b"
+content-hash = "2b3bce30c004a66bd7fa214f705003fb357958580646ea284a0c1b84484fc55d"
 
 [metadata.files]
 appnope = [
@@ -1333,7 +1333,7 @@ django = [
     {file = "Django-3.1.13.tar.gz", hash = "sha256:9f8be75646f62204320b195062b1d696ba28aa3d45ee72fb7c888ffaebc5bdb2"},
 ]
 django-autocomplete-light = [
-    {file = "django-autocomplete-light-3.8.2.tar.gz", hash = "sha256:25f0ea71b59a8f1f97a8a564e33e429570b0ea77c5eac81f7beb283073b4ba90"},
+    {file = "django-autocomplete-light-3.5.1.tar.gz", hash = "sha256:52e8d468060a5911c44300a374d74058c90e65bfdf87ace151abac67279c4ae5"},
 ]
 django-bleach = [
     {file = "django-bleach-0.9.0.tar.gz", hash = "sha256:d76534566987187da35c60d9097bc18e6d8aadc2d8743cee46b820940e45cea7"},
