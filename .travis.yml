@@ -9,6 +9,7 @@ matrix:
         - postgresql
       before_install:
         - pip install poetry
+        - psql -e 'CREATE USER haven;'
       install:
         - poetry install
       env:
