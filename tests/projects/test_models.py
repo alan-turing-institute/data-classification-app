@@ -1011,8 +1011,8 @@ class TestParticipant:
             work_package,
             dpr.user,
             [
-                ["data_provider_representative", True, True],
                 ["investigator", True, True],
+                ["data_provider_representative", True, True],
                 ["referee", False, False],
             ],
         )
