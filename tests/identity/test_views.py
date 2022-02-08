@@ -337,7 +337,7 @@ class TestExportUsers:
         parsed = self.parse_csv_response(response)
         assert parsed == [
             ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["user", "", "", "", "user@example.com"],
+            ["coordinator", "", "", "", "coordinator@example.com"],
             [
                 "project_participant",
                 "Angela",
@@ -346,7 +346,7 @@ class TestExportUsers:
                 "project_participant@example.com",
             ],
             ["user1", "", "", "", "user@example.com"],
-            ['user', '', '', '', 'user@example.com'],
+            ["coordinator", "", "", "", "coordinator@example.com"],
             [
                 "controller",
                 "System",
