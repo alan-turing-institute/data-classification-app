@@ -5,6 +5,8 @@ matrix:
       language: python
       python:
         - "3.8"
+      services:
+        - postgresql
       before_install:
         - pip install poetry
       install:
@@ -15,6 +17,8 @@ matrix:
         - DB_ENGINE="django.db.backends.postgresql"
         - DB_USER="haven"
         - DB_PASSWORD="haven"
+      before_script:
+        - psql -c 'create database travis_ci_test;' -U postgres
       script:
         - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
     - name: check for missing migrations
