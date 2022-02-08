@@ -352,7 +352,8 @@ class TestExportUsers:
                 "Zala",
                 "+441234567890",
                 "project_participant@example.com",
-            ][
+            ],
+            [
                 "controller",
                 "System",
                 "Manager",
