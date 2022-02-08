@@ -1,16 +1,16 @@
 matrix:
   dist: bionic
+  services:
+    - docker
   include:
     - name: run unit tests
       language: python
       python:
         - "3.8"
       before_install:
-        - pip install poetry
-      install:
-        - poetry install
+        - docker-compose up -d --build
       script:
-        - poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
+        - docker-compose run --rm web poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
     - name: check for missing migrations
       language: python
       python:
