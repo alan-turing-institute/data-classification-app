@@ -346,7 +346,7 @@ class TestExportUsers:
                 "project_participant@example.com",
             ],
             ["user1", "", "", "", "user@example.com"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
+            ['user', '', '', '', 'user@example.com'],
             [
                 "controller",
                 "System",
