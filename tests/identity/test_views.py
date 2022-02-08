@@ -347,7 +347,13 @@ class TestExportUsers:
             ],
             ["user1", "", "", "", "user@example.com"],
             ["coordinator", "", "", "", "coordinator@example.com"],
-            ["controller", "System", "Manager", "+441234567890", "controller@example.com"]
+            [
+                "controller",
+                "System",
+                "Manager",
+                "+441234567890",
+                "controller@example.com",
+            ],
         ]
 
     def test_export_new_as_pm(
