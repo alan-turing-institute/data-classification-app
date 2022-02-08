@@ -345,7 +345,7 @@ class TestExportUsers:
                 "+441234567890",
                 "controller@example.com",
             ],
-            ["user1", "", "", "", "user@example.com"],
+            ["user", "", "", "", "user@example.com"],
             ["coordinator", "", "", "", "coordinator@example.com"],
             [
                 "controller",
