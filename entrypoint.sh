@@ -5,10 +5,14 @@ then
     echo "PostgreSQL started"
 fi
 
+# Install any new dependencies
+poetry install --no-interaction --no-ansi
+
 # Run migrations 
-python /app/manage.py migrate easyaudit
-python /app/manage.py migrate
-# collectstatic 
-python manage.py collectstatic --no-input --clear
+python manage.py migrate easyaudit  # Needs to run first as other migrations will trigger this
+python manage.py migrate
+
+# Create superuser (developer:developer)
+python manage.py loaddata devsuperuser.json
 
 exec "$@"
