@@ -346,7 +346,6 @@ class TestExportUsers:
                 "project_participant@example.com",
             ],
             ["user1", "", "", "", "user@example.com"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
             ["project_participant", "Angela", "Zala", "+441234567890", "project_participant@example.com"]
         ]
 
