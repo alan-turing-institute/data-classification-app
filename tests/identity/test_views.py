@@ -353,13 +353,7 @@ class TestExportUsers:
                 "+441234567890",
                 "project_participant@example.com",
             ],
-            [
-                "controller",
-                "System",
-                "Manager",
-                "+441234567890",
-                "controller@example.com",
-            ],
+            ["user1", "", "", "", "user@example.com"],
         ]
 
     def test_export_new_as_pm(
