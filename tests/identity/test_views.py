@@ -346,8 +346,13 @@ class TestExportUsers:
                 "controller@example.com",
             ],
             ["user", "", "", "", "user@example.com"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
             [
+                "project_participant",
+                "Angela",
+                "Zala",
+                "+441234567890",
+                "project_participant@example.com",
+            ][
                 "controller",
                 "System",
                 "Manager",
