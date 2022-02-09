@@ -104,6 +104,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "sourcerevision.context_processors.source_revision",
                 'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
             "libraries": {
                 "haven": "haven.core.templatetags.haven",
@@ -122,67 +123,6 @@ WSGI_APPLICATION = "haven.wsgi.application"
 DATABASES = {
     "default": env.db_url("DATABASE_URL", default="postgres:///haven"),
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
-AUTHENTICATION_BACKENDS = [
-    "haven.identity.backends.CustomAzureOAuth2Backend",
-]
-
-AUTH_USER_MODEL = "identity.User"
-
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str("AZUREAD_OAUTH2_KEY", default="")
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str("AZUREAD_OAUTH2_SECRET", default="")
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str(
-    "AZUREAD_OAUTH2_TENANT_ID", default=""
-)
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = "https://graph.microsoft.com"
-
-SECURITY_GROUP_SYSTEM_MANAGERS = env.str(
-    "SECURITY_GROUP_SYSTEM_MANAGERS", default="SG SHM System Managers"
-)
-SECURITY_GROUP_PROGRAMME_MANAGERS = env.str(
-    "SECURITY_GROUP_PROGRAMME_MANAGERS", default="SG SHM Programme Managers"
-)
-SECURITY_GROUP_PROJECT_MANAGERS = env.str(
-    "SECURITY_GROUP_PROGRAMME_MANAGERS", default="SG SHM Project Managers"
-)
-
-SOCIAL_AUTH_PIPELINE = (
-    "social_core.pipeline.social_auth.social_details",
-    "social_core.pipeline.social_auth.social_uid",
-    "social_core.pipeline.social_auth.auth_allowed",
-    "social_core.pipeline.social_auth.social_user",
-    "haven.identity.pipeline.find_existing_user",
-    "social_core.pipeline.user.create_user",
-    "social_core.pipeline.social_auth.associate_user",
-    "social_core.pipeline.social_auth.load_extra_data",
-    "social_core.pipeline.user.user_details",
-    "haven.identity.pipeline.user_fields",
-    "haven.identity.pipeline.determine_role",
-)
-
-LOGIN_REDIRECT_URL = "/projects"
-LOGOUT_REDIRECT_URL = "home"
-LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -217,10 +157,6 @@ SAFE_HAVEN_DOMAIN = env.str("SAFE_HAVEN_DOMAIN", default="dsgroupdev.co.uk")
 
 BASE_URL = env.str("BASE_URL", default="http://localhost:8000/")
 
-AD_RESEARCH_USER_DN = "CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk"
-
-AD_USER_OBJECT_CLASSES = ["user", "organizationalPerson", "person", "top"]
-
 EMAIL_HOST = env.str("EMAIL_HOST", default="")
 if EMAIL_HOST:
     EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
@@ -229,8 +165,6 @@ if EMAIL_HOST:
     EMAIL_USE_TLS = env.int("EMAIL_USE_TLS", default=True)
 
 DEFAULT_FROM_MAIL = env.str("FROM_MAIL", default="noreply@dsgroupdev.co.uk")
-
-SOCIAL_AUTH_LOGIN_ERROR_URL = "/error/"
 
 PHONENUMBER_DEFAULT_REGION = "GB"
 
@@ -265,3 +199,79 @@ DATABASES = {
         "PORT": os.environ.get("DB_PORT"),
     }
 }
+
+###########################
+# Authentication Settings #
+###########################
+
+AUTH_USER_MODEL = "identity.User"
+
+LOGIN_REDIRECT_URL = "/projects"
+LOGOUT_REDIRECT_URL = "home"
+LOGIN_URL = "/auth/login/azuread-tenant-oauth2/"
+SOCIAL_AUTH_LOGIN_ERROR_URL = "/error/"
+
+# Password validation
+# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.auth_allowed",
+    "social_core.pipeline.social_auth.social_user",
+    "haven.identity.pipeline.find_existing_user",
+    "social_core.pipeline.user.create_user",
+    "social_core.pipeline.social_auth.associate_user",
+    "social_core.pipeline.social_auth.load_extra_data",
+    "social_core.pipeline.user.user_details",
+    "haven.identity.pipeline.user_fields",
+    "haven.identity.pipeline.determine_role",
+)
+
+# List of authentication backends
+AUTHENTICATION_BACKENDS = [
+    "haven.identity.backends.CustomAzureOAuth2Backend",
+]
+
+AUTH_BACKEND_DISPLAY_NAMES = {
+    "azuread-tenant-oauth2": "Azure AD",
+}
+
+# Azure AD Settings
+
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str("AZUREAD_OAUTH2_KEY", default="")
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str("AZUREAD_OAUTH2_SECRET", default="")
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str(
+    "AZUREAD_OAUTH2_TENANT_ID", default=""
+)
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = "https://graph.microsoft.com"
+
+SECURITY_GROUP_SYSTEM_MANAGERS = env.str(
+    "SECURITY_GROUP_SYSTEM_MANAGERS", default="SG SHM System Managers"
+)
+SECURITY_GROUP_PROGRAMME_MANAGERS = env.str(
+    "SECURITY_GROUP_PROGRAMME_MANAGERS", default="SG SHM Programme Managers"
+)
+SECURITY_GROUP_PROJECT_MANAGERS = env.str(
+    "SECURITY_GROUP_PROGRAMME_MANAGERS", default="SG SHM Project Managers"
+)
+
+AD_RESEARCH_USER_DN = "CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=co,DC=uk"
+
+AD_USER_OBJECT_CLASSES = ["user", "organizationalPerson", "person", "top"]
+
