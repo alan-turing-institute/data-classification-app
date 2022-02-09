@@ -60,6 +60,28 @@ services:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
 
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
+    networks:
+      - net
+    ports:
+      - 9091:9091
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis_authelia
+    volumes:
+      - ./redis:/data
+    networks:
+      - net
+    expose:
+      - 6379
+    restart: unless-stopped      
+
 volumes:
   postgres_data:
   static_volume:
