@@ -103,6 +103,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "sourcerevision.context_processors.source_revision",
+                'social_django.context_processors.backends',
             ],
             "libraries": {
                 "haven": "haven.core.templatetags.haven",
