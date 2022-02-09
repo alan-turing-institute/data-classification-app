@@ -30,9 +30,9 @@ class TestProject:
         project.add_default_work_packages(programme_manager)
         assert project.work_packages.count() == 3
         packages = project.work_packages.all()
-        assert packages[0].name == "Ingress"
+        assert packages[0].name == "Egress – Full"
         assert packages[1].name == "Egress – Reports"
-        assert packages[2].name == "Egress – Full"
+        assert packages[2].name == "Ingress"
 
     def test_add_new_user(self, programme_manager, project_participant):
         project = recipes.project.make()
