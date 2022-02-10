@@ -5,15 +5,17 @@ services:
     image: postgres:10
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      # provide the key and cert to the postgres server
+      - ./ca/certs/server.crt:/var/lib/postgresql/server.crt
+      - ./ca/certs/server.key:/var/lib/postgresql/server.key
     ports:
       - '5432:5432'
+     # ensure postgres is coming up with ssl mode on
+    command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgressql/server.key  
     environment:
       - POSTGRES_DB=haven
       - POSTGRES_USER=haven
-      - POSTGRES_PASSWORD=haven
-      - POSTGRESQL_TLS_CERT_FILE=/etc/letsencrypt/live/dca.uksouth.cloudapp.azure.com/fullchain.pem
-      - POSTGRESQL_TLS_KEY_FILE=/etc/letsencrypt/live/dca.uksouth.cloudapp.azure.com/privkey.pem;
-    
+      - POSTGRES_PASSWORD=haven  
 
   web:
     build:
@@ -57,6 +59,28 @@ services:
     volumes:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
+
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
+    networks:
+      - net
+    ports:
+      - 9091:9091
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis_authelia
+    volumes:
+      - ./redis:/data
+    networks:
+      - net
+    expose:
+      - 6379
+    restart: unless-stopped      
 
 volumes:
   postgres_data:

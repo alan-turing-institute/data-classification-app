@@ -5,6 +5,8 @@ matrix:
       language: python
       python:
         - "3.8"
+      services:
+        - postgresql
       before_install:
         - pip install poetry
       install:
@@ -15,8 +17,11 @@ matrix:
         - DB_ENGINE="django.db.backends.postgresql"
         - DB_USER="haven"
         - DB_PASSWORD="haven"
+      before_script:
+        - psql -c 'CREATE USER haven;' -U postgres
+        - psql -c 'ALTER USER haven WITH CREATEDB;' -U postgres
       script:
-        - poetry run pytest --ignore=node_modules --cov-config=./.coveragerc --cov-report term-missing
+        - poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
     - name: check for missing migrations
       language: python
       python:
@@ -43,7 +48,7 @@ matrix:
       python:
         - "3.8"
       env:
-        - SECRET_KEY="notasecret"
+        - SECRET_KEY='notasecret'
       addons:
         apt:
           packages:
