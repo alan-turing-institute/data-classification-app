@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf import settings
 from django.urls import include, path
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 
 from haven.core import views as core_views
 
@@ -29,6 +29,8 @@ urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("auth/", include("social_django.urls", namespace="social")),
     path("error/", TemplateView.as_view(template_name="error.html"), name="error-page"),
+    path("complete/orcid", RedirectView.as_view(url="/auth/complete/orcid/")),
+    path("complete/orcid-sandbox", RedirectView.as_view(url="/auth/complete/orcid-sandbox/"))
 ]
 
 
