@@ -1,5 +1,8 @@
 
 
+from haven.settings.authorisation.backends.azure_ad_tenant import AUTH_DISPLAY_NAME
+
+
 SOCIAL_AUTH_LOGIN_ERROR_URL = "/error/"
 
 SOCIAL_AUTH_PIPELINE = (
@@ -15,3 +18,5 @@ SOCIAL_AUTH_PIPELINE = (
     "haven.identity.pipeline.user_fields",
     "haven.identity.pipeline.determine_role",
 )
+
+AUTH_DISPLAY_NAMES = {}
