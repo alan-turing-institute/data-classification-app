@@ -246,10 +246,15 @@ SOCIAL_AUTH_PIPELINE = (
 # List of authentication backends
 AUTHENTICATION_BACKENDS = [
     "haven.identity.backends.CustomAzureOAuth2Backend",
+    "social_core.backends.orcid.ORCIDOAuth2Sandbox",
+    "social_core.backends.github.GithubOAuth2",
 ]
 
 AUTH_BACKEND_DISPLAY_NAMES = {
     "azuread-tenant-oauth2": "Azure AD",
+    "orcid-sandbox": "ORCID Sandbox",
+    "orcid": "ORCID",
+    "github": "GitHub",
 }
 
 # Azure AD Settings
@@ -275,3 +280,12 @@ AD_RESEARCH_USER_DN = "CN=%(cn)s,OU=Safe Haven Research Users,DC=dsgroupdev,DC=c
 
 AD_USER_OBJECT_CLASSES = ["user", "organizationalPerson", "person", "top"]
 
+# ORCID Settings
+SOCIAL_AUTH_ORCID_KEY = env.str("ORCID_OAUTH2_KEY", default="")
+SOCIAL_AUTH_ORCID_SECRET = env.str("ORCID_OAUTH2_SECRET", default="")
+SOCIAL_AUTH_ORCID_SANDBOX_KEY = env.str("ORCID_OAUTH2_KEY", default="")
+SOCIAL_AUTH_ORCID_SANDBOX_SECRET = env.str("ORCID_OAUTH2_SECRET", default="")
+
+# GitHub Settings
+SOCIAL_AUTH_GITHUB_KEY = env.str("GITHUB_OAUTH2_KEY", default="")
+SOCIAL_AUTH_GITHUB_SECRET = env.str("GITHUB_OAUTH2_SECRET", default="")
