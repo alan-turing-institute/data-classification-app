@@ -2,7 +2,10 @@ from django import forms
 
 
 class SingleQuestionForm(forms.Form):
-    question = forms.BooleanField(required=False, label="",)
+    question = forms.BooleanField(
+        required=False,
+        label="",
+    )
 
     @classmethod
     def subclass_for_question(cls, question):

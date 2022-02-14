@@ -261,7 +261,9 @@ class TestProjectRoleAssignableRoles:
     def test_programme_manager_can_assign_any_roles(self):
         # Use RESEARCHER because we are verifying that system-wide PROGRAMME_MANAGER overrides
         # researchers with lower permissions
-        permissions = UserPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
+        permissions = UserPermissions(
+            ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER
+        )
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
@@ -300,38 +302,40 @@ class TestProjectRoleAssignableRoles:
 
 class TestIsValidAssignableParticipantRole:
     def test_valid_roles(self):
-        assert ProjectRole.is_valid_assignable_participant_role('referee')
-        assert ProjectRole.is_valid_assignable_participant_role('project_manager')
-        assert ProjectRole.is_valid_assignable_participant_role('investigator')
-        assert ProjectRole.is_valid_assignable_participant_role('researcher')
-        assert ProjectRole.is_valid_assignable_participant_role('data_provider_representative')
+        assert ProjectRole.is_valid_assignable_participant_role("referee")
+        assert ProjectRole.is_valid_assignable_participant_role("project_manager")
+        assert ProjectRole.is_valid_assignable_participant_role("investigator")
+        assert ProjectRole.is_valid_assignable_participant_role("researcher")
+        assert ProjectRole.is_valid_assignable_participant_role(
+            "data_provider_representative"
+        )
 
     def test_labels_are_not_valid_roles(self):
-        assert not ProjectRole.is_valid_assignable_participant_role('Project Manager')
-        assert not ProjectRole.is_valid_assignable_participant_role('Data Provider Representative')
+        assert not ProjectRole.is_valid_assignable_participant_role("Project Manager")
+        assert not ProjectRole.is_valid_assignable_participant_role(
+            "Data Provider Representative"
+        )
 
     def test_invalid_roles(self):
-        assert not ProjectRole.is_valid_assignable_participant_role('')
+        assert not ProjectRole.is_valid_assignable_participant_role("")
         assert not ProjectRole.is_valid_assignable_participant_role(None)
-        assert not ProjectRole.is_valid_assignable_participant_role('data')
-        assert not ProjectRole.is_valid_assignable_participant_role('inv')
+        assert not ProjectRole.is_valid_assignable_participant_role("data")
+        assert not ProjectRole.is_valid_assignable_participant_role("inv")
 
 
 @pytest.mark.django_db
 class TestProjectPermissions:
-    def test_user_gets_permissions_on_correct_project(self, programme_manager, project_participant):
+    def test_user_gets_permissions_on_correct_project(
+        self, programme_manager, project_participant
+    ):
         project1 = recipes.project.make(created_by=programme_manager)
         project2 = recipes.project.make(created_by=programme_manager)
 
         project1.add_user(
-            project_participant,
-            ProjectRole.PROJECT_MANAGER.value,
-            programme_manager
+            project_participant, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
         project2.add_user(
-            project_participant,
-            ProjectRole.RESEARCHER.value,
-            programme_manager
+            project_participant, ProjectRole.RESEARCHER.value, programme_manager
         )
 
         permissions = project_participant.project_permissions(project1)

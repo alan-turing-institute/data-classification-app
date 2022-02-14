@@ -415,7 +415,6 @@ class TestExportUsers:
         parsed = self.parse_csv_response(response)
         assert parsed == [
             ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["user1", "", "", "", "user@example.com"],
             [
                 "project_participant",
                 "Angela",
@@ -423,6 +422,7 @@ class TestExportUsers:
                 "+441234567890",
                 "project_participant@example.com",
             ],
+            ["user1", "", "", "", "user@example.com"],
         ]
 
     def test_export_new_by_project(
@@ -481,7 +481,13 @@ class TestImportUsers:
             "em3@email.com,ln3,fn3,03456789012,other3"
         )
         f.name = "import.csv"
-        return client.post("/users/import", {"upload_file": f,}, follow=follow)
+        return client.post(
+            "/users/import",
+            {
+                "upload_file": f,
+            },
+            follow=follow,
+        )
 
     def test_import_as_anonymous(self, client, helpers):
         response = self.post_csv(client, follow=False)

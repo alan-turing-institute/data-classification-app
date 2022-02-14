@@ -10,5 +10,9 @@ urlpatterns = [
     path("new", views.UserCreate.as_view(), name="add_user"),
     path("import", views.ImportUsers.as_view(), name="import_users"),
     path("export", views.ExportUsers.as_view(), name="export_users"),
-    path("<int:pk>/edit", views.UserEdit.as_view(), name="edit_user",),
+    path(
+        "<int:pk>/edit",
+        views.UserEdit.as_view(),
+        name="edit_user",
+    ),
 ]

@@ -68,7 +68,10 @@ class Project(CreatedByModel):
             raise ValidationError("User is already on project")
 
         participant = Participant.objects.create(
-            user=user, role=role, created_by=created_by, project=self,
+            user=user,
+            role=role,
+            created_by=created_by,
+            project=self,
         )
         if role == ProjectRole.INVESTIGATOR.value:
             work_packages = self.work_packages.all()
@@ -283,7 +286,9 @@ class WorkPackage(CreatedByModel):
     # datasets might have a different tier to their individual tiers
     # None means tier is unknown
     tier = models.PositiveSmallIntegerField(
-        null=True, blank=True, choices=TIER_CHOICES,
+        null=True,
+        blank=True,
+        choices=TIER_CHOICES,
     )
 
     permissions = BooleanTextTable(
@@ -569,7 +574,10 @@ class WorkPackage(CreatedByModel):
             raise ValidationError("No datasets in work package")
 
         classification = ClassificationOpinion.objects.create(
-            work_package=self, created_by=by_user, role=role.value, tier=tier,
+            work_package=self,
+            created_by=by_user,
+            role=role.value,
+            tier=tier,
         )
 
         if role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE:
