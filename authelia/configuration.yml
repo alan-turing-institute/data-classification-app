@@ -4,7 +4,7 @@
 ###############################################################
 
 jwt_secret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhY2xhc3NpZmljYXRpb25hcHAiLCJpYXQiOjE2NDQzOTg3NzMsImV4cCI6MTY3NTkzNDgxOSwiYXVkIjoiZGNhLnVrc291dGguY2xvdWRhcHAuYXp1cmUuY29tIiwic3ViIjoiYWRtaW51c2VyQGFkbWluLmNvbSJ9.wJVUxRIpbf0PcLGuixYX_EWuLiUwubfcr_DPfj-temM
-default_redirection_url: https://dca.uksouth.cloudapp.azure.com
+default_redirection_url: https://dca.uksouth.cloudapp.azure.com/haven
 
 server:
   host: 0.0.0.0
@@ -62,6 +62,7 @@ regulation:
 storage:
   local:
     path: /config/db.sqlite3
+  encryption_key : sBFJ3zoGVHzYH9ep3BuR
 
 notifier:
   filesystem:
