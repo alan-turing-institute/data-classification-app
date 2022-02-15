@@ -84,10 +84,10 @@ This is a research project about how, in general, best to provide this kind of s
 *Where you identify risks, you should inform us how your research plans to minimise or eliminate them.*
 
 Questions to consider:
-•	Could any harms arise to the people involved in conducting this research (e.g. viewing violent content could harm researchers)?
-•	Could conducting or promoting this research create unintended negative outcomes, such as environmental damage, new power imbalances, or the misuse of technology?
-•	How do you plan to ascertain and acknowledge the limitations of your research, if any (e.g. does the data sample you use allow for generalisability of your research findings)?
-•	What benefits could your research contribute that would balance or outweigh any potentially negative impacts that could arise?
+- Could any harms arise to the people involved in conducting this research (e.g. viewing violent content could harm researchers)?
+- Could conducting or promoting this research create unintended negative outcomes, such as environmental damage, new power imbalances, or the misuse of technology?
+- How do you plan to ascertain and acknowledge the limitations of your research, if any (e.g. does the data sample you use allow for generalisability of your research findings)?
+-  What benefits could your research contribute that would balance or outweigh any potentially negative impacts that could arise?
 
 None expected. We hope that the development of software defined information governance will contribute positively toward these challenges in the medium term.
 
