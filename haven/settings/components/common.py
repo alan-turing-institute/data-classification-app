@@ -9,11 +9,7 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# If using docker, read the env file that way 
-READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
-if READ_DOT_ENV_FILE:
-    # OS environment variables take precedence over variables from .env
-    env.read_env(str(BASE_DIR / ".env"))
+env.read_env(str(BASE_DIR / ".env.dev"))
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -131,6 +127,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "sourcerevision.context_processors.source_revision",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
             ],
             "libraries": {
                 "haven": "haven.core.templatetags.haven",
@@ -157,10 +155,12 @@ X_FRAME_OPTIONS = "DENY"
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
-# https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
-AUTHENTICATION_BACKENDS = []
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "identity.User"
+# https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = "/projects"
 LOGOUT_REDIRECT_URL = "home"
