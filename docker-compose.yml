@@ -2,9 +2,9 @@ version: "3.8"
 
 services:
   db:
-    image: postgres 
-    ports:                      
-      - '5432:5432'
+    image: postgres
+    ports:
+      - '5433:5432'
     container_name: data_classification_app_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
@@ -12,7 +12,7 @@ services:
       - POSTGRES_DB=haven
       - POSTGRES_USER=haven
       - POSTGRES_PASSWORD=haven
-  
+
   web:
     build: .
     image: haven_local_django
