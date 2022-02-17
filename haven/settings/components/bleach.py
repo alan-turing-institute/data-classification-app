@@ -1,0 +1,1 @@
+BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
