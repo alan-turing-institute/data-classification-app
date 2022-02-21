@@ -415,6 +415,12 @@ class Test(Base):
     WHITENOISE_AUTOREFRESH = True
 
 
+class LocalUserLocal(LocalUserMixin, Local):
+    pass
+
+class LocalUserProduction(LocalUserMixin, Production):
+    pass
+
 class RemoteUserLocal(LocalUserMixin, RemoteUserMixin, Local):
     pass
 
@@ -429,3 +435,4 @@ class GitHubUserProduction(GitHubUserMixin, Production):
 
 class AzureUserProduction(AzureUserMixin, Production):
     pass
+
