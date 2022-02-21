@@ -298,6 +298,24 @@ python-versions = "*"
 Django = ">=2.2"
 
 [[package]]
+name = "django-configurations"
+version = "2.3.2"
+description = "A helper for organizing Django settings."
+category = "main"
+optional = false
+python-versions = ">=3.6, <4.0"
+
+[package.dependencies]
+django = ">=2.2"
+
+[package.extras]
+cache = ["django-cache-url"]
+database = ["dj-database-url"]
+email = ["dj-email-url"]
+search = ["dj-search-url"]
+testing = ["django-cache-url (>=1.0.0)", "dj-database-url", "dj-email-url", "dj-search-url"]
+
+[[package]]
 name = "django-crispy-forms"
 version = "1.13.0"
 description = "Best way to have Django DRY forms"
@@ -394,14 +412,6 @@ python-versions = "*"
 
 [package.dependencies]
 Django = ">=1.4"
-
-[[package]]
-name = "django-split-settings"
-version = "1.1.0"
-description = "Organize Django settings into multiple files and directories. Easily override and modify settings. Use wildcards and optional settings files."
-category = "main"
-optional = false
-python-versions = ">=3.6,<4.0"
 
 [[package]]
 name = "django-tables2"
@@ -1138,7 +1148,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ce26d4aeef5fc42b3e9a3a9e58b4c7d642a257e7b4004a979d259aa87a5b3f19"
+content-hash = "65e8062f6799932330fa9196b26c967e8d6502c02f2b5f8db42505acc81875e1"
 
 [metadata.files]
 appnope = [
@@ -1351,6 +1361,10 @@ django-braces = [
     {file = "django-braces-1.15.0.tar.gz", hash = "sha256:f451d08ffc1078d81209a2e17f2219bce20196928853c82405451b18a46875e0"},
     {file = "django_braces-1.15.0-py2.py3-none-any.whl", hash = "sha256:28f00b0f98368c9a37f30cce6087fc57127f0a24c5b8b449f9e1245bded6405d"},
 ]
+django-configurations = [
+    {file = "django-configurations-2.3.2.tar.gz", hash = "sha256:bd1a77a60735839b7d105912cc3977735fa005ea06544c632fbd322d1e021677"},
+    {file = "django_configurations-2.3.2-py3-none-any.whl", hash = "sha256:c0363b0111df6536442186d0f23d12138390eaa9f4f97ce46950ee78856a46c9"},
+]
 django-crispy-forms = [
     {file = "django-crispy-forms-1.13.0.tar.gz", hash = "sha256:4dc9e5263c91c5f51766806a050ca2ec5c349d34c5cd91fcca3a1a0363b5e29e"},
     {file = "django_crispy_forms-1.13.0-py3-none-any.whl", hash = "sha256:9c49d29dd9e98dc2e6e3a8b02670d72deb6edf7bc616986ca412d72c306b36a0"},
@@ -1386,10 +1400,6 @@ django-simple-history = [
 django-source-revision = [
     {file = "django-source-revision-0.1.0.tar.gz", hash = "sha256:f81714864a17634b16663d98ab53d57c87699c3391a13f394a3f8cd1bcbf6972"},
     {file = "django_source_revision-0.1.0-py2-none-any.whl", hash = "sha256:9ad8188c02e23889da8cb6299541a5ea2c0e0f124324752d332982435b3c28f5"},
-]
-django-split-settings = [
-    {file = "django-split-settings-1.1.0.tar.gz", hash = "sha256:6b3aed89667a95525152026eab93a9f038ff22df6883006318b8b4a3d0ca6888"},
-    {file = "django_split_settings-1.1.0-py3-none-any.whl", hash = "sha256:5d97ae64cf9ed14a831722d82ac725944667ac8c08307b7cfd22e91367b411d0"},
 ]
 django-tables2 = [
     {file = "django-tables2-2.4.1.tar.gz", hash = "sha256:6c72dd208358539e789e4c0efd7d151e43283a4aa4093a35f44c43489e7ddeaa"},
