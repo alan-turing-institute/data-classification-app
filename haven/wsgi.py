@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/
 
 import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haven.settings.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "haven.settings")
 os.environ.setdefault("DJANGO_CONFIGURATION", "LocalUserProduction")
 
 from configurations.wsgi import get_wsgi_application
