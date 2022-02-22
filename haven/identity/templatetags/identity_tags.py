@@ -16,3 +16,7 @@ def role_display(role):
 @register.filter
 def auth_display(backend):
     return settings.SOCIAL_AUTH_BACKEND_DISPLAY_NAMES.get(backend, backend)
+
+@register.simple_tag
+def haven_auth_type():
+    return settings.HAVEN_AUTH_TYPE
