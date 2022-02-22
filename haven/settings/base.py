@@ -183,7 +183,8 @@ elif HAVEN_AUTH_TYPE=="social":
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
         AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]
-        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider]["display_name"]
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = \
+            provider_dictionary[provider]["display_name"]
 
 
 # PASSWORDS
