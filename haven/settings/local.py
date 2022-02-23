@@ -15,7 +15,9 @@ INSTALLED_APPS.extend(
         "debug_toolbar",
     ]
 )
+
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
 # required for debug toolbar if using docker
 if DEBUG:
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
