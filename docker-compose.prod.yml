@@ -65,8 +65,6 @@ services:
     container_name: authelia
     volumes:
       - ./authelia:/config
-    networks:
-      - net
     ports:
       - 9091:9091
     restart: unless-stopped
@@ -76,8 +74,6 @@ services:
     container_name: redis_authelia
     volumes:
       - ./redis:/data
-    networks:
-      - net
     expose:
       - 6379
     restart: unless-stopped      
