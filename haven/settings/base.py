@@ -128,6 +128,7 @@ TEMPLATES = [
                 "sourcerevision.context_processors.source_revision",
                 "social_django.context_processors.backends",
                 "social_django.context_processors.login_redirect",
+                "haven.core.context_processors.auth_types",
             ],
             "libraries": {
                 "haven": "haven.core.templatetags.haven",
@@ -163,28 +164,28 @@ LOGOUT_REDIRECT_URL = "home"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
-HAVEN_AUTH_TYPE = env.str("AUTH_TYPE", default="local")
+HAVEN_AUTH_TYPES = env.list("AUTH_TYPES", default=["local"])
 
-if HAVEN_AUTH_TYPE=="local":
-    AUTHENTICATION_BACKENDS = [
-        "django.contrib.auth.backends.ModelBackend",
-    ]
-elif HAVEN_AUTH_TYPE=="remote":
-    AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = []
+if "remote" in HAVEN_AUTH_TYPES:
+    AUTHENTICATION_BACKENDS += [
         "haven.identity.auth.backends.RemoteExtendedUserBackend",
     ]
     MIDDLEWARE.append("haven.identity.auth.middleware.HttpRemoteUserMiddleware")
     LOGOUT_REDIRECT_URL = "https://auth." + BASE_DOMAIN + "/logout"
-elif HAVEN_AUTH_TYPE=="social":
+if "social" in HAVEN_AUTH_TYPES:
     from .components.social_auth import *
 
     SOCIAL_AUTH_PROVIDERS=env.list("SOCIAL_AUTH_PROVIDERS", default=[])
-    AUTHENTICATION_BACKENDS = []
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
         AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]
         SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = \
             provider_dictionary[provider]["display_name"]
+if "local" in HAVEN_AUTH_TYPES:
+    AUTHENTICATION_BACKENDS += [
+        "django.contrib.auth.backends.ModelBackend",
+    ]
 
 
 # PASSWORDS
