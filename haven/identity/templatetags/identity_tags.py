@@ -15,4 +15,5 @@ def role_display(role):
 
 @register.filter
 def auth_display(backend):
-    return settings.AUTH_BACKEND_DISPLAY_NAMES.get(backend, backend)
+    return settings.SOCIAL_AUTH_BACKEND_DISPLAY_NAMES.get(backend, backend)
+
