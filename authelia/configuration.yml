@@ -62,7 +62,7 @@ regulation:
 storage:
   local:
     path: /config/db.sqlite3
-  encryption_key : sBFJ3zoGVHzYH9ep3BuR
+  encryption_key : S8mmMrVnzuZHF8HAZC4J
 
 notifier:
   filesystem:
