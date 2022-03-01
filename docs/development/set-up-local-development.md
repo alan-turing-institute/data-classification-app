@@ -9,7 +9,7 @@ Clone the github repo usnig the following command in your local terminal:
 git clone git@github.com:alan-turing-institute/data-classification-app.git
 ```
 
-After `cd`'ing into your folder containing the downloaded repo files, follow the quick docker setup below.
+After entering the folder containing the main repsitories' code (either through `cd`'ing into your folder containing the downloaded repo files, or using your OS' method) follow the quick docker setup below.
 
 ## :whale: Quick setup with `docker`
 
