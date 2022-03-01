@@ -12,7 +12,7 @@
 -	No - Be prepared to say who is and add their email address
 
 ### Which Turing programme does this project fall under?
-Tools, Practices & Systems and Research Engineering
+Tools, Practices & Systems
 
 ### 1. Project Goal and Purpose
 *Please introduce your project. Tell us, among other things:
