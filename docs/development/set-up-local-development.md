@@ -31,7 +31,9 @@ To bring down containers and volumes prior to a clean build:
 
 `docker-compose down -v`
 
-## Local Development Setup
+> :rotating_light: The following instructions are not required if you have completed `docker` setup  :rotating_light:
+
+## Local Development Setup (not tested alternative to Docker)
 
 ### Install system requirements
 
