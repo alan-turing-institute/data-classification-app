@@ -2,9 +2,18 @@
 
 These instructions are for running a local test instance of the management web application on your machine.
 
+## Cloning the github repo
+Clone the github repo using the following command in your local terminal:
+
+```
+git clone git@github.com:alan-turing-institute/data-classification-app.git
+```
+
+After entering the folder containing the main repositories' code (either through `cd`'ing into your folder containing the downloaded repo files, or using your OS' method) follow the quick docker setup below.
+
 ## :whale: Quick setup with `docker`
 
-Local dev docker set-up:
+#### Local dev docker set-up:
 
 To build two containers `data_classification_app_db` and `django`.
 
@@ -22,23 +31,14 @@ To bring down containers and volumes prior to a clean build:
 
 `docker-compose down -v`
 
-## Local Development Setup
+> :rotating_light: The following instructions are not required if you have completed `docker` setup  :rotating_light:
+
+## Local Development Setup (not tested alternative to Docker)
 
 ### Install system requirements
 
-* Python 3.7+
+* Python 3.8+
 * Postgres 10+ (with dev headers)
-
-### Create a virtual environment
-Do this one time only
-```bash
-python3 -m venv .venv
-```
-
-Activate the virtual environment
-```bash
-source .venv/bin/activate
-```
 
 ### Install requirements into virtual environment
 
