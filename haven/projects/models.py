@@ -1,4 +1,5 @@
 from enum import Enum
+import uuid
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -39,6 +40,11 @@ class CreatedByModel(models.Model):
 
 class Project(CreatedByModel):
     name = models.CharField(max_length=256, unique=True)
+    uuid = models.UUIDField(  # Used by the API to look up the project
+        db_index=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     description = models.TextField()
 
     datasets = models.ManyToManyField(
