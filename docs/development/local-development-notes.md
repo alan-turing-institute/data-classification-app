@@ -4,6 +4,33 @@
 Django requires some housekeeping tasks. The provisioning scripts will run these automatically on deployment,
 but for local development you may need to run these manually.
 
+## How to contribute?
+
+Great news that you are up for contributing :tada: In order to contribute to this repo, we are following a [`git flow`](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) to manage the team's contributions asyncronously.
+
+### Issue creation
+As soon as you have identified a contribution, please make a "task issue" using our pre-defined [template](https://github.com/alan-turing-institute/data-classification-app/blob/development/.github/ISSUE_TEMPLATE/task-issue-template.md).
+
+### Branching
+After filling in and submitting your issue, please create a branch for you to `commit` your changes to.
+
+> :rotating_light: NOTE, please perform:
+`git pull origin/development` beforehand to make sure you have all the "dev" progress on your local branch! :rotating_light:
+
+### Naming your Branch
+We have adopted a naming strategy to make it easier to connect your developer contributions to a known issue for the team. The naming convention is as follows:
+
+```
+{issue_number}/{short-description-of-changes}
+```
+This allows us to match each branch with changes to an issue.
+
+### Making a Pull Request
+Within the repository there is a [`pull_request_template`](https://github.com/alan-turing-institute/data-classification-app/blob/development/.github/pull_request_template.md) which is required to be filled out in order for a member of the development team to review your PR.
+
+> :rotating_light: The NOTE: there is a **"Fixes"** within the template which allows a developer to enter an `#{issue_number}` which will further indicate to the dev team what issue your changes will address!  :rotating_light:
+
+
 
 ## Update static files - if you have modified CSS etc.
 
