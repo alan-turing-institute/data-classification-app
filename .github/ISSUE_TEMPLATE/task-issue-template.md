@@ -7,6 +7,16 @@ assignees: ''
 
 ---
 
+### User story
+
+If created a user story, add issue here: #
+
+"As a <user or stakeholder type>, I want <software feature or capability>, so that I can <achieve some aim or task> "
+"In order to <achieve some aim or task>, as a <stakeholder type>, I want <software feature or capability>"
+"User <stakeholder>, needs <software feature or capability>, so that they can <achieve some aim or task>"
+*(delete and fill as appropriate)*
+
+
 <!--
 Please complete the following sections when you open an issue. You are encouraged to keep this top level comment box updated as you develop and respond to reviews. Please also assign the appropriate label (or labels) to your issue. Note that text within html comment tags will not be rendered.
 This template is based on one used by The Turing Way.
