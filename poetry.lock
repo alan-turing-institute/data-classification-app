@@ -377,6 +377,14 @@ phonenumbers = ["phonenumbers (>=7.0.2)"]
 phonenumberslite = ["phonenumberslite (>=7.0.2)"]
 
 [[package]]
+name = "django-restframework"
+version = "0.0.1"
+description = "django-restframework"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "django-simple-history"
 version = "3.0.0"
 description = "Store model history and view/revert changes from admin site."
@@ -1130,7 +1138,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "2b3bce30c004a66bd7fa214f705003fb357958580646ea284a0c1b84484fc55d"
+content-hash = "15eca7c3601ab6c66536b06d56c3d6e78844de61eaf92ee618450cf04cdf8c44"
 
 [metadata.files]
 appnope = [
@@ -1370,6 +1378,9 @@ django-formtools = [
 django-phonenumber-field = [
     {file = "django-phonenumber-field-5.2.0.tar.gz", hash = "sha256:52b2e5970133ec5ab701218b802f7ab237229854dc95fd239b7e9e77dc43731d"},
     {file = "django_phonenumber_field-5.2.0-py3-none-any.whl", hash = "sha256:5547fb2b2cc690a306ba77a5038419afc8fa8298a486fb7895008e9067cc7e75"},
+]
+django-restframework = [
+    {file = "django-restframework-0.0.1.tar.gz", hash = "sha256:2bec9265463693ada558ad9a58c31f6f3de005a932fbfeaadf983c5c9f3b7058"},
 ]
 django-simple-history = [
     {file = "django-simple-history-3.0.0.tar.gz", hash = "sha256:66fe76c560054be393c52b1799661e104fbe372918d37d151e5d41c676158118"},
