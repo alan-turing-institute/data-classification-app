@@ -154,6 +154,15 @@ SECURE_BROWSER_XSS_FILTER = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = "DENY"
 
+# DJANGO REST FRAMEWORK
+# ------------------------------------------------------------------------------
+# https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAdminUser",
+    ],
+}
+
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
 
