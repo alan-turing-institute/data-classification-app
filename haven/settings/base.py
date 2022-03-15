@@ -83,6 +83,7 @@ THIRD_PARTY_APPS = [
     "simple_history",
     "social_django",
     "taggit",
+    "rest_framework",
 ]
 
 LOCAL_APPS = [
