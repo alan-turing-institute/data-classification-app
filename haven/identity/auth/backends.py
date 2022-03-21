@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.backends import RemoteUserBackend
 
+from haven.identity.roles import UserRole
 
 class RemoteExtendedUserBackend(RemoteUserBackend):
     """
@@ -60,6 +61,17 @@ class RemoteExtendedUserBackend(RemoteUserBackend):
     def user_has_to_be_staff(self, user):
         return True
 
+    def update_user_role(self, user, target_group_names):
+        roles = [role[0] for role in UserRole.choices()]
+        roles.remove("")
+        roles = frozenset(roles)
+        role = list(roles & target_group_names)
+        if role:
+            user.role = role[0]
+            user.save()
+            target_group_names = target_group_names - set(role)
+        return target_group_names
+
     def update_groups(self, user, remote_groups):
         """
         Synchronizes groups the user belongs to with remote information.
@@ -79,6 +91,7 @@ class RemoteExtendedUserBackend(RemoteUserBackend):
             [x for x in map(self.clean_groupname, remote_groups.split(',')) if x is not None]
         )
         target_group_names = target_group_names - self.excluded_groups
+        target_group_names = self.update_user_role(user, target_group_names)
 
         if target_group_names != current_group_names:
             target_group_names = target_group_names.union(preserved_group_names)
