@@ -4,7 +4,7 @@
 ###############################################################
 
 jwt_secret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhY2xhc3NpZmljYXRpb25hcHAiLCJpYXQiOjE2NDQzOTg3NzMsImV4cCI6MTY3NTkzNDgxOSwiYXVkIjoiZGNhLnVrc291dGguY2xvdWRhcHAuYXp1cmUuY29tIiwic3ViIjoiYWRtaW51c2VyQGFkbWluLmNvbSJ9.wJVUxRIpbf0PcLGuixYX_EWuLiUwubfcr_DPfj-temM
-default_redirection_url: https://dca.uksouth.cloudapp.azure.com/haven
+default_redirection_url: https://auth.app.localhost
 
 server:
   host: 0.0.0.0
@@ -16,7 +16,7 @@ log:
 
 totp:
   # should this be the domain?
-  issuer: authelia.com
+  issuer: auth.app.localhost
 
 # duo_api:
 #  hostname: api-123456789.example.com
@@ -27,6 +27,12 @@ totp:
 authentication_backend:
   file:
     path: /config/users_database.yml
+    password:
+        algorithm: argon2id
+        iterations: 1
+        salt_length: 16
+        parallelism: 8
+        memory: 64
 
 access_control:
   default_policy: deny
@@ -34,7 +40,7 @@ access_control:
     # Rules applied to everyone
     #- domain: dca.uksouth.cloudapp.azure.com
      # policy: bypass
-    - domain: dca.uksouth.cloudapp.azure.com
+    - domain: [ "haven.app.localhost", "app.localhost", "auth.app.localhost"]
       policy: one_factor
     #- domain: dca.uksouth.cloudapp.azure.com
     #  policy: two_factor
@@ -46,7 +52,7 @@ session:
   secret: YBhhHp3QS9NWJNSUqbLDVK1dw2mIQ3DA
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
-  domain: dca.uksouth.cloudapp.azure.com  # Should match whatever your root protected domain is
+  domain: app.localhost  # Should match whatever your root protected domain is
 
   redis:
     host: redis
