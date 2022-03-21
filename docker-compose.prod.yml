@@ -38,16 +38,18 @@ services:
 
 
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx/
+      dockerfile: ./Dockerfile
+    image: haven_production_nginx
+    container_name: nginx_haven
     ports:
       - "80:80"
       - "443:443"
     command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
     volumes:
       - static_volume:/app/staticfiles
-      - ./nginx:/etc/nginx/conf.d
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - web
       - db
