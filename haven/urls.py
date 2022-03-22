@@ -29,7 +29,7 @@ urlpatterns = [
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("auth/", include("social_django.urls", namespace="social")),
     path("error/", TemplateView.as_view(template_name="error.html"), name="error-page"),
-    path("api/", include("haven.core.apiv1_urls", namespace="api")),
+    path("api/v1/", include("haven.core.apiv1_urls", namespace="api")),
 ]
 
 
