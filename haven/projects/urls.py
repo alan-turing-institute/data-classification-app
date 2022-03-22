@@ -145,14 +145,4 @@ urlpatterns = [
         views.AutocompleteProgramme.as_view(),
         name="autocomplete_programme",
     ),
-    path(
-        route="api/",
-        view=api_views.ProjectListAPIView.as_view(),
-        name="project_rest_api"
-    ),
-    path(
-        route="api/<uuid:uuid>/",
-        view=api_views.ProjectRetrieveAPIView.as_view(),
-        name="project_rest_api"
-    ),
 ]
