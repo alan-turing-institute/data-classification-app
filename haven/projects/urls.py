@@ -1,6 +1,7 @@
 from django.urls import path
 
 from haven.projects import views
+import haven.projects.api.views  as api_views
 
 
 app_name = "projects"
@@ -143,5 +144,15 @@ urlpatterns = [
         "autocomplete_programme/",
         views.AutocompleteProgramme.as_view(),
         name="autocomplete_programme",
+    ),
+    path(
+        route="api/",
+        view=api_views.ProjectListAPIView.as_view(),
+        name="project_rest_api"
+    ),
+    path(
+        route="api/<uuid:uuid>/",
+        view=api_views.ProjectRetrieveAPIView.as_view(),
+        name="project_rest_api"
     ),
 ]
