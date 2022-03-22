@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -7,6 +8,11 @@ from haven.identity.models import User
 
 
 class Dataset(models.Model):
+    uuid = models.UUIDField(  # Used by the API to look up the dataset
+        db_index=True,
+        default=uuid.uuid4,
+        editable=False
+    )
     name = models.CharField(max_length=256)
     description = models.TextField()
     default_representative = models.ForeignKey(

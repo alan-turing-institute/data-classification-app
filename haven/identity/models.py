@@ -1,5 +1,6 @@
 import re
 import unicodedata
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -16,6 +17,11 @@ class User(AbstractUser):
     """
     Represents a user that can log in to the system
     """
+    uuid = models.UUIDField(  # Used by the API to look up the user
+        db_index=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
     role = models.CharField(
         max_length=50,

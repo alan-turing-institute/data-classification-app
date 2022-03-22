@@ -267,6 +267,12 @@ class WorkPackageStatus(Enum):
 
 
 class WorkPackage(CreatedByModel):
+    uuid = models.UUIDField(  # Used by the API to look up the work package
+        db_index=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="work_packages"
     )
@@ -738,6 +744,11 @@ class Participant(CreatedByModel):
     """
     Represents a user's participation in a project
     """
+    uuid = models.UUIDField(  # Used by the API to look up the participant
+        db_index=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
     role = models.CharField(
         max_length=50,
