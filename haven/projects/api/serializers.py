@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from haven.identity.api.serializers import UserSerializer
+from haven.identity.api.serializers import UserContactSerializer
 from haven.data.api.serializers import DatasetSerializer
 from ..models import Project, Participant, WorkPackage
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserContactSerializer()
     class Meta:
         model = Participant
         fields = [

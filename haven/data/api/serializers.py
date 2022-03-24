@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from haven.identity.api.serializers import UserSerializer
+from haven.identity.api.serializers import UserContactSerializer
 from ..models import Dataset
 
 
 class DatasetSerializer(serializers.ModelSerializer):
-    default_representative = UserSerializer()
-    created_by = UserSerializer()
+    default_representative = UserContactSerializer()
+    created_by = UserContactSerializer()
 
     class Meta:
         model = Dataset
