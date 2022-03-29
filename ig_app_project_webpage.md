@@ -6,7 +6,7 @@
 (Aim for 6 words or fewer. A clear description of the project, can be different to official academic
 name of the project, please avoid acronyms/initialisms) *
 
-
+App-based Information Governance for Trustworthy Research Environments
 
 ## Organisers
 **Project leader 1** 
@@ -33,10 +33,12 @@ James Hetherington
 ### 1 sentence summary/sub-heading
 (1 sentence, present tense, e.g. Using…, Developing…, Investigating…) 
 
+Delivering an open source "information governance system in a box" to support data protection in trustworthy research environments.
 
 ### Brief description
 (Clear, concise, ~3 sentences – e.g. 1st sentence: the problem being addressed, 2nd sentence: the potential solution/method, 3rd sentence: applications, output) *
 
+How can researchers be confident that a trustworthy research environment is configured with the right level of protections for the data analysed within it, in line with data protection standards?   
 
 ### Aims/expected outcomes
 (What is the work hoping to achieve? What would define success? Why is this work worth doing?)
