@@ -10,9 +10,6 @@ main {
 span.select2-selection.select2-selection--single {
   height: 38px; }
 
-#id_participants-0-role {
-  margin-left: 20px; }
-
 table.formset th.col-form-label {
   padding-left: 20px; }
 
@@ -43,3 +40,6 @@ a {
 
 .project-details {
   padding: 40px 0; }
+
+#participants-formset table td {
+  padding: 10px; }
