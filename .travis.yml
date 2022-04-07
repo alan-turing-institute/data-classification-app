@@ -47,6 +47,7 @@ matrix:
         - "3.8"
       env:
         - SECRET_KEY='notasecret'
+        - DATABASE_URL=pgsql://haven:haven@db:5432/haven
       addons:
         apt:
           packages:
