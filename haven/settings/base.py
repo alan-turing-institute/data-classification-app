@@ -22,7 +22,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 WEBAPP_TITLE = env.str("WEBAPP_TITLE", default="Data Classification")
 
 INTERNAL_IPS = env.list("INTERNAL_IPS", default=["127.0.0.1"])  # noqa
-SAFE_HAVEN_DOMAIN = env.str("SAFE_HAVEN_DOMAIN", default="dsgroupdev.co.uk")
+SAFE_HAVEN_DOMAIN = env.str("SAFE_HAVEN_DOMAIN", default="example.com")
 BASE_DOMAIN = env.str("BASE_DOMAIN", default="localhost:8000")
 BASE_URL = env.str("BASE_URL", default="http://localhost:8000/")
 
@@ -186,6 +186,7 @@ if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",
     ]
+    LOCAL_AUTH=True
 
 
 # PASSWORDS
