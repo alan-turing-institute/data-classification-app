@@ -504,12 +504,12 @@ class TestImportUsers:
     def test_import_as_pm(self, as_programme_manager):
         response = self.post_csv(as_programme_manager)
         assert response.status_code == 200
-        assert [u.username for u in User.objects.all()] == [
+        assert set([u.username for u in User.objects.all()]) == set([
             "coordinator@example.com",
             "fn1.ln1@example.com",
             "fn2.ln2@example.com",
             "fn3.ln3@example.com",
-        ]
+        ])
 
     def test_csv_users(self):
         users = csv_users(
