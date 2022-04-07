@@ -413,17 +413,15 @@ class TestExportUsers:
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
-        assert parsed == [
-            ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            [
+        assert ["user1", "", "", "", "user@example.com"] in parsed
+        assert [
                 "project_participant",
                 "Angela",
                 "Zala",
                 "+441234567890",
                 "project_participant@example.com",
-            ],
-            ["user1", "", "", "", "user@example.com"],
-        ]
+            ] in parsed
+        assert len(parsed) == 3
 
     def test_export_new_by_project(
         self,
