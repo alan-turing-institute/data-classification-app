@@ -54,6 +54,10 @@ if settings.DEBUG:
     # Enable local user login
     from django.contrib.auth import views as auth_views
 
+if settings.LOCAL_AUTH:
+    # Enable local user login
+    from django.contrib.auth import views as auth_views
+
     urlpatterns = [
         path(
             "accounts/login/",
