@@ -20,8 +20,19 @@ table.formset th.col-form-label {
   border: #495057;
   color: #ffffff;
   background-color: #53c5d4;
-  width: 200px; }
+  width: 200px;
+  margin-bottom: 5px; }
   .custom-btn:hover {
+    background-color: #52a3ad;
+    color: #ffffff; }
+
+.ingress-btn {
+  border: #495057;
+  color: #ffffff;
+  background-color: #53c5d4;
+  width: 300px;
+  margin-bottom: 5px; }
+  .ingress-btn:hover {
     background-color: #52a3ad;
     color: #ffffff; }
 
@@ -29,7 +40,7 @@ table.formset th.col-form-label {
   border: #495057;
   color: #ffffff;
   background-color: #2fd1ae;
-  width: 155px;
+  width: 250px;
   padding: 6px 12px;
   line-height: 26px; }
   .save-btn:hover {
