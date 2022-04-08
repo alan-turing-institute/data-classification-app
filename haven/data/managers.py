@@ -8,14 +8,14 @@ class ClassificationQuestionQuerySet(models.QuerySet):
         return self.get_ordered_questions()[0]
 
     def get_ordered_questions(self):
-        '''
+        """
         Return the classification questions, ordered in such a way
         that earlier questions do not have any dependency on earlier
         questions.
 
         This method will fail if there are any cycles in the
         classification questions.
-        '''
+        """
         incoming = defaultdict(list)
         ordered = []
         for q in self.filter(hidden=False):

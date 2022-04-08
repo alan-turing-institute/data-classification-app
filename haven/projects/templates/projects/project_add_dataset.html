@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
-{% load haven %}
+{% load crispy_forms_tags static haven %}
 
 {% block h1_title %}Add Dataset{% endblock %}
 
@@ -13,9 +12,9 @@
   {% endif %}
 </p>
 
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
 <form method="POST">
-  {% csrf_token %}
-  {{ form.media }}
   {% crispy form %}
 </form>
 

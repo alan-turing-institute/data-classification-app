@@ -28,7 +28,7 @@ You need to create an environment settings file before deploying the webapp for 
 This file is used by the provisioning script to create the webapp deployment and configure the application settings. It can also be used to modify the deployment in future. 
 It is recommended (but not required) that you keep a copy of the file as it will make it easier to modify an existing deployment.
 
-Copy the template file `deployment/.env.example` to a custom file for your deployment, eg. `deployment/.env.production`. Set the required parameters in `deployment/.env.production` for your environment and deployment.
+Copy the template file `deployment/.env.example` to a custom file for your deployment, e.g. `deployment/.env.production`. Set the required parameters in `deployment/.env.production` for your environment and deployment.
 You use this environment file by adding a parameter to the `provision.sh` script as described below. The script will set environment variables
 in the Azure Django app. These variables can be modified later using the Azure CLI or the Azure Portal.
 
@@ -78,14 +78,14 @@ Note: the provisioning script is idempotent. If run on an existing installation,
   - Cloud apps or actions:
      - Select what this policy applies to: Cloud Apps
      - Include: Select apps
-     - Select: name of webapp App Registration (eg Data Safe Haven Development)
+     - Select: name of webapp App Registration (e.g. Data Safe Haven Development)
   - Access controls: Grant access -> Require multi-factor authentication
   - Enable policy: On
 * Click "Save"
 * Save
 
 ### Setup custom domain
-If you are using a custom domain for your webapp (ie your site `https://www.some.domain.com` is not the default Azure site `https://AZURE_APP_NAME.azurewebsites.net`),
+If you are using a custom domain for your webapp (i.e. your site `https://www.some.domain.com` is not the default Azure site `https://AZURE_APP_NAME.azurewebsites.net`),
 use the following steps to configure your custom domain on the Azure portal:
 * If the parent domain `some.domain.com` does not already have an Azure DNS zone, then you need to create one and copy the NS records to the parent domain. __NB. You don't need to do this if your SHM domain is `some.domain.com` and your website is `www.some.domain.com` as you will have created the DNS Zone `some.domain.com` during the SHM deployment.__ 
     * On the Azure portal, create an Azure DNS Zone for your custom domain. Note the required NS records listed for this zone.

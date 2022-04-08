@@ -13,13 +13,13 @@ def project_role_display(role):
     try:
         return ProjectRole.display_name(role)
     except KeyError:
-        return ''
+        return ""
 
 
 @register.filter
 def tier(tier):
     if tier is None:
-        return '?'
+        return "?"
     else:
         return str(tier)
 
@@ -27,4 +27,4 @@ def tier(tier):
 @register.filter
 def project_participation_role(user, project):
     role = user.project_participation_role(project)
-    return  project_role_display(role.value if role else None)
+    return project_role_display(role.value if role else None)

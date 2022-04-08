@@ -33,3 +33,6 @@ The webapp has been tested, and instructions are provided for, the following dep
 
 * [Web deployment on Azure](docs/create-management-webapp/azure-deploy-management-webapp.md)
 
+## Sample user guide
+
+* [Instructions for data provider representatives](docs/user_guide/user_guide.md)
