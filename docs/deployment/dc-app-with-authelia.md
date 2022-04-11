@@ -37,32 +37,57 @@ FROM_MAIL=noreply@example.com
 ```
 
 Edit the following files to replace `data-classification.example.com` with your custom domain:
-* `nginx/conf.d/nginx.conf`: where you see auth.data-classification.example.com, keep the auth bit.
-* nginx/auth.conf: replace domain in line starting error_page, keeping the auth bit.
-* authelia/configuration.yml:
-  - default_redirection_url
-  - totp/issuer
-  - access_control/rules/domain
-  - session/domain
+* `nginx/conf.d/nginx.conf`: where you see `auth.data-classification.example.com`, keep the auth bit.
+
+```
+server {
+    server_name auth.<your-domain-here>;
+    ...
+}
+```
+* `nginx/auth.conf`:  
+
+```html
+error_page 401 =302 https://auth.<your-domain-here>/?rd=$target_url;
+```
+* `authelia/configuration.yml`:
+
+```yaml
+default_redirection_url: https://<your-domain-here>
+...
+totp:
+  # should this be the domain?
+  issuer: <your-domain-here>
+...
+access_control:
+  rules:
+    # Rules applied to everyone
+    #- domain: dca.uksouth.cloudapp.azure.com
+     # policy: bypass
+    - domain: <your-domain-here>
+
+  session:
+    domain: <your-domain-here>
+```
 
 ## Certificates
 
-* Edit nginx/conf.d/nginx.conf and comment out the two https server blocks (otherwise nginx will complain we don't have ssl certificates)
+* Edit `nginx/conf.d/nginx.conf `and comment out the two https server blocks (otherwise nginx will complain we don't have ssl certificates)
 * Create directories for certbot to store things:
-  
+
   `mkdir -p data/certbot/{conf,www}`
 * Change permissions on www:
-  
+
   `chmod 777 data/certbot/www`
 * Edit init-letsencrypt.sh and change the domains array var on line 8 to:
-  
+
   `domains=(data-classification.example.com auth.data-classification.example.com)`
 * Make sure `staging=1` on line 16, then save your changes
 * Make init-letsencrypt.sh executable:
-  
+
   `chmod 775 init-letsencrypt.sh`
 * Run the script:
-  
+
   `sudo ./init-letsencrypt.sh`
 * If it works without any complaints, set staging to 0 and run the script again
 * Now you can edit nginx/conf.d/nginx.conf and uncomment the https server blocks
