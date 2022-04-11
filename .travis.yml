@@ -40,6 +40,7 @@ matrix:
         - cd static
         - npm install
         - gulp
+        - git diff
         - git diff --exit-code --numstat
     - name: run deployment checks
       language: python
