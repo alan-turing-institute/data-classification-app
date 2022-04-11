@@ -13,12 +13,19 @@ App-based Information Governance for Trustworthy Research Environments
 
 **Project leader 1**
 James Hetherington
+
 **Organisation/University affiliation 1** UCL Advanced Research Computing
+
 **Project leader 2** Martin O'Reilly
+
 **Organisation/University affiliation 2** The Alan Turing Institute
+
 **Project leader 3** Kirstie Whitaker
+
 **Organisation/University affiliation 3** The Alan Turing Institute
+
 **Project leader 4** Paul Calleja
+
 **Organisation/University affiliation 4** University of Cambridge
 
 ## Details
@@ -46,21 +53,35 @@ Delivering an open source "information governance system in a box" to support da
 (Clear, concise, ~3 sentences – e.g. 1st sentence: the problem being addressed, 2nd sentence: the potential solution/method, 3rd sentence: applications, output) *
 
 How can researchers be confident that a trustworthy research environment is configured with the right level of protections for the data analysed within it, in line with data protection standards?
+Developed alongside the Turing's Data Safe Haven, the purpose of the Turing’s information governance app is to bring people from diverse backgrounds - investigators, data protection experts, and other researchers - to assess datasets and arrive at a sensitivity classification for the data and the technical recommendations for the protections needed. 
+This project is looking to make the app implementable at other institutions and organisations as an open source tool. 
 
 ### Aims/expected outcomes
 
 (What is the work hoping to achieve? What would define success? Why is this work worth doing?)
 100-300 words *
 
+This project is building towards an open-source version of the Turing Information Governance app that can be deployed by other research organisations to support their data management and trusted research environment infrastructure. 
+We're preparing this release through a combination of technical work, user testing, and a deep understanding of the existing information governance processes and needs at different institutions.
+It also aims to provide a record of decision-making around information governance and data protection to comply with audit requirements. 
+In the first phase, funded by Turing 2.0, the project team are seeking to set up the potential deployment of the app across the Turing, UCL, and Cambridge. 
+
 ### Explaining the science
 
 (Is there theory or methods that would be good to explain to understand the project’s work better? Use plain English where possible)
 100-300 words *
 
+[XXXX need someone to talk about how the app is made!] 
+
 ### Real world applications
 
 (Where is this work being applied, what area/industry could it benefit?)
 100-300 words *
+
+There are growing numbers of trusted research environments being deployed across academia and other research intensive fields to offer increased data security and comply with data protection legislation. 
+However, deciding what level of protection a particular dataset needs is not always straightforward, since it depends on the type of data, how it has been processed, and how it will be used in the analysis. 
+Typically, assessing these aspects of datasets requires a form or meeting, which can often feel unconnected to the rest of the research process. 
+The process can also vary between departments and institutions, making it difficult to come to a consensus on how trusted research environments should be configured for interdisciplinary projects. 
 
 ### Recent updates
 
@@ -109,95 +130,19 @@ No
 
 (Please tick the research areas that are most applicable, up to max 10)
 
-Complexity
-Compression
+
 Data Structures
-Distributed
-Numerical
-Dynamical Systems & Differential Equations
-Information Theory
-Mathematical Physics
-Multi-Agent Systems
-Numerical Analysis
+
 Operations Research
-Control Theory
-Evolution & Adaptation
-Game Theory
+
 Knowledge Representation
-Multi-agent Reasoning
-Neural Networks
-Neuroscience
-Nonlinear Dynamics
-Pattern Formation
-Robotics
-Symbolic systems
-Systems Theory
-Communications
-Computing Networks
-Databases
+
 Human Computer Interface
-Information Retrieval
-Neural & Evolutionary Computing
-Operating Systems
-Real Time Computing
-Parallel Computing
-Visualisation
-Applications
-Computer Vision
-Deep Learning
-Natural Language Processing
-Pattern Recognition
-Reinforcement Learning
-Semi-Supervised
-Speech Recognition
-Supervised
-Unsupervised
-Agent-based Modelling
-Automata & Algebraic
-Deterministic
-Dynamic/Static
-Graph Theory
-Ensemble
-Stochastic
-Convex Programming
-Nonlinear Programming
-Stochastic Optimisation
-Cryptography
+
 Differential Privacy
 Identity Management
 Verification
-Hardware Optimisation (FPGA/GPU)
-Literate Programming
-Probabilistic Programming
-Software Framework Development
-Theory of Programming Languages
-Visualisation
-Cognitive Sicence
+
 Data Science of Government & Politics
-Developmental psychology
-Ethics
-Linguistics
-Management Science
+
 Research Methods
-Social Media
-Social Networks
-Social Psychology
-Asymptotic
-Causality
-Estimation Theory
-High Dimensional Inference
-Information Theory
-Modelling
-Monte Carlo Methods
-Non-parametric & Semi-parametric Methods
-Probability
-Simulation
-Spatial Analytics
-Time Series
-Uncertainty Quantification
-Algebra
-Calculus & Analysis
-Combinatorics
-Geometry & Topology
-Logic
-Number Theory
