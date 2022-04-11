@@ -33,7 +33,7 @@ matrix:
     - name: verify built JS files are up to date
       language: node_js
       node_js:
-        - 10
+        - 16
       before_script:
         - npm install -g gulp-cli
       script:
