@@ -72,7 +72,7 @@ access_control:
 
 ## Certificates
 
-* Edit `nginx/conf.d/nginx.conf `and comment out the two https server blocks (otherwise nginx will complain we don't have ssl certificates)
+* Edit `nginx/conf.d/nginx.conf` and comment out the two https server blocks (otherwise `nginx` will complain we don't have ssl certificates)
 * Create directories for certbot to store things:
 
   `mkdir -p data/certbot/{conf,www}`
@@ -81,7 +81,9 @@ access_control:
   `chmod 777 data/certbot/www`
 * Edit init-letsencrypt.sh and change the domains array var on line 8 to:
 
-  `domains=(data-classification.example.com auth.data-classification.example.com)`
+  ```html
+  domains=(<your-domain-here> auth.<your-domain-here>)
+```
 * Make sure `staging=1` on line 16, then save your changes
 * Make init-letsencrypt.sh executable:
 
