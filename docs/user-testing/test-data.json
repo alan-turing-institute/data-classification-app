@@ -1,0 +1,152 @@
+[
+{
+    "model": "projects.project",
+    "pk": 1,
+    "fields": {
+        "created_at": "2022-03-25T11:01:13.273Z",
+        "created_by": 1,
+        "name": "Cognitive algorithms and social learning",
+        "description": "An investigation into hypothesized links between sociality and cognitive functions in humans.",
+        "archived": false
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 2,
+    "fields": {
+        "created_at": "2022-03-25T11:13:53.441Z",
+        "created_by": 1,
+        "name": "Cellular cartography",
+        "description": "An investigation of whether a comprehensive map of the human proteome's organisation can serve as a reference to explore gene function in health and disease.",
+        "archived": false
+    }
+},
+{
+    "model": "projects.project",
+    "pk": 3,
+    "fields": {
+        "created_at": "2022-03-25T11:17:04.926Z",
+        "created_by": 1,
+        "name": "Parental vaccination",
+        "description": "Research into the extent to which children not vaccinated against SARS-Cov-2 benefit from vaccines through protection from vaccinated contacts.",
+        "archived": false
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 1,
+    "fields": {
+        "created_at": "2022-03-25T11:01:13.379Z",
+        "created_by": 1,
+        "project": 1,
+        "name": "Ingress",
+        "description": "<p>When considering a project, you'll need to consider all the tools and datasets you'll be using (in combination or separately) in a single research environment, as well as what work you'll be doing on the data, to consider the potential sensitivity of the data you'll be using / creating, and how securely it should be handled. Once you're finished with the project, you'll need to carry out separate classifications on the data you'll be taking out of the environment.</p><p>Datasets: All inputs, including tools, data and potential products of linking / filtering data.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 2,
+    "fields": {
+        "created_at": "2022-03-25T11:01:13.412Z",
+        "created_by": 1,
+        "project": 1,
+        "name": "Egress – Reports",
+        "description": "<p>When you're finishing a project, you'll need to complete reports and any other outputs that might be pertinent to the presentation of the research you've done. In this workpackage, you'll be egressing the documents, graphs, pictures and any other data you might need to make it easier to finish the report.</p><p>If there are images or details within these outputs that might constitute a tier of 2 or above, these should be removed temporarily for the purposes of the report writing process, to allow you to work outside of the secure environment. A separate discussion should be had between the lead investigator and the data provider representative as to how such items can be suitably redacted so that they can be included in the final document. If the report itself is classified as Tier 2, it will need to be completed and presented within a secure environment.</p><p>Datasets: Report inputs including text, images and code snippets.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 3,
+    "fields": {
+        "created_at": "2022-03-25T11:01:13.427Z",
+        "created_by": 1,
+        "project": 1,
+        "name": "Egress – Full",
+        "description": "<p>In this work package, you'll need to include all other outputs, including derived data sets and full code to be returned to the Data Provider for archiving. If this returns a high tier then a conversation needs to take place about where it should be stored, and whether some outputs should be redacted prior to release.</p><p>Datasets: All outputs, including text, images, code and any derived datasets.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 4,
+    "fields": {
+        "created_at": "2022-03-25T11:13:53.474Z",
+        "created_by": 1,
+        "project": 2,
+        "name": "Ingress",
+        "description": "<p>When considering a project, you'll need to consider all the tools and datasets you'll be using (in combination or separately) in a single research environment, as well as what work you'll be doing on the data, to consider the potential sensitivity of the data you'll be using / creating, and how securely it should be handled. Once you're finished with the project, you'll need to carry out separate classifications on the data you'll be taking out of the environment.</p><p>Datasets: All inputs, including tools, data and potential products of linking / filtering data.</p>",
+        "status": "underway",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 5,
+    "fields": {
+        "created_at": "2022-03-25T11:13:53.492Z",
+        "created_by": 1,
+        "project": 2,
+        "name": "Egress – Reports",
+        "description": "<p>When you're finishing a project, you'll need to complete reports and any other outputs that might be pertinent to the presentation of the research you've done. In this workpackage, you'll be egressing the documents, graphs, pictures and any other data you might need to make it easier to finish the report.</p><p>If there are images or details within these outputs that might constitute a tier of 2 or above, these should be removed temporarily for the purposes of the report writing process, to allow you to work outside of the secure environment. A separate discussion should be had between the lead investigator and the data provider representative as to how such items can be suitably redacted so that they can be included in the final document. If the report itself is classified as Tier 2, it will need to be completed and presented within a secure environment.</p><p>Datasets: Report inputs including text, images and code snippets.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 6,
+    "fields": {
+        "created_at": "2022-03-25T11:13:53.507Z",
+        "created_by": 1,
+        "project": 2,
+        "name": "Egress – Full",
+        "description": "<p>In this work package, you'll need to include all other outputs, including derived data sets and full code to be returned to the Data Provider for archiving. If this returns a high tier then a conversation needs to take place about where it should be stored, and whether some outputs should be redacted prior to release.</p><p>Datasets: All outputs, including text, images, code and any derived datasets.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 7,
+    "fields": {
+        "created_at": "2022-03-25T11:17:04.958Z",
+        "created_by": 1,
+        "project": 3,
+        "name": "Ingress",
+        "description": "<p>When considering a project, you'll need to consider all the tools and datasets you'll be using (in combination or separately) in a single research environment, as well as what work you'll be doing on the data, to consider the potential sensitivity of the data you'll be using / creating, and how securely it should be handled. Once you're finished with the project, you'll need to carry out separate classifications on the data you'll be taking out of the environment.</p><p>Datasets: All inputs, including tools, data and potential products of linking / filtering data.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 8,
+    "fields": {
+        "created_at": "2022-03-25T11:17:04.976Z",
+        "created_by": 1,
+        "project": 3,
+        "name": "Egress – Reports",
+        "description": "<p>When you're finishing a project, you'll need to complete reports and any other outputs that might be pertinent to the presentation of the research you've done. In this workpackage, you'll be egressing the documents, graphs, pictures and any other data you might need to make it easier to finish the report.</p><p>If there are images or details within these outputs that might constitute a tier of 2 or above, these should be removed temporarily for the purposes of the report writing process, to allow you to work outside of the secure environment. A separate discussion should be had between the lead investigator and the data provider representative as to how such items can be suitably redacted so that they can be included in the final document. If the report itself is classified as Tier 2, it will need to be completed and presented within a secure environment.</p><p>Datasets: Report inputs including text, images and code snippets.</p>",
+        "status": "new",
+        "tier": null
+    }
+},
+{
+    "model": "projects.workpackage",
+    "pk": 9,
+    "fields": {
+        "created_at": "2022-03-25T11:17:04.992Z",
+        "created_by": 1,
+        "project": 3,
+        "name": "Egress – Full",
+        "description": "<p>In this work package, you'll need to include all other outputs, including derived data sets and full code to be returned to the Data Provider for archiving. If this returns a high tier then a conversation needs to take place about where it should be stored, and whether some outputs should be redacted prior to release.</p><p>Datasets: All outputs, including text, images, code and any derived datasets.</p>",
+        "status": "new",
+        "tier": null
+    }
+}
+]
