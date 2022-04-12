@@ -80,7 +80,7 @@
         "project": 2,
         "name": "Ingress",
         "description": "<p>When considering a project, you'll need to consider all the tools and datasets you'll be using (in combination or separately) in a single research environment, as well as what work you'll be doing on the data, to consider the potential sensitivity of the data you'll be using / creating, and how securely it should be handled. Once you're finished with the project, you'll need to carry out separate classifications on the data you'll be taking out of the environment.</p><p>Datasets: All inputs, including tools, data and potential products of linking / filtering data.</p>",
-        "status": "underway",
+        "status": "new",
         "tier": null
     }
 },
