@@ -75,6 +75,7 @@ services:
       - ./authelia:/config
     ports:
       - 9091:9091
+    entrypoint: /config/entrypoint.sh
     restart: unless-stopped
 
   redis:

@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(${BASE_DOMAIN})
+domains=(${BASE_DOMAIN} auth.${BASE_DOMAIN})
 rsa_key_size=4096
 data_path="./data/certbot"
 email="${LETSENCRYPT_EMAIL}" # Adding a valid address is strongly recommended
