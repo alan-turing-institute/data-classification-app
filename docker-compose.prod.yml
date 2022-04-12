@@ -75,6 +75,8 @@ services:
       - ./authelia:/config
     ports:
       - 9091:9091
+    env_file:
+      - ./.env
     restart: unless-stopped
 
   redis:
