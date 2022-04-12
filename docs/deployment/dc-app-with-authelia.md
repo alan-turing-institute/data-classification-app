@@ -35,6 +35,7 @@ EMAIL_PORT=587
 EMAIL_USE_TLS=True
 FROM_MAIL=noreply@example.com
 ```
+
 * Create a configuration file for Authelia from the template:
 ```
 cd authelia
@@ -46,14 +47,13 @@ cd ..
 ## Certificates
 
 * Create directories for certbot to store things:
-  
+
   `mkdir -p data/certbot/{conf,www}`
 * Change permissions on www:
-  
-  `chmod 777 data/certbot/www`
 
+  `chmod 777 data/certbot/www`
 * Make init-letsencrypt.sh executable:
-  
+
   `chmod 775 init-letsencrypt.sh`
 * Build the containers:
 
