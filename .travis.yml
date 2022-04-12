@@ -33,13 +33,14 @@ matrix:
     - name: verify built JS files are up to date
       language: node_js
       node_js:
-        - 10
+        - 16
       before_script:
         - npm install -g gulp-cli
       script:
         - cd static
         - npm install
         - gulp
+        - git diff
         - git diff --exit-code --numstat
     - name: run deployment checks
       language: python

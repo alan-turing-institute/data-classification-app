@@ -10,12 +10,13 @@
     "browserify-shim": "^3.8.14",
     "django-formset": "^0.2.1",
     "jquery": "^3.6.0",
-    "popper.js": "^1.14.3"
+    "popper.js": "^1.14.3",
+    "sass": "^1.50.0"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-jshint": "^2.1.0",
-    "gulp-sass": "^4.1.1",
+    "gulp-sass": "^5.1.0",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-util": "^3.0.8",
     "jshint": "^2.10.2",
