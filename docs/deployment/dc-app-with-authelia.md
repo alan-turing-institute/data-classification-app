@@ -46,6 +46,9 @@ cd ..
 
 ## Certificates
 
+* Build the containers before starting:
+
+  `sudo docker-compose -f docker-compose.prod.yml build`
 * Create directories for certbot to store things:
 
   `mkdir -p data/certbot/{conf,www}`
@@ -55,9 +58,9 @@ cd ..
 * Make init-letsencrypt.sh executable:
 
   `chmod 775 init-letsencrypt.sh`
-* Build the containers:
+* Set the BASE_DOMAIN environment variable (if not already done so):
 
-  `sudo docker-compose -f docker-compose.prod.yml build`
+  `export BASE_DOMAIN=<custom domain>`
 * Run the script:
   
   `./init-letsencrypt.sh`
