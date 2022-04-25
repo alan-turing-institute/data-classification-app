@@ -21,10 +21,9 @@
   <p>
     To classify a work package, each individual will go through a series of questions, to help understand the legal sensitivity of the data involved, and the consequences of a data breach.
   </p>
+  {{ login_redirect }}
   {% if request.user.is_authenticated %}
     <a class="btn btn-lg custom-btn mt-4" href="{% url 'projects:list' %}">View Your Projects</a>
-  {% else %}
-    <a class="btn btn-lg custom-btn mt-4" href="{% url 'social:begin' 'azuread-tenant-oauth2' %}">Log In</a>
   {% endif %}
 {% endblock content %}
 
