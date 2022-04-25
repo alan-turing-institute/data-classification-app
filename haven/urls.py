@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf import settings
 from django.urls import include, path
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 
 from haven.core import views as core_views
 
@@ -51,6 +51,10 @@ if settings.DEBUG:
         path("admin/", admin.site.urls),
     ] + urlpatterns
 
+    # Enable local user login
+    from django.contrib.auth import views as auth_views
+
+if settings.LOCAL_AUTH:
     # Enable local user login
     from django.contrib.auth import views as auth_views
 

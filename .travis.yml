@@ -12,11 +12,9 @@ matrix:
       install:
         - poetry install
       env:
-        - DB_NAME="haven"
-        - DJANGO_SETTINGS_MODULE="haven.settings.test"
-        - DB_ENGINE="django.db.backends.postgresql"
-        - DB_USER="haven"
-        - DB_PASSWORD="haven"
+        - DATABASE_URL=pgsql://haven:haven@db:5432/haven
+        - AUTH_TYPES=social,local
+        - SOCIAL_AUTH_PROVIDERS=azure-ad-tenant
       before_script:
         - psql -c 'CREATE USER haven;' -U postgres
         - psql -c 'ALTER USER haven WITH CREATEDB;' -U postgres
@@ -35,13 +33,14 @@ matrix:
     - name: verify built JS files are up to date
       language: node_js
       node_js:
-        - 10
+        - 16
       before_script:
         - npm install -g gulp-cli
       script:
         - cd static
         - npm install
         - gulp
+        - git diff
         - git diff --exit-code --numstat
     - name: run deployment checks
       language: python
@@ -49,6 +48,7 @@ matrix:
         - "3.8"
       env:
         - SECRET_KEY='notasecret'
+        - DATABASE_URL=pgsql://haven:haven@db:5432/haven
       addons:
         apt:
           packages:

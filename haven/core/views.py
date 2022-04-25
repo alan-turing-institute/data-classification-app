@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import logout as auth_logout
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from django.urls import reverse
 
 
 SIGNOUT_URL = (
@@ -24,7 +25,7 @@ def logout(request):
 def sso_logout(request):
     """Log out of application in response to single sign out from the auth provider"""
     auth_logout(request)
-    return HttpResponse(status=200)
+    return HttpResponseRedirect(reverse('home'))
 
 
 def handler404(request, exception, template_name="404.html"):

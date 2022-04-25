@@ -13,9 +13,9 @@ USE_X_FORWARDED_HOST = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Enforce SSL for database communication
-DATABASES["default"].setdefault("OPTIONS", {})
-DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
+# Enforce SSL for database communication (if needed)
+# DATABASES["default"].setdefault("OPTIONS", {})
+# DATABASES["default"]["OPTIONS"]["sslmode"] = "require"
 
 # Log to the console so it will be captured by Azure's log stream
 LOGGING = {
