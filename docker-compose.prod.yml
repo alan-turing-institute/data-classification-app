@@ -46,10 +46,13 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - ./.env
     command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
     volumes:
       - static_volume:/app/staticfiles
-      - ./nginx/certs:/etc/nginx/certs
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/includes:/etc/nginx/includes
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
     depends_on:
@@ -72,6 +75,8 @@ services:
       - ./authelia:/config
     ports:
       - 9091:9091
+    env_file:
+      - ./.env
     restart: unless-stopped
 
   redis:
