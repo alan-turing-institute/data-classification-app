@@ -5,15 +5,16 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(dca.uksouth.cloudapp.azure.com)
+domains=(${BASE_DOMAIN} auth.${BASE_DOMAIN})
 rsa_key_size=4096
 data_path="./data/certbot"
-email="rebecca.osselton@newcastle.ac.uk" # Adding a valid address is strongly recommended
+email="${LETSENCRYPT_EMAIL}" # Adding a valid address is strongly recommended
+compose_file=${LETSENCRYPT_COMPOSE:-"docker-compose.prod.yml"}
 
 
 # important!
 # Set to 1 if you're testing your setup to avoid hitting request limits, but for a real request this should be set to 0.
-staging=1 
+staging=${LETSENCRYPT_STAGING:-1}
 
 if [ -d "$data_path" ]; then
   read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision
@@ -34,7 +35,7 @@ fi
 echo "### Creating dummy certificate for $domains ..."
 path="/etc/letsencrypt/live/$domains"
 mkdir -p "$data_path/conf/live/$domains"
-docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker-compose -f $compose_file run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
@@ -43,11 +44,11 @@ echo
 
 
 echo "### Starting nginx ..."
-docker-compose -f docker-compose.prod.yml up --force-recreate -d nginx
+docker-compose -f $compose_file up --force-recreate -d nginx
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
-docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker-compose -f $compose_file run --rm --entrypoint "\
   rm -Rf /etc/letsencrypt/live/$domains && \
   rm -Rf /etc/letsencrypt/archive/$domains && \
   rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot
@@ -58,11 +59,9 @@ echo "### Requesting Let's Encrypt certificate for $domains ..."
 #Join $domains to -d args
 domain_args=""
 
-# single domain at the moment, no need to loop as below
-
-#for domain in "${domains[@]}"; do
-#  domain_args="$domain_args -d $domain"
-#done
+for domain in "${domains[@]}"; do
+  domain_args="$domain_args -d $domain"
+done
 
 # Select appropriate email arg
 case "$email" in
@@ -73,7 +72,7 @@ esac
 # Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
+docker-compose -f $compose_file run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
@@ -84,4 +83,4 @@ docker-compose -f docker-compose.prod.yml run --rm --entrypoint "\
 echo
 
 echo "### Reloading nginx ..."
-docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+docker-compose -f $compose_file exec nginx nginx -s reload
