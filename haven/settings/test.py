@@ -15,9 +15,3 @@ SAFE_HAVEN_DOMAIN = "example.com"
 # This should prevent Whitenoise from looking in a non-existent directory and raising a warning
 # during every test
 WHITENOISE_AUTOREFRESH = True
-
-# Allow local database user login
-AUTHENTICATION_BACKENDS.append("django.contrib.auth.backends.ModelBackend")
-if "local" not in HAVEN_AUTH_TYPES:
-    HAVEN_AUTH_TYPES += ["local"]
-    LOCAL_AUTH=True

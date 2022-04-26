@@ -1,5 +1,9 @@
 # Setup instructions for various OAuth2 backends
 
+We're currently using the [Python Social Auth](https://python-social-auth.readthedocs.io/en/latest/) library which provides a [long list of pre-configured backends](https://python-social-auth.readthedocs.io/en/latest/backends/index.html#social-backends) for different social authentication providers. It is also possible to [create you own backends](https://python-social-auth.readthedocs.io/en/latest/backends/implementation.html).
+
+The app is currently configured for sign in with GitHub, ORCiD and Azure AD Tenant to be enabled through the `SOCIAL_AUTH_PROVIDERS` environment variable (see below for details). Other backends will need to be added by editing `haven/settings/components/social_auth.py`.
+
 ## GitHub
 
 Register a new application at [GitHub Developers](https://github.com/settings/applications/new). Use the following homepage and callback URLs, replacing `localhost:8000` with the appropriate domain in production:
