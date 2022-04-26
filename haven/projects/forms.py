@@ -333,7 +333,7 @@ class ProjectArchiveForm(forms.Form):
 
 
 class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper("Add Dataset to Work Package")
+    helper = SaveCancelFormHelper("Add Dataset to Work Package", "save-btn")
 
     class Meta:
         model = WorkPackageDataset
@@ -347,7 +347,7 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
 
 
 class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper("Add Participant to Work Package")
+    helper = SaveCancelFormHelper("Add Participant to Work Package", "save-btn")
 
     class Meta:
         model = WorkPackageParticipant
