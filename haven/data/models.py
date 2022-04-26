@@ -28,7 +28,11 @@ class ClassificationQuestionSet(models.Model):
 
 
 class ClassificationQuestion(models.Model):
-    name = models.CharField(max_length=256, unique=True)
+
+    class Meta:
+        unique_together = [["name", "question_set"]]
+
+    name = models.CharField(max_length=256)
     question_set = models.ForeignKey(
         "ClassificationQuestionSet",
         on_delete=models.CASCADE,  # delete this if question_set is deleted
