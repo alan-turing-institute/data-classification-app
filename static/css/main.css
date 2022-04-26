@@ -54,3 +54,7 @@ a {
 
 .project-details {
   padding: 40px 0; }
+
+#participants-formset table td {
+  padding: 10px; }
+
