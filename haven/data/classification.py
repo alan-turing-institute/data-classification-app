@@ -476,6 +476,7 @@ def insert_initial_questions(ClassificationQuestion, ClassificationGuidance, Cla
     assert not ClassificationQuestionSet.objects.exists()
 
     question_set = ClassificationQuestionSet(name="turing")
+    question_set.save()
     guidance = {}
     questions = {}
 
