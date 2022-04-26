@@ -6,7 +6,7 @@ from django.db import IntegrityError
 
 from haven.core import recipes
 from haven.data.classification import insert_initial_questions
-from haven.data.models import ClassificationGuidance, ClassificationQuestion
+from haven.data.models import ClassificationGuidance, ClassificationQuestion, ClassificationQuestionSet
 from haven.projects.models import (
     Policy,
     PolicyAssignment,
@@ -653,7 +653,11 @@ class TestWorkPackage:
     def test_classify_work_package_store_questions(
         self, classified_work_package, investigator
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         questions = []
@@ -686,7 +690,11 @@ class TestWorkPackage:
         ]
 
     def test_ordered_questions(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         questions = ClassificationQuestion.objects.get_ordered_questions()
         assert len(questions) == 14
 
@@ -709,7 +717,11 @@ class TestWorkPackage:
         assert [q.name for q in questions] == ordered
 
     def test_default_guidance(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
 
         num_questions = 0
         num_question_links = 0
@@ -738,7 +750,11 @@ class TestWorkPackage:
         assert num_guidance_links == 1
 
     def test_classify_questions_tier0(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -751,7 +767,11 @@ class TestWorkPackage:
         assert tier == 0
 
     def test_classify_questions_tier1(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -768,7 +788,11 @@ class TestWorkPackage:
         assert tier == 1
 
     def test_classify_questions_tier2(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -789,7 +813,11 @@ class TestWorkPackage:
         assert tier == 2
 
     def test_classify_questions_tier3(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -804,7 +832,11 @@ class TestWorkPackage:
         assert tier == 3
 
     def test_classify_questions_tier4(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_yes()

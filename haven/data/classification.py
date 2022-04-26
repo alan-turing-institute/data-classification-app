@@ -470,10 +470,12 @@ def initial_questions():
     return questions
 
 
-def insert_initial_questions(ClassificationQuestion, ClassificationGuidance):
+def insert_initial_questions(ClassificationQuestion, ClassificationGuidance, ClassificationQuestionSet):
     assert not ClassificationGuidance.objects.exists()
     assert not ClassificationQuestion.objects.exists()
+    assert not ClassificationQuestionSet.objects.exists()
 
+    question_set = ClassificationQuestionSet(name="turing")
     guidance = {}
     questions = {}
 
@@ -488,6 +490,7 @@ def insert_initial_questions(ClassificationQuestion, ClassificationGuidance):
             kwargs["yes_question"] = questions[kwargs["yes_question"]]
         if kwargs["no_question"]:
             kwargs["no_question"] = questions[kwargs["no_question"]]
+        kwargs["question_set"] = question_set
         q = ClassificationQuestion(**kwargs)
         q.full_clean()
         q.save()

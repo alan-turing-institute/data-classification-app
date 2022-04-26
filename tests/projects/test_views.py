@@ -5,7 +5,7 @@ import pytest
 
 from haven.core import recipes
 from haven.data.classification import insert_initial_questions
-from haven.data.models import ClassificationGuidance, ClassificationQuestion
+from haven.data.models import ClassificationGuidance, ClassificationQuestion, ClassificationQuestionSet
 from haven.identity.models import User
 from haven.projects.models import (
     ClassificationOpinion,
@@ -2293,6 +2293,7 @@ class TestWorkPackageClassifyData:
         next=None,
         number=None,
         guidance=None,
+        question_set=None,
     ):
         """
         Posts data to answer a single classification question
@@ -2303,6 +2304,7 @@ class TestWorkPackageClassifyData:
         work_package - Work package to classify
         response - Response object for current page
         current - Name of the ClassificationQuestion being answered
+        question_set - Question Set to use if not default
 
         Actions to take (optional, normally you should supply exactly one):
         answer - boolean representing whether to answer Yes/No
@@ -2382,7 +2384,11 @@ class TestWorkPackageClassifyData:
     def test_unassigned_cannot_view_page(
         self, as_project_participant, programme_manager
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(
@@ -2395,7 +2401,11 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 403
 
     def test_view_page(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(
             project=project, status=WorkPackageStatus.UNDERWAY.value
@@ -2467,7 +2477,11 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 403
 
     def test_returns_403_when_not_open(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
         work_package.status = WorkPackageStatus.NEW.value
         work_package.save()
@@ -2503,7 +2517,11 @@ class TestWorkPackageClassifyData:
         ]
 
     def test_delete_classification(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         work_package.classify_as(0, as_investigator._user)
@@ -2521,7 +2539,11 @@ class TestWorkPackageClassifyData:
         assert b"Delete My Classification" not in response.content
 
     def test_classify_as_tier(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion, 
+            ClassificationGuidance, 
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2624,7 +2646,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_backwards(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion, 
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2736,7 +2762,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_jump_back(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2823,7 +2853,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_jump_illegal(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2853,7 +2887,11 @@ class TestWorkPackageClassifyData:
         ]
 
     def test_classify_guidance(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2917,7 +2955,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_simultaneous(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package_1 = classified_work_package(None)
         work_package_2 = classified_work_package(None)
 
@@ -3007,7 +3049,11 @@ class TestWorkPackageClassifyData:
     def test_modify_classification_from_start(
         self, classified_work_package, as_investigator
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3069,7 +3115,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3122,7 +3172,11 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_back(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3231,7 +3285,11 @@ class TestWorkPackageClassifyData:
     def test_modify_classification_unanswered(
         self, classified_work_package, as_investigator
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3323,7 +3381,11 @@ class TestWorkPackageClassifyData:
     def test_modify_classification_question_changed(
         self, classified_work_package, as_investigator
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3438,7 +3500,11 @@ class TestWorkPackageClassifyData:
     def test_modify_classification_abandoned(
         self, classified_work_package, as_investigator
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3558,7 +3624,11 @@ class TestWorkPackageClassifyResults:
     def test_view_as_project_manager(
         self, client, classified_work_package, programme_manager
     ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        insert_initial_questions(
+            ClassificationQuestion,
+            ClassificationGuidance,
+            ClassificationQuestionSet
+            )
         project_manager = recipes.user.make()
         investigator = recipes.user.make()
 
