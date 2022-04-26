@@ -7,14 +7,20 @@ import taggit.managers
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('taggit', '0003_taggeditem_add_unique_index'),
-        ('projects', '0035_workpackage_state'),
+        ("taggit", "0003_taggeditem_add_unique_index"),
+        ("projects", "0035_workpackage_state"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='programmes',
-            field=taggit.managers.TaggableManager(blank=True, help_text='A comma-separated list of tags.', through='taggit.TaggedItem', to='taggit.Tag', verbose_name='Tags'),
+            model_name="project",
+            name="programmes",
+            field=taggit.managers.TaggableManager(
+                blank=True,
+                help_text="A comma-separated list of tags.",
+                through="taggit.TaggedItem",
+                to="taggit.Tag",
+                verbose_name="Tags",
+            ),
         ),
     ]

@@ -1,6 +1,6 @@
 # Data Safe Haven web management application: set up staging server
 
-These instructions for for deploying a staging/test instance of the management web application in a testing environment.
+These instructions are for deploying a staging/test instance of the management web application in a testing environment.
 
 
 ## Prerequisites
@@ -15,7 +15,7 @@ You will need
 
 ### Configure your environment settings
 
-Copy the template file `deployment/.env.example` to a custom file for your deployment, eg. `deployment/.env.staging`. Set the required parameters in `deployment/.env.staging` for your environment and deployment.
+Copy the template file `deployment/.env.example` to a custom file for your deployment, e.g. `deployment/.env.staging`. Set the required parameters in `deployment/.env.staging` for your environment and deployment.
 You use this environment file by adding a parameter to the `provision.sh` script as described below. The script will set environment variables
 in the Azure Django app. These variables can be modified later using the Azure CLI or the Azure Portal.
 
@@ -51,4 +51,4 @@ The path after `-e` describes the location of your custom environment file (if y
 * In the 'Configure' step, select:
   - Organization: 'alan-turing-institute'
   - repository: 'data-safe-haven-webapp'
-  - branch: the branch to deploy (eg master, development)
+  - branch: the branch to deploy (e.g. master, development)

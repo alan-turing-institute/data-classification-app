@@ -1,3 +1,4 @@
+import json
 import logging
 from urllib.parse import urljoin
 
@@ -6,16 +7,17 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests import RequestException
 from requests_oauthlib import OAuth2Session
 from social_django.utils import load_strategy
-import json
+
 
 logger = logging.getLogger(__name__)
 
 
-GRAPH_URL = 'https://graph.microsoft.com/v1.0/'
+GRAPH_URL = "https://graph.microsoft.com/v1.0/"
 
 
 class GraphClientException(IOError):
     """The graph API returned an error code or the call raised a RequestException"""
+
     pass
 
 
@@ -25,18 +27,18 @@ class GraphClient:
 
     def get_me(self):
         logger.debug("Querying AAD for logged in user's profile")
-        return self._session.get(urljoin(GRAPH_URL, 'me'))
+        return self._session.get(urljoin(GRAPH_URL, "me"))
 
     def get_my_memberships(self):
         logger.debug("Querying AAD for logged in user's membership")
-        return self._session.get(urljoin(GRAPH_URL, 'me/memberOf'))
+        return self._session.get(urljoin(GRAPH_URL, "me/memberOf"))
 
     def get_user_list(self):
         logger.debug("Looking for AAD users")
         try:
             # Only return specified properties
             user_list = []
-            next_url = f'users?$select=userPrincipalName&$top=100'
+            next_url = f"users?$select=userPrincipalName&$top=100"
 
             # Loop over pages of results with page size of 100
             while next_url:
@@ -49,19 +51,22 @@ class GraphClient:
                 response_json = json.loads(response.text)
 
                 # Get the next set of users
-                next_user_list = [item['userPrincipalName'] for item in response_json['value']]
+                next_user_list = [
+                    item["userPrincipalName"] for item in response_json["value"]
+                ]
                 user_list = user_list + next_user_list
 
                 # Check if there are additional pages of users to be returned
-                if '@odata.nextLink' in response_json:
-                    next_url = response_json['@odata.nextLink']
+                if "@odata.nextLink" in response_json:
+                    next_url = response_json["@odata.nextLink"]
                 else:
                     next_url = None
 
             return user_list
         except RequestException as e:
-            raise GraphClientException('The Graph call to get the user list failed with error: '
-                                       + str(e)) from e
+            raise GraphClientException(
+                "The Graph call to get the user list failed with error: " + str(e)
+            ) from e
 
 
 def user_client(user):
@@ -75,7 +80,7 @@ def user_client(user):
     social_auth = user.social_auth.first()
 
     if not social_auth:
-        raise GraphClientException('The user is not logged into an identitiy provider')
+        raise GraphClientException("The user is not logged into an identitiy provider")
 
     # load_strategy() will force a token refresh if required
     social_auth.get_access_token(load_strategy())

@@ -16,54 +16,51 @@ class User(AbstractUser):
     """
     Represents a user that can log in to the system
     """
+
     role = models.CharField(
         max_length=50,
         choices=UserRole.choices(),
         blank=True,
-        help_text="The user's role in the system"
+        help_text="The user's role in the system",
     )
 
     # No created_at field here since `AbstractUser` already stores this
     created_by = models.ForeignKey(
-        'self',
+        "self",
         on_delete=models.PROTECT,
         null=True,
-        related_name='+',
-        help_text='User who created this user',
+        related_name="+",
+        help_text="User who created this user",
     )
 
     email = models.EmailField(
         max_length=254,
-        verbose_name='email address',
+        verbose_name="email address",
         null=True,
     )
 
     mobile = PhoneNumberField(null=True)
 
-    first_name = models.CharField(max_length=30, verbose_name='first name')
-    last_name = models.CharField(max_length=150, verbose_name='last name')
+    first_name = models.CharField(max_length=30, verbose_name="first name")
+    last_name = models.CharField(max_length=150, verbose_name="last name")
 
     # AD creation failed
-    AAD_STATUS_FAILED_TO_CREATE = 'failed_to_create'
+    AAD_STATUS_FAILED_TO_CREATE = "failed_to_create"
     # User created in AD and awaiting sync to AAD
-    AAD_STATUS_PENDING = 'pending'
+    AAD_STATUS_PENDING = "pending"
     # User has been found in AAD and sent email
-    AAD_STATUS_CREATED = 'created'
+    AAD_STATUS_CREATED = "created"
     # User has been activated / password set
-    AAD_STATUS_ACTIVATED = 'activated'
+    AAD_STATUS_ACTIVATED = "activated"
     AAD_STATUS_CHOICES = (
-        (AAD_STATUS_FAILED_TO_CREATE, 'Creation failed'),
-        (AAD_STATUS_PENDING, 'Pending'),
-        (AAD_STATUS_CREATED, 'Created'),
-        (AAD_STATUS_ACTIVATED, 'Activated'),
+        (AAD_STATUS_FAILED_TO_CREATE, "Creation failed"),
+        (AAD_STATUS_PENDING, "Pending"),
+        (AAD_STATUS_CREATED, "Created"),
+        (AAD_STATUS_ACTIVATED, "Activated"),
     )
 
     # Status of user in active directory
-    aad_status = models.CharField(
-        max_length=16,
-        choices=AAD_STATUS_CHOICES,
-        blank=True
-    )
+    aad_status = models.CharField(max_length=16, choices=AAD_STATUS_CHOICES, blank=True)
 
     # Use a custom UserManager with our own QuerySet methods
     objects = CustomUserManager()
@@ -72,8 +69,9 @@ class User(AbstractUser):
     def ordered_participants(cls):
         """Order Users by their UserRole"""
         ordered_role_list = UserRole.ordered_display_role_list()
-        order = Case(*[When(role=role, then=pos) for pos, role in
-                       enumerate(ordered_role_list)])
+        order = Case(
+            *[When(role=role, then=pos) for pos, role in enumerate(ordered_role_list)]
+        )
         return User.objects.filter(role__in=ordered_role_list).order_by(order)
 
     @property
@@ -97,9 +95,13 @@ class User(AbstractUser):
         Spaces between names are replaced by dots.
         """
         value = str(value)
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-        return mark_safe(re.sub(r'[\s]+', '.', value))
+        value = (
+            unicodedata.normalize("NFKD", value)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+        value = re.sub(r"[^\w\s-]", "", value).strip().lower()
+        return mark_safe(re.sub(r"[\s]+", ".", value))
 
     def generate_username(self):
         """
@@ -110,9 +112,9 @@ class User(AbstractUser):
         # If the username already exists, try adding 2,3,4 etc
         inc = 1
         while True:
-            proposed_username = '{prefix}{inc}@{domain}'.format(
+            proposed_username = "{prefix}{inc}@{domain}".format(
                 prefix=prefix,
-                inc='' if inc<2 else inc,
+                inc="" if inc < 2 else inc,
                 domain=settings.SAFE_HAVEN_DOMAIN,
             )
             if not User.objects.filter(username=proposed_username).exists():
@@ -128,7 +130,7 @@ class User(AbstractUser):
         :return: `Participant` object or None if user is not involved in project
         """
         from haven.projects.models import Participant
-        
+
         try:
             return self.participants.get(project=project)
         except Participant.DoesNotExist:
@@ -154,7 +156,7 @@ class User(AbstractUser):
     def system_permissions(self):
         """
         Return object for determining the user's system-level permissions
-        
+
         :return: UserPermissions object describing user permissions
         """
 
@@ -203,6 +205,7 @@ class User(AbstractUser):
         username = self.username
         if full_name:
             return "{full_name}: {username}".format(
-                full_name=full_name, username=username)
+                full_name=full_name, username=username
+            )
         else:
             return username

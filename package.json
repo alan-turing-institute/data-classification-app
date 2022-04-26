@@ -1,0 +1,36 @@
+{
+  "name": "haven",
+  "version": "1.0.0",
+  "description": "Data Safe Haven",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "bootstrap-checkbox": "^1.5.0",
+    "browserify": "^16.5.2",
+    "browserify-shim": "^3.8.14",
+    "django-formset": "^0.2.1",
+    "jquery": "^3.6.0",
+    "popper.js": "^1.14.3",
+    "sass": "^1.50.0"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-jshint": "^2.1.0",
+    "gulp-sass": "^5.1.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-util": "^3.0.8",
+    "jshint": "^2.10.2",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^3.11.1"
+  },
+  "browserify-shim": {
+    "jquery": "global:jQuery"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gulp": "gulp"
+  },
+  "author": "",
+  "license": "ISC"
+}

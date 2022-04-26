@@ -2,18 +2,49 @@
 
 These instructions are for running a local test instance of the management web application on your machine.
 
+## Cloning the github repo
+Clone the github repo using the following command in your local terminal:
 
-## Local Development Setup
+```
+git clone git@github.com:alan-turing-institute/data-classification-app.git
+```
+
+After entering the folder containing the main repositories' code (either through `cd`'ing into your folder containing the downloaded repo files, or using your OS' method) follow the quick docker setup below.
+
+## :whale: Quick setup with `docker`
+
+#### Local dev docker set-up:
+
+To build two containers `data_classification_app_db` and `django`.
+
+To build the containers from scratch, from the folllowing commands:
+
+```
+docker-compose build --no-cache
+docker-compose up -d
+docker-compose ps # (to check the running containers)
+```
+
+Visit `localhost:8000/accounts/login` and sign in with username `developer`, password `developer`. This user should be a superuser with the system manager role applied. Check the admin console to make sure classification guidance and classification questions have been imported.
+
+To bring down containers and volumes prior to a clean build:
+
+`docker-compose down -v`
+
+> :rotating_light: The following instructions are not required if you have completed `docker` setup  :rotating_light:
+
+## Local Development Setup (not tested alternative to Docker)
 
 ### Install system requirements
 
-* Python 3.7+
+* Python 3.8+
 * Postgres 10+ (with dev headers)
 
-### Install requirements into virtualenv
+### Install requirements into virtual environment
 
 ```bash
-pip install -r requirements/local.txt
+pip install poetry
+poetry install
 ```
 
 ### Set up PostgreSQL
@@ -41,33 +72,33 @@ DATABASE_URL='postgres://haven:haven@localhost/haven'
 ### Apply migrations
 
 ```bash
-manage.py migrate easyaudit
-manage.py migrate
+python manage.py migrate easyaudit
+python manage.py migrate
 ```
 
 ### Create initial admin user account
 
 ```bash
-manage.py createsuperuser
+python manage.py createsuperuser
 ```
 
 ### Update static files
 
 ```bash
 mkdir -p staticfiles
-manage.py collectstatic
+python manage.py collectstatic
 ```
 
 ### Apply migrations
 
 ```bash
-manage.py migrate
+python manage.py migrate
 ```
 
 ### Run server
 
 ```bash
-manage.py runserver
+python manage.py runserver
 ```
 
 ### Accessing the test server
@@ -97,11 +128,10 @@ Note that you need to use the full username, e.g. `user1@dsgroupdev.co.uk`.
 Note: the `staticfiles` folder must exist before running the tests.
 
 
+```bash
+make test
 ```
-cd haven
-pytest
 
-```
 ### More information and Troubleshooting
 
-See the [Local Development Notes][local-development-notes]
+See the [Local Development Notes](local-development-notes)

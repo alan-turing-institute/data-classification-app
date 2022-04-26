@@ -8,15 +8,17 @@ class CustomAzureOAuth2Backend(AzureADTenantOAuth2):
         # Overrides the default backend implementation because
         # we want the UPN to be the username, not the user's full name.
         fullname, first_name, last_name = (
-            response.get('name', ''),
-            response.get('given_name', ''),
-            response.get('family_name', '')
+            response.get("name", ""),
+            response.get("given_name", ""),
+            response.get("family_name", ""),
         )
-        return {'username': response.get('upn'),
-                'email': response.get('mail'),
-                'fullname': fullname,
-                'first_name': first_name,
-                'last_name': last_name}
+        return {
+            "username": response.get("upn"),
+            "email": response.get("mail"),
+            "fullname": fullname,
+            "first_name": first_name,
+            "last_name": last_name,
+        }
 
     def auth_extra_arguments(self):
         """Return extra arguments needed on auth process."""
@@ -27,10 +29,10 @@ class CustomAzureOAuth2Backend(AzureADTenantOAuth2):
         # add an account instead of automatically signing in with the last
         # account. This is important for preventing automatic signin with the
         # wrong account.
-        extra_arguments.update({'prompt': 'select_account'})
+        extra_arguments.update({"prompt": "select_account"})
 
         # Adds an extra parameter domain_hint which filters the list of
         # accounts the user selects from when they have multiple Microsoft
         # accounts
-        extra_arguments.update({'domain_hint': settings.SAFE_HAVEN_DOMAIN})
+        extra_arguments.update({"domain_hint": settings.SAFE_HAVEN_DOMAIN})
         return extra_arguments

@@ -77,6 +77,7 @@ class TextTable:
         Row3 .   .
     """)
     '''
+
     def __init__(self, definition, abbreviations=None, ignore=None, default=None):
         super().__init__()
         self.definition = definition
@@ -150,9 +151,10 @@ class BooleanTextTable(TextTable):
     }
 
     '''
+
     def __init__(self, *args, truthy=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.truthy = truthy or ['Y']
+        self.truthy = truthy or ["Y"]
 
     def coerce(self, value):
         return value in self.truthy

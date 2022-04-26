@@ -21,6 +21,3 @@ global.formset = function(selector, prefix, addText){
   });
 }
 
-$(function() {
-  $(":checkbox").not(".delete-row :checkbox").checkboxpicker();
-});
