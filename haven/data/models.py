@@ -19,8 +19,21 @@ class Dataset(models.Model):
         return self.name
 
 
+class ClassificationQuestionSet(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+
 class ClassificationQuestion(models.Model):
     name = models.CharField(max_length=256, unique=True)
+    question_set = models.ForeignKey(
+        "ClassificationQuestionSet",
+        on_delete=models.CASCADE,  # delete this if question_set is deleted
+        related_name="questions"
+    )
     question = models.TextField()
     yes_question = models.ForeignKey(
         "ClassificationQuestion",
