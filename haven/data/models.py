@@ -73,6 +73,11 @@ class ClassificationQuestion(models.Model):
 class ClassificationGuidance(models.Model):
     name = models.CharField(max_length=256, unique=True)
     guidance = models.TextField()
+    question_set = models.ForeignKey(
+        "ClassificationQuestionSet",
+        on_delete=models.CASCADE,  # delete this if question_set is deleted
+        related_name="guidance"
+    )
 
     def __str__(self):
         return self.guidance
