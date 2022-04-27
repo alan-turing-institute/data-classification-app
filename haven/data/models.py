@@ -61,7 +61,7 @@ class ClassificationQuestion(models.Model):
     objects = ClassificationQuestionQuerySet.as_manager()
 
     def __str__(self):
-        return self.question
+        return f"{self.question_set.name}: {self.question}"
 
     def answer_yes(self):
         return self.yes_question or self.yes_tier
@@ -80,4 +80,4 @@ class ClassificationGuidance(models.Model):
     )
 
     def __str__(self):
-        return self.guidance
+        return f"{self.question_set.name}: {self.guidance}"
