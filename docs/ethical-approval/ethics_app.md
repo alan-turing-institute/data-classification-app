@@ -34,7 +34,7 @@ Please cover:
 - if known, where and how the data to be used was collected
 - a brief description of the research to be carried out and the methods that will be used*
 
-This project will not make direct use of any sensitive and confidential data, addressing exemplar sensitive datasets only for the purpose of evaluating our novel information governance tools. As such, ethics and governance risks are minimal.
+This project will not make direct use of any sensitive and/or confidential data, addressing exemplar sensitive datasets only for the purpose of evaluating our novel information governance tools. The app is designed to provide a framework to obtain a resilient and evidenced data security classification. The participants in our user studies will be focused on the metadata of projects that they know (which may encompass sensitive data) but not the data itself. For instance: project title, and answers to yes/no questions such as 'will the project input be personal data', 'is that personal data pseudonymised' etc. The app will store this information, in order to process a security tier evaluation. As such, ethics and governance risks are minimal. At no point are sensitive datasets examined, let alone stored or processed.
 
 We will make some use of sensitive data already entrusted to the participating domain co-investigators, but only to test and evaluate the information governance app. 
 The resulting classifications are for evaluation purposes only and will not change how the data is handled for the research projects it is part of. 
