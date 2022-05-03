@@ -62,7 +62,9 @@ WSGI_APPLICATION = "haven.wsgi.application"
 THIRD_PARTY_PRE_APPS = [
     "dal",
     "dal_select2",
-    "whitenoise.runserver_nostatic",  # Let WhiteNoise handle static files in local development instead of Django, for consistency with production
+    # Let WhiteNoise handle static files in local development instead of Django, for consistency
+    # with production
+    "whitenoise.runserver_nostatic",
 ]
 
 DJANGO_APPS = [
@@ -174,19 +176,20 @@ if "remote" in HAVEN_AUTH_TYPES:
     MIDDLEWARE.append("haven.identity.auth.middleware.HttpRemoteUserMiddleware")
     LOGOUT_REDIRECT_URL = "https://auth." + BASE_DOMAIN + "/logout"
 if "social" in HAVEN_AUTH_TYPES:
-    from .components.social_auth import *
+    from .components.social_auth import *  # noqa
 
-    SOCIAL_AUTH_PROVIDERS=env.list("SOCIAL_AUTH_PROVIDERS", default=[])
+    SOCIAL_AUTH_PROVIDERS = env.list("SOCIAL_AUTH_PROVIDERS", default=[])
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
-        AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]
-        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = \
-            provider_dictionary[provider]["display_name"]
+        AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]  # noqa
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider][  # noqa
+            "display_name"
+        ]
 if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",
     ]
-    LOCAL_AUTH=True
+    LOCAL_AUTH = True
 
 
 # PASSWORDS
@@ -236,3 +239,11 @@ PHONENUMBER_DEFAULT_REGION = "GB"
 BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+# This should be random 8 characters
+# NOTE: This might not be how an app ID is generated but using this for now to make progress
+UNIQUE_APP_ID = env.str("UNIQUE_APP_ID", default="a7f72a8f")
+
+# Salt used for zlib adler32 hash
+# This should be a random and secret integer
+ZLIB_ADLER32_SALT = env.int("ZLIB_ADLER32_SALT", default=56871)
