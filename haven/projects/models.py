@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import uuid4
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -256,7 +257,7 @@ class WorkPackage(CreatedByModel):
     )
     name = models.CharField(max_length=256)
     description = models.TextField()
-    # uuid = models.UUIDField(default=uuid4, unique=True)
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     participants = models.ManyToManyField(
         "Participant",

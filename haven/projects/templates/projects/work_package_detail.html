@@ -13,7 +13,11 @@
   {% endif %}
 
   <p>
-  {{ work_package.description | bleach }}
+  ID: {{ work_package.uuid }}
+  </p>
+
+  <p>
+  Description: {{ work_package.description | bleach }}
   </p>
 {% endblock content %}
 
