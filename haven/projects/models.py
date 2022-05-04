@@ -48,6 +48,8 @@ class Project(CreatedByModel):
     archived = models.BooleanField(default=False)
     programmes = TaggableManager(blank=True)
 
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
+
     objects = ProjectQuerySet.as_manager()
 
     def __str__(self):
