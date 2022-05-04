@@ -34,37 +34,36 @@
 {% block actions %}
   {% url_check 'projects:work_package_edit' project.id work_package.id as edit_work_package_href %}
   {% if edit_work_package_href %}
-    <a class="btn btn-lg my-1 custom-btn" href="{{ edit_work_package_href }}">Edit Work Package</a>
+    <a class="btn btn-lg my-1 ingress-btn" href="{{ edit_work_package_href }}">Edit Work Package</a>
   {% endif %}
 
   {% url_check 'projects:work_package_delete' project.id work_package.id as delete_work_package_href %}
   {% if delete_work_package_href %}
-    <a class="btn btn-lg my-1 custom-btn" href="{{ delete_work_package_href }}">Delete Work Package</a>
+    <a class="btn btn-lg my-1 ingress-btn" href="{{ delete_work_package_href }}">Delete Work Package</a>
   {% endif %}
 
   {% url_check 'projects:classify_clear' project.id work_package.id as clear_work_package_href %}
   {% if clear_work_package_href %}
-    <a class="btn btn-lg my-1 custom-btn" href="{{ clear_work_package_href }}">Clear Classifications</a>
-    <a class="btn btn-lg my-1 custom-btn" href="{{ clear_work_package_href }}">Clear Classifications</a>
+    <a class="btn btn-lg my-1 ingress-btn" href="{{ clear_work_package_href }}">Clear Classifications</a>
   {% endif %}
 
   {% url_check 'projects:classify_open' work_package.project.id work_package.id as classify_open_href %}
   {% if classify_open_href %}
-    <a class="btn  btn-lg custom-btn" href="{{ classify_open_href }}">Open Classification</a>
+    <a class="btn  btn-lg ingress-btn" href="{{ classify_open_href }}">Open Classification</a>
   {% else %}
     {% url_check 'projects:classify_close' work_package.project.id work_package.id as classify_close_href %}
     {% if classify_close_href %}
-      <a class="btn btn-lg custom-btn" href="{{ classify_close_href }}">Close Classification</a>
+      <a class="btn btn-lg ingress-btn" href="{{ classify_close_href }}">Close Classification</a>
     {% else %}
       {% url_check 'projects:classify_results' work_package.project.id work_package.id as classify_results_href %}
       {% url_check 'projects:classify_data' work_package.project.id work_package.id as classify_data_href %}
       {% if classify_results_href %}
         {% if not classify_data_href %}
-          <a class="btn btn-lg custom-btn" href="{{ classify_results_href }}">View Classification</a>
+          <a class="btn btn-lg ingress-btn" href="{{ classify_results_href }}">View Classification</a>
         {% elif has_classified %}
-          <a class="btn btn-lg custom-btn" href="{{ classify_results_href }}">View Your Classification</a>
+          <a class="btn btn-lg ingress-btn" href="{{ classify_results_href }}">View Your Classification</a>
         {% else %}
-          <a class="btn btn-lg custom-btn" href="{{ classify_results_href }}">Classify Work Package</a>
+          <a class="btn btn-lg ingress-btn" href="{{ classify_results_href }}">Classify Work Package</a>
         {% endif %}
       {% endif %}
     {% endif %}

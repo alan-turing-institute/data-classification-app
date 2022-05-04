@@ -413,17 +413,15 @@ class TestExportUsers:
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
-        assert parsed == [
-            ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            [
+        assert ["user1", "", "", "", "user@example.com"] in parsed
+        assert [
                 "project_participant",
                 "Angela",
                 "Zala",
                 "+441234567890",
                 "project_participant@example.com",
-            ],
-            ["user1", "", "", "", "user@example.com"],
-        ]
+            ] in parsed
+        assert len(parsed) == 3
 
     def test_export_new_by_project(
         self,
@@ -504,12 +502,12 @@ class TestImportUsers:
     def test_import_as_pm(self, as_programme_manager):
         response = self.post_csv(as_programme_manager)
         assert response.status_code == 200
-        assert [u.username for u in User.objects.all()] == [
+        assert set([u.username for u in User.objects.all()]) == set([
             "coordinator@example.com",
             "fn1.ln1@example.com",
             "fn2.ln2@example.com",
             "fn3.ln3@example.com",
-        ]
+        ])
 
     def test_csv_users(self):
         users = csv_users(

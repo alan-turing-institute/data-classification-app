@@ -13,10 +13,10 @@
 {% block actions %}
   {% url_check 'projects:work_package_add_dataset' work_package.project.id work_package.id as add_dataset_href %}
   {% if add_dataset_href %}
-    <a class="btn btn-lg custom-btn" href="{{ add_dataset_href }}">Add Dataset</a>
+    <a class="btn btn-lg ingress-btn" href="{{ add_dataset_href }}">Add Dataset</a>
   {% endif %}
   {% url_check 'projects:work_package_edit_datasets' work_package.project.id work_package.id as edit_datasets_href %}
   {% if edit_datasets_href %}
-    <a class="btn btn-lg custom-btn" href="{{ edit_datasets_href }}">Remove Datasets</a>
+    <a class="btn btn-lg ingress-btn" href="{{ edit_datasets_href }}">Remove Datasets</a>
   {% endif %}
 {% endblock actions %}

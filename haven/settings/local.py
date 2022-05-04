@@ -1,4 +1,6 @@
 # flake8: noqa F405
+import os
+import socket
 from haven.settings.base import *  # noqa
 
 
@@ -7,18 +9,25 @@ from haven.settings.base import *  # noqa
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
-# Enable debug toolbar
+### Add debug toolbar
 INSTALLED_APPS.extend(
     [
         "debug_toolbar",
     ]
 )
 
-# Add debug toolbar
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+# required for debug toolbar if using docker
+if DEBUG:
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[:-1] + '1' for ip in ips] + ['127.0.0.1', '10.0.2.2']
+
 
 # Allow local database user login
 AUTHENTICATION_BACKENDS.append("django.contrib.auth.backends.ModelBackend")
+if "local" not in HAVEN_AUTH_TYPES:
+    HAVEN_AUTH_TYPES += ["local"]
 
 # Log all emails to console
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
