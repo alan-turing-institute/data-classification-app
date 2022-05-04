@@ -68,6 +68,11 @@ class WorkPackageParticipantTable(tables.Table):
 
 class WorkPackageTable(tables.Table):
     name = tables.Column("Name", linkify=True)
+    # uuid = tables.Column(
+    #     "Global ID",
+    #     accessor="uuid",
+    #     linkify=True,
+    # )
     status = tables.Column("Classification Status")
     tier = tables.Column("Tier")
     created_at = tables.DateTimeColumn(verbose_name="Created", short=False)
@@ -79,9 +84,10 @@ class WorkPackageTable(tables.Table):
 
 class ProjectDatasetTable(tables.Table):
     name = tables.Column("Name", accessor="dataset__name", linkify=True)
-    unique_id = tables.Column(
-        "Unique ID",
-        accessor="dataset__unique_id",
+    uuid = tables.Column(
+        "ID",
+        accessor="dataset__uuid",
+        linkify=True,
     )
     representative = tables.Column("Representative")
     created_at = tables.DateTimeColumn(verbose_name="Created", short=False)

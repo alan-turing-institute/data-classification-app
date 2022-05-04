@@ -1,8 +1,4 @@
-import time
-import zlib
 from collections import defaultdict
-
-from django.conf import settings
 
 
 class TextTable:
@@ -162,15 +158,3 @@ class BooleanTextTable(TextTable):
 
     def coerce(self, value):
         return value in self.truthy
-
-
-def adler32_hash(value):
-    """Function to hash value using adler32 algorithm in hex format"""
-    encoded_string = str.encode(str(value))
-    # Create hash and convert to hex
-    return format(zlib.adler32(encoded_string, settings.ZLIB_ADLER32_SALT), "x")
-
-
-def adler32_hash_ns(extra_info=""):
-    """Hash of the current time in nanoseconds combined with any extra information provided"""
-    return adler32_hash(f"{time.time_ns()}{extra_info}")

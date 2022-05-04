@@ -1,7 +1,8 @@
+from uuid import uuid4
+
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from haven.core.utils import adler32_hash_ns
 from haven.data import tiers
 from haven.data.managers import ClassificationQuestionQuerySet
 from haven.identity.models import User
@@ -15,23 +16,10 @@ class Dataset(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
-    unique_id = models.CharField(unique=True, max_length=256, null=True, blank=True)
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        """Save method which generates a unique identifier for the dataset"""
-        # Attempt 5 times to generate a unique id, if 5 clashes are seen in a row let save method
-        # error, this is likely an issue with the unique ID generation if this is the case
-        for _ in range(5):
-            # Including an app ID decreases to chances of global collisions if multiple instances
-            # of this app are in use
-            self.unique_id = adler32_hash_ns(extra_info=self.name)
-            if Dataset.objects.filter(unique_id=self.unique_id).exists():
-                break
-
-        super().save(*args, **kwargs)
 
 
 class ClassificationQuestion(models.Model):

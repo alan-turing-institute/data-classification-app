@@ -3,7 +3,6 @@ import re
 from collections import defaultdict
 
 from braces.views import UserFormKwargsMixin
-from crispy_forms.helper import FormHelper
 from dal import autocomplete
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -17,7 +16,11 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import CreateView, FormMixin, UpdateView
 from taggit.models import Tag
 
-from haven.data.models import ClassificationGuidance, ClassificationQuestion, Dataset
+from haven.data.models import (
+    ClassificationGuidance,
+    ClassificationQuestion,
+    Dataset,
+)
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
 from haven.projects.forms import (
@@ -82,9 +85,7 @@ class ProjectMixin:
         if self._project is None:
             try:
                 projects = self.get_project_queryset()
-                self._project = projects.get(
-                    pk=self.kwargs[self.get_project_url_kwarg()]
-                )
+                self._project = projects.get(pk=self.kwargs[self.get_project_url_kwarg()])
             except Project.DoesNotExist:
                 raise Http404("No project found matching the query")
 
@@ -303,9 +304,7 @@ class ProjectArchive(
         return reverse("projects:list")
 
 
-class ProjectHistory(
-    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
-):
+class ProjectHistory(LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView):
     template_name = "projects/project_history.html"
 
     def test_func(self):
@@ -433,9 +432,7 @@ class EditProjectListParticipants(
             return self.render_to_response(self.get_context_data(formset=formset))
 
 
-class EditParticipant(
-    LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView
-):
+class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView):
     model = Participant
     template_name = "projects/edit_participant.html"
     form_class = ParticipantForm
@@ -548,9 +545,7 @@ class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
-class ProjectEditDataset(
-    LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView
-):
+class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, UpdateView):
     # This currently edits the *Dataset*, not the ProjectDataset (or the WorkPackageDatasets)
     # This may have to be revisited once Datasets are truly global
     model = Dataset
@@ -558,29 +553,17 @@ class ProjectEditDataset(
     template_name = "projects/edit_dataset.html"
 
     def test_func(self):
+        project_dataset = self.get_object()
         return (
             self.get_project_permissions().can_edit_datasets
-            and self.get_project().can_edit_dataset(self.get_object())
+            and self.get_project().can_edit_dataset(project_dataset)
         )
-
-    def get_project_dataset(self):
-        try:
-            qs = ProjectDataset.objects.filter(
-                project=self.get_project(), pk=self.kwargs["pk"]
-            )
-            return qs.first()
-        except ProjectDataset.DoesNotExist:
-            raise Http404("No dataset found matching the query")
-
-    def get_object(self):
-        pd = self.get_project_dataset()
-        return pd.dataset
 
     def get_project_url_kwarg(self):
         return "project_pk"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_project_dataset()
+        kwargs["dataset"] = self.get_object()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -613,9 +596,7 @@ class ProjectEditDatasetDPR(
 
     def get_project_dataset(self):
         try:
-            qs = ProjectDataset.objects.filter(
-                project=self.get_project(), pk=self.kwargs["pk"]
-            )
+            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs["pk"])
             return qs.first()
         except ProjectDataset.DoesNotExist:
             raise Http404("No dataset found matching the query")
@@ -650,9 +631,7 @@ class ProjectDeleteDataset(
 
     def get_object(self):
         try:
-            qs = ProjectDataset.objects.filter(
-                project=self.get_project(), pk=self.kwargs["pk"]
-            )
+            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs["pk"])
             return qs.first()
         except ProjectDataset.DoesNotExist:
             raise Http404("No dataset found matching the query")
@@ -843,9 +822,7 @@ class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
             context["policy_table"] = PolicyTable(policies)
 
             classifications = work_package.classifications.all()
-            context["question_table"] = ClassificationOpinionQuestionTable(
-                classifications
-            )
+            context["question_table"] = ClassificationOpinionQuestionTable(classifications)
 
         context["show_approve_participants"] = work_package.show_approve_participants(
             self.request.user
@@ -869,10 +846,7 @@ class WorkPackageAddDataset(
 
     def test_func(self):
         work_package = self.get_work_package()
-        return (
-            work_package.can_add_datasets
-            and self.get_project_permissions().can_add_datasets
-        )
+        return work_package.can_add_datasets and self.get_project_permissions().can_add_datasets
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -899,10 +873,7 @@ class WorkPackageEditDatasets(
 
     def test_func(self):
         work_package = self.get_object()
-        return (
-            work_package.can_edit_datasets
-            and self.get_project_permissions().can_edit_datasets
-        )
+        return work_package.can_edit_datasets and self.get_project_permissions().can_edit_datasets
 
     def get_context_data(self, **kwargs):
         helper = SaveCancelInlineFormSetHelper("Save Datasets")
@@ -1219,9 +1190,7 @@ class WorkPackageClassifyData(
                 "You have already completed classification. Please delete your "
                 "classification and start again if you wish to change any answers."
             )
-            return self.redirect_to_results(
-                message=message, message_level=messages.ERROR
-            )
+            return self.redirect_to_results(message=message, message_level=messages.ERROR)
         return None
 
     def load_questions(self):
@@ -1242,9 +1211,7 @@ class WorkPackageClassifyData(
                 self.clear_answers()
             return self.redirect_to_question(self.starting_question)
         else:
-            self.question = ClassificationQuestion.objects.get(
-                pk=self.kwargs["question_pk"]
-            )
+            self.question = ClassificationQuestion.objects.get(pk=self.kwargs["question_pk"])
             if self.start_modification:
                 response = self.store_previous_answers(self.question)
                 if response:
@@ -1267,15 +1234,9 @@ class WorkPackageClassifyData(
         while True:
             answer = self.get_answer(question)
             if answer is None:
-                logging.error(
-                    f"No response found in session for question {question.name}"
-                )
-                message = (
-                    "An error occurred storing the results of your classification."
-                )
-                return self.redirect_to_question(
-                    None, message, message_level=messages.ERROR
-                )
+                logging.error(f"No response found in session for question {question.name}")
+                message = "An error occurred storing the results of your classification."
+                return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
             questions.append((question, answer))
             if answer:
@@ -1288,13 +1249,9 @@ class WorkPackageClassifyData(
                 break
 
         if tier != expected_tier:
-            logging.error(
-                f"Unexpected tier storing result: expected {expected_tier}, was {tier}"
-            )
+            logging.error(f"Unexpected tier storing result: expected {expected_tier}, was {tier}")
             message = "An error occurred storing the results of your classification."
-            return self.redirect_to_question(
-                None, message, message_level=messages.ERROR
-            )
+            return self.redirect_to_question(None, message, message_level=messages.ERROR)
 
         if self.is_modification():
             self.object.classification_for(self.request.user).delete()
@@ -1522,9 +1479,7 @@ class WorkPackageClassifyResults(
                     all_classifications, current_user=current_user
                 )
 
-        return render(
-            self.request, "projects/work_package_classify_results.html", context
-        )
+        return render(self.request, "projects/work_package_classify_results.html", context)
 
     def test_func(self):
         work_package = self.get_object()
@@ -1623,9 +1578,7 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
 
     def get_visible_users(self):
         # Filter results depending on user role permissions
-        if not self.request.user.combined_permissions(
-            self.kwargs.get("pk")
-        ).can_view_all_users:
+        if not self.request.user.combined_permissions(self.kwargs.get("pk")).can_view_all_users:
             return User.objects.none()
 
         existing_users = self.get_users_to_exclude()
@@ -1654,9 +1607,7 @@ class AutocompleteDataProviderRepresentative(
     """
 
     def get_visible_users(self):
-        if not self.request.user.combined_permissions(
-            self.kwargs.get("pk")
-        ).can_view_all_users:
+        if not self.request.user.combined_permissions(self.kwargs.get("pk")).can_view_all_users:
             if "pk" in self.kwargs:
                 project_id = self.kwargs["pk"]
                 return User.objects.filter(
@@ -1669,9 +1620,7 @@ class AutocompleteDataProviderRepresentative(
         if "pk" in self.kwargs:
             project_id = self.kwargs["pk"]
             participants = Project.objects.get(pk=project_id).participants
-            participants = participants.exclude(
-                role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-            )
+            participants = participants.exclude(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             return participants.values("user")
 
         return None
@@ -1681,9 +1630,7 @@ class AutocompleteDataProviderRepresentative(
         if "pk" in self.kwargs:
             project_id = self.kwargs["pk"]
             qs = qs.annotate(
-                you=FilteredRelation(
-                    "participants", condition=Q(participants__project=project_id)
-                )
+                you=FilteredRelation("participants", condition=Q(participants__project=project_id))
             )
             qs = qs.annotate(project_role=F("you__role"))
         return qs
