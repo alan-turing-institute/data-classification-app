@@ -533,6 +533,8 @@ class ProjectCreateDataset(
 class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
     model = ProjectDataset
     template_name = "projects/dataset_detail.html"
+    slug_url_kwarg = "uuid"
+    slug_field = "dataset__uuid"
 
     def get_queryset(self):
         return ProjectDataset.objects.filter(project=self.get_project())
@@ -551,19 +553,33 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
     model = Dataset
     form_class = ProjectEditDatasetForm
     template_name = "projects/edit_dataset.html"
+    slug_url_kwarg = "uuid"
+    slug_field = "dataset__uuid"
 
     def test_func(self):
-        project_dataset = self.get_object()
         return (
             self.get_project_permissions().can_edit_datasets
-            and self.get_project().can_edit_dataset(project_dataset)
+            and self.get_project().can_edit_dataset(self.get_object())
         )
+
+    def get_project_dataset(self):
+        try:
+            qs = ProjectDataset.objects.filter(
+                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+            )
+            return qs.first()
+        except ProjectDataset.DoesNotExist:
+            raise Http404("No dataset found matching the query")
+
+    def get_object(self):
+        pd = self.get_project_dataset()
+        return pd.dataset
 
     def get_project_url_kwarg(self):
         return "project_pk"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_object()
+        kwargs["dataset"] = self.get_project_dataset()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -582,6 +598,8 @@ class ProjectEditDatasetDPR(
     model = Dataset
     form_class = ProjectEditDatasetDPRForm
     template_name = "projects/edit_dataset_dpr.html"
+    slug_url_kwarg = "uuid"
+    slug_field = "dataset__uuid"
 
     def test_func(self):
         return (
@@ -596,7 +614,9 @@ class ProjectEditDatasetDPR(
 
     def get_project_dataset(self):
         try:
-            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs["pk"])
+            qs = ProjectDataset.objects.filter(
+                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+            )
             return qs.first()
         except ProjectDataset.DoesNotExist:
             raise Http404("No dataset found matching the query")
@@ -622,6 +642,8 @@ class ProjectDeleteDataset(
     model = ProjectDataset
     template_name = "projects/project_delete_dataset.html"
     form_class = ProjectDeleteDatasetForm
+    slug_url_kwarg = "uuid"
+    slug_field = "dataset__uuid"
 
     def test_func(self):
         return (
@@ -631,7 +653,9 @@ class ProjectDeleteDataset(
 
     def get_object(self):
         try:
-            qs = ProjectDataset.objects.filter(project=self.get_project(), pk=self.kwargs["pk"])
+            qs = ProjectDataset.objects.filter(
+                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+            )
             return qs.first()
         except ProjectDataset.DoesNotExist:
             raise Http404("No dataset found matching the query")

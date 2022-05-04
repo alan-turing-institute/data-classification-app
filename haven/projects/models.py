@@ -797,7 +797,7 @@ class ProjectDataset(CreatedByModel):
     representative = models.ForeignKey(User, related_name="+", on_delete=models.PROTECT, null=False)
 
     def get_absolute_url(self):
-        return reverse("projects:dataset_detail", args=[self.project.id, self.dataset.pk])
+        return reverse("projects:dataset_detail", args=[self.project.id, self.dataset.uuid])
 
 
 class WorkPackageDataset(CreatedByModel):
