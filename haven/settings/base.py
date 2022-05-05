@@ -239,11 +239,3 @@ PHONENUMBER_DEFAULT_REGION = "GB"
 BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
-
-# This should be random 8 characters
-# NOTE: This might not be how an app ID is generated but using this for now to make progress
-UNIQUE_APP_ID = env.str("UNIQUE_APP_ID", default="a7f72a8f")
-
-# Salt used for zlib adler32 hash
-# This should be a random and secret integer
-ZLIB_ADLER32_SALT = env.int("ZLIB_ADLER32_SALT", default=56871)
