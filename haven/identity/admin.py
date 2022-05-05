@@ -6,7 +6,7 @@ from haven.identity.models import User
 
 @admin.register(User)
 class IdentityUserAdmin(UserAdmin):
-    list_display = "username", "email", "role", "is_staff"
+    list_display = "username", "email", "role", "is_staff", "uuid"
 
     fieldsets = UserAdmin.fieldsets + (
         ("Extra fields", {"fields": ["role", "aad_status", "mobile"]}),

@@ -248,7 +248,9 @@ class TestArchiveProject:
 @pytest.mark.django_db
 class TestViewWorkPackage:
     def test_view_work_package_policy_tier0(self, as_programme_manager, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+
         work_package = classified_work_package(0)
 
         response = as_programme_manager.get(
@@ -2232,7 +2234,8 @@ class TestWorkPackageClassifyData:
         helpers.assert_login_redirect(response)
 
     def test_unassigned_cannot_view_page(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(
@@ -2245,7 +2248,8 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 403
 
     def test_view_page(self, as_project_participant, programme_manager):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(
             project=project, status=WorkPackageStatus.UNDERWAY.value
@@ -2311,7 +2315,8 @@ class TestWorkPackageClassifyData:
         assert response.status_code == 403
 
     def test_returns_403_when_not_open(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
         work_package.status = WorkPackageStatus.NEW.value
         work_package.save()
@@ -2347,7 +2352,8 @@ class TestWorkPackageClassifyData:
         ]
 
     def test_delete_classification(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         work_package.classify_as(0, as_investigator._user)
@@ -2365,7 +2371,8 @@ class TestWorkPackageClassifyData:
         assert b"Delete My Classification" not in response.content
 
     def test_classify_as_tier(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2468,7 +2475,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_backwards(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2580,7 +2588,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_jump_back(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2667,7 +2676,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_jump_illegal(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2697,7 +2707,8 @@ class TestWorkPackageClassifyData:
         ]
 
     def test_classify_guidance(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2761,7 +2772,9 @@ class TestWorkPackageClassifyData:
         )
 
     def test_classify_simultaneous(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+
         work_package_1 = classified_work_package(None)
         work_package_2 = classified_work_package(None)
 
@@ -2849,7 +2862,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_from_start(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2911,7 +2925,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2964,7 +2979,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_back(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3071,7 +3087,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_unanswered(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3161,7 +3178,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_question_changed(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3274,7 +3292,8 @@ class TestWorkPackageClassifyData:
         )
 
     def test_modify_classification_abandoned(self, classified_work_package, as_investigator):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3392,7 +3411,8 @@ class TestWorkPackageClassifyResults:
         assert response.status_code == 403
 
     def test_view_as_project_manager(self, client, classified_work_package, programme_manager):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         project_manager = recipes.user.make()
         investigator = recipes.user.make()
 
