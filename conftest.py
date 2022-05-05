@@ -1,4 +1,5 @@
 import pytest
+from django.db.models.deletion import ProtectedError
 
 from haven.core import recipes
 from haven.data.tiers import Tier
@@ -133,9 +134,7 @@ def as_investigator(client, investigator):
 
 
 @pytest.fixture
-def classified_work_package(
-    programme_manager, investigator, data_provider_representative, referee
-):
+def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
     def _classified_work_package(tier):
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
@@ -159,9 +158,7 @@ def classified_work_package(
         )
         work_package.add_user(referee.user, programme_manager)
 
-        project.add_dataset(
-            dataset, data_provider_representative.user, investigator.user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
         work_package.open_classification()
@@ -199,3 +196,28 @@ def hide_audit_warnings(caplog):
         return True
 
     caplog.handler.addFilter(filter)
+
+
+@pytest.fixture
+def remove_data_from_model_with_self_references():
+    """
+    Fixture to return a function which removes data from a model class that has protected
+    self-references, for example `ClassificationQuestion` has the protected foreign keys
+    `yes_question` and `no_question` pointing to itself, therefore need to be deleted in particular
+    order. This brute force approach does not need to know the order ahead of time and keeps trying
+    to delete rows of data until it can.
+    """
+
+    def remove_data(model_class):
+        if model_class.objects.exists():
+            for _ in range(model_class.objects.all().count()):
+                for instance in model_class.objects.all():
+                    try:
+                        instance.delete()
+                    except ProtectedError:
+                        pass
+                if not model_class.objects.exists():
+                    break
+
+    # Pass function into fixture output which can be called in test
+    return remove_data

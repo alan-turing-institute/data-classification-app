@@ -30,22 +30,22 @@ urlpatterns = [
         name="add_dataset",
     ),
     path(
-        "<int:project_pk>/datasets/<int:pk>",
+        "<int:project_pk>/datasets/<slug:uuid>",
         views.ProjectDatasetDetail.as_view(),
         name="dataset_detail",
     ),
     path(
-        "<int:project_pk>/datasets/<int:pk>/delete",
+        "<int:project_pk>/datasets/<slug:uuid>/delete",
         views.ProjectDeleteDataset.as_view(),
         name="delete_dataset",
     ),
     path(
-        "<int:project_pk>/datasets/<int:pk>/edit",
+        "<int:project_pk>/datasets/<slug:uuid>/edit",
         views.ProjectEditDataset.as_view(),
         name="edit_dataset",
     ),
     path(
-        "<int:project_pk>/datasets/<int:pk>/edit_dpr",
+        "<int:project_pk>/datasets/<slug:uuid>/edit_dpr",
         views.ProjectEditDatasetDPR.as_view(),
         name="edit_dataset_dpr",
     ),

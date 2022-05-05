@@ -1,3 +1,6 @@
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 from haven.settings.base import *  # noqa
 
 
@@ -23,8 +26,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+            "format": "%(levelname)s %(asctime)s %(module)s " "%(process)d %(thread)d %(message)s"
         },
     },
     "handlers": {
@@ -41,3 +43,7 @@ LOGGING = {
         },
     },
 }
+
+# Initialise Sentry
+SENTRY_DSN = env.str("SENTRY_DSN")  # noqa
+sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])

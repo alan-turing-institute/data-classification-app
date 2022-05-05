@@ -10,7 +10,9 @@
     <p>Role: {{ participant.get_role_display }}</p>
   {% endif %}
 
-  <p>{{ project.description }}</p>
+  <p>ID: {{ project.uuid }}</p>
+
+  <p>Description: {{ project.description }}</p>
 
   {% for p in project.programmes.all %}
     <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-info project-badge">{{ p.name }}</a>

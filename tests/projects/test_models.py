@@ -11,7 +11,6 @@ from haven.projects.models import (
     Policy,
     PolicyAssignment,
     PolicyGroup,
-    Project,
     ProjectDataset,
     WorkPackageParticipant,
     WorkPackageStatus,
@@ -50,9 +49,7 @@ class TestProject:
     def test_add_dataset(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make(default_representative=user1)
-        project.add_user(
-            user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager
-        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager)
 
         project.add_dataset(dataset, user1, programme_manager)
 
@@ -170,9 +167,7 @@ class TestWorkPackage:
     def test_add_dataset_multiple_times(self, programme_manager, user1):
         project = recipes.project.make()
         dataset = recipes.dataset.make()
-        project.add_user(
-            user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager
-        )
+        project.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager)
         work_package = recipes.work_package.make(project=project)
 
         project.add_dataset(dataset, user1, programme_manager)
@@ -245,9 +240,7 @@ class TestWorkPackage:
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classification_not_ready(
-        self, classified_work_package, data_provider_representative
-    ):
+    def test_classification_not_ready(self, classified_work_package, data_provider_representative):
         work_package = classified_work_package(None)
 
         work_package.classify_as(0, data_provider_representative.user)
@@ -494,9 +487,7 @@ class TestWorkPackage:
             created_by=programme_manager,
         )
 
-        project.add_dataset(
-            dataset, data_provider_representative.user, investigator.user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
         work_package.classify_as(3, investigator.user)
@@ -555,9 +546,7 @@ class TestWorkPackage:
             created_by=programme_manager,
         )
 
-        project.add_dataset(
-            dataset, data_provider_representative.user, investigator.user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
         work_package.classify_as(2, investigator.user)
@@ -598,9 +587,7 @@ class TestWorkPackage:
         assert work_package.tier_conflict
         assert not work_package.has_tier
 
-    def test_classify_work_package_not_partipant(
-        self, classified_work_package, system_manager
-    ):
+    def test_classify_work_package_not_partipant(self, classified_work_package, system_manager):
         work_package = classified_work_package(None)
 
         with pytest.raises(ValidationError):
@@ -650,10 +637,9 @@ class TestWorkPackage:
         assert work_package.has_tier
         assert work_package.tier == 0
 
-    def test_classify_work_package_store_questions(
-        self, classified_work_package, investigator
-    ):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+    def test_classify_work_package_store_questions(self, classified_work_package, investigator):
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         work_package = classified_work_package(None)
 
         questions = []
@@ -681,12 +667,11 @@ class TestWorkPackage:
         ]
 
         saved_questions = classification.questions.order_by("order")
-        assert expected == [
-            (q.question_at_time.name, q.answer) for q in saved_questions
-        ]
+        assert expected == [(q.question_at_time.name, q.answer) for q in saved_questions]
 
     def test_ordered_questions(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         questions = ClassificationQuestion.objects.get_ordered_questions()
         assert len(questions) == 14
 
@@ -708,7 +693,12 @@ class TestWorkPackage:
         ]
         assert [q.name for q in questions] == ordered
 
-    def test_default_guidance(self):
+    def test_default_guidance(self, remove_data_from_model_with_self_references):
+        # Remove data before running `insert_initial_questions` to ensure starting from a clean
+        # state, otherwise test will fail when the `--migrations` flag is used
+        remove_data_from_model_with_self_references(ClassificationQuestion)
+        remove_data_from_model_with_self_references(ClassificationGuidance)
+
         insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
 
         num_questions = 0
@@ -738,7 +728,8 @@ class TestWorkPackage:
         assert num_guidance_links == 1
 
     def test_classify_questions_tier0(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -751,7 +742,8 @@ class TestWorkPackage:
         assert tier == 0
 
     def test_classify_questions_tier1(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -768,7 +760,8 @@ class TestWorkPackage:
         assert tier == 1
 
     def test_classify_questions_tier2(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -789,7 +782,8 @@ class TestWorkPackage:
         assert tier == 2
 
     def test_classify_questions_tier3(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_no()
@@ -804,7 +798,8 @@ class TestWorkPackage:
         assert tier == 3
 
     def test_classify_questions_tier4(self):
-        insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
+        if not ClassificationQuestion.objects.exists():
+            insert_initial_questions(ClassificationQuestion, ClassificationGuidance)
         q = ClassificationQuestion.objects.get_starting_question()
         assert q.name == "open_generate_new"
         q = q.answer_yes()
@@ -813,7 +808,8 @@ class TestWorkPackage:
         assert tier == 4
 
     def test_work_package_policy_tier0(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(0)
         assert work_package.has_tier
 
@@ -834,13 +830,12 @@ class TestWorkPackage:
             ["ref_reclass", "ref_reclass_open"],
             ["egress", "egress_allowed"],
         ]
-        table = [
-            [p.policy.group.name, p.policy.name] for p in work_package.get_policies()
-        ]
+        table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
 
     def test_work_package_policy_tier1(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(1)
         assert work_package.has_tier
 
@@ -861,13 +856,12 @@ class TestWorkPackage:
             ["ref_reclass", "ref_reclass_open"],
             ["egress", "egress_allowed"],
         ]
-        table = [
-            [p.policy.group.name, p.policy.name] for p in work_package.get_policies()
-        ]
+        table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
 
     def test_work_package_policy_tier2(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(2)
         assert work_package.has_tier
 
@@ -888,13 +882,12 @@ class TestWorkPackage:
             ["ref_reclass", "ref_reclass_open"],
             ["egress", "egress_allowed"],
         ]
-        table = [
-            [p.policy.group.name, p.policy.name] for p in work_package.get_policies()
-        ]
+        table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
 
     def test_work_package_policy_tier3(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(3)
         assert work_package.has_tier
 
@@ -915,13 +908,12 @@ class TestWorkPackage:
             ["ref_reclass", "ref_reclass_required"],
             ["egress", "egress_signoff"],
         ]
-        table = [
-            [p.policy.group.name, p.policy.name] for p in work_package.get_policies()
-        ]
+        table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
 
     def test_work_package_policy_tier4(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(4)
         assert work_package.has_tier
 
@@ -942,9 +934,7 @@ class TestWorkPackage:
             ["ref_reclass", "ref_reclass_required"],
             ["egress", "egress_signoff"],
         ]
-        table = [
-            [p.policy.group.name, p.policy.name] for p in work_package.get_policies()
-        ]
+        table = [[p.policy.group.name, p.policy.name] for p in work_package.get_policies()]
         assert table == expected
 
     def test_add_participant(self, programme_manager, user1):
@@ -978,9 +968,7 @@ class TestWorkPackage:
     def test_add_participant_not_on_project(self, programme_manager, user1):
         project1 = recipes.project.make()
         project2 = recipes.project.make()
-        project1.add_user(
-            user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager
-        )
+        project1.add_user(user1, ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value, programme_manager)
         work_package = recipes.work_package.make(project=project2)
 
         with pytest.raises(ValidationError):
@@ -991,9 +979,7 @@ class TestWorkPackage:
 class TestParticipant:
     def assert_participants_with_approval(self, work_package, approver, expected):
         participants = work_package.get_participants_with_approval(approver)
-        actual = [
-            [p.participant.role, p.approved, p.approved_by_you] for p in participants
-        ]
+        actual = [[p.participant.role, p.approved, p.approved_by_you] for p in participants]
         assert expected == actual
 
     def test_participant_not_approved_for_unassigned_work_package(
@@ -1003,9 +989,7 @@ class TestParticipant:
         participant = work_package.project.add_user(
             user1, ProjectRole.RESEARCHER.value, programme_manager
         )
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         assert not work_package.is_participant_approved(participant)
         self.assert_participants_with_approval(
             work_package,
@@ -1024,9 +1008,7 @@ class TestParticipant:
         participant = work_package.project.add_user(
             user1, ProjectRole.RESEARCHER.value, programme_manager
         )
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         assert participant.get_work_package_participant(work_package) is None
         self.assert_participants_with_approval(
             work_package,
@@ -1046,9 +1028,7 @@ class TestParticipant:
             user1, ProjectRole.RESEARCHER.value, programme_manager
         )
         work_package.add_user(user1, programme_manager)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         assert work_package.is_participant_approved(participant)
         assert work_package.get_users_to_approve(dpr.user) == []
         self.assert_participants_with_approval(
@@ -1069,9 +1049,7 @@ class TestParticipant:
         participant = work_package.project.add_user(
             user1, ProjectRole.RESEARCHER.value, programme_manager
         )
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         work_package.add_user(user1, programme_manager)
         assert not work_package.is_participant_approved(participant)
         assert work_package.get_users_to_approve(dpr.user) == [participant.user]
@@ -1089,9 +1067,7 @@ class TestParticipant:
     def test_participant_approved_by_dpr(self, classified_work_package):
         work_package = classified_work_package(3)
         referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         p = referee.get_work_package_participant(work_package)
         p.approve(dpr.user)
         assert work_package.is_participant_approved(referee)
@@ -1111,9 +1087,7 @@ class TestParticipant:
     ):
         work_package = classified_work_package(3)
         referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         p = referee.get_work_package_participant(work_package)
         p.approve(dpr.user)
 
@@ -1156,9 +1130,7 @@ class TestParticipant:
     ):
         work_package = classified_work_package(3)
         referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         p = referee.get_work_package_participant(work_package)
         p.approve(dpr.user)
 
@@ -1203,9 +1175,7 @@ class TestParticipant:
     ):
         work_package = classified_work_package(3)
         referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
 
         dataset = recipes.dataset.make()
         work_package.project.add_dataset(dataset, dpr.user, programme_manager)
@@ -1231,9 +1201,7 @@ class TestParticipant:
     ):
         work_package = classified_work_package(3)
         referee = work_package.project.get_participant(ProjectRole.REFEREE.value)
-        dpr = work_package.project.get_participant(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        dpr = work_package.project.get_participant(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
 
         p = referee.get_work_package_participant(work_package)
         p.approve(dpr.user)
@@ -1271,9 +1239,7 @@ class TestUtils:
     def test_a_or_an(self):
         assert a_or_an("Investigator") == "An Investigator"
         assert a_or_an("investigator") == "An investigator"
-        assert (
-            a_or_an("Data Provider Representative") == "A Data Provider Representative"
-        )
+        assert a_or_an("Data Provider Representative") == "A Data Provider Representative"
         assert a_or_an("Referee", capitalize=True) == "A Referee"
         assert a_or_an("referee", capitalize=False) == "a referee"
         assert a_or_an("Referee", capitalize=False) == "a Referee"

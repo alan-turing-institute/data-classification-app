@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -14,6 +16,7 @@ class Dataset(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     def __str__(self):
         return self.name
