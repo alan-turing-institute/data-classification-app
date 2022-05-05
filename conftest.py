@@ -210,14 +210,14 @@ def remove_data_from_model_with_self_references():
 
     def remove_data(model_class):
         if model_class.objects.exists():
-            i = 0
-            original_count = model_class.objects.all().count()
-            while model_class.objects.all().count() and i < original_count:
+            for _ in range(model_class.objects.all().count()):
                 for instance in model_class.objects.all():
                     try:
                         instance.delete()
                     except ProtectedError:
                         pass
+                if not model_class.objects.exists():
+                    break
 
     # Pass function into fixture output which can be called in test
     return remove_data
