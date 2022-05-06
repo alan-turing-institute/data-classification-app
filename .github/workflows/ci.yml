@@ -21,23 +21,35 @@ concurrency:
 jobs:
   pytest:
     runs-on: ubuntu-latest
-
+    env:
+      DJANGO_SETTINGS_MODULE: haven.settings.test
+      AUTH_TYPES: social,local
+      SOCIAL_AUTH_PROVIDERS: azure-ad-tenant
+    services:
+      postgres:
+        image: postgres:10.8
+        ports:
+        - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
 
       - name: Checkout Code Repository
         uses: actions/checkout@v3
 
-      - name: Build the Stack
-        run:  docker-compose -f local.yml build
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
-      - name: Run DB Migrations
-        run:  docker-compose -f local.yml run --rm django python manage.py migrate
+      - name: Install Poetry
+        run:  pip install poetry
+
+      - name: Install requirements
+        run:  poetry install
 
       - name: Run Django Tests
-        run:  docker-compose -f local.yml run django pytest
+        run:  poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
 
       - name: Run Django Migration Tests
-        run:  docker-compose -f local.yml run django pytest tests/migrations --migrations
-
-      - name: Tear down the Stack
-        run:  docker-compose -f local.yml down
+        run:  poetry run pytest tests/migrations --migrations
