@@ -23,8 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DJANGO_SETTINGS_MODULE: haven.settings.test
-      AUTH_TYPES: social,local
-      SOCIAL_AUTH_PROVIDERS: azure-ad-tenant
+      AUTH_TYPES: local
     services:
       postgres:
         image: postgres:10.8
