@@ -111,7 +111,7 @@ NO_REIDENTIFY_STRONG_TEXT = (
 )
 OPEN_GENERATE_NEW_TEXT = (
     "Will the research generate (including by selecting, or "
-    'sorting or combining) any <a href="#personal_data">personal data</a>?'
+    'sorting or combining) any personal data?'
 )
 OPEN_PUBLICATION_TEXT = (
     "Will releasing any of the datasets or results impact on "
@@ -146,7 +146,7 @@ COMMERCIAL_DATA_TEXT = (
 )
 PERSONAL_DATA_TEXT = (
     "<p><strong>Personal data</strong> is any information relating to an identified or "
-    "identifiable <a href=\"#living_individual\">living individual</a>; an 'identifiable' living "
+    "identifiable living individual; an 'identifiable' living "
     "individual is one who can be identified, directly "
     "or indirectly, in particular by reference to an identifier such as a name, an "
     "identification number, location data, an online identifier or to one or more factors "
@@ -192,7 +192,7 @@ LIVING_INDIVIDUAL_TEXT = (
     "adult and 0 for any child, unless you have contextual evidence that allows you to make a "
     "reasonable assumption otherwise "
     '(<a href="https://www.nationalarchives.gov.uk/documents/information-management/'
-    'guide-to-archiving-personal-data.pdf">National Archives, 2018</a>).</p>'
+    'guide-to-archiving-personal-data.pdf" target="_blank">National Archives, 2018</a>).</p>'
 )
 
 

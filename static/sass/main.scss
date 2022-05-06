@@ -41,7 +41,7 @@ table.formset th.col-form-label {
   color: #ffffff;
   background-color: #53c5d4;
   width: 300px;
-  margin-bottom: 5px;
+  margin-bottom: 20px;
 
   &:hover { 
     background-color: #52a3ad;
@@ -49,6 +49,18 @@ table.formset th.col-form-label {
   }
 }
 
+.classify-btn {
+  border: #495057;
+  color: #ffffff;
+  background-color: #7e65ad;
+  width: 300px;
+  margin-bottom: 20px;
+
+  &:hover { 
+    background-color: #502d91;
+    color: #ffffff;
+  }
+}
 
 
 .save-btn {
@@ -78,4 +90,19 @@ a {
 
 #participants-formset table td {
   padding: 10px;
+}
+
+.explanation {
+  margin: 45px 0;
+}
+
+.guidance {
+  margin: 10px 0;
+  background-color: #eae6f3;
+  padding: 20px;
+  border-radius: 10px;
+
+  p {
+    padding: 5px 0;
+  }
 }

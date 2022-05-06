@@ -55,33 +55,35 @@
     If you have any queries during the classification process, please contact a Project Manager for assistance.
   </p>
 
-  <a class="btn btn-lg custom-btn" href="{{ classify_data_href }}">Classify Work Package</a>
+  <a class="btn btn-lg classify-btn" href="{{ classify_data_href }}">Classify Work Package</a>
 {% else %}
   <p>You cannot classify this work package as you do not have the appropriate role.</p>
 {% endif %}
 
-<h2>Overall classification</h2>
-{% if work_package.has_tier %}
-  <p>Classification is complete: Work package is tier {{ work_package.tier }}</p>
-{% elif not work_package.is_classification_ready %}
-  <p>Classification pending:</p>
-  <ul>
-    {% for reason in work_package.missing_classification_requirements %}
-      <li>{{ reason }}</li>
-    {% endfor %}
-  </ul>
-{% elif work_package.tier_conflict %}
-  <p>Users disagree on data tier</p>
-{% endif %}
+<div class="guidance">
+  <h2>Overall classification</h2>
+  {% if work_package.has_tier %}
+    <p>Classification is complete: Work package is tier {{ work_package.tier }}</p>
+  {% elif not work_package.is_classification_ready %}
+    <p>Classification pending:</p>
+    <ul>
+      {% for reason in work_package.missing_classification_requirements %}
+        <li>{{ reason }}</li>
+      {% endfor %}
+    </ul>
+  {% elif work_package.tier_conflict %}
+    <p>Users disagree on data tier</p>
+  {% endif %}
 
-{% if not work_package.has_tier and other_classifications.exists %}
-  <p>Classifications by other users:</p>
-  <ul>
-  {% for cl in other_classifications %}
-    <li>{{ cl.created_by }} ({{cl.role|project_role_display}}) classified the project as Tier {{ cl.tier }}</li>
-  {% endfor %}
-  </ul>
-{% endif %}
+  {% if not work_package.has_tier and other_classifications.exists %}
+    <p>Classifications by other users:</p>
+    <ul>
+    {% for cl in other_classifications %}
+      <li>{{ cl.created_by }} ({{cl.role|project_role_display}}) classified the project as Tier {{ cl.tier }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</div>
 
 {% if questions_table %}
   <h2>Classification answers</h2>
@@ -90,7 +92,7 @@
   {% endif %}
   {% render_table questions_table %}
   {% if classification %}
-    <p><a class="btn btn-lg custom-btn" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
+    <p><a class="btn btn-lg classify-btn" href="{% url 'projects:classify_delete' work_package.project.id work_package.id %}">Delete My Classification</a></p>
   {% endif %}
 {% endif %}
 
