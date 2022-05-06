@@ -9,6 +9,3 @@ investigator = participant.extend(role="investigator")
 
 dataset = Recipe("Dataset")
 work_package = Recipe("WorkPackage")
-
-
-social_auth = Recipe("UserSocialAuth")

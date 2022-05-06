@@ -14,15 +14,12 @@ from phonenumber_field.phonenumber import PhoneNumber
 
 from haven.core.forms import InlineFormSetHelper
 from haven.identity.forms import CreateUserForm, EditUserForm
-from haven.identity.graph import GraphClientException, get_system_user_list, logger
 from haven.identity.mixins import UserPermissionRequiredMixin
 from haven.identity.models import User
 from haven.projects.forms import ProjectsForUserInlineFormSet
 
 
-class UserCreate(
-    LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMixin, CreateView
-):
+class UserCreate(LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMixin, CreateView):
     """View for creating a new user"""
 
     form_class = CreateUserForm
@@ -73,9 +70,7 @@ class UserCreate(
             return self.form_invalid(form)
 
 
-class UserEdit(
-    LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMixin, UpdateView
-):
+class UserEdit(LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMixin, UpdateView):
     """View for modifying an existing user"""
 
     form_class = EditUserForm
@@ -145,32 +140,18 @@ class UserList(LoginRequiredMixin, UserPermissionRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         ordered_user_list = User.ordered_participants()
 
-        # Get list of usernames on the system
-        try:
-            system_usernames = [
-                username.lower() for username in get_system_user_list(self.request.user)
-            ]
-            has_system_userlist = True
-        except GraphClientException as e:
-            logger.error(
-                "Error when calling the Graph API to get the system userlist. " + str(e)
-            )
-            system_usernames = None
-            has_system_userlist = False
-
-        # The context data to the webpage is a list of dictionaries. Each entry represents a webapp user and contains a
-        # property for the user object and a `has_account` property which is true/false if the username exists/does not
-        # exist on the system, or Unknown if the graph call to get the userlist failed
+        # The context data to the webpage is a list of dictionaries. Each entry represents a webapp
+        # user and contains a property for the user object and a `has_account` property which is
+        # true/false if the username exists/does not exist on the system, or Unknown if the graph
+        # call to get the userlist failed
         kwargs["ordered_user_list"] = [
             {
                 "user": user,
-                "has_account": user.username.lower() in system_usernames
-                if has_system_userlist
-                else "Unknown",
+                "has_account": "Unknown",
             }
             for user in ordered_user_list
         ]
-        kwargs["can_read_system_userlist"] = has_system_userlist
+        kwargs["can_read_system_userlist"] = False
         return super().get_context_data(**kwargs)
 
 
@@ -191,59 +172,20 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
         else:
             project_id = None
 
-        # If requested, remove users that are already on the system
-        if "new" in request.GET:
-            try:
-                system_usernames = [
-                    username.lower()
-                    for username in get_system_user_list(self.request.user)
-                ]
-            except GraphClientException as e:
-                messages.error(
-                    self.request,
-                    "The list of new users cannot be exported because it is not "
-                    "possible to determine which users are already on the system. "
-                    "Your user not not have sufficient permissions to read the system "
-                    "userlist. or there may be a network issue. "
-                    "You can still export the list of all users.",
-                )
-                logger.error(
-                    "Could not get system userlist through graph API. Error: " + str(e)
-                )
-                if project_id:
-                    return HttpResponseRedirect(
-                        reverse("projects:detail", args=[project_id])
-                    )
-                else:
-                    return HttpResponseRedirect(reverse("identity:list"))
-
-            exclude_usernames = [
-                system_username.lower() for system_username in system_usernames
-            ]
-            app_users = [
-                app_user
-                for app_user in app_users
-                if app_user.username.lower() not in exclude_usernames
-            ]
-
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="UserCreate.csv"'
 
         writer = csv.writer(response)
 
-        writer.writerow(
-            ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"]
-        )
+        writer.writerow(["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"])
 
         # Write out remaining users
         for user in app_users:
             # Remove the domain from the username
             username = user.username.split("@")[0]
 
-            writer.writerow(
-                [username, user.first_name, user.last_name, user.mobile, user.email]
-            )
+            writer.writerow([username, user.first_name, user.last_name, user.mobile, user.email])
 
         return response
 
@@ -272,12 +214,7 @@ class ImportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
 
                     # Construct a string for displaying as a message
                     user_string = (
-                        new_user.first_name
-                        + " "
-                        + new_user.last_name
-                        + " ("
-                        + new_user.email
-                        + ")"
+                        new_user.first_name + " " + new_user.last_name + " (" + new_user.email + ")"
                     )
 
                     # Check whether a user with this name and email already exists
@@ -291,9 +228,7 @@ class ImportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
                         messages.info(request, "Created user " + user_string)
 
             except Exception as e:
-                messages.error(
-                    request, "The file could not be processed. Error: " + repr(e)
-                )
+                messages.error(request, "The file could not be processed. Error: " + repr(e))
 
         return HttpResponseRedirect(reverse("identity:list"))
 
