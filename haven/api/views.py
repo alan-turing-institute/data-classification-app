@@ -8,6 +8,8 @@ from haven.data.utils import get_accessible_datasets
 
 
 class DatasetListAPIView(generics.ListAPIView):
+    """API view to return a list of datasets that the requesting user has access to"""
+
     serializer_class = DatasetSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
@@ -18,6 +20,8 @@ class DatasetListAPIView(generics.ListAPIView):
 
 
 class DatasetDetailAPIView(generics.RetrieveAPIView):
+    """API view to return the details of a dataset that the requesting user has access to"""
+
     serializer_class = DatasetSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]

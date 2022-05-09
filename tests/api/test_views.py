@@ -5,6 +5,8 @@ import pytest
 from django.urls import reverse
 from oauth2_provider.models import Application
 
+from haven.projects.roles import ProjectRole
+
 
 @pytest.mark.django_db
 class TestOAuthFlow:
@@ -82,3 +84,157 @@ class TestOAuthFlow:
         assert response_json.get("access_token")
         assert response_json.get("refresh_token")
         assert response_json["scope"] == authorize_data["scope"]
+
+
+@pytest.mark.django_db
+class TestDatasetListAPIView:
+    def test_get_dataset_list(
+        self,
+        programme_manager,
+        project_participant,
+        as_project_participant_api,
+        classified_work_package,
+    ):
+        """
+        Test that an API user can request dataset list api to see which datasets they have to.
+        The user must be participant of a project, the datasets must be associated with this project
+        and a classified work package which this user is also associated with.
+        """
+        num_accessible_datasets = 3
+        # Create work packages and add api user
+        accessible_work_packages = [
+            classified_work_package(0) for _ in range(num_accessible_datasets)
+        ]
+        for work_package in accessible_work_packages:
+            work_package.project.add_user(
+                user=project_participant,
+                role=ProjectRole.RESEARCHER.value,
+                created_by=programme_manager,
+            )
+            work_package.add_user(
+                project_participant,
+                programme_manager,
+            )
+
+        # Create more work packages that are not associated with api user, and associated datasets
+        # should not show up in dataset list view
+        unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
+
+        response = as_project_participant_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == num_accessible_datasets
+
+        uuid_results = [dataset["uuid"] for dataset in results]
+
+        # Assert datasets in `accessible_work_packages` are in results
+        for work_package in accessible_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) in uuid_results
+
+        # Assert datasets in `unaccessible_work_packages` are not in results
+        for work_package in unaccessible_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) not in uuid_results
+
+    def test_get_dataset_list_empty(
+        self,
+        as_project_participant_api,
+        classified_work_package,
+    ):
+        """
+        Test that dataset list view returns an empty array when there are no accessible datasets
+        """
+        # Create work packages that are not associated with api user, and associated datasets
+        # should not show up in dataset list view
+        [classified_work_package(0) for _ in range(3)]
+
+        response = as_project_participant_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert results == []
+
+    def test_get_dataset_list_missing_token(self, DRFClient):
+        """
+        Test dataset list API returns error response when access token is not present in headers
+        """
+        # By default DRFClient has no access token applied
+        response = DRFClient.get(reverse("api:dataset_list"))
+        assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestDatasetDetailAPIView:
+    def test_get_dataset_detail(
+        self,
+        programme_manager,
+        project_participant,
+        as_project_participant_api,
+        classified_work_package,
+    ):
+        """
+        Test that an API user can request dataset detail api to see dataset information if they
+        have access to it.
+        The user must be participant of a project, the dataset must be associated with this project
+        and a classified work package which this user is also associated with.
+        """
+        # Create work package and add api user
+        work_package = classified_work_package(0)
+        work_package.project.add_user(
+            user=project_participant,
+            role=ProjectRole.RESEARCHER.value,
+            created_by=programme_manager,
+        )
+        work_package.add_user(
+            project_participant,
+            programme_manager,
+        )
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_detail", kwargs={"uuid": work_package.datasets.last().uuid})
+        )
+
+        assert response.status_code == 200
+
+        result = json.loads(response.content.decode())
+
+        assert result["uuid"] == str(dataset.uuid)
+
+    def test_get_dataset_detail_not_accessible(
+        self,
+        as_project_participant_api,
+        classified_work_package,
+    ):
+        """
+        Test that dataset detail view returns an error response when there are no accessible
+        datasets
+        """
+        # Create work package that is not associated with api user, and associated dataset
+        # should not show up in dataset detail view
+        work_package = classified_work_package(0)
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_detail", kwargs={"uuid": work_package.datasets.last().uuid})
+        )
+
+        assert response.status_code == 404
+
+    def test_get_dataset_detail_missing_token(self, DRFClient, classified_work_package):
+        """
+        Test dataset detail API returns error response when access token is not present in headers
+        """
+        work_package = classified_work_package(0)
+
+        # By default DRFClient has no access token applied
+        response = DRFClient.get(
+            reverse("api:dataset_detail", kwargs={"uuid": work_package.datasets.last().uuid})
+        )
+        assert response.status_code == 401

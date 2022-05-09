@@ -1,8 +1,11 @@
 import base64
+from datetime import datetime, timedelta
 from hashlib import sha256
 
 import pytest
 from django.db.models.deletion import ProtectedError
+from oauth2_provider.models import AccessToken, Application
+from rest_framework.test import APIClient
 
 from haven.core import recipes
 from haven.data.tiers import Tier
@@ -137,8 +140,10 @@ def as_investigator(client, investigator):
 
 
 @pytest.fixture
-def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
-    def _classified_work_package(tier):
+def unclassified_work_package(
+    programme_manager, data_provider_representative, investigator, referee
+):
+    def _unclassified_work_package():
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         dataset = recipes.dataset.make()
@@ -164,13 +169,25 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
+        return work_package
+
+    return _unclassified_work_package
+
+
+@pytest.fixture
+def classified_work_package(
+    investigator, data_provider_representative, referee, unclassified_work_package
+):
+    def _classified_work_package(tier):
+        work_package = unclassified_work_package()
+
         work_package.open_classification()
         if tier is not None:
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
             work_package.classify_as(tier, referee.user)
             if tier >= Tier.THREE:
-                p = referee.user.get_participant(project)
+                p = referee.user.get_participant(work_package.project)
                 p = p.get_work_package_participant(work_package)
                 p.approve(data_provider_representative.user)
                 work_package = p.work_package
@@ -226,6 +243,11 @@ def remove_data_from_model_with_self_references():
     return remove_data
 
 
+@pytest.fixture
+def DRFClient():
+    return APIClient()
+
+
 def base64URLEncode(random_bytes):
     return base64.urlsafe_b64encode(random_bytes)
 
@@ -256,3 +278,50 @@ def pkce_verifier(encoded_pkce_verifier):
 def pkce_code_challenge(encoded_pkce_verifier):
     """Generate PKCE code challenge to be used in query parameters of OAuth2 flow"""
     return generate_pkce_code_challenge(encoded_pkce_verifier).decode()
+
+
+@pytest.fixture
+def oauth_application_config():
+    return {
+        "name": "Test",
+        "client_id": "IcqQdcuqWmXfm28NLhvvCkGpfOcQr5t7ZLxol1Dj",
+        "client_secret": (
+            "1Yrycxhi3CG1tAzvWgDenzOweXE6XNrMbckQaYQnzN81I9JUz3PKtqZc9wpn3nZCUQciP"
+            "phZTx8DxCz4W97PrQigTrA58gFi4qR52UsRz0P7yDyoSWdXNaFPsWQcXlji"
+        ),
+        "client_type": "confidential",
+        "authorization_grant_type": "authorization-code",
+        "redirect_uris": "http://testserver/noexist/callback",
+        "algorithm": "",
+    }
+
+
+@pytest.fixture
+def oauth_application(oauth_application_config):
+    """Fixture to create dummy OAuth application with deterministic client credentials"""
+    return Application.objects.create(**oauth_application_config)
+
+
+@pytest.fixture
+def access_token(oauth_application):
+    """Fixture to return function to generate access token"""
+
+    def _access_token(user, scope="read write"):
+        return AccessToken.objects.create(
+            token="test_access_token",
+            user=user,
+            application=oauth_application,
+            scope=scope,
+            # Token to expire in 1 day
+            expires=datetime.now() + timedelta(days=1),
+        )
+
+    return _access_token
+
+
+@pytest.fixture
+def as_project_participant_api(DRFClient, project_participant, access_token):
+    """Use this client to call DRF api views, logged in as project participant"""
+    access_token = access_token(project_participant)
+    DRFClient.credentials(HTTP_AUTHORIZATION="Bearer " + access_token.token)
+    return DRFClient
