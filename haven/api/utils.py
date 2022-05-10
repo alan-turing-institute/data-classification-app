@@ -23,4 +23,8 @@ def get_accessible_projects(user):
 
 def get_accessible_work_packages(user):
     """Function to return queryset of projects which are accessible to a given user"""
-    return WorkPackage.objects.filter(project__participants__user=user, participants__user=user)
+    return WorkPackage.objects.filter(
+        project__participants__user=user,
+        participants__user=user,
+        tier__gte=0,
+    )

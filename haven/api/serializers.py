@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from haven.api.utils import get_accessible_work_packages
 from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
@@ -36,8 +37,19 @@ class ProjectSerializer(serializers.ModelSerializer):
     """
 
     datasets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
-    work_packages = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
+    work_packages = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    def get_work_packages(self, project):
+        """
+        Function to get accessible work packages, this ensures that only classified work packages
+        are exposed over project API
+        """
+        return (
+            get_accessible_work_packages(self.context["request"]._auth.user)
+            .filter(project=project)
+            .values_list("uuid", flat=True)
+        )
 
     class Meta:
         model = Project
