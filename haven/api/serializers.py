@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from haven.data.models import Dataset
-from haven.projects.models import Project
+from haven.projects.models import Project, WorkPackage
 
 
 class DatasetSerializer(serializers.ModelSerializer):
@@ -48,6 +48,31 @@ class ProjectSerializer(serializers.ModelSerializer):
             "datasets",
             "work_packages",
             "archived",
+            "created_at",
+            "created_by",
+        ]
+
+
+class WorkPackageSerializer(serializers.ModelSerializer):
+    """
+    Class for converting a WorkPackage model instance into a JSON representation.
+    To be used with DRF API views.
+    """
+
+    datasets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
+    project = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    class Meta:
+        model = WorkPackage
+        fields = [
+            "name",
+            "uuid",
+            "description",
+            "project",
+            "datasets",
+            "status",
+            "tier",
             "created_at",
             "created_by",
         ]
