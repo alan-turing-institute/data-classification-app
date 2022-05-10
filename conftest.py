@@ -231,18 +231,18 @@ def base64URLEncode(random_bytes):
 
 
 def generate_pkce_verifier(secret_data):
-    """Function generate a pkce verifier from secret data"""
+    """Function to generate a PKCE verifier from secret data"""
     return base64URLEncode(secret_data).rstrip(b"=")
 
 
 def generate_pkce_code_challenge(verifier):
-    """Function to generate a pkce code challenge from a verifier"""
+    """Function to generate a PKCE code challenge from a verifier"""
     return base64URLEncode(sha256(verifier).digest()).rstrip(b"=")
 
 
 @pytest.fixture
 def encoded_pkce_verifier():
-    """Generate encoded PKCE verifier to be used generation of pkce code challenge"""
+    """Generate encoded PKCE verifier to be used in generation of PKCE code challenge"""
     return generate_pkce_verifier(b"test")
 
 
