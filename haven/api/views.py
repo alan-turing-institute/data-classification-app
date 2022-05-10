@@ -38,7 +38,7 @@ class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
     serializer_class = DatasetSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
-    filter_kwargs = ["work_packages__uuid"]
+    filter_kwargs = ["work_packages__uuid", "projects__uuid"]
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
@@ -55,7 +55,7 @@ class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated, TokenHasScope]
     lookup_field = "uuid"
     lookup_url_kwarg = "uuid"
-    filter_kwargs = ["work_packages__uuid"]
+    filter_kwargs = ["work_packages__uuid", "projects__uuid"]
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""

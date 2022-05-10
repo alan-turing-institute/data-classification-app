@@ -30,6 +30,29 @@ urlpatterns = [
         name="project_work_package_detail",
     ),
     path(
+        "projects/<slug:projects__uuid>/datasets",
+        views.DatasetListAPIView.as_view(),
+        name="project_dataset_list",
+    ),
+    path(
+        # Notice the plural `projects__uuid` rather than `project__uuid`
+        # Work packages have a fk to project whereas datasets have a M2M relation with projects
+        "projects/<slug:projects__uuid>/datasets/<slug:uuid>",
+        views.DatasetDetailAPIView.as_view(),
+        name="project_dataset_detail",
+    ),
+    path(
+        "projects/<slug:projects__uuid>/work_packages/<slug:work_packages__uuid>/datasets",
+        views.DatasetListAPIView.as_view(),
+        name="project_work_package_dataset_list",
+    ),
+    path(
+        "projects/<slug:projects__uuid>/work_packages/"
+        "<slug:work_packages__uuid>/datasets/<slug:uuid>",
+        views.DatasetDetailAPIView.as_view(),
+        name="project_work_package_dataset_detail",
+    ),
+    path(
         "work_packages",
         views.WorkPackageListAPIView.as_view(),
         name="work_package_list",

@@ -140,6 +140,11 @@ def as_investigator(client, investigator):
 
 
 @pytest.fixture
+def project(programme_manager):
+    return recipes.project.make(created_by=programme_manager)
+
+
+@pytest.fixture
 def unclassified_work_package(
     programme_manager, data_provider_representative, investigator, referee
 ):
