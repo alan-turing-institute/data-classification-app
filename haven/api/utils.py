@@ -4,26 +4,15 @@ from haven.projects.models import Project, WorkPackage
 
 def get_accessible_datasets(user):
     """Function to return queryset of datasets which are accessible to a given user"""
-    queryset = Dataset.objects.all()
-
-    accessible_dataset_ids = set()
-
-    for dataset in queryset:
-        # User must be a participant in the dataset's project
-        for project in dataset.projects.filter(participants__user=user):
-            if dataset.id in accessible_dataset_ids:
-                break
-
-            if (
-                # Projects work package must be classified
-                project.work_packages.exclude(tier=None)
-                # and associated with user and dataset
-                .filter(participants__user=user, datasets=dataset).exists()
-            ):
-                accessible_dataset_ids.add(dataset.id)
-                break
-
-    return queryset.filter(id__in=accessible_dataset_ids)
+    return Dataset.objects.filter(
+        # User must be a participant of dataset's project
+        projects__participants__user=user,
+        # User must be participant of work package
+        work_packages__participants__user=user,
+        # User must be a participant of work packages project
+        work_packages__project__participants__user=user,
+        # At least one work package must be classified
+    ).exclude(work_packages__tier=None)
 
 
 def get_accessible_projects(user):
