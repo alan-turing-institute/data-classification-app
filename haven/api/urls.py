@@ -20,6 +20,16 @@ urlpatterns = [
         name="project_detail",
     ),
     path(
+        "projects/<slug:project__uuid>/work_packages",
+        views.WorkPackageListAPIView.as_view(),
+        name="project_work_package_list",
+    ),
+    path(
+        "projects/<slug:project__uuid>/work_packages/<slug:uuid>",
+        views.WorkPackageDetailAPIView.as_view(),
+        name="project_work_package_detail",
+    ),
+    path(
         "work_packages",
         views.WorkPackageListAPIView.as_view(),
         name="work_package_list",
@@ -28,6 +38,16 @@ urlpatterns = [
         "work_packages/<slug:uuid>",
         views.WorkPackageDetailAPIView.as_view(),
         name="work_package_detail",
+    ),
+    path(
+        "work_packages/<slug:work_packages__uuid>/datasets",
+        views.DatasetListAPIView.as_view(),
+        name="work_package_dataset_list",
+    ),
+    path(
+        "work_packages/<slug:work_packages__uuid>/datasets/<slug:uuid>",
+        views.DatasetDetailAPIView.as_view(),
+        name="work_package_dataset_detail",
     ),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
