@@ -1,7 +1,7 @@
 import pytest
 
+from haven.api.utils import get_accessible_datasets
 from haven.core import recipes
-from haven.data.utils import get_accessible_datasets
 from haven.projects.roles import ProjectRole
 
 

@@ -3,7 +3,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from haven.api.serializers import DatasetSerializer
-from haven.data.utils import get_accessible_datasets
+from haven.api.utils import get_accessible_datasets
 
 
 class DatasetListAPIView(generics.ListAPIView):
