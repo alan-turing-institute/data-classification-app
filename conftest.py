@@ -1,3 +1,6 @@
+import base64
+from hashlib import sha256
+
 import pytest
 from django.db.models.deletion import ProtectedError
 
@@ -221,3 +224,35 @@ def remove_data_from_model_with_self_references():
 
     # Pass function into fixture output which can be called in test
     return remove_data
+
+
+def base64URLEncode(random_bytes):
+    return base64.urlsafe_b64encode(random_bytes)
+
+
+def generate_pkce_verifier(secret_data):
+    """Function to generate a PKCE verifier from secret data"""
+    return base64URLEncode(secret_data).rstrip(b"=")
+
+
+def generate_pkce_code_challenge(verifier):
+    """Function to generate a PKCE code challenge from a verifier"""
+    return base64URLEncode(sha256(verifier).digest()).rstrip(b"=")
+
+
+@pytest.fixture
+def encoded_pkce_verifier():
+    """Generate encoded PKCE verifier to be used in generation of PKCE code challenge"""
+    return generate_pkce_verifier(b"test")
+
+
+@pytest.fixture
+def pkce_verifier(encoded_pkce_verifier):
+    """Generate decoded PKCE verifier to be used in query parameters of OAuth2 flow"""
+    return encoded_pkce_verifier.decode()
+
+
+@pytest.fixture
+def pkce_code_challenge(encoded_pkce_verifier):
+    """Generate PKCE code challenge to be used in query parameters of OAuth2 flow"""
+    return generate_pkce_code_challenge(encoded_pkce_verifier).decode()

@@ -84,6 +84,7 @@ THIRD_PARTY_APPS = [
     "easyaudit",
     "simple_history",
     "taggit",
+    "oauth2_provider",
 ]
 
 LOCAL_APPS = [
