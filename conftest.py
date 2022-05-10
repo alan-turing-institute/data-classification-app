@@ -4,6 +4,7 @@ from hashlib import sha256
 
 import pytest
 from django.db.models.deletion import ProtectedError
+from django.utils.timezone import make_aware
 from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
 
@@ -317,8 +318,8 @@ def access_token(oauth_application):
             user=user,
             application=oauth_application,
             scope=scope,
-            # Token to expire in 1 day
-            expires=datetime.now() + timedelta(days=1),
+            # Token to expire in 3 days
+            expires=make_aware(datetime.now() + timedelta(days=3)),
         )
 
     return _access_token

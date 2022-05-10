@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from haven.api.utils import get_accessible_work_packages
+from haven.api.utils import (
+    get_accessible_datasets,
+    get_accessible_projects,
+    get_accessible_work_packages,
+)
 from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
@@ -12,9 +16,27 @@ class DatasetSerializer(serializers.ModelSerializer):
     """
 
     projects = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
-    work_packages = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
+    work_packages = serializers.SerializerMethodField()
     default_representative = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    def get_work_packages(self, dataset):
+        """
+        Function to get accessible work packages, this ensures that only classified work packages
+        are exposed over the API
+        """
+        return get_accessible_work_packages(
+            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+        ).values_list("uuid", flat=True)
+
+    def get_projects(self, dataset):
+        """
+        Function to get accessible projects, this ensures that projects the user is participant of
+        are exposed over the API
+        """
+        return get_accessible_projects(
+            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+        ).values_list("uuid", flat=True)
 
     class Meta:
         model = Dataset
@@ -36,20 +58,27 @@ class ProjectSerializer(serializers.ModelSerializer):
     To be used with DRF API views.
     """
 
-    datasets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
+    datasets = serializers.SerializerMethodField()
     work_packages = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+
+    def get_datasets(self, project):
+        """
+        Function to get accessible datasets, this ensures that only accessible datasets are exposed
+        over project API
+        """
+        return get_accessible_datasets(
+            self.context["request"]._auth.user, extra_filters={"projects": project}
+        ).values_list("uuid", flat=True)
 
     def get_work_packages(self, project):
         """
         Function to get accessible work packages, this ensures that only classified work packages
         are exposed over project API
         """
-        return (
-            get_accessible_work_packages(self.context["request"]._auth.user)
-            .filter(project=project)
-            .values_list("uuid", flat=True)
-        )
+        return get_accessible_work_packages(
+            self.context["request"]._auth.user, extra_filters={"project": project}
+        ).values_list("uuid", flat=True)
 
     class Meta:
         model = Project
@@ -71,7 +100,11 @@ class WorkPackageSerializer(serializers.ModelSerializer):
     To be used with DRF API views.
     """
 
+    # If work package is classified then all related datasets are accessible,
+    # therefore no need for custom function here
     datasets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
+    # If work package is classified then it's project is accessible,
+    # therefore no need for custom function here
     project = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
