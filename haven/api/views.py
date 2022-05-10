@@ -1,4 +1,3 @@
-# ViewSets define the view behavior.
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated

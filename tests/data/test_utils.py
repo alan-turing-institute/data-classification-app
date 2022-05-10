@@ -14,7 +14,7 @@ class TestGetAccessibleDatasets:
         classified_work_package,
     ):
         """
-        Test that the `get_accessible_datasets` returns the correct accessible dataset for a given
+        Test that the `get_accessible_datasets` returns the correct accessible datasets for a given
         user.
         """
         num_accessible_datasets = 3

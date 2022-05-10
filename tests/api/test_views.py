@@ -101,8 +101,8 @@ class TestDatasetListAPIView:
     ):
         """
         Test that an API user can request dataset list api to see which datasets they have to.
-        The user must be participant of a project, the datasets must be associated with this project
-        and a classified work package which this user is also associated with.
+        The user must be a participant of a project, the datasets must be associated with this
+        project and a classified work package, which this user is also associated with.
         """
         num_accessible_datasets = 3
         # Create work packages and add api user
@@ -166,7 +166,8 @@ class TestDatasetListAPIView:
 
     def test_get_dataset_list_missing_token(self, DRFClient):
         """
-        Test dataset list API returns error response when access token is not present in headers
+        Test that dataset list API returns an error response when access token is not present in
+        headers
         """
         # By default DRFClient has no access token applied
         response = DRFClient.get(reverse("api:dataset_list"))
@@ -185,8 +186,8 @@ class TestDatasetDetailAPIView:
         """
         Test that an API user can request dataset detail api to see dataset information if they
         have access to it.
-        The user must be participant of a project, the dataset must be associated with this project
-        and a classified work package which this user is also associated with.
+        The user must be a participant of a project, the dataset must be associated with this
+        project and a classified work package, which this user is also associated with.
         """
         # Create work package and add api user
         work_package = classified_work_package(0)
@@ -233,7 +234,8 @@ class TestDatasetDetailAPIView:
 
     def test_get_dataset_detail_missing_token(self, DRFClient, classified_work_package):
         """
-        Test dataset detail API returns error response when access token is not present in headers
+        Test dataset detail API returns an error response when access token is not present in
+        headers
         """
         work_package = classified_work_package(0)
 

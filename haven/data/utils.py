@@ -5,8 +5,6 @@ def get_accessible_datasets(user, queryset=None):
     """Function to return queryset of datasets which are accessible to a given user"""
     queryset = queryset if queryset is not None else Dataset.objects.all()
 
-    # NOTE: This could possibly be done with the ORM to be more performant but it would be a
-    # complex query, for now we will use Python
     accessible_dataset_ids = set()
 
     for dataset in queryset:
