@@ -39,6 +39,10 @@ class TestOAuthFlow:
 
         assert Application.objects.count() == original_count + 1
 
+        application = Application.objects.last()
+        # Assert redirected to application detail view
+        assert response.url == reverse("oauth2_provider:detail", kwargs={"pk": application.id})
+
         authorize_data = {
             "redirect_uri": application_data["redirect_uris"],
             "scope": "read write",
