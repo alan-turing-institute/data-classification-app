@@ -11,4 +11,5 @@ def get_accessible_datasets(user):
         # User must be a participant of work packages project
         work_packages__project__participants__user=user,
         # At least one work package must be classified
-    ).exclude(work_packages__tier=None)
+        work_packages__tier__gte=0,
+    )
