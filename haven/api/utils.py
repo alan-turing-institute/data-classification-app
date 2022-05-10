@@ -1,9 +1,9 @@
 from haven.data.models import Dataset
 
 
-def get_accessible_datasets(user, queryset=None):
+def get_accessible_datasets(user):
     """Function to return queryset of datasets which are accessible to a given user"""
-    queryset = queryset if queryset is not None else Dataset.objects.all()
+    queryset = Dataset.objects.all()
 
     accessible_dataset_ids = set()
 
