@@ -1,4 +1,5 @@
 from haven.data.models import Dataset
+from haven.projects.models import Project
 
 
 def get_accessible_datasets(user):
@@ -23,3 +24,8 @@ def get_accessible_datasets(user):
                 break
 
     return queryset.filter(id__in=accessible_dataset_ids)
+
+
+def get_accessible_projects(user):
+    """Function to return queryset of projects which are accessible to a given user"""
+    return Project.objects.filter(participants__user=user)

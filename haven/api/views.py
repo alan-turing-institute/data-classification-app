@@ -2,8 +2,8 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from haven.api.serializers import DatasetSerializer
-from haven.api.utils import get_accessible_datasets
+from haven.api.serializers import DatasetSerializer, ProjectSerializer
+from haven.api.utils import get_accessible_datasets, get_accessible_projects
 
 
 class DatasetListAPIView(generics.ListAPIView):
@@ -30,3 +30,29 @@ class DatasetDetailAPIView(generics.RetrieveAPIView):
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
         return get_accessible_datasets(self.request._auth.user)
+
+
+class ProjectListAPIView(generics.ListAPIView):
+    """API view to return a list of projects that the requesting user has access to"""
+
+    serializer_class = ProjectSerializer
+    required_scopes = ["read"]
+    permission_classes = [IsAuthenticated, TokenHasScope]
+
+    def get_queryset(self):
+        """Return all datasets accessible by requesting OAuth user"""
+        return get_accessible_projects(self.request._auth.user)
+
+
+class ProjectDetailAPIView(generics.RetrieveAPIView):
+    """API view to return the details of a Project that the requesting user has access to"""
+
+    serializer_class = ProjectSerializer
+    required_scopes = ["read"]
+    permission_classes = [IsAuthenticated, TokenHasScope]
+    lookup_field = "uuid"
+    lookup_url_kwarg = "uuid"
+
+    def get_queryset(self):
+        """Return all projects accessible by requesting OAuth user"""
+        return get_accessible_projects(self.request._auth.user)
