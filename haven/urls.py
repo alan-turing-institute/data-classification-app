@@ -21,6 +21,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path("users/", include("haven.identity.urls", namespace="identity")),
     path("projects/", include("haven.projects.urls", namespace="projects")),
+    path("api/v1/", include("haven.api.urls", namespace="api")),
     # Externally-driven single sign out
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path("error/", TemplateView.as_view(template_name="error.html"), name="error-page"),
