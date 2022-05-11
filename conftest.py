@@ -181,6 +181,26 @@ def unclassified_work_package(
 
 
 @pytest.fixture
+def make_accessible_work_package(classified_work_package, programme_manager):
+    """Fixture to return function for creating a work package accessible to given user"""
+
+    def _make_accessible_work_package(user):
+        work_package = classified_work_package(0)
+        work_package.project.add_user(
+            user=user,
+            role=ProjectRole.RESEARCHER.value,
+            created_by=programme_manager,
+        )
+        work_package.add_user(
+            user,
+            programme_manager,
+        )
+        return work_package
+
+    return _make_accessible_work_package
+
+
+@pytest.fixture
 def classified_work_package(
     investigator, data_provider_representative, referee, unclassified_work_package
 ):

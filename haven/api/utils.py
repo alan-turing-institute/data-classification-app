@@ -44,7 +44,7 @@ def get_accessible_projects(user, extra_filters={}):
         {
             # User must be a participant of project
             "participants__user": user,
-            # Any extra filters, such as a particular work package
+            # Any extra filters
             **extra_filters,
         },
     )
@@ -61,7 +61,7 @@ def get_accessible_work_packages(user, extra_filters={}):
             "participants__user": user,
             # Work package must be classified
             "tier__gte": 0,
-            # Any extra filters, such as a particular work package
+            # Any extra filters, such as a particular project
             **extra_filters,
         },
     )

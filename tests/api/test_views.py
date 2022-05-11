@@ -95,10 +95,10 @@ class TestOAuthFlow:
 class TestDatasetListAPIView:
     def test_get_dataset_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request dataset list api to see which datasets they have to.
@@ -106,20 +106,10 @@ class TestDatasetListAPIView:
         project and a classified work package, which this user is also associated with.
         """
         num_accessible_datasets = 3
-        # Create work packages and add api user
         accessible_work_packages = [
-            classified_work_package(0) for _ in range(num_accessible_datasets)
+            make_accessible_work_package(project_participant)
+            for _ in range(num_accessible_datasets)
         ]
-        for work_package in accessible_work_packages:
-            work_package.project.add_user(
-                user=project_participant,
-                role=ProjectRole.RESEARCHER.value,
-                created_by=programme_manager,
-            )
-            work_package.add_user(
-                project_participant,
-                programme_manager,
-            )
 
         # Create more work packages that are not associated with api user, and associated datasets
         # should not show up in dataset list view
@@ -139,6 +129,22 @@ class TestDatasetListAPIView:
         for work_package in accessible_work_packages:
             for dataset in work_package.datasets.all():
                 assert str(dataset.uuid) in uuid_results
+
+                matching_dataset = list(
+                    filter(lambda x: x.get("uuid", None) == str(dataset.uuid), results)
+                )[0]
+
+                # Assert that the related accessible work packages are returned as a part of
+                # serialization
+                expected_work_packages = set(
+                    str(uuid) for uuid in dataset.work_packages.all().values_list("uuid", flat=True)
+                )
+                assert expected_work_packages == set(matching_dataset["work_packages"])
+                # Assert that the related projects are returned as a part of serialization
+                expected_projects = set(
+                    str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+                )
+                assert expected_projects == set(matching_dataset["projects"])
 
         # Assert datasets in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
@@ -162,7 +168,6 @@ class TestDatasetListAPIView:
         assert response.status_code == 200
 
         results = json.loads(response.content.decode())["results"]
-
         assert results == []
 
     def test_get_dataset_list_missing_token(self, DRFClient):
@@ -176,10 +181,10 @@ class TestDatasetListAPIView:
 
     def test_get_project_dataset_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project dataset list api to see which datasets they have
@@ -187,17 +192,7 @@ class TestDatasetListAPIView:
         The user must be a participant of a project, the datasets must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work packages and add api user
-        accessible_work_package = classified_work_package(0)
-        accessible_work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        accessible_work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        accessible_work_package = make_accessible_work_package(project_participant)
 
         # Create more work packages that are not associated with api user, and associated datasets
         # should not show up in dataset list view
@@ -229,10 +224,10 @@ class TestDatasetListAPIView:
 
     def test_get_work_package_dataset_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request work package dataset list api to see which
@@ -240,17 +235,7 @@ class TestDatasetListAPIView:
         The user must be a participant of a project, the datasets must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        accessible_work_package = classified_work_package(0)
-        accessible_work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        accessible_work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        accessible_work_package = make_accessible_work_package(project_participant)
 
         # Create more work packages that are not associated with api user, and associated datasets
         # should not show up in dataset list view
@@ -282,10 +267,10 @@ class TestDatasetListAPIView:
 
     def test_get_project_work_package_dataset_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project work package dataset list api to see which
@@ -293,17 +278,7 @@ class TestDatasetListAPIView:
         The user must be a participant of a project, the datasets must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        accessible_work_package = classified_work_package(0)
-        accessible_work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        accessible_work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        accessible_work_package = make_accessible_work_package(project_participant)
 
         # Create more work packages that are not associated with api user, and associated datasets
         # should not show up in dataset list view
@@ -341,10 +316,9 @@ class TestDatasetListAPIView:
 class TestDatasetDetailAPIView:
     def test_get_dataset_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request dataset detail api to see dataset information if they
@@ -352,17 +326,7 @@ class TestDatasetDetailAPIView:
         The user must be a participant of a project, the dataset must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         dataset = work_package.datasets.last()
 
@@ -373,8 +337,18 @@ class TestDatasetDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(dataset.uuid)
+
+        # Assert that the related accessible work packages are returned as a part of serialization
+        expected_work_packages = set(
+            str(uuid) for uuid in dataset.work_packages.all().values_list("uuid", flat=True)
+        )
+        assert expected_work_packages == set(result["work_packages"])
+        # Assert that the related projects are returned as a part of serialization
+        expected_projects = set(
+            str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+        )
+        assert expected_projects == set(result["projects"])
 
     def test_get_dataset_detail_not_accessible(
         self,
@@ -410,10 +384,9 @@ class TestDatasetDetailAPIView:
 
     def test_get_project_dataset_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project dataset detail api to see dataset information if
@@ -421,17 +394,7 @@ class TestDatasetDetailAPIView:
         The user must be a participant of a project, the dataset must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         dataset = work_package.datasets.last()
 
@@ -448,15 +411,13 @@ class TestDatasetDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(dataset.uuid)
 
     def test_get_work_package_dataset_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request work package dataset detail api to see dataset information
@@ -464,17 +425,7 @@ class TestDatasetDetailAPIView:
         The user must be a participant of a project, the dataset must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         dataset = work_package.datasets.last()
 
@@ -491,15 +442,13 @@ class TestDatasetDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(dataset.uuid)
 
     def test_get_project_work_package_dataset_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project work package dataset detail api to see dataset
@@ -507,17 +456,7 @@ class TestDatasetDetailAPIView:
         The user must be a participant of a project, the dataset must be associated with this
         project and a classified work package, which this user is also associated with.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         dataset = work_package.datasets.last()
 
@@ -535,7 +474,6 @@ class TestDatasetDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(dataset.uuid)
 
 
@@ -585,6 +523,22 @@ class TestProjectListAPIView:
         for project in accessible_projects:
             assert str(project.uuid) in uuid_results
 
+            matching_project = list(
+                filter(lambda x: x.get("uuid", None) == str(project.uuid), results)
+            )[0]
+
+            # Assert that the related accessible work packages are returned as a part of
+            # serialization
+            expected_work_packages = set(
+                str(uuid) for uuid in project.work_packages.all().values_list("uuid", flat=True)
+            )
+            assert expected_work_packages == set(matching_project["work_packages"])
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in project.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_project["datasets"])
+
         # Assert projects in `unaccessible_projects` are not in results
         for project in unaccessible_projects:
             assert str(project.uuid) not in uuid_results
@@ -606,7 +560,6 @@ class TestProjectListAPIView:
         assert response.status_code == 200
 
         results = json.loads(response.content.decode())["results"]
-
         assert results == []
 
     def test_get_project_list_missing_token(self, DRFClient):
@@ -647,8 +600,18 @@ class TestProjectDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(project.uuid)
+
+        # Assert that the related accessible work packages are returned as a part of serialization
+        expected_work_packages = set(
+            str(uuid) for uuid in project.work_packages.all().values_list("uuid", flat=True)
+        )
+        assert expected_work_packages == set(result["work_packages"])
+        # Assert that the related accessible datasets are returned as a part of serialization
+        expected_datasets = set(
+            str(uuid) for uuid in project.datasets.all().values_list("uuid", flat=True)
+        )
+        assert expected_datasets == set(result["datasets"])
 
     def test_get_project_detail_not_accessible(
         self,
@@ -685,10 +648,10 @@ class TestProjectDetailAPIView:
 class TestWorkPackageListAPIView:
     def test_get_work_package_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request work package list api to see which work packages they have
@@ -697,20 +660,10 @@ class TestWorkPackageListAPIView:
         and the work package must be classified.
         """
         num_accessible_work_packages = 3
-        # Create work packages and add api user
         accessible_work_packages = [
-            classified_work_package(0) for _ in range(num_accessible_work_packages)
+            make_accessible_work_package(project_participant)
+            for _ in range(num_accessible_work_packages)
         ]
-        for work_package in accessible_work_packages:
-            work_package.project.add_user(
-                user=project_participant,
-                role=ProjectRole.RESEARCHER.value,
-                created_by=programme_manager,
-            )
-            work_package.add_user(
-                project_participant,
-                programme_manager,
-            )
 
         # Create more work packages that are not associated with api user, these work packages
         # should not show up in work package list view
@@ -729,6 +682,18 @@ class TestWorkPackageListAPIView:
         # Assert work packages in `accessible_work_packages` are in results
         for work_package in accessible_work_packages:
             assert str(work_package.uuid) in uuid_results
+
+            matching_work_package = list(
+                filter(lambda x: x.get("uuid", None) == str(work_package.uuid), results)
+            )[0]
+
+            # Assert that the related accessible project is returned as a part of serialization
+            assert str(work_package.project.uuid) == matching_work_package["project"]
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in work_package.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_work_package["datasets"])
 
         # Assert work packages in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
@@ -752,7 +717,6 @@ class TestWorkPackageListAPIView:
         assert response.status_code == 200
 
         results = json.loads(response.content.decode())["results"]
-
         assert results == []
 
     def test_get_work_package_list_missing_token(self, DRFClient):
@@ -766,10 +730,10 @@ class TestWorkPackageListAPIView:
 
     def test_get_project_work_package_list(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
         classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project work package list api to see which work packages
@@ -777,17 +741,7 @@ class TestWorkPackageListAPIView:
         The user must be a participant of a work package, a participant of the work packages project
         and the work package must be classified.
         """
-        # Create work package and add api user
-        accessible_work_package = classified_work_package(0)
-        accessible_work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        accessible_work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        accessible_work_package = make_accessible_work_package(project_participant)
 
         # Create more work packages that are not associated with api user, these work packages
         # should not show up in work package list view
@@ -819,10 +773,9 @@ class TestWorkPackageListAPIView:
 class TestWorkPackageDetailAPIView:
     def test_get_work_package_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request work package detail api to see work package information
@@ -830,17 +783,7 @@ class TestWorkPackageDetailAPIView:
         The user must be a participant of a work package, a participant of the work packages project
         and the work package must be classified.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         response = as_project_participant_api.get(
             reverse("api:work_package_detail", kwargs={"uuid": work_package.uuid})
@@ -849,8 +792,15 @@ class TestWorkPackageDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(work_package.uuid)
+
+        # Assert that the related accessible project is returned as a part of serialization
+        assert str(work_package.project.uuid) == result["project"]
+        # Assert that the related accessible datasets are returned as a part of serialization
+        expected_datasets = set(
+            str(uuid) for uuid in work_package.datasets.all().values_list("uuid", flat=True)
+        )
+        assert expected_datasets == set(result["datasets"])
 
     def test_get_work_package_detail_not_accessible(
         self,
@@ -886,10 +836,9 @@ class TestWorkPackageDetailAPIView:
 
     def test_get_project_work_package_detail(
         self,
-        programme_manager,
         project_participant,
         as_project_participant_api,
-        classified_work_package,
+        make_accessible_work_package,
     ):
         """
         Test that an API user can request project work package detail api to see work package
@@ -897,17 +846,7 @@ class TestWorkPackageDetailAPIView:
         The user must be a participant of a work package, a participant of the work packages project
         and the work package must be classified.
         """
-        # Create work package and add api user
-        work_package = classified_work_package(0)
-        work_package.project.add_user(
-            user=project_participant,
-            role=ProjectRole.RESEARCHER.value,
-            created_by=programme_manager,
-        )
-        work_package.add_user(
-            project_participant,
-            programme_manager,
-        )
+        work_package = make_accessible_work_package(project_participant)
 
         response = as_project_participant_api.get(
             reverse(
@@ -922,5 +861,4 @@ class TestWorkPackageDetailAPIView:
         assert response.status_code == 200
 
         result = json.loads(response.content.decode())
-
         assert result["uuid"] == str(work_package.uuid)
