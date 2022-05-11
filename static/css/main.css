@@ -78,7 +78,7 @@ a {
 }
 
 .info-icon:before {
-  color: #000;
+  color: #502d91;
   content: "\f05a";
   font-family: "Font Awesome 5 Free";
   font-style: normal;
@@ -87,5 +87,5 @@ a {
 }
 
 .info-section {
-  margin: 20px 0;
+  margin: 20px 0 30px 0;
 }
