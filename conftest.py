@@ -328,9 +328,10 @@ def oauth_application_registration_data(oauth_application_config):
     Takes oauth_application_config and returns the appropriate POST data required to call the OAuth
     application registration endpoint
     """
-    oauth_application_config["initial-client_id"] = oauth_application_config["client_id"]
-    oauth_application_config["initial-client_secret"] = oauth_application_config["client_secret"]
-    return oauth_application_config
+    registration_data = oauth_application_config.copy()
+    registration_data["initial-client_id"] = oauth_application_config["client_id"]
+    registration_data["initial-client_secret"] = oauth_application_config["client_secret"]
+    return registration_data
 
 
 @pytest.fixture
