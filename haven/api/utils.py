@@ -6,12 +6,11 @@ from haven.projects.models import Project, WorkPackage
 
 def safe_filter_and_deduplicate(model_class, filters):
     """
-    Function which takes model_class, applies filters, and removes duplicate items.
+    Function which takes a model_class, applies filters, and removes duplicate items.
     It returns an empty dataset if any ValidationErrors are caught.
     """
     try:
-        # Use distinct because sometimes when filtering through M2M fields you can get duplicate
-        # returned items
+        # Use distinct because when filtering through M2M fields duplicate items can be returned
         return model_class.objects.filter(**filters).distinct()
     # ValidationError can happen when trying to filter by an invalid UUID
     except ValidationError:
@@ -53,8 +52,6 @@ def get_accessible_work_packages(user, extra_filters={}):
     return safe_filter_and_deduplicate(
         WorkPackage,
         {
-            # User must be a participant of work package's project
-            "project__participants__user": user,
             # User must be participant of work package
             "participants__user": user,
             # Work package must be classified

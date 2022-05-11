@@ -22,7 +22,9 @@ class ExtraFilterKwargsMixin:
     filtered by the associated work package identified by `work_packages__uuid`
     """
 
-    filter_kwargs = ["work_packages__uuid"]
+    # These must be a valid filter kwarg for the data model being filtered
+    # e.g. `work_packages__uuid` is valid for `Dataset`
+    filter_kwargs = []
 
     def get_filter_kwargs(self):
         extra_filters = {}
@@ -70,7 +72,6 @@ class ProjectListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
     serializer_class = ProjectSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
-    filter_kwargs = []
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
@@ -80,14 +81,13 @@ class ProjectListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
 
 class ProjectDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
-    """API view to return the details of a Project that the requesting user has access to"""
+    """API view to return the details of a project that the requesting user has access to"""
 
     serializer_class = ProjectSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
     lookup_field = "uuid"
     lookup_url_kwarg = "uuid"
-    filter_kwargs = []
 
     def get_queryset(self):
         """Return all projects accessible by requesting OAuth user"""
@@ -112,7 +112,7 @@ class WorkPackageListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
 
 class WorkPackageDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
-    """API view to return the details of a WorkPackage that the requesting user has access to"""
+    """API view to return the details of a work package that the requesting user has access to"""
 
     serializer_class = WorkPackageSerializer
     required_scopes = ["read"]

@@ -31,8 +31,8 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     def get_projects(self, dataset):
         """
-        Function to get accessible projects, this ensures that projects the user is participant of
-        are exposed over the API
+        Function to get accessible projects, this ensures that only projects the user is participant
+        of are exposed over the API
         """
         return get_accessible_projects(
             self.context["request"]._auth.user, extra_filters={"datasets": dataset}

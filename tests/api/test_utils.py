@@ -22,8 +22,8 @@ class TestSafeFilterAndDeduplicate:
         make_accessible_work_package,
     ):
         """
-        Test that the `safe_filter_and_deduplicate` returns an empty array if a invalid UUID is used
-        in filters. This would usually raise a `ValidationError`.
+        Test that the `safe_filter_and_deduplicate` returns an empty array if an invalid UUID is
+        used in filters. This would usually raise a `ValidationError`.
         """
         make_accessible_work_package(project_participant)
 
@@ -256,7 +256,7 @@ class TestGetAccessibleProjects:
         make_accessible_work_package,
     ):
         """
-        Test that the `get_accessible_projects` returns the correct accessible datasets for a given
+        Test that the `get_accessible_projects` returns the correct accessible projects for a given
         user.
         """
         num_accessible_datasets = 3
@@ -424,8 +424,8 @@ class TestGetAccessibleWorkPackages:
         make_accessible_work_package,
     ):
         """
-        Test that the `get_accessible_work_packages` returns the correct accessible datasets for a
-        given user and filtered by a specific project.
+        Test that the `get_accessible_work_packages` returns the correct accessible work packages
+        for a given user and filtered by a specific project.
         """
         accessible_work_package = make_accessible_work_package(project_participant)
 
