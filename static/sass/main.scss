@@ -85,3 +85,18 @@ a {
   display: inline-block;
   padding: 0.5rem 0.3rem;
 }
+
+@import url("https://use.fontawesome.com/releases/v5.13.0/css/all.css");
+
+.info-icon:before {
+    color:#000;
+    content: '\f05a'; 
+    font-family: "Font Awesome 5 Free"; 
+    font-style: normal;
+    font-weight: 900;
+    font-size: 20px;
+}
+
+.info-section {
+  margin: 20px 0 30px 0;
+}
