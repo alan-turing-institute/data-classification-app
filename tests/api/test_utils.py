@@ -98,10 +98,10 @@ class TestGetAccessibleDatasets:
         investigator,
         make_accessible_work_package,
     ):
-        """Test that that a dataset without a work package is not accessible"""
+        """Test that a dataset without a work package is not accessible"""
         work_package = make_accessible_work_package(project_participant)
 
-        # Is not associated with work package
+        # Create a dataset in the project but *not* the work package
         dataset = recipes.dataset.make()
 
         work_package.project.add_dataset(
@@ -112,6 +112,7 @@ class TestGetAccessibleDatasets:
 
         assert accessible_datasets.count() == 1
 
+        # The fixture adds a dataset to the work package automatically
         assert work_package.datasets.last() in accessible_datasets
         # Since it is not associated with a work package
         assert dataset not in accessible_datasets
@@ -144,7 +145,7 @@ class TestGetAccessibleDatasets:
         project_participant,
         make_accessible_work_package,
     ):
-        """Test that that a dataset without a project is not accessible"""
+        """Test that a dataset without a project is not accessible"""
         work_package = make_accessible_work_package(project_participant)
 
         # Is not associated with project
@@ -308,7 +309,7 @@ class TestGetAccessibleProjects:
         project_participant,
         programme_manager,
     ):
-        """Test that that a project without a work package is still accessible"""
+        """Test that a project without a work package is still accessible"""
         # Is not associated with work package
         project = recipes.project.make()
         project.add_user(

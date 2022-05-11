@@ -23,8 +23,6 @@ def get_accessible_datasets(user, extra_filters={}):
     return safe_filter_and_deduplicate(
         Dataset,
         {
-            # User must be a participant of dataset's project
-            "projects__participants__user": user,
             # User must be participant of work package
             "work_packages__participants__user": user,
             # User must be a participant of work packages project
