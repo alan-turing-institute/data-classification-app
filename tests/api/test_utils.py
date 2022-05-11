@@ -83,7 +83,7 @@ class TestGetAccessibleDatasets:
         investigator,
         classified_work_package,
     ):
-        """Test that that a dataset without a workpackage is not accessible"""
+        """Test that a dataset without a workpackage is not accessible"""
         work_package = classified_work_package(0)
         work_package.project.add_user(
             user=project_participant,
@@ -95,7 +95,7 @@ class TestGetAccessibleDatasets:
             programme_manager,
         )
 
-        # Is not associated with work package
+        # Create a dataset in the project but *not* the work package
         dataset = recipes.dataset.make()
 
         work_package.project.add_dataset(
@@ -106,6 +106,7 @@ class TestGetAccessibleDatasets:
 
         assert accessible_datasets.count() == 1
 
+        # The fixture adds a dataset to the work package automatically
         assert work_package.datasets.last() in accessible_datasets
         # Since it is not associated with a work package
         assert dataset not in accessible_datasets
@@ -117,7 +118,7 @@ class TestGetAccessibleDatasets:
         classified_work_package,
     ):
         """
-        Test that is user is not associated with classified work package that they cannot access the
+        Test that if user is not associated with classified work package that they cannot access the
         dataset
         """
         # None of these work packages are associated with user, even though they are associated with
@@ -141,7 +142,7 @@ class TestGetAccessibleDatasets:
         investigator,
         classified_work_package,
     ):
-        """Test that that a dataset without a project is not accessible"""
+        """Test that a dataset without a project is not accessible"""
         work_package = classified_work_package(0)
         work_package.project.add_user(
             user=project_participant,
@@ -158,8 +159,8 @@ class TestGetAccessibleDatasets:
 
         accessible_datasets = get_accessible_datasets(project_participant)
 
+        # The fixture adds a dataset to the work package automatically
         assert accessible_datasets.count() == 1
-
         assert work_package.datasets.last() in accessible_datasets
-        # Since it is not associated with a work package
+        # Since it is not associated with any project
         assert dataset not in accessible_datasets

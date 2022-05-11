@@ -10,30 +10,20 @@ from haven.projects.roles import ProjectRole
 
 @pytest.mark.django_db
 class TestOAuthFlow:
-    def test_oauth_flow(self, as_system_manager, pkce_verifier, pkce_code_challenge):
+    def test_oauth_flow(
+        self,
+        as_system_manager,
+        pkce_verifier,
+        pkce_code_challenge,
+        oauth_application_registration_data,
+    ):
         """This tests that a client can use the OAuth2 views to gain an access token"""
         original_count = Application.objects.count()
 
-        application_data = {
-            "name": "Test",
-            "client_id": "IcqQdcuqWmXfm28NLhvvCkGpfOcQr5t7ZLxol1Dj",
-            "initial-client_id": "IcqQdcuqWmXfm28NLhvvCkGpfOcQr5t7ZLxol1Dj",
-            "client_secret": (
-                "1Yrycxhi3CG1tAzvWgDenzOweXE6XNrMbckQaYQnzN81I9JUz3PKtqZc9wpn3nZCUQciP"
-                "phZTx8DxCz4W97PrQigTrA58gFi4qR52UsRz0P7yDyoSWdXNaFPsWQcXlji"
-            ),
-            "initial-client_secret": (
-                "1Yrycxhi3CG1tAzvWgDenzOweXE6XNrMbckQaYQnzN81I9JUz3PKtqZc9wpn3nZCUQciP"
-                "phZTx8DxCz4W97PrQigTrA58gFi4qR52UsRz0P7yDyoSWdXNaFPsWQcXlji"
-            ),
-            "client_type": "confidential",
-            "authorization_grant_type": "authorization-code",
-            "redirect_uris": "http://testserver/noexist/callback",
-            "algorithm": "",
-        }
         # Register a new client (e.g. data-access-controller)
         response = as_system_manager.post(
-            reverse("oauth2_provider:register"), data=application_data
+            reverse("oauth2_provider:register"),
+            data=oauth_application_registration_data,
         )
         assert response.status_code == 302
 
@@ -44,10 +34,10 @@ class TestOAuthFlow:
         assert response.url == reverse("oauth2_provider:detail", kwargs={"pk": application.id})
 
         authorize_data = {
-            "redirect_uri": application_data["redirect_uris"],
+            "redirect_uri": oauth_application_registration_data["redirect_uris"],
             "scope": "read write",
             "nonce": "",
-            "client_id": application_data["client_id"],
+            "client_id": oauth_application_registration_data["client_id"],
             "state": "",
             "response_type": "code",
             "code_challenge": pkce_code_challenge,
@@ -70,9 +60,9 @@ class TestOAuthFlow:
         response = as_system_manager.post(
             reverse("oauth2_provider:token"),
             data={
-                "redirect_uri": application_data["redirect_uris"],
-                "client_id": application_data["client_id"],
-                "client_secret": application_data["client_secret"],
+                "redirect_uri": oauth_application_registration_data["redirect_uris"],
+                "client_id": oauth_application_registration_data["client_id"],
+                "client_secret": oauth_application_registration_data["client_secret"],
                 "code": auth_code,
                 "code_verifier": pkce_verifier,
                 "grant_type": "authorization_code",
@@ -100,8 +90,8 @@ class TestDatasetListAPIView:
         classified_work_package,
     ):
         """
-        Test that an API user can request dataset list api to see which datasets they have to.
-        The user must be a participant of a project, the datasets must be associated with this
+        Test that an API user can request dataset list api to see which datasets they have access
+        to. The user must be a participant of a project, the datasets must be associated with this
         project and a classified work package, which this user is also associated with.
         """
         num_accessible_datasets = 3
@@ -204,7 +194,7 @@ class TestDatasetDetailAPIView:
         dataset = work_package.datasets.last()
 
         response = as_project_participant_api.get(
-            reverse("api:dataset_detail", kwargs={"uuid": work_package.datasets.last().uuid})
+            reverse("api:dataset_detail", kwargs={"uuid": dataset.uuid})
         )
 
         assert response.status_code == 200

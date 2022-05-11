@@ -297,6 +297,17 @@ def oauth_application_config():
 
 
 @pytest.fixture
+def oauth_application_registration_data(oauth_application_config):
+    """
+    Takes oauth_application_config and returns the appropriate POST data required to call the OAuth
+    application registration endpoint
+    """
+    oauth_application_config["initial-client_id"] = oauth_application_config["client_id"]
+    oauth_application_config["initial-client_secret"] = oauth_application_config["client_secret"]
+    return oauth_application_config
+
+
+@pytest.fixture
 def oauth_application(oauth_application_config):
     """Fixture to create dummy OAuth application with deterministic client credentials"""
     return Application.objects.create(**oauth_application_config)
