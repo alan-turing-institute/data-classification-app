@@ -93,6 +93,8 @@ Questions to consider:
 **Answer:** This is a research project about how, in general, best to provide this kind of security. 
 However, we will not, within this project, be using real data in manners that might result in any additional exposure risk over current practices.
 
+The web app (see Q2 on extent of data) will be used during the interviews and will be hosted by each participating institution (Turing, UCL, Cambridge) on their secure, managed and supported computing infrastructure. The notes from each interview will the gathered using HackMD (collaborative online note taking app) and transferred to the project's private GitHub wiki once the final edits have been made.
+
 ### Other Harms: 5. Please comment on the potential for individual, societal or ecological harms to arise from your research, beyond what is described above.
 *Where you identify risks, you should inform us how your research plans to minimise or eliminate them.*
 
