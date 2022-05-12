@@ -43,6 +43,8 @@ If, at any point during testing, data is re-identified, the exercise will halt a
 We will not be carrying out novel analysis as part of the work, and all controls already in place around this data will remain in place. 
 For avoidance of any doubt, in these cases, we will request confirmation from each data provider that they are content with consideration of data and metadata for evaluation of future information governance approaches, and, if not, we will for that domain, consider only generic 'typical data in the field' rather than evaluating the particular dataset.
 
+We will be conducting approximately 20 interviews and user experience testing sessions with prospective users of this app. Their roles will range from project management staff to principal investigators to information governance professionals from UCL, Cambridge and Turing. During these sessions we have a number of scenarios we wish our prospective users to conduct using the app, and we will be noting their experiences, feedback and areas for improvement from them.
+
 ### Has your study received funding from the Department of Health (for Social Care Research) or the Ministry of Defence?
 -	Yes – DH: liaise with EAG and be ready to share approval received from relevant body
 -	Yes – MoD: liaise with EAG and be ready to share approval received from relevant body
