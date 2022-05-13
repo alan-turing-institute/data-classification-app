@@ -171,7 +171,7 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
             "projects:autocomplete_dpr", kwargs={"pk": project_id}
         )
         field = UserAutocompleteChoiceField(
-            autocomplete_url, label="Default Representative"
+            autocomplete_url, label="Data Provider Representative"
         )
         self.fields["default_representative"] = field
 
@@ -333,7 +333,7 @@ class ProjectArchiveForm(forms.Form):
 
 
 class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper("Add Dataset to Work Package")
+    helper = SaveCancelFormHelper("Add Dataset to Work Package", "save-btn")
 
     class Meta:
         model = WorkPackageDataset
@@ -347,7 +347,7 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
 
 
 class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
-    helper = SaveCancelFormHelper("Add Participant to Work Package")
+    helper = SaveCancelFormHelper("Add Participant to Work Package", "save-btn")
 
     class Meta:
         model = WorkPackageParticipant
