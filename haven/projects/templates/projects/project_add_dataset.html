@@ -13,14 +13,23 @@
 
   <div class="info-section">View information about:
     <ul>
-      <li>Ingress <i class="info-icon"></i> </li>
-      <li>Egress - Reports <i class="info-icon"></i> </li>
-      <li>Egress - Full <i class="info-icon"></i> </li>
+      <li>Ingress <i class="info-icon" data-toggle="tooltip" data-placement="right" title="Tooltip with lots of ingress information in it."></i></li>
+      <li>Egress - Reports <i class="info-icon"  data-toggle="tooltip" data-placement="right" title="Tooltip with lots of egress information in it."></i></i> </li>
+      <li>Egress - Full <i class="info-icon"  data-toggle="tooltip" data-placement="right" title="Tooltip with lots of egress information in it."></i></i> </li>
     </ul>
   </div>
+
+  <a href="#" data-toggle="tooltip" title="Hooray!">Hover over me</a>
 </p>
 
 <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+
+<script>
+  $( document ).ready(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+</script>
+
 
 <form method="POST">
   {% crispy form %}
