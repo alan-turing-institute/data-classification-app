@@ -21,19 +21,13 @@ class DatasetSerializer(serializers.ModelSerializer):
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     def get_work_packages(self, dataset):
-        """
-        Function to get accessible work packages, this ensures that only classified work packages
-        are exposed over the API
-        """
+        """Function to get accessible work packages that this dataset is associated with"""
         return get_accessible_work_packages(
             self.context["request"]._auth.user, extra_filters={"datasets": dataset}
         ).values_list("uuid", flat=True)
 
     def get_projects(self, dataset):
-        """
-        Function to get accessible projects, this ensures that only projects the user is participant
-        of are exposed over the API
-        """
+        """Function to get accessible projects that this dataset is associated with"""
         return get_accessible_projects(
             self.context["request"]._auth.user, extra_filters={"datasets": dataset}
         ).values_list("uuid", flat=True)
@@ -63,19 +57,13 @@ class ProjectSerializer(serializers.ModelSerializer):
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     def get_datasets(self, project):
-        """
-        Function to get accessible datasets, this ensures that only accessible datasets are exposed
-        over project API
-        """
+        """Function to get accessible datasets that this project is associated with"""
         return get_accessible_datasets(
             self.context["request"]._auth.user, extra_filters={"projects": project}
         ).values_list("uuid", flat=True)
 
     def get_work_packages(self, project):
-        """
-        Function to get accessible work packages, this ensures that only classified work packages
-        are exposed over project API
-        """
+        """Function to get accessible work packages that this project is associated with"""
         return get_accessible_work_packages(
             self.context["request"]._auth.user, extra_filters={"project": project}
         ).values_list("uuid", flat=True)
@@ -103,7 +91,7 @@ class WorkPackageSerializer(serializers.ModelSerializer):
     # If work package is classified then all related datasets are accessible,
     # therefore no need for custom function here
     datasets = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
-    # If work package is classified then it's project is accessible,
+    # If work package is classified then its project is accessible,
     # therefore no need for custom function here
     project = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
