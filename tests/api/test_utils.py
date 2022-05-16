@@ -171,6 +171,12 @@ class TestGetAccessibleDatasets:
         """
         accessible_work_package = make_accessible_work_package(project_participant)
 
+        # Create work packages that are accessible but are associated to other projects which are
+        # excluded by the project filter
+        work_packages_for_other_projects = [
+            make_accessible_work_package(project_participant) for _ in range(3)
+        ]
+
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
@@ -181,6 +187,11 @@ class TestGetAccessibleDatasets:
 
         for dataset in accessible_work_package.datasets.all():
             assert dataset in accessible_datasets
+
+        # Assert datasets in `work_packages_for_other_projects` are not in returned datasets
+        for work_package in work_packages_for_other_projects:
+            for dataset in work_package.datasets.all():
+                assert dataset not in accessible_datasets
 
         # Assert datasets in `unaccessible_work_packages` are not in returned datasets
         for work_package in unaccessible_work_packages:
@@ -199,6 +210,11 @@ class TestGetAccessibleDatasets:
         """
         accessible_work_package = make_accessible_work_package(project_participant)
 
+        # Create work packages that are accessible but are excluded by the work package filter
+        work_packages_for_other_projects = [
+            make_accessible_work_package(project_participant) for _ in range(3)
+        ]
+
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
@@ -209,6 +225,11 @@ class TestGetAccessibleDatasets:
 
         for dataset in accessible_work_package.datasets.all():
             assert dataset in accessible_datasets
+
+        # Assert datasets in `work_packages_for_other_projects` are not in returned datasets
+        for work_package in work_packages_for_other_projects:
+            for dataset in work_package.datasets.all():
+                assert dataset not in accessible_datasets
 
         # Assert datasets in `unaccessible_work_packages` are not in returned datasets
         for work_package in unaccessible_work_packages:
@@ -227,6 +248,12 @@ class TestGetAccessibleDatasets:
         """
         accessible_work_package = make_accessible_work_package(project_participant)
 
+        # Create a classified work package that is associated with the same project but will be
+        # excluded due to the work package filter
+        excluded_work_package = classified_work_package(0)
+        excluded_work_package.project = accessible_work_package.project
+        excluded_work_package.save()
+
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
@@ -240,6 +267,10 @@ class TestGetAccessibleDatasets:
 
         for dataset in accessible_work_package.datasets.all():
             assert dataset in accessible_datasets
+
+        # Assert datasets in `excluded_work_package` are not in returned datasets
+        for dataset in excluded_work_package.datasets.all():
+            assert dataset not in accessible_datasets
 
         # Assert datasets in `unaccessible_work_packages` are not in returned datasets
         for work_package in unaccessible_work_packages:
@@ -429,6 +460,12 @@ class TestGetAccessibleWorkPackages:
         """
         accessible_work_package = make_accessible_work_package(project_participant)
 
+        # Create work packages that are accessible but are associated to other projects which are
+        # excluded by the project filter
+        work_packages_for_other_projects = [
+            make_accessible_work_package(project_participant) for _ in range(3)
+        ]
+
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
@@ -439,6 +476,11 @@ class TestGetAccessibleWorkPackages:
 
         assert accessible_work_packages.count() == 1
         assert accessible_work_package in accessible_work_packages
+
+        # Assert work packages in `work_packages_for_other_projects` are not in returned work
+        # packages
+        for work_package in work_packages_for_other_projects:
+            assert work_package not in accessible_work_packages
 
         # Assert work packages in `unaccessible_work_packages` are not in returned work packages
         for work_package in unaccessible_work_packages:
