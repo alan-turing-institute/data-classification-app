@@ -178,7 +178,7 @@ class TestDatasetListAPIView:
     ):
         """
         Test that an API user can request project dataset list api to see which datasets they have
-        to for a specific project.
+        access to for a specific project.
         The user must be a participant of a project, the datasets must be associated with this
         project and a classified work package, which this user is also associated with.
         """
@@ -231,7 +231,7 @@ class TestDatasetListAPIView:
         # should not show up in dataset list view
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
-        # Filter dataset list view by one project
+        # Filter dataset list view by one work package
         response = as_project_participant_api.get(
             reverse(
                 "api:work_package_dataset_list",
@@ -274,7 +274,7 @@ class TestDatasetListAPIView:
         # should not show up in dataset list view
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
-        # Filter dataset list view by one project
+        # Filter dataset list view by one project and work package
         response = as_project_participant_api.get(
             reverse(
                 "api:project_work_package_dataset_list",
@@ -507,7 +507,7 @@ class TestProjectListAPIView:
 
         assert len(results) == num_accessible_projects
 
-        uuid_results = [dataset["uuid"] for dataset in results]
+        uuid_results = [project["uuid"] for project in results]
 
         # Assert projects in `accessible_projects` are in results
         for project in accessible_projects:
@@ -667,7 +667,7 @@ class TestWorkPackageListAPIView:
 
         assert len(results) == num_accessible_work_packages
 
-        uuid_results = [dataset["uuid"] for dataset in results]
+        uuid_results = [work_package["uuid"] for work_package in results]
 
         # Assert work packages in `accessible_work_packages` are in results
         for work_package in accessible_work_packages:
@@ -750,7 +750,7 @@ class TestWorkPackageListAPIView:
 
         assert len(results) == 1
 
-        uuid_results = [dataset["uuid"] for dataset in results]
+        uuid_results = [work_package["uuid"] for work_package in results]
 
         assert str(accessible_work_package.uuid) in uuid_results
 
