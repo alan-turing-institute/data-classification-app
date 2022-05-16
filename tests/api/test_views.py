@@ -569,6 +569,9 @@ class TestProjectDetailAPIView:
         programme_manager,
         project_participant,
         as_project_participant_api,
+        make_accessible_work_package,
+        data_provider_representative,
+        investigator,
     ):
         """
         Test that an API user can request project detail api to see project information if they
@@ -582,6 +585,14 @@ class TestProjectDetailAPIView:
             role=ProjectRole.RESEARCHER.value,
             created_by=programme_manager,
         )
+
+        # Add accessible work packages and datasets to project
+        work_packages = [make_accessible_work_package(project_participant) for i in range(3)]
+        for work_package in work_packages:
+            work_package.project = project
+            work_package.save()
+            for dataset in work_package.datasets.all():
+                project.add_dataset(dataset, data_provider_representative.user, investigator.user)
 
         response = as_project_participant_api.get(
             reverse("api:project_detail", kwargs={"uuid": project.uuid})
