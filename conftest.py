@@ -4,6 +4,7 @@ from hashlib import sha256
 
 import pytest
 from django.db.models.deletion import ProtectedError
+from django.utils.timezone import make_aware
 from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
 
@@ -140,6 +141,11 @@ def as_investigator(client, investigator):
 
 
 @pytest.fixture
+def project(programme_manager):
+    return recipes.project.make(created_by=programme_manager)
+
+
+@pytest.fixture
 def unclassified_work_package(
     programme_manager, data_provider_representative, investigator, referee
 ):
@@ -172,6 +178,26 @@ def unclassified_work_package(
         return work_package
 
     return _unclassified_work_package
+
+
+@pytest.fixture
+def make_accessible_work_package(classified_work_package, programme_manager):
+    """Fixture to return function for creating a work package accessible to given user"""
+
+    def _make_accessible_work_package(user):
+        work_package = classified_work_package(0)
+        work_package.project.add_user(
+            user=user,
+            role=ProjectRole.RESEARCHER.value,
+            created_by=programme_manager,
+        )
+        work_package.add_user(
+            user,
+            programme_manager,
+        )
+        return work_package
+
+    return _make_accessible_work_package
 
 
 @pytest.fixture
@@ -324,8 +350,8 @@ def access_token(oauth_application):
             user=user,
             application=oauth_application,
             scope=scope,
-            # Token to expire in 1 day
-            expires=datetime.now() + timedelta(days=1),
+            # Token to expire in 3 days
+            expires=make_aware(datetime.now() + timedelta(days=3)),
         )
 
     return _access_token
