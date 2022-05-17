@@ -21,8 +21,11 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-      DJANGO_SETTINGS_MODULE: haven.settings.test
       AUTH_TYPES: local
+      DATABASE_URL: pgsql://haven:haven@db:5432/haven
+      DJANGO_SETTINGS_MODULE: haven.settings.test
+      SECRET_KEY: notasecret
+      ENABLE_SENTRY: False
     services:
       postgres:
         image: postgres:10.8
@@ -51,3 +54,17 @@ jobs:
 
       - name: Run Django Migration Tests
         run:  poetry run pytest tests/migrations --migrations
+
+      - name: Check missing migrations
+        run: poetry run ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
+
+      - name: Run deployment checks
+        run: poetry run ./manage.py check --deploy --settings=haven.settings.production
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Verify built JS files are up to date
+        run: cd static && npm i && gulp && git diff && git diff --exit-code --numstat

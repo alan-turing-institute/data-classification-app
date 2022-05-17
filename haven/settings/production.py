@@ -44,6 +44,9 @@ LOGGING = {
     },
 }
 
-# Initialise Sentry
-SENTRY_DSN = env.str("SENTRY_DSN")  # noqa
-sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+ENABLE_SENTRY = env.bool("ENABLE_SENTRY", default=True)  # noqa
+
+if ENABLE_SENTRY:
+    # Initialise Sentry
+    SENTRY_DSN = env.str("SENTRY_DSN")  # noqa
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
