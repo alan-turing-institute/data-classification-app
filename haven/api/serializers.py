@@ -11,7 +11,7 @@ from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
 
-class DatasetSerializer(serializers.ModelSerializer):
+class DatasetListSerializer(serializers.ModelSerializer):
     """
     Class for converting a Dataset model instance into a JSON representation.
     To be used with DRF API views.
@@ -46,6 +46,30 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
+        # `host` and `storage_path` not present in fields, for use in dataset list api view
+        fields = [
+            "name",
+            "uuid",
+            "description",
+            "projects",
+            "work_packages",
+            "default_representative",
+            "default_representative_email",
+            "authorization_url",
+            "created_at",
+            "created_by",
+        ]
+
+
+class DatasetDetailSerializer(DatasetListSerializer):
+    """
+    Class for converting a Dataset model instance into a JSON representation.
+    To be used with DRF API views.
+    """
+
+    class Meta:
+        model = Dataset
+        # `host` and `storage_path` present in fields, for use in dataset detail api view
         fields = [
             "name",
             "uuid",

@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from haven.api.mixins import AllowedPatchFieldsMixin, ExtraFilterKwargsMixin
 from haven.api.serializers import (
-    DatasetSerializer,
+    DatasetDetailSerializer,
+    DatasetListSerializer,
     ProjectSerializer,
     WorkPackageSerializer,
 )
@@ -18,7 +19,7 @@ from haven.api.utils import (
 class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
     """API view to return a list of datasets that the requesting user has access to"""
 
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetListSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
     filter_kwargs = ["work_packages__uuid", "projects__uuid"]
@@ -33,7 +34,7 @@ class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
     """API view to return the details of a dataset that the requesting user has access to"""
 
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetDetailSerializer
     required_scopes = ["read"]
     permission_classes = [IsAuthenticated, TokenHasScope]
     lookup_field = "uuid"
@@ -53,7 +54,7 @@ class DatasetRegisterAPIView(AllowedPatchFieldsMixin, generics.UpdateAPIView):
     allows the patching of an already existing dataset in the IG application
     """
 
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetDetailSerializer
     required_scopes = ["write"]
     permission_classes = [IsAuthenticated, TokenHasScope]
     lookup_field = "uuid"
