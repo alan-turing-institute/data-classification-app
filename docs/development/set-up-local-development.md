@@ -23,9 +23,14 @@ To build the containers from scratch, from the folllowing commands:
 docker-compose build --no-cache
 docker-compose up -d
 docker-compose ps # (to check the running containers)
+
 ```
 
-Visit `localhost:8000/accounts/login` and sign in with username `developer`, password `developer`. This user should be a superuser with the system manager role applied. Check the admin console to make sure classification guidance and classification questions have been imported.
+The site should now be up and running at `http://localhost:8000`
+
+### Accessing the Admin interface
+
+Visit `localhost:8000/admin` and sign in with username `developer`, password `developer`. This user should be a superuser with the system manager role applied. Check the admin console to make sure classification guidance and classification questions have been imported. Projects and users can be added manually from the admin interface.
 
 To bring down containers and volumes prior to a clean build:
 
