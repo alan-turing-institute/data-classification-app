@@ -41,6 +41,8 @@ class DatasetSerializer(serializers.ModelSerializer):
             "projects",
             "work_packages",
             "default_representative",
+            "host",
+            "storage_path",
             "created_at",
             "created_by",
         ]

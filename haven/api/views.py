@@ -2,6 +2,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
+from haven.api.mixins import AllowedPatchFieldsMixin, ExtraFilterKwargsMixin
 from haven.api.serializers import (
     DatasetSerializer,
     ProjectSerializer,
@@ -12,26 +13,6 @@ from haven.api.utils import (
     get_accessible_projects,
     get_accessible_work_packages,
 )
-
-
-class ExtraFilterKwargsMixin:
-    """
-    Mixin for use in API views which are nested under another detail view url path
-    e.g. when `DatasetListAPIView` is used in url
-    `"work_packages/<slug:work_packages__uuid>/datasets"` and the resulting dataset should be
-    filtered by the associated work package identified by `work_packages__uuid`
-    """
-
-    # These must be a valid filter kwarg for the data model being filtered
-    # e.g. `work_packages__uuid` is valid for `Dataset`
-    filter_kwargs = []
-
-    def get_filter_kwargs(self):
-        extra_filters = {}
-        for filter_kwarg in self.filter_kwargs:
-            if filter_kwarg in self.kwargs:
-                extra_filters = {filter_kwarg: self.kwargs[filter_kwarg]}
-        return extra_filters
 
 
 class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
@@ -64,6 +45,25 @@ class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
         return get_accessible_datasets(
             self.request._auth.user, extra_filters=self.get_filter_kwargs()
         )
+
+
+class DatasetRegisterAPIView(AllowedPatchFieldsMixin, generics.UpdateAPIView):
+    """
+    API view to register the location of a dataset that the requesting user has access to, this
+    allows the patching of an already existing dataset in the IG application
+    """
+
+    serializer_class = DatasetSerializer
+    required_scopes = ["write"]
+    permission_classes = [IsAuthenticated, TokenHasScope]
+    lookup_field = "uuid"
+    lookup_url_kwarg = "uuid"
+    # Fields which can be patched by this view
+    allowed_patch_fields = ["host", "storage_path"]
+
+    def get_queryset(self):
+        """Return all datasets accessible by requesting OAuth user"""
+        return get_accessible_datasets(self.request._auth.user)
 
 
 class ProjectListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):

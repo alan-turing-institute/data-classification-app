@@ -4,6 +4,7 @@ from hashlib import sha256
 
 import pytest
 from django.db.models.deletion import ProtectedError
+from django.http import QueryDict
 from django.utils.timezone import make_aware
 from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
@@ -363,3 +364,12 @@ def as_project_participant_api(DRFClient, project_participant, access_token):
     access_token = access_token(project_participant)
     DRFClient.credentials(HTTP_AUTHORIZATION="Bearer " + access_token.token)
     return DRFClient
+
+
+class MockPostRequest:
+    """Mock request object with a `QueryDict` POST attribute"""
+
+    def __init__(self, *args, body={}, **kwargs):
+        query_dict = QueryDict("", mutable=True)
+        query_dict.update(body)
+        self.POST = query_dict

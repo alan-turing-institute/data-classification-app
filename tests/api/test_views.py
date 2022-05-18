@@ -1,10 +1,12 @@
 import json
+import uuid
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from django.urls import reverse
 from oauth2_provider.models import Application
 
+from haven.api.views import AllowedPatchFieldsMixin, DatasetRegisterAPIView
 from haven.core import recipes
 from haven.projects.roles import ProjectRole
 
@@ -465,6 +467,115 @@ class TestDatasetDetailAPIView:
 
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(dataset.uuid)
+
+
+@pytest.mark.django_db
+class TestDatasetRegisterAPIView:
+    @pytest.mark.parametrize(
+        "patch_data",
+        [
+            {"host": "http://example.com", "storage_path": "/path/to/dataset/"},
+            {"host": "http://example.com"},
+            {"storage_path": "/path/to/dataset/"},
+        ],
+    )
+    def test_patch_dataset(
+        self,
+        patch_data,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+    ):
+        """Test that an API user can patch certain dataset fields"""
+        work_package = make_accessible_work_package(project_participant)
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.patch(
+            reverse("api:dataset_register", kwargs={"uuid": dataset.uuid}),
+            data=patch_data,
+        )
+
+        assert response.status_code == 200
+
+        result = json.loads(response.content.decode())
+        assert result["uuid"] == str(dataset.uuid)
+
+        dataset.refresh_from_db()
+        for key, value in patch_data.items():
+            # Assert patched value is returned in the JSON response
+            assert result[key] == value
+            # Assert patched value is saved to the database
+            assert getattr(dataset, key) == value
+
+    def test_disallowed_patch_field(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+    ):
+        """
+        Test that an error response is returned when trying to update a field which is not allowed
+        to be patched
+        """
+        work_package = make_accessible_work_package(project_participant)
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.patch(
+            reverse("api:dataset_register", kwargs={"uuid": dataset.uuid}),
+            data={"uuid": str(uuid.uuid4())},
+        )
+
+        # Bad request as `uuid` is not in `DatasetRegisterAPIView.allowed_patch_fields`
+        assert response.status_code == 400
+
+        # Confirm contents of error message in API response
+        assert json.loads(response._container[0].decode())[
+            "detail"
+        ] == AllowedPatchFieldsMixin.PARSE_ERROR_DETAIL.format(
+            DatasetRegisterAPIView.allowed_patch_fields
+        )
+
+    def test_patch_dataset_register_not_accessible(
+        self,
+        as_project_participant_api,
+        classified_work_package,
+    ):
+        """
+        Test that dataset register view returns an error response when there are no accessible
+        datasets
+        """
+        # Create work package that is not associated with api user, and associated dataset
+        # should return error response in dataset register view
+        work_package = classified_work_package(0)
+
+        response = as_project_participant_api.patch(
+            reverse(
+                "api:dataset_register",
+                kwargs={"uuid": work_package.datasets.last().uuid},
+            ),
+            data={"host": "http://example.com", "storage_path": "/path/to/dataset/"},
+        )
+
+        assert response.status_code == 404
+
+    def test_patch_dataset_register_missing_token(self, DRFClient, classified_work_package):
+        """
+        Test dataset register API returns an error response when access token is not present in
+        headers
+        """
+        work_package = classified_work_package(0)
+
+        # By default DRFClient has no access token applied
+        response = DRFClient.patch(
+            reverse(
+                "api:dataset_register",
+                kwargs={"uuid": work_package.datasets.last().uuid},
+            ),
+            data={"host": "http://example.com", "storage_path": "/path/to/dataset/"},
+        )
+        assert response.status_code == 401
 
 
 @pytest.mark.django_db
