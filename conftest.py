@@ -153,7 +153,7 @@ def unclassified_work_package(
     def _unclassified_work_package():
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
+        dataset = recipes.dataset.make(default_representative=data_provider_representative.user)
 
         project.add_user(
             user=investigator.user,

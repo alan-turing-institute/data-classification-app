@@ -3,6 +3,7 @@ import uuid
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from oauth2_provider.models import Application
 
@@ -137,6 +138,19 @@ class TestDatasetListAPIView:
                     str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
                 )
                 assert expected_projects == set(matching_dataset["projects"])
+
+                assert (
+                    matching_dataset["default_representative_email"]
+                    == dataset.default_representative.email
+                )
+                assert matching_dataset["authorization_url"] == (
+                    f"{settings.SITE_URL}"
+                    f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
+                )
+
+                # Host and storage path should not be returned in dataset list view
+                assert "host" not in matching_dataset
+                assert "storage_path" not in matching_dataset
 
         # Assert datasets in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
@@ -341,6 +355,15 @@ class TestDatasetDetailAPIView:
             str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
         )
         assert expected_projects == set(result["projects"])
+
+        assert result["default_representative_email"] == dataset.default_representative.email
+        assert result["authorization_url"] == (
+            f"{settings.SITE_URL}" f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
+        )
+
+        # `host` and `storage_path` are returned as a part of dataset detail API
+        assert result["host"] == dataset.host
+        assert result["storage_path"] == dataset.storage_path
 
     def test_get_dataset_detail_not_accessible(
         self,
