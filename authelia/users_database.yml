@@ -6,23 +6,71 @@
 # This file can be used if you do not have an LDAP set up.
 
 # List of users
+
 users:
   authelia:
-    displayname: "DCA User"
-    # Password is authelia
-    # argon2 hash generator?
-    password: "$6$rounds=50000$BpLnfgDsc2WD8F2q$Zis.ixdg9s/UOJYrs56b5QEZFiZECu0qZVNsIYxBaNJ7ucIL.nlxVCT5tqh8KHG8X4tlwCFm5r6NTOZZ5qRFN/"  # yamllint disable-line rule:line-length
+    password: $argon2id$v=19$m=65536,t=1,p=8$Y3hSaTMxaXYvRUxqQjExTg$duF9VLnrth4eCLjKSt/uKF3qZVx6A0de42C8SZ27e/E
+    displayname: DCA User
     email: rebecca.osselton@newcastle.ac.uk
     groups:
-      - admins
-      - dev
-      - programme_manager
+    - admins
+    - dev
+    - programme_manager
+  crystal.bowers@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$NGFTSmhhKytWRVR0eHpaNQ$BudplXEkPZ70gHTVyZZfm0lkCeiytySa0jH+V9rs3Wo
+    displayname: Crystal Bowers
+    email: crystal.bowers@example.com
+    groups: []
   developer:
-    displayname: "Developer"
-    password: "$argon2id$v=19$m=65536,t=1,p=8$VDhDTXJMSjhic0VTZVl4ZQ$OVrbNN+sb+aHquh4QxFSP91LFeYX7fhwYmTJjb/eY0s"
+    password: $argon2id$v=19$m=65536,t=1,p=8$dDNobVlLb2NFOGI5OGtiMw$V9wBQWd9+HCnEr4aEPVn9fVPIhgFtb0eBLlqTg2GLTo
+    displayname: Developer
     email: t.couch@ucl.ac.uk
     groups:
-      - staff
-      - dev
-      - system_manager
-...
+    - staff
+    - dev
+    - system_manager
+  earl.sanders@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$S2lhSFo1a2dwcXBKRDJ4MQ$+whUF5c/RyFui1NRbmvf7oL3LEtGQbtcyQCKuBIkt2k
+    displayname: Earl Sanders
+    email: earl.sanders@example.com
+    groups: []
+  franklin.lyons@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$TFc4Z2tybDliWkNoTER6Vw$lV4QauSzYI20LQApeNorX92OPhwIU6TI1nig7c/tMC4
+    displayname: Franklin Lyons
+    email: franklin.lyons@example.com
+    groups: []
+  geneva.moore@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$ZWY3ZlNrUXlSQXBqdUlFVg$fBX2aMtws7vPtjNs8wkZ/o+8Mm6lle5Nyz0CrBF9IKY
+    displayname: Geneva Moore
+    email: geneva.moore@example.com
+    groups: []
+  jordan.little@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$QzVqL0Jvc3pKMWk5aVNSSA$SnT/Pii/G3w7tRuuR08SOvQn+GFp9PbznUzshNQ5fwc
+    displayname: Jordan Little
+    email: jordan.little@example.com
+    groups: []
+  lena.griffith@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$N0MvUzJEMlc1S3gvMVlQSQ$IASrkrrom/88idIUxGIgc2CtLCgB/WRFcvsdt7x4eAI
+    displayname: Lena Griffith
+    email: lena.griffith@example.com
+    groups: []
+  maureen.wolfe@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$NnBrbkZNQ1hRam1hYWRjTw$H7P+5Y8nIKk4ZW9rDL+XyjxtB6W2kAudod3Y3MqAcfw
+    displayname: Maureen Wolfe
+    email: maureen.wolfe@example.com
+    groups: []
+  nathan.edwards@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$bFJKdnFCSktOM2lKSG5NQQ$jA9SKXuokWUvzf4gTtuUsbhEJdFAOG3/cAE5zD0PAPE
+    displayname: Nathan Edwards
+    email: nathan.edwards@example.com
+    groups: []
+  rhonda.sharp@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$UEliaGZiWTBYTktTMlBvSA$TH12u0GMtlnKLJxM9Hl7tLj598w6eL7c4W0WrfCCPLQ
+    displayname: Rhonda Sharp
+    email: rhonda.sharp@example.com
+    groups: []
+  rudolph.douglas@dsgroupdev.co.uk:
+    password: $argon2id$v=19$m=65536,t=1,p=8$TXZIM29hM01sZzVhUE5zbQ$7tkV+9IJ4OmEI34LBjJNfaMGunFLrTTQ20iXhH4yTMk
+    displayname: Rudolph Douglas
+    email: rudolph.douglas@example.com
+    groups: []
