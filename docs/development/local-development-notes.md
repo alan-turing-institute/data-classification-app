@@ -57,7 +57,7 @@ If you modify the JS/CSS you may need to update the compiled files using `gulp`.
 You will need to install `gulp` and `gulp-cli` which require `node`. It is strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. The `gulpfile` is at `static/gulpfile.js`.
 
 To use gulp you may need to install it first: `npm install --global gulp-cli`
-To run the gulp library, cd to the static directory and use `gulp sass` to comple css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running `gulp` will compile both css and js.
+To run the gulp library, cd to the static directory and use `gulp sass` to compile css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running `gulp` will compile both css and js.
 
 
 ### Apply migrations
