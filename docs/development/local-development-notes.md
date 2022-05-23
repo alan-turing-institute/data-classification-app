@@ -30,18 +30,6 @@ Within the repository there is a [`pull_request_template`](https://github.com/al
 
 > :rotating_light: The NOTE: there is a **"Fixes"** within the template which allows a developer to enter an `#{issue_number}` which will further indicate to the dev team what issue your changes will address!  :rotating_light:
 
-
-
-## Update static files - if you have modified CSS etc.
-
-```bash
-mkdir -p staticfiles
-python manage.py collectstatic
-```
-
-For staging/production deployments, the provisioning scripts will run this during deployment.
-
-
 ## Updating requirements
 Python dependencies are managed via [`poetry`](https://python-poetry.org/docs/basic-usage/) and our version of python is managed by [`pyenv`](https://github.com/pyenv/pyenv). See how to configure both using this [demo](https://blog.jayway.com/2019/12/28/pyenv-poetry-saviours-in-the-python-chaos/py)
 
@@ -50,17 +38,22 @@ To add a new python package to the requirements:
 * in the root project directory run `poetry add <package-name>`
 * Run `poetry update` to rebuild the `poetry.lock` file
 
+## Making front-end UI changes
 
-## Updating the compiled JS files
+To make CSS changes you need to modify the static/sass/main.scss file. This file should then be compiled by running a `gulp` command.
 
-If you modify the JS/CSS you may need to update the compiled files using `gulp`.
-You will need to install `gulp` and `gulp-cli` which require `node`. It is strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. The `gulpfile` is at `static/gulpfile.js`.
+If Gulp isn't already installed, you will need to install `gulp` and `gulp-cli` which require `node`. 
 
-To use gulp you may need to install it first: `npm install --global gulp-cli`
-To run the gulp library, cd to the static directory and use `gulp sass` to comple css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running `gulp` will compile both css and js.
+ `npm install --global gulp-cli`
+
+It's strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. 
+
+To run the gulp library, `cd` to the static directory and use `gulp sass` to comple css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running the `gulp` command alone will compile both css and js. After the command has succesfully completed (this may take a few seconds), you will be able to see changes by refrershing the application in the browser.
+
+The `gulpfile` is at `static/gulpfile.js`.
 
 
-### Apply migrations
+## Apply migrations
 
 If a code update has modified the database models, you will need to run the migration on your local database.
 
