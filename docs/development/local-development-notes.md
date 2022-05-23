@@ -48,7 +48,7 @@ If Gulp isn't already installed, you will need to install `gulp` and `gulp-cli` 
 
 It's strongly recommended that you do not install node directly but use a node versioning tool such as `nvm`. 
 
-To run the gulp library, `cd` to the static directory and use `gulp sass` to comple css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running the `gulp` command alone will compile both css and js. After the command has succesfully completed (this may take a few seconds), you will be able to see changes by refrershing the application in the browser.
+To run the gulp library, `cd` to the static directory and use `gulp sass` to compile css from static/css/main.scss or `gulp js` to compile JavaScript changes in static/js/main.js. Running the `gulp` command alone will compile both css and js. After the command has succesfully completed (this may take a few seconds), you will be able to see changes by refreshing the application in the browser.
 
 The `gulpfile` is at `static/gulpfile.js`.
 
