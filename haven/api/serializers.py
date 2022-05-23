@@ -37,7 +37,7 @@ class DatasetListSerializer(serializers.ModelSerializer):
         ).values_list("uuid", flat=True)
 
     def get_default_representative_email(self, dataset):
-        """Function to the datasets default representatives email"""
+        """Function to get the dataset's default representative's email"""
         return dataset.default_representative.email if dataset.default_representative else ""
 
     def get_authorization_url(self, dataset):
