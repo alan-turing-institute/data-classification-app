@@ -242,3 +242,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
 }
+# Your stuff...
+# ------------------------------------------------------------------------------
+SITE_URL = env.str(
+    "SITE_URL",
+    # Assuming locally hosting used docker
+    default="http://host.docker.internal:8000",
+)

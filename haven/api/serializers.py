@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.urls import reverse
 from rest_framework import serializers
 
 from haven.api.utils import (
@@ -9,7 +11,7 @@ from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
 
-class DatasetSerializer(serializers.ModelSerializer):
+class DatasetListSerializer(serializers.ModelSerializer):
     """
     Class for converting a Dataset model instance into a JSON representation.
     To be used with DRF API views.
@@ -18,6 +20,8 @@ class DatasetSerializer(serializers.ModelSerializer):
     projects = serializers.SlugRelatedField(many=True, read_only=True, slug_field="uuid")
     work_packages = serializers.SerializerMethodField()
     default_representative = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    default_representative_email = serializers.SerializerMethodField()
+    authorization_url = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
 
     def get_work_packages(self, dataset):
@@ -32,8 +36,17 @@ class DatasetSerializer(serializers.ModelSerializer):
             self.context["request"]._auth.user, extra_filters={"datasets": dataset}
         ).values_list("uuid", flat=True)
 
+    def get_default_representative_email(self, dataset):
+        """Function to get the dataset's default representative's email"""
+        return dataset.default_representative.email if dataset.default_representative else ""
+
+    def get_authorization_url(self, dataset):
+        """Function to get the authorization url for the dataset"""
+        return f"{settings.SITE_URL}{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
+
     class Meta:
         model = Dataset
+        # `host` and `storage_path` not present in fields, for use in dataset list api view
         fields = [
             "name",
             "uuid",
@@ -41,6 +54,31 @@ class DatasetSerializer(serializers.ModelSerializer):
             "projects",
             "work_packages",
             "default_representative",
+            "default_representative_email",
+            "authorization_url",
+            "created_at",
+            "created_by",
+        ]
+
+
+class DatasetDetailSerializer(DatasetListSerializer):
+    """
+    Class for converting a Dataset model instance into a JSON representation.
+    To be used with DRF API views.
+    """
+
+    class Meta:
+        model = Dataset
+        # `host` and `storage_path` present in fields, for use in dataset detail api view
+        fields = [
+            "name",
+            "uuid",
+            "description",
+            "projects",
+            "work_packages",
+            "default_representative",
+            "default_representative_email",
+            "authorization_url",
             "host",
             "storage_path",
             "created_at",
