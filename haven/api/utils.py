@@ -4,6 +4,17 @@ from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
 
+# A mapping between the work package tier and dataset expiry time in seconds
+WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP = {
+    0: 60 * 60,  # 1 hour
+    1: 24 * 60 * 60,  # 1 day
+    2: 2 * 24 * 60 * 60,  # 2 days
+    3: 3 * 24 * 60 * 60,  # 3 days
+    4: 4 * 24 * 60 * 60,  # 4 days
+    5: 5 * 24 * 60 * 60,  # 5 days
+}
+
+
 def safe_filter_and_deduplicate(model_class, filters):
     """
     Function which takes a model_class, applies filters, and removes duplicate items.
