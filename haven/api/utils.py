@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from haven.data.models import Dataset
@@ -6,12 +7,12 @@ from haven.projects.models import Project, WorkPackage
 
 # A mapping between the work package tier and dataset expiry time in seconds
 WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP = {
-    0: 60 * 60,  # 1 hour
-    1: 24 * 60 * 60,  # 1 day
-    2: 2 * 24 * 60 * 60,  # 2 days
-    3: 3 * 24 * 60 * 60,  # 3 days
-    4: 4 * 24 * 60 * 60,  # 4 days
-    5: 5 * 24 * 60 * 60,  # 5 days
+    0: settings.TIER_0_EXPIRY_SECONDS,
+    1: settings.TIER_1_EXPIRY_SECONDS,
+    2: settings.TIER_2_EXPIRY_SECONDS,
+    3: settings.TIER_3_EXPIRY_SECONDS,
+    4: settings.TIER_4_EXPIRY_SECONDS,
+    5: settings.TIER_5_EXPIRY_SECONDS,
 }
 
 

@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.conf import settings
 from django.urls import reverse
-from django.utils.timezone import make_aware
+from django.utils import timezone
 from rest_framework import serializers
 
 from haven.api.utils import (
@@ -75,13 +75,15 @@ class DatasetDetailSerializer(DatasetListSerializer):
 
     def get_expires_at(self, dataset):
         """Function to get the datetime that dataset access expires for the requesting user"""
+        work_packages = get_accessible_work_packages(
+            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+        )
         # A dataset can be associated with many work packages, therefore the safest heuristic is to
         # use the minimum (most confidential) tier of these work packages for calculating expiry
         # time
-        min_tier = min(list(dataset.work_packages.all().values_list("tier", flat=True)))
+        min_tier = min(list(work_packages.values_list("tier", flat=True)))
         expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[min_tier]
-        now = make_aware(datetime.now())
-        return str(now + timedelta(seconds=expiry_seconds))
+        return str(timezone.now() + timedelta(seconds=expiry_seconds))
 
     class Meta:
         model = Dataset
