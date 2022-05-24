@@ -4,10 +4,10 @@ from django.db import models
 
 
 class ClassificationQuestionQuerySet(models.QuerySet):
-    def get_starting_question(self):
-        return self.get_ordered_questions()[0]
+    def get_starting_question(self, question_set=1):
+        return self.get_ordered_questions(question_set=question_set)[0]
 
-    def get_ordered_questions(self):
+    def get_ordered_questions(self, question_set=1):
         """
         Return the classification questions, ordered in such a way
         that earlier questions do not have any dependency on earlier
@@ -18,7 +18,7 @@ class ClassificationQuestionQuerySet(models.QuerySet):
         """
         incoming = defaultdict(list)
         ordered = []
-        for q in self.filter(hidden=False):
+        for q in self.filter(hidden=False, question_set=question_set):
             incoming.setdefault(q, [])
             if q.yes_question:
                 incoming[q.yes_question].append(q)
