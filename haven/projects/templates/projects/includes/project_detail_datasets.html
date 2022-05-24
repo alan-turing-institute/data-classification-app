@@ -5,7 +5,7 @@
 {% block name %}Datasets{% endblock %}
 
 {% block actions %}
-  {% url_check 'projects:add_dataset' project.id as add_dataset_href %}
+  {% url_check 'projects:add_dataset' project.uuid as add_dataset_href %}
   {% if add_dataset_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ add_dataset_href }}">Add Dataset</a>
   {% endif %}

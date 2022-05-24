@@ -22,15 +22,15 @@
 
 {% block actions %}
 
-  {% url_check 'projects:edit' project.id as edit_project_href %}
+  {% url_check 'projects:edit' project.uuid as edit_project_href %}
   {% if edit_project_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ edit_project_href }}">Edit Project</a>
   {% endif %}
-  {% url_check 'projects:history' project.id as history_href %}
+  {% url_check 'projects:history' project.uuid as history_href %}
   {% if history_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ history_href }}">View History</a>
   {% endif %}
-  {% url_check 'projects:archive' project.id as archive_href %}
+  {% url_check 'projects:archive' project.uuid as archive_href %}
   {% if archive_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ archive_href }}">Archive Project</a>
   {% endif %}

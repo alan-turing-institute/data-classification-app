@@ -27,15 +27,15 @@
 {% endblock content %}
 
 {% block actions %}
-  {% url_check 'projects:edit_dataset' project.id dataset.dataset.uuid as edit_dataset_href %}
+  {% url_check 'projects:edit_dataset' project.uuid dataset.dataset.uuid as edit_dataset_href %}
   {% if edit_dataset_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ edit_dataset_href }}">Edit Description</a>
   {% endif %}
-  {% url_check 'projects:edit_dataset_dpr' project.id dataset.dataset.uuid as edit_dataset_dpr_href %}
+  {% url_check 'projects:edit_dataset_dpr' project.uuid dataset.dataset.uuid as edit_dataset_dpr_href %}
   {% if edit_dataset_dpr_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ edit_dataset_dpr_href }}">Edit Representative</a>
   {% endif %}
-  {% url_check 'projects:delete_dataset' project.id dataset.dataset.uuid as delete_dataset_href %}
+  {% url_check 'projects:delete_dataset' project.uuid dataset.dataset.uuid as delete_dataset_href %}
   {% if delete_dataset_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ delete_dataset_href }}">Delete Dataset</a>
   {% endif %}
@@ -44,7 +44,7 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:detail' dataset.project.id %}">{{ dataset.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' dataset.project.uuid %}">{{ dataset.project.name }}</a></li>
   <li class="breadcrumb-item">Datasets</li>
   <li class="breadcrumb-item active" aria-current="page">{{ dataset.dataset.name }}</li>
 {% endblock crumbs %}

@@ -99,19 +99,20 @@ class ParticipantInlineFormSetHelper(SaveCancelInlineFormSetHelper):
 # Forms
 
 
-class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectKwargFormMixin:
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop("project")
+        super().__init__(*args, **kwargs)
+
+
+class ParticipantForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     """Form template for editing participants on a project"""
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
+        self.fields["work_packages"].queryset = self.project.work_packages
 
-        project = Project.objects.get(pk=project_id)
-        self.fields["work_packages"].queryset = project.work_packages
-
-    role = forms.ChoiceField(
-        choices=ProjectRole.choices(), help_text="Role on this project"
-    )
+    role = forms.ChoiceField(choices=ProjectRole.choices(), help_text="Role on this project")
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -154,31 +155,23 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["programmes"].widget.url = reverse(
-            "projects:autocomplete_programme"
-        )
+        self.fields["programmes"].widget.url = reverse("projects:autocomplete_programme")
 
 
-class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = Dataset
         fields = ("name", "description", "default_representative")
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        autocomplete_url = reverse(
-            "projects:autocomplete_dpr", kwargs={"pk": project_id}
-        )
-        field = UserAutocompleteChoiceField(
-            autocomplete_url, label="Default Representative"
-        )
+        autocomplete_url = reverse("projects:autocomplete_dpr", kwargs={"uuid": self.project.uuid})
+        field = UserAutocompleteChoiceField(autocomplete_url, label="Default Representative")
         self.fields["default_representative"] = field
 
-        self.project = Project.objects.get(pk=project_id)
-        self.fields[
-            "work_packages"
-        ].queryset = self.project.work_packages.filter_by_permission("add_datasets")
+        self.fields["work_packages"].queryset = self.project.work_packages.filter_by_permission(
+            "add_datasets"
+        )
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -202,7 +195,7 @@ class ProjectEditDatasetForm(forms.ModelForm):
         fields = ("name", "description")
 
 
-class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectEditDatasetDPRForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Dataset")
 
     class Meta:
@@ -210,14 +203,9 @@ class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ("default_representative",)
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        autocomplete_url = reverse(
-            "projects:autocomplete_dpr", kwargs={"pk": project_id}
-        )
-        field = UserAutocompleteChoiceField(
-            autocomplete_url, label="Default Representative"
-        )
+        autocomplete_url = reverse("projects:autocomplete_dpr", kwargs={"uuid": self.project.uuid})
+        field = UserAutocompleteChoiceField(autocomplete_url, label="Default Representative")
         self.fields["default_representative"] = field
 
     def save(self, *args, **kwargs):
@@ -231,29 +219,23 @@ class ProjectDeleteDatasetForm(forms.Form):
     helper.form_method = "POST"
 
 
-class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectAddUserForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
-        super(ProjectAddUserForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Update user field with project ID
         autocomplete_url = reverse(
-            "projects:autocomplete_new_participant", kwargs={"pk": project_id}
+            "projects:autocomplete_new_participant", kwargs={"uuid": self.project.uuid}
         )
-        self.fields["user"] = UserAutocompleteChoiceField(
-            autocomplete_url, label="Username"
-        )
+        self.fields["user"] = UserAutocompleteChoiceField(autocomplete_url, label="Username")
 
-        project = Project.objects.get(pk=project_id)
-        self.fields["work_packages"].queryset = project.work_packages
+        self.fields["work_packages"].queryset = self.project.work_packages
 
     user = UserAutocompleteChoiceField(label="Username")
 
-    role = forms.ChoiceField(
-        choices=ProjectRole.choices(), help_text="Role on this project"
-    )
+    role = forms.ChoiceField(choices=ProjectRole.choices(), help_text="Role on this project")
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -282,20 +264,16 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role = self.cleaned_data["role"]
         user = self.cleaned_data["user"]
         work_packages = self.cleaned_data["work_packages"]
-        return self.project.add_user(
-            user, role, work_packages=work_packages, created_by=self.user
-        )
+        return self.project.add_user(user, role, work_packages=work_packages, created_by=self.user)
 
 
-class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectAddWorkPackageForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     class Meta:
         model = WorkPackage
         fields = ("name", "description")
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        self.project = Project.objects.get(pk=project_id)
         self.fields["datasets"].queryset = self.project.datasets
 
     datasets = forms.ModelMultipleChoiceField(
@@ -431,9 +409,7 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["project"].queryset = Project.objects.get_editable_projects(
-            self.user
-        )
+        self.fields["project"].queryset = Project.objects.get_editable_projects(self.user)
 
     class Meta:
         model = Participant
@@ -452,7 +428,7 @@ class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single project/role assignment for a user"""
 
     def __init__(self, assignable_roles=None, *args, **kwargs):
-        super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if assignable_roles:
             self.fields["role"].choices = [
                 (role, name)
