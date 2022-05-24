@@ -44,7 +44,8 @@ class Project(CreatedByModel):
     question_set = models.ForeignKey(
         ClassificationQuestionSet,
         on_delete=models.PROTECT,  # Don't allow question_set delete if used by project
-        related_name="projects"
+        related_name="projects",
+        default=1
     )
 
     datasets = models.ManyToManyField(
