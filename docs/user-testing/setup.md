@@ -1,3 +1,6 @@
+>**NB:** if you do not have write access to the staging server, follow these [instructions](access-staging-server). 
+
+
 # Preparing for app UX testing sessions
 
 To-do list, ahead of first testing session: 
