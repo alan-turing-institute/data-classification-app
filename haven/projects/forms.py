@@ -101,7 +101,7 @@ class ParticipantInlineFormSetHelper(SaveCancelInlineFormSetHelper):
 
 class ProjectKwargFormMixin:
     def __init__(self, *args, **kwargs):
-        self.project = kwargs.pop("project")
+        self.project = kwargs.pop("project", None)
         super().__init__(*args, **kwargs)
 
 
@@ -139,7 +139,7 @@ class ParticipantForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.Mode
         return participant
 
 
-class ProjectForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Project")
 
     class Meta:
@@ -187,7 +187,7 @@ class ProjectAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.Model
         return dataset
 
 
-class ProjectEditDatasetForm(forms.ModelForm):
+class ProjectEditDatasetForm(ProjectKwargFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Dataset")
 
     class Meta:
@@ -214,7 +214,7 @@ class ProjectEditDatasetDPRForm(ProjectKwargFormMixin, UserKwargModelFormMixin, 
         return dataset
 
 
-class ProjectDeleteDatasetForm(forms.Form):
+class ProjectDeleteDatasetForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Dataset", "btn-danger")
     helper.form_method = "POST"
 
@@ -292,7 +292,7 @@ class ProjectAddWorkPackageForm(ProjectKwargFormMixin, UserKwargModelFormMixin, 
         return work_package
 
 
-class WorkPackageEditForm(UserKwargModelFormMixin, forms.ModelForm):
+class WorkPackageEditForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Work Package")
 
     class Meta:
@@ -300,17 +300,17 @@ class WorkPackageEditForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ("name", "description")
 
 
-class WorkPackageDeleteForm(forms.Form):
+class WorkPackageDeleteForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Work Package", "btn-danger")
     helper.form_method = "POST"
 
 
-class ProjectArchiveForm(forms.Form):
+class ProjectArchiveForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Archive Project", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+class WorkPackageAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Add Dataset to Work Package", "save-btn")
 
     class Meta:
@@ -324,7 +324,7 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["dataset"].queryset = qs
 
 
-class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
+class WorkPackageAddParticipantForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Add Participant to Work Package", "save-btn")
 
     class Meta:
@@ -339,22 +339,22 @@ class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["participant"].queryset = qs
 
 
-class WorkPackageClearForm(SaveCreatorMixin, forms.Form):
+class WorkPackageClearForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper("Clear Classifications", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+class WorkPackageClassifyDeleteForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Classification", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyCloseForm(forms.Form):
+class WorkPackageClassifyCloseForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Close Classification", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyOpenForm(forms.Form):
+class WorkPackageClassifyOpenForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Open Classification", "btn-danger")
     helper.form_method = "POST"
 
@@ -362,7 +362,9 @@ class WorkPackageClassifyOpenForm(forms.Form):
 # Inline forms
 
 
-class DatasetForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+class DatasetForWorkPackageInlineForm(
+    ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm
+):
     """Inline form describing a single work package assignment for a dataset"""
 
     name = forms.CharField(disabled=True, widget=ShowValue, required=False)
@@ -378,7 +380,9 @@ class DatasetForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ()
 
 
-class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+class ParticipantForWorkPackageInlineForm(
+    ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm
+):
     """Inline form describing a single work package assignment for a user"""
 
     username = forms.CharField(disabled=True, widget=ShowValue, required=False)
@@ -404,7 +408,7 @@ class ParticipantForWorkPackageApprovalInlineForm(ParticipantForWorkPackageInlin
             self.instance.approve(self.user)
 
 
-class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectForUserInlineForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a project"""
 
     def __init__(self, *args, **kwargs):
@@ -424,7 +428,7 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
         return self.cleaned_data
 
 
-class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
+class UserForProjectInlineForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single project/role assignment for a user"""
 
     def __init__(self, assignable_roles=None, *args, **kwargs):

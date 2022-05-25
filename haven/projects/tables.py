@@ -187,7 +187,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
                 args = [
                     question.opinion.work_package.project.uuid,
                     question.opinion.work_package.uuid,
-                    question.question.uuid,
+                    question.question.id,
                 ]
                 url = reverse("projects:classify_data", args=args)
                 url += "?modify=1"

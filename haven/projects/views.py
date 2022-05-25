@@ -115,15 +115,15 @@ class ProjectMixin:
         form_kwargs["project"] = self.get_project()
         return form_kwargs
 
+    def get_success_url(self):
+        return reverse("projects:detail", args=[self.kwargs[self.get_project_url_kwarg()]])
+
 
 class SingleProjectMixin(ProjectMixin, SingleObjectMixin):
     model = Project
 
     def get_queryset(self):
         return self.get_project_queryset(super().get_queryset())
-
-    def get_object(self):
-        return self.get_project()
 
 
 class WorkPackageMixin(ProjectMixin):
@@ -272,10 +272,6 @@ class ProjectEdit(
     def test_func(self):
         return self.get_project_permissions().can_edit_project
 
-    def get_success_url(self):
-        obj = self.get_object()
-        return reverse("projects:detail", args=[obj.id])
-
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
@@ -284,7 +280,7 @@ class ProjectEdit(
 
 
 class ProjectArchive(
-    LoginRequiredMixin, UserPassesTestMixin, FormMixin, SingleProjectMixin, DetailView
+    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, FormMixin, DetailView
 ):
     template_name = "projects/project_archive.html"
     form_class = ProjectArchiveForm
@@ -349,9 +345,6 @@ class ProjectAddUser(
         form.helper.form_tag = False
         return form
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.kwargs[self.get_project_url_kwarg()]])
-
     def test_func(self):
         return self.get_project_permissions().can_add_participants
 
@@ -373,9 +366,6 @@ class EditProjectListParticipants(
         super().__init__(*args, **kwargs)
 
     template_name = "projects/edit_participant_list.html"
-
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.kwargs[self.slug_url_kwarg]])
 
     def test_func(self):
         return (
@@ -433,6 +423,7 @@ class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, Upd
     model = Participant
     template_name = "projects/edit_participant.html"
     form_class = ParticipantForm
+    slug_field = "user__uuid"
 
     def get_project_url_kwarg(self):
         return "project__uuid"
@@ -460,10 +451,6 @@ class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, Upd
         form.helper = SaveCancelFormHelper("Save Participant")
         form.helper.form_tag = False
         return form
-
-    def get_success_url(self):
-        obj = self.get_project()
-        return reverse("projects:detail", args=[obj.id])
 
     def test_func(self):
         return self.get_project_permissions().can_edit_participants
@@ -517,9 +504,6 @@ class ProjectCreateDataset(
     def test_func(self):
         return self.get_project_permissions().can_add_datasets
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.kwargs[self.slug_url_kwarg]])
-
 
 class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
     model = ProjectDataset
@@ -534,7 +518,7 @@ class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
         return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_object()
+        kwargs["project_dataset"] = self.get_object()
         return super().get_context_data(**kwargs)
 
 
@@ -571,7 +555,7 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
         return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_project_dataset()
+        kwargs["project_dataset"] = self.get_project_dataset()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -617,7 +601,7 @@ class ProjectEditDatasetDPR(
         return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_project_dataset()
+        kwargs["project_dataset"] = self.get_project_dataset()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -630,7 +614,6 @@ class ProjectDeleteDataset(
     model = ProjectDataset
     template_name = "projects/project_delete_dataset.html"
     form_class = ProjectDeleteDatasetForm
-    slug_url_kwarg = "uuid"
     slug_field = "dataset__uuid"
 
     def test_func(self):
@@ -650,7 +633,7 @@ class ProjectDeleteDataset(
             raise Http404("No dataset found matching the query")
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_object()
+        kwargs["project_dataset"] = self.get_object()
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -667,16 +650,13 @@ class ProjectDeleteDataset(
     def get_project_url_kwarg(self):
         return "project__uuid"
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_project().id])
-
 
 class ProjectCreateWorkPackage(
     LoginRequiredMixin,
     UserPassesTestMixin,
     UserFormKwargsMixin,
-    FormMixin,
     SingleProjectMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/project_add_work_package.html"
@@ -708,15 +688,12 @@ class ProjectCreateWorkPackage(
     def test_func(self):
         return self.get_project_permissions().can_add_work_packages
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_object().id])
-
 
 class WorkPackageClear(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_clear.html"
@@ -742,7 +719,7 @@ class WorkPackageClear(
     def get_success_url(self):
         return reverse(
             "projects:work_package_detail",
-            args=[self.get_project().id, self.get_work_package().id],
+            args=[self.get_project().uuid, self.get_work_package().uuid],
         )
 
 
@@ -776,8 +753,8 @@ class WorkPackageEdit(
 class WorkPackageDelete(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_delete.html"
@@ -799,9 +776,6 @@ class WorkPackageDelete(
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_project().id])
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
@@ -1062,8 +1036,8 @@ class WorkPackageAddParticipant(
 class WorkPackageClassifyOpen(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_open.html"
@@ -1093,8 +1067,8 @@ class WorkPackageClassifyOpen(
 class WorkPackageClassifyClose(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_close.html"
@@ -1312,7 +1286,7 @@ class WorkPackageClassifyData(
         if message:
             message_level = message_level or messages.INFO
             messages.add_message(self.request, message_level, message)
-        args = [self.object.project.id, self.object.id]
+        args = [self.object.project.uuid, self.object.uuid]
         if question:
             args.append(question.id)
         url = reverse("projects:classify_data", args=args)
@@ -1322,7 +1296,7 @@ class WorkPackageClassifyData(
         if message:
             message_level = message_level or messages.INFO
             messages.add_message(self.request, message_level, message)
-        args = [self.object.project.id, self.object.id]
+        args = [self.object.project.uuid, self.object.uuid]
         url = reverse("projects:classify_results", args=args)
         return HttpResponseRedirect(url)
 
@@ -1500,8 +1474,8 @@ class WorkPackageClassifyResults(
 class WorkPackageClassifyDelete(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_delete.html"
