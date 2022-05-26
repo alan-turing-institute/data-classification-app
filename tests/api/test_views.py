@@ -4,7 +4,6 @@ from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from oauth2_provider.models import Application
@@ -145,10 +144,6 @@ class TestDatasetListAPIView:
                 assert (
                     matching_dataset["default_representative_email"]
                     == dataset.default_representative.email
-                )
-                assert matching_dataset["authorization_url"] == (
-                    f"{settings.SITE_URL}"
-                    f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
                 )
 
                 # Host and storage path should not be returned in dataset list view
@@ -360,9 +355,6 @@ class TestDatasetDetailAPIView:
         assert expected_projects == set(result["projects"])
 
         assert result["default_representative_email"] == dataset.default_representative.email
-        assert result["authorization_url"] == (
-            f"{settings.SITE_URL}" f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
-        )
 
         # `host` and `storage_path` are returned as a part of dataset detail API
         assert result["host"] == dataset.host
