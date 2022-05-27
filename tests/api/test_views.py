@@ -394,7 +394,7 @@ class TestDatasetDetailAPIView:
 
     # Freeze time to make testing datetimes deterministic
     @pytest.mark.freeze_time("2022-01-01")
-    def test_expires_at_uses_minimum_tier(
+    def test_expires_at_uses_maximum_tier(
         self,
         project_participant,
         as_project_participant_api,
@@ -404,7 +404,7 @@ class TestDatasetDetailAPIView:
     ):
         """
         Test that if dataset has multiple classified work packages associated with it that the
-        `expires_at` datetime uses the lowest work package tier
+        `expires_at` datetime uses the highest work package tier
         """
         work_package = make_accessible_work_package(project_participant)
         work_package.tier = 0
@@ -431,8 +431,8 @@ class TestDatasetDetailAPIView:
 
         assert result["expires_at"] == str(
             timezone.now()
-            # Assert that the lowest tier is used, in this case zero
-            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[0])
+            # Assert that the highest tier is used, in this case zero
+            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[5])
         )
 
     def test_get_dataset_detail_not_accessible(

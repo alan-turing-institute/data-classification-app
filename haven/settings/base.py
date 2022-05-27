@@ -252,25 +252,25 @@ SITE_URL = env.str(
 
 TIER_0_EXPIRY_SECONDS = env.int(
     "TIER_0_EXPIRY_SECONDS",
-    default=60 * 60,  # 1 hour
+    default=5 * 24 * 60 * 60,  # 5 days
 )
 TIER_1_EXPIRY_SECONDS = env.int(
     "TIER_1_EXPIRY_SECONDS",
-    default=24 * 60 * 60,  # 1 day
+    default=4 * 24 * 60 * 60,  # 4 days
 )
 TIER_2_EXPIRY_SECONDS = env.int(
     "TIER_2_EXPIRY_SECONDS",
-    default=2 * 24 * 60 * 60,  # 2 days
+    default=3 * 24 * 60 * 60,  # 3 days
 )
 TIER_3_EXPIRY_SECONDS = env.int(
     "TIER_3_EXPIRY_SECONDS",
-    default=3 * 24 * 60 * 60,  # 3 days
+    default=2 * 24 * 60 * 60,  # 2 days
 )
 TIER_4_EXPIRY_SECONDS = env.int(
     "TIER_4_EXPIRY_SECONDS",
-    default=4 * 24 * 60 * 60,  # 4 days
+    default=24 * 60 * 60,  # 1 day
 )
 TIER_5_EXPIRY_SECONDS = env.int(
     "TIER_5_EXPIRY_SECONDS",
-    default=5 * 24 * 60 * 60,  # 5 days
+    default=60 * 60,  # 1 hour
 )
