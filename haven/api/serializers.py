@@ -79,10 +79,10 @@ class DatasetDetailSerializer(DatasetListSerializer):
             self.context["request"]._auth.user, extra_filters={"datasets": dataset}
         )
         # A dataset can be associated with many work packages, therefore the safest heuristic is to
-        # use the minimum (most confidential) tier of these work packages for calculating expiry
+        # use the maximum (most confidential) tier of these work packages for calculating expiry
         # time
-        min_tier = min(list(work_packages.values_list("tier", flat=True)))
-        expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[min_tier]
+        max_tier = max(list(work_packages.values_list("tier", flat=True)))
+        expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[max_tier]
         return str(timezone.now() + timedelta(seconds=expiry_seconds))
 
     class Meta:
