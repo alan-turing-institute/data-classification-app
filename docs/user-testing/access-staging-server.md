@@ -15,4 +15,5 @@ The authorized_keys file will be listed. Use
 
 The owner of the public will now be able to log onto the server using SSH. 
 
-ssh -i C:/users/nro25/keys/data-classification-app-docker-vm_key.pem adminuser@20.117.101.22
+ssh -i filepath-to-your-private-key adminuser@20.117.101.22
+

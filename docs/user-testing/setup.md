@@ -5,9 +5,11 @@
 
 To-do list, ahead of first testing session: 
 
-1. Log into app as System Manager and add example user data from `docs/create-users/example_user_form.csv` (if not already created)
-1. Load test project data from command line: `docker exec -it django python manage.py loaddata ./docs/user-testing/test-data.json`
-1. Log into the admin UI with the default account (e.g. `authelia`) - this will also be the account that the tester uses - and assign this account to be an `Investigator` on each of the three test projects
+1. Log into app with the `authelia` or `developer` account and import example user data from your local copy of the application `docs/create-users/example_user_form.csv` (if not already created)
+
+2. Load test project data from command line: `sudo docker exec -it django python manage.py loaddata ./docs/user-testing/test-data.json`
+
+3. Log into the admin UI with the default account (e.g. `authelia`) - this will also be the account that the tester uses - and assign this account to be an `Investigator` on each of the three test projects
 
 To reset ahead of subsequent sessions: 
 
