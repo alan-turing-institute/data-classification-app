@@ -1,19 +1,35 @@
-## Log onto the Turing staging server
+# Accessing the Staging Server
 
-You will need to have a public key located on the server to be able to do this. Anyone with current access to the server will be able to add a new key to the existing authorized_keys file. 
+This guide shows you how to add a new public key to the staging environment, and how to log on to the server using SSH.
 
-The authorised keys file is located within: `home/adminuser/.ssh`
+See [these instructions](https://docs.oracle.com/cd/E36784_01/html/E37125/sshuser-33.html) for generating a new public/private key pair
 
-When logging into the server, the user arrives in the adminuser folder, so .ssh is within that directory, but hidden by default. Type `ls -a` to view hidden folders. 
+## Logging on to the Staging Server
 
-`cd .ssh`
+You will need to have a public key located on the server to be able to log on to it - see 'Adding a Key to the Staging Server' below for how to add a public key to the server.
 
-`ls -a`
+Once your public key is on the server, you can access the server by running the following command:
 
-The authorized_keys file will be listed. Use 
-`nano authorized_keys` to open the file. Paste the new public key string into a new line in the file. The key must all be on one line. CTL-o to save the file contents and CTL-x to exit.
+```ssh -i <FILEPATH_TO_YOUR_PRIVATE_KEY> adminuser@20.117.101.220```
 
-The owner of the public will now be able to log onto the server using SSH. 
+Where <FILEPATH_TO_YOUR_PRIVATE_KEY> is the location on your machine of the private key corresponding to the public key on the server.
 
-ssh -i filepath-to-your-private-key adminuser@20.117.101.22
+## Adding a Key to the Staging Server
 
+Anyone with current access to the server will be able to add a new key to the existing authorized_keys file. 
+
+The following steps need to be carried out:
+
+1. Log on to the server as above
+
+2. Run `ls -a` to see all folder contents, including hidden ones
+
+3. Run `cd .ssh` to navigate into the .ssh folder, and run `ls -a` to see all the files in this folder. The file we want to amend is called `authorized_keys`
+
+5. Run `nano authorized_keys` to open the file
+
+6. Paste the new public key string into a new line in the file. The key must all be on one line
+
+7. Press `Ctrl+o` to save the file contents and `Ctrl+x` to exit
+
+The owner of the public will now be able to log onto the server using SSH :rocket:
