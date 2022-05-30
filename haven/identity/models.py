@@ -133,7 +133,7 @@ class User(AbstractUser):
         except Participant.DoesNotExist:
             return None
 
-    def combined_permissions(self, project_id=None):
+    def combined_permissions(self, project_uuid=None):
         """
         Return a UserPermissions object which may include project permissions for a particular
         project if the project_id is specified
@@ -143,8 +143,8 @@ class User(AbstractUser):
 
         from haven.projects.models import Project
 
-        if project_id:
-            project = Project.objects.get(pk=project_id)
+        if project_uuid:
+            project = Project.objects.get(uuid=project_uuid)
             return self.project_permissions(project)
         else:
             return self.system_permissions

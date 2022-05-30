@@ -72,6 +72,9 @@ from haven.projects.tables import (
 
 
 class ProjectMixin:
+    slug_url_kwarg = "uuid"
+    slug_field = "uuid"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._project = None
@@ -85,14 +88,14 @@ class ProjectMixin:
         if self._project is None:
             try:
                 projects = self.get_project_queryset()
-                self._project = projects.get(pk=self.kwargs[self.get_project_url_kwarg()])
+                self._project = projects.get(uuid=self.kwargs[self.get_project_url_kwarg()])
             except Project.DoesNotExist:
                 raise Http404("No project found matching the query")
 
         return self._project
 
     def get_project_url_kwarg(self):
-        return "pk"
+        return "uuid"
 
     def get_project_permissions(self):
         """Return the logged in user's permissions on the project"""
@@ -107,10 +110,13 @@ class ProjectMixin:
         kwargs["project_permissions"] = self.get_project_permissions()
         return super().get_context_data(**kwargs)
 
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)
-        form.project = self.get_project()
-        return form
+    def get_form_kwargs(self, *args, **kwargs):
+        form_kwargs = super().get_form_kwargs(*args, **kwargs)
+        form_kwargs["project"] = self.get_project()
+        return form_kwargs
+
+    def get_success_url(self):
+        return reverse("projects:detail", args=[self.kwargs[self.get_project_url_kwarg()]])
 
 
 class SingleProjectMixin(ProjectMixin, SingleObjectMixin):
@@ -118,9 +124,6 @@ class SingleProjectMixin(ProjectMixin, SingleObjectMixin):
 
     def get_queryset(self):
         return self.get_project_queryset(super().get_queryset())
-
-    def get_project(self):
-        return self.get_object()
 
 
 class WorkPackageMixin(ProjectMixin):
@@ -132,15 +135,15 @@ class WorkPackageMixin(ProjectMixin):
     def get_work_package(self):
         try:
             work_packages = self.get_work_package_queryset()
-            return work_packages.get(pk=self.kwargs[self.get_work_package_url_kwarg()])
+            return work_packages.get(uuid=self.kwargs[self.get_work_package_url_kwarg()])
         except WorkPackage.DoesNotExist:
             raise Http404("No work package found matching the query")
 
     def get_work_package_url_kwarg(self):
-        return "pk"
+        return "uuid"
 
     def get_project_url_kwarg(self):
-        return "project_pk"
+        return "project__uuid"
 
     def get_context_data(self, **kwargs):
         kwargs["work_package"] = self.get_work_package()
@@ -158,8 +161,8 @@ class SingleWorkPackageMixin(WorkPackageMixin, SingleObjectMixin):
     def get_queryset(self):
         return self.get_work_package_queryset()
 
-    def get_work_package(self):
-        return self.get_object()
+    def get_object(self):
+        return self.get_work_package()
 
 
 class ProgrammeList(LoginRequiredMixin, ListView):
@@ -253,7 +256,7 @@ class ProjectDetail(LoginRequiredMixin, SingleProjectMixin, DetailView):
         kwargs["work_packages_table"] = WorkPackageTable(work_packages)
         datasets = project.project_datasets.order_by("created_at").all()
         kwargs["datasets_table"] = ProjectDatasetTable(datasets)
-        return SingleProjectMixin.get_context_data(self, **kwargs)
+        return super().get_context_data(**kwargs)
 
 
 class ProjectEdit(
@@ -269,10 +272,6 @@ class ProjectEdit(
     def test_func(self):
         return self.get_project_permissions().can_edit_project
 
-    def get_success_url(self):
-        obj = self.get_object()
-        return reverse("projects:detail", args=[obj.id])
-
     def post(self, request, *args, **kwargs):
         if "cancel" in request.POST:
             url = self.get_success_url()
@@ -281,7 +280,7 @@ class ProjectEdit(
 
 
 class ProjectArchive(
-    LoginRequiredMixin, UserPassesTestMixin, FormMixin, SingleProjectMixin, DetailView
+    LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, FormMixin, DetailView
 ):
     template_name = "projects/project_archive.html"
     form_class = ProjectArchiveForm
@@ -331,11 +330,6 @@ class ProjectAddUser(
         kwargs["editing"] = False
         return super().get_context_data(**kwargs)
 
-    def get_form_kwargs(self):
-        kwargs = super(ProjectAddUser, self).get_form_kwargs()
-        kwargs["project_id"] = self.kwargs["pk"]
-        return kwargs
-
     def get_form(self):
         form = super().get_form()
 
@@ -350,10 +344,6 @@ class ProjectAddUser(
         form.helper = SaveCancelFormHelper("Add Participant")
         form.helper.form_tag = False
         return form
-
-    def get_success_url(self):
-        obj = self.get_project()
-        return reverse("projects:detail", args=[obj.id])
 
     def test_func(self):
         return self.get_project_permissions().can_add_participants
@@ -373,12 +363,9 @@ class EditProjectListParticipants(
     LoginRequiredMixin, UserPassesTestMixin, SingleProjectMixin, DetailView
 ):
     def __init__(self, *args, **kwargs):
-        super(EditProjectListParticipants, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     template_name = "projects/edit_participant_list.html"
-
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_object().id])
 
     def test_func(self):
         return (
@@ -436,9 +423,10 @@ class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, Upd
     model = Participant
     template_name = "projects/edit_participant.html"
     form_class = ParticipantForm
+    slug_field = "user__uuid"
 
     def get_project_url_kwarg(self):
-        return "project_pk"
+        return "project__uuid"
 
     def get_context_data(self, **kwargs):
         kwargs["editing"] = True
@@ -446,7 +434,6 @@ class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, Upd
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs["project_id"] = self.kwargs[self.get_project_url_kwarg()]
         kwargs["user"] = self.request.user
         return kwargs
 
@@ -464,10 +451,6 @@ class EditParticipant(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, Upd
         form.helper = SaveCancelFormHelper("Save Participant")
         form.helper.form_tag = False
         return form
-
-    def get_success_url(self):
-        obj = self.get_project()
-        return reverse("projects:detail", args=[obj.id])
 
     def test_func(self):
         return self.get_project_permissions().can_edit_participants
@@ -487,8 +470,8 @@ class ProjectCreateDataset(
     LoginRequiredMixin,
     UserPassesTestMixin,
     UserFormKwargsMixin,
-    FormMixin,
     SingleProjectMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/project_add_dataset.html"
@@ -497,11 +480,6 @@ class ProjectCreateDataset(
     def get_context_data(self, **kwargs):
         kwargs["editing"] = False
         return super().get_context_data(**kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["project_id"] = self.get_object().id
-        return kwargs
 
     def get_form(self):
         form = super().get_form()
@@ -526,9 +504,6 @@ class ProjectCreateDataset(
     def test_func(self):
         return self.get_project_permissions().can_add_datasets
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_object().id])
-
 
 class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
     model = ProjectDataset
@@ -540,10 +515,10 @@ class ProjectDatasetDetail(LoginRequiredMixin, ProjectMixin, DetailView):
         return ProjectDataset.objects.filter(project=self.get_project())
 
     def get_project_url_kwarg(self):
-        return "project_pk"
+        return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_object()
+        kwargs["project_dataset"] = self.get_object()
         return super().get_context_data(**kwargs)
 
 
@@ -565,7 +540,8 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
     def get_project_dataset(self):
         try:
             qs = ProjectDataset.objects.filter(
-                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+                project=self.get_project(),
+                **{self.slug_field: self.kwargs[self.slug_url_kwarg]},
             )
             return qs.first()
         except ProjectDataset.DoesNotExist:
@@ -576,10 +552,10 @@ class ProjectEditDataset(LoginRequiredMixin, UserPassesTestMixin, ProjectMixin, 
         return pd.dataset
 
     def get_project_url_kwarg(self):
-        return "project_pk"
+        return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_project_dataset()
+        kwargs["project_dataset"] = self.get_project_dataset()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -607,15 +583,11 @@ class ProjectEditDatasetDPR(
             and self.get_project().can_edit_dataset_dpr(self.get_object())
         )
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["project_id"] = self.get_project().id
-        return kwargs
-
     def get_project_dataset(self):
         try:
             qs = ProjectDataset.objects.filter(
-                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+                project=self.get_project(),
+                **{self.slug_field: self.kwargs[self.slug_url_kwarg]},
             )
             return qs.first()
         except ProjectDataset.DoesNotExist:
@@ -626,10 +598,10 @@ class ProjectEditDatasetDPR(
         return pd.dataset
 
     def get_project_url_kwarg(self):
-        return "project_pk"
+        return "project__uuid"
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_project_dataset()
+        kwargs["project_dataset"] = self.get_project_dataset()
         return super().get_context_data(**kwargs)
 
     def get_success_url(self):
@@ -642,7 +614,6 @@ class ProjectDeleteDataset(
     model = ProjectDataset
     template_name = "projects/project_delete_dataset.html"
     form_class = ProjectDeleteDatasetForm
-    slug_url_kwarg = "uuid"
     slug_field = "dataset__uuid"
 
     def test_func(self):
@@ -654,14 +625,15 @@ class ProjectDeleteDataset(
     def get_object(self):
         try:
             qs = ProjectDataset.objects.filter(
-                project=self.get_project(), **{self.slug_field: self.kwargs[self.slug_url_kwarg]}
+                project=self.get_project(),
+                **{self.slug_field: self.kwargs[self.slug_url_kwarg]},
             )
             return qs.first()
         except ProjectDataset.DoesNotExist:
             raise Http404("No dataset found matching the query")
 
     def get_context_data(self, **kwargs):
-        kwargs["dataset"] = self.get_object()
+        kwargs["project_dataset"] = self.get_object()
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -676,18 +648,15 @@ class ProjectDeleteDataset(
             return self.form_invalid(form)
 
     def get_project_url_kwarg(self):
-        return "project_pk"
-
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_project().id])
+        return "project__uuid"
 
 
 class ProjectCreateWorkPackage(
     LoginRequiredMixin,
     UserPassesTestMixin,
     UserFormKwargsMixin,
-    FormMixin,
     SingleProjectMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/project_add_work_package.html"
@@ -696,11 +665,6 @@ class ProjectCreateWorkPackage(
     def get_context_data(self, **kwargs):
         kwargs["editing"] = False
         return super().get_context_data(**kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["project_id"] = self.kwargs["pk"]
-        return kwargs
 
     def get_form(self):
         form = super().get_form()
@@ -724,15 +688,12 @@ class ProjectCreateWorkPackage(
     def test_func(self):
         return self.get_project_permissions().can_add_work_packages
 
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_object().id])
-
 
 class WorkPackageClear(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_clear.html"
@@ -758,7 +719,7 @@ class WorkPackageClear(
     def get_success_url(self):
         return reverse(
             "projects:work_package_detail",
-            args=[self.get_project().id, self.get_work_package().id],
+            args=[self.get_project().uuid, self.get_work_package().uuid],
         )
 
 
@@ -792,8 +753,8 @@ class WorkPackageEdit(
 class WorkPackageDelete(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_delete.html"
@@ -815,9 +776,6 @@ class WorkPackageDelete(
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse("projects:detail", args=[self.get_project().id])
 
 
 class WorkPackageDetail(LoginRequiredMixin, SingleWorkPackageMixin, DetailView):
@@ -1078,8 +1036,8 @@ class WorkPackageAddParticipant(
 class WorkPackageClassifyOpen(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_open.html"
@@ -1109,8 +1067,8 @@ class WorkPackageClassifyOpen(
 class WorkPackageClassifyClose(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_close.html"
@@ -1328,7 +1286,7 @@ class WorkPackageClassifyData(
         if message:
             message_level = message_level or messages.INFO
             messages.add_message(self.request, message_level, message)
-        args = [self.object.project.id, self.object.id]
+        args = [self.object.project.uuid, self.object.uuid]
         if question:
             args.append(question.id)
         url = reverse("projects:classify_data", args=args)
@@ -1338,7 +1296,7 @@ class WorkPackageClassifyData(
         if message:
             message_level = message_level or messages.INFO
             messages.add_message(self.request, message_level, message)
-        args = [self.object.project.id, self.object.id]
+        args = [self.object.project.uuid, self.object.uuid]
         url = reverse("projects:classify_results", args=args)
         return HttpResponseRedirect(url)
 
@@ -1516,8 +1474,8 @@ class WorkPackageClassifyResults(
 class WorkPackageClassifyDelete(
     LoginRequiredMixin,
     UserPassesTestMixin,
-    FormMixin,
     SingleWorkPackageMixin,
+    FormMixin,
     DetailView,
 ):
     template_name = "projects/work_package_classify_delete.html"
@@ -1602,7 +1560,7 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
 
     def get_visible_users(self):
         # Filter results depending on user role permissions
-        if not self.request.user.combined_permissions(self.kwargs.get("pk")).can_view_all_users:
+        if not self.request.user.combined_permissions(self.kwargs.get("uuid")).can_view_all_users:
             return User.objects.none()
 
         existing_users = self.get_users_to_exclude()
@@ -1612,10 +1570,10 @@ class AutocompleteNewParticipant(autocomplete.Select2QuerySetView):
         return User.objects.all()
 
     def get_users_to_exclude(self):
-        if "pk" in self.kwargs:
+        if "uuid" in self.kwargs:
             # Autocomplete suggestions are users not already participating in this project
-            project_id = self.kwargs["pk"]
-            return Project.objects.get(pk=project_id).participants.values("user")
+            project_uuid = self.kwargs["uuid"]
+            return Project.objects.get(uuid=project_uuid).participants.values("user")
         return None
 
     def get_result_label(self, user):
@@ -1631,19 +1589,19 @@ class AutocompleteDataProviderRepresentative(
     """
 
     def get_visible_users(self):
-        if not self.request.user.combined_permissions(self.kwargs.get("pk")).can_view_all_users:
-            if "pk" in self.kwargs:
-                project_id = self.kwargs["pk"]
+        if not self.request.user.combined_permissions(self.kwargs.get("uuid")).can_view_all_users:
+            if "uuid" in self.kwargs:
+                project_uuid = self.kwargs["uuid"]
                 return User.objects.filter(
-                    participants__project__pk=project_id,
+                    participants__project__uuid=project_uuid,
                     participants__role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
                 )
         return super().get_visible_users()
 
     def get_users_to_exclude(self):
-        if "pk" in self.kwargs:
-            project_id = self.kwargs["pk"]
-            participants = Project.objects.get(pk=project_id).participants
+        if "uuid" in self.kwargs:
+            project_uuid = self.kwargs["uuid"]
+            participants = Project.objects.get(uuid=project_uuid).participants
             participants = participants.exclude(role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             return participants.values("user")
 
@@ -1651,10 +1609,13 @@ class AutocompleteDataProviderRepresentative(
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if "pk" in self.kwargs:
-            project_id = self.kwargs["pk"]
+        if "uuid" in self.kwargs:
+            project_id = Project.objects.get(uuid=self.kwargs["uuid"])
             qs = qs.annotate(
-                you=FilteredRelation("participants", condition=Q(participants__project=project_id))
+                you=FilteredRelation(
+                    "participants",
+                    condition=Q(participants__project=project_id),
+                )
             )
             qs = qs.annotate(project_role=F("you__role"))
         return qs

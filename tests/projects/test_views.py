@@ -161,7 +161,7 @@ class TestViewProject:
     def test_view_owned_project(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -170,7 +170,7 @@ class TestViewProject:
         project1, project2 = recipes.project.make(_quantity=2)
         recipes.participant.make(project=project1, user=as_project_participant._user)
 
-        response = as_project_participant.get("/projects/%d" % project1.id)
+        response = as_project_participant.get(f"/projects/{project1.uuid}")
 
         assert response.status_code == 200
         assert response.context["project"] == project1
@@ -178,14 +178,14 @@ class TestViewProject:
     def test_cannot_view_other_project(self, as_standard_user):
         project = recipes.project.make()
 
-        response = as_standard_user.get("/projects/%d" % project.id)
+        response = as_standard_user.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 404
 
     def test_view_as_system_manager(self, as_system_manager):
         project = recipes.project.make()
 
-        response = as_system_manager.get("/projects/%d" % project.id)
+        response = as_system_manager.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -194,7 +194,7 @@ class TestViewProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
         project.archive()
 
-        response = as_programme_manager.get("/projects/%d" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 404
 
@@ -208,7 +208,7 @@ class TestViewProjectHistory:
     def test_view_owned_project(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d/history" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}/history")
 
         assert response.status_code == 200
         table = list(response.context["history_table"].as_values())
@@ -231,17 +231,17 @@ class TestArchiveProject:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}")
+        response = as_standard_user.get(f"/projects/{project.uuid}")
         assert b"Archive Project" in response.content
 
-        url = f"/projects/{project.pk}/archive"
+        url = f"/projects/{project.uuid}/archive"
         response = as_standard_user.get(url)
         assert b"Archive Project" in response.content
 
         response = as_standard_user.post(url, {}, follow=True)
         assert response.status_code == 200
 
-        response = as_standard_user.get(f"/projects/{project.pk}")
+        response = as_standard_user.get(f"/projects/{project.uuid}")
         assert response.status_code == 404
 
 
@@ -254,7 +254,7 @@ class TestViewWorkPackage:
         work_package = classified_work_package(0)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d" % (work_package.project.id, work_package.id)
+            f"/projects/{work_package.project.uuid}/work_packages/{work_package.uuid}"
         )
 
         assert response.status_code == 200
@@ -268,7 +268,7 @@ class TestViewWorkPackage:
         wp2 = classified_work_package(0)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d" % (wp1.project.id, wp2.id)
+            f"/projects/{wp1.project.uuid}/work_packages/{wp2.uuid}"
         )
 
         assert response.status_code == 404
@@ -278,7 +278,7 @@ class TestViewWorkPackage:
         work_package = recipes.work_package.make(project=project)
 
         response = as_standard_user.get(
-            "/projects/%d/work_packages/%d" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         )
 
         assert response.status_code == 404
@@ -301,7 +301,7 @@ class TestViewWorkPackage:
         work_package.add_user(user3, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         )
 
         assert response.status_code == 200
@@ -327,13 +327,13 @@ class TestEditProject:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        response = as_project_participant.get("/projects/%d/edit" % project.id)
+        response = as_project_participant.get(f"/projects/{project.uuid}/edit")
 
         assert response.status_code == 200
         assert response.context["project"] == project
 
         response = as_project_participant.post(
-            "/projects/%d/edit" % project.id,
+            f"/projects/{project.uuid}/edit",
             {
                 "name": "my updated project",
                 "description": "a different project",
@@ -341,9 +341,9 @@ class TestEditProject:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
-        response = as_project_participant.get("/projects/%d" % project.id)
+        response = as_project_participant.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 200
         assert response.context["project"].name == "my updated project"
@@ -357,7 +357,7 @@ class TestEditProject:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        response = as_project_participant.get("/projects/%d/edit" % project.id)
+        response = as_project_participant.get(f"/projects/{project.uuid}/edit")
 
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -370,14 +370,14 @@ class TestEditProject:
             role=ProjectRole.RESEARCHER.value,
         )
 
-        response = as_project_participant.get("/projects/%d/edit" % project.id)
+        response = as_project_participant.get(f"/projects/{project.uuid}/edit")
 
         assert response.status_code == 403
 
     def test_view_as_system_manager(self, as_system_manager):
         project = recipes.project.make()
 
-        response = as_system_manager.get("/projects/%d" % project.id)
+        response = as_system_manager.get(f"/projects/{project.uuid}")
 
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -387,16 +387,16 @@ class TestEditProject:
 class TestAddUserToProject:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
-        response = client.get("/projects/%d/participants/add" % project.id)
+        response = client.get(f"/projects/{project.uuid}/participants/add")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/projects/%d/participants/add" % project.id)
+        response = client.post(f"/projects/{project.uuid}/participants/add")
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d/participants/add" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}/participants/add")
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -404,7 +404,7 @@ class TestAddUserToProject:
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": project_participant.pk,
@@ -412,7 +412,7 @@ class TestAddUserToProject:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == project_participant.username
@@ -432,7 +432,7 @@ class TestAddUserToProject:
             project=project, created_by=as_programme_manager._user
         )
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": project_participant.pk,
@@ -441,7 +441,7 @@ class TestAddUserToProject:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         participants = project.participants
         assert participants.count() == 1
@@ -462,7 +462,7 @@ class TestAddUserToProject:
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": project_participant.pk,
@@ -471,7 +471,7 @@ class TestAddUserToProject:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 0
 
@@ -484,7 +484,7 @@ class TestAddUserToProject:
 
         new_user = User.objects.create_user(username="newuser")
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": new_user.pk,
@@ -492,7 +492,7 @@ class TestAddUserToProject:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == "newuser"
@@ -504,7 +504,7 @@ class TestAddUserToProject:
         assert project.participants.count() == 1
 
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": project_participant.pk,
@@ -519,7 +519,7 @@ class TestAddUserToProject:
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/participants/add" % project.id,
+            f"/projects/{project.uuid}/participants/add",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "user": 12345,
@@ -536,20 +536,20 @@ class TestAddUserToProject:
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get("/projects/%d/participants/add" % project.id)
+        response = as_standard_user.get(f"/projects/{project.uuid}/participants/add")
         assert response.status_code == 404
 
-        response = as_standard_user.post("/projects/%d/participants/add" % project.id)
+        response = as_standard_user.post(f"/projects/{project.uuid}/participants/add")
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
         # Researchers can't add participants, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get("/projects/%d/participants/add" % researcher.project.id)
+        response = client.get(f"/projects/{researcher.project.uuid}/participants/add")
         assert response.status_code == 403
 
-        response = client.post("/projects/%d/participants/add" % researcher.project.id)
+        response = client.post(f"/projects/{researcher.project.uuid}/participants/add")
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, investigator, researcher):
@@ -557,7 +557,7 @@ class TestAddUserToProject:
         # project
         client.force_login(investigator.user)
         response = client.post(
-            "/projects/%d/participants/add" % investigator.project.id,
+            f"/projects/{investigator.project.uuid}/participants/add",
             {
                 "username": researcher.pk,
                 "role": ProjectRole.INVESTIGATOR.value,
@@ -572,10 +572,14 @@ class TestEditParticipant:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
         investigator = recipes.investigator.make(project=project)
-        response = client.get("/projects/%d/participants/%d/edit" % (project.id, investigator.id))
+        response = client.get(
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit"
+        )
         helpers.assert_login_redirect(response)
 
-        response = client.post("/projects/%d/participants/%d/edit" % (project.id, investigator.id))
+        response = client.post(
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit"
+        )
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
@@ -583,7 +587,7 @@ class TestEditParticipant:
         investigator = recipes.investigator.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id)
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -593,14 +597,14 @@ class TestEditParticipant:
         project = recipes.project.make(created_by=as_programme_manager._user)
         investigator = recipes.investigator.make(project=project)
         response = as_programme_manager.post(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id),
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit",
             {
                 "role": ProjectRole.RESEARCHER.value,
             },
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == investigator.user.username
@@ -624,7 +628,7 @@ class TestEditParticipant:
         work_package2.add_user(investigator.user, created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id),
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "work_packages": [work_package.id, work_package3.id],
@@ -632,7 +636,7 @@ class TestEditParticipant:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == investigator.user.username
@@ -650,7 +654,6 @@ class TestEditParticipant:
         assert participants.first().user.username == investigator.user.username
 
     def test_edit_approved_participant(self, data_provider_representative, as_programme_manager):
-
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(
             project=project, created_by=as_programme_manager._user
@@ -666,7 +669,7 @@ class TestEditParticipant:
         assert p.approvals.count() == 1
 
         response = as_programme_manager.post(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id),
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "work_packages": [work_package.id],
@@ -674,7 +677,7 @@ class TestEditParticipant:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 2
         assert project.participants.first().user.username == investigator.user.username
@@ -693,12 +696,12 @@ class TestEditParticipant:
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
         response = as_standard_user.get(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id)
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit"
         )
         assert response.status_code == 404
 
         response = as_standard_user.post(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id)
+            f"/projects/{project.uuid}/participants/{investigator.user.uuid}/edit"
         )
         assert response.status_code == 404
 
@@ -707,19 +710,19 @@ class TestEditParticipant:
         client.force_login(researcher.user)
 
         response = client.get(
-            "/projects/%d/participants/%d/edit" % (researcher.project.id, researcher.id)
+            f"/projects/{researcher.project.uuid}/participants/{researcher.user.uuid}/edit"
         )
         assert response.status_code == 403
 
         response = client.post(
-            "/projects/%d/participants/%d/edit" % (researcher.project.id, researcher.id)
+            f"/projects/{researcher.project.uuid}/participants/{researcher.user.uuid}/edit"
         )
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, referee, researcher):
         client.force_login(referee.user)
         response = client.post(
-            "/projects/%d/participants/%d/edit" % (referee.project.id, researcher.id),
+            f"/projects/{referee.project.uuid}/participants/{researcher.user.uuid}/edit",
             {
                 "role": ProjectRole.INVESTIGATOR.value,
             },
@@ -732,16 +735,16 @@ class TestEditParticipant:
 class TestEditParticipants:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
-        response = client.get("/projects/%d/participants/edit" % (project.id,))
+        response = client.get(f"/projects/{project.uuid}/participants/edit")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/projects/%d/participants/edit" % (project.id,))
+        response = client.post(f"/projects/{project.uuid}/participants/edit")
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d/participants/edit" % (project.id,))
+        response = as_programme_manager.get(f"/projects/{project.uuid}/participants/edit")
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -750,7 +753,7 @@ class TestEditParticipants:
         investigator = recipes.investigator.make(project=project)
         participant = recipes.participant.make(project=project)
         response = as_programme_manager.post(
-            "/projects/%d/participants/edit" % (project.id,),
+            f"/projects/{project.uuid}/participants/edit",
             {
                 "participants-TOTAL_FORMS": 2,
                 "participants-MAX_NUM_FORMS": 2,
@@ -767,7 +770,7 @@ class TestEditParticipants:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.participants.count() == 1
         assert project.participants.first().user.username == investigator.user.username
@@ -778,26 +781,26 @@ class TestEditParticipants:
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get("/projects/%d/participants/edit" % (project.id,))
+        response = as_standard_user.get(f"/projects/{project.uuid}/participants/edit")
         assert response.status_code == 404
 
-        response = as_standard_user.post("/projects/%d/participants/edit" % (project.id,))
+        response = as_standard_user.post(f"/projects/{project.uuid}/participants/edit")
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
         # Researchers can't add participants, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get("/projects/%d/participants/edit" % (researcher.project.id,))
+        response = client.get(f"/projects/{researcher.project.uuid}/participants/edit")
         assert response.status_code == 403
 
-        response = client.post("/projects/%d/participants/edit" % (researcher.project.id,))
+        response = client.post(f"/projects/{researcher.project.uuid}/participants/edit")
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, referee, researcher):
         client.force_login(referee.user)
         response = client.post(
-            "/projects/%d/participants/edit" % (referee.project.id,),
+            f"/projects/{referee.project.uuid}/participants/edit",
             {
                 "participants-TOTAL_FORMS": 1,
                 "participants-MAX_NUM_FORMS": 1,
@@ -816,16 +819,16 @@ class TestEditParticipants:
 class TestProjectAddDataset:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
-        response = client.get("/projects/%d/datasets/new" % project.id)
+        response = client.get(f"/projects/{project.uuid}/datasets/new")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/projects/%d/datasets/new" % project.id)
+        response = client.post(f"/projects/{project.uuid}/datasets/new")
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d/datasets/new" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}/datasets/new")
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -838,7 +841,7 @@ class TestProjectAddDataset:
         )
 
         response = as_programme_manager.post(
-            "/projects/%d/datasets/new" % project.id,
+            f"/projects/{project.uuid}/datasets/new",
             {
                 "name": "dataset 1",
                 "description": "Dataset One",
@@ -847,7 +850,7 @@ class TestProjectAddDataset:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.datasets.count() == 1
         dataset = project.datasets.first()
@@ -872,7 +875,7 @@ class TestProjectAddDataset:
         work_package3 = recipes.work_package.make(project=project, created_by=pm)
 
         response = as_programme_manager.post(
-            "/projects/%d/datasets/new" % project.id,
+            f"/projects/{project.uuid}/datasets/new",
             {
                 "name": "dataset 1",
                 "description": "Dataset One",
@@ -882,7 +885,7 @@ class TestProjectAddDataset:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.datasets.count() == 1
         assert list(project.datasets.first().work_packages.all()) == [
@@ -894,7 +897,7 @@ class TestProjectAddDataset:
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/datasets/new" % project.id,
+            f"/projects/{project.uuid}/datasets/new",
             {
                 "name": "dataset 1",
                 "description": "Dataset One",
@@ -903,7 +906,7 @@ class TestProjectAddDataset:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.datasets.count() == 1
         dataset = project.datasets.first()
@@ -919,7 +922,7 @@ class TestProjectAddDataset:
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/datasets/new" % project.id,
+            f"/projects/{project.uuid}/datasets/new",
             {
                 "name": "dataset 1",
                 "description": "Dataset One",
@@ -934,20 +937,20 @@ class TestProjectAddDataset:
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get("/projects/%d/datasets/new" % project.id)
+        response = as_standard_user.get(f"/projects/{project.uuid}/datasets/new")
         assert response.status_code == 404
 
-        response = as_standard_user.post("/projects/%d/datasets/new" % project.id)
+        response = as_standard_user.post(f"/projects/{project.uuid}/datasets/new")
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
         # Researchers can't add datasets, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get("/projects/%d/datasets/new" % researcher.project.id)
+        response = client.get(f"/projects/{researcher.project.uuid}/datasets/new")
         assert response.status_code == 403
 
-        response = client.post("/projects/%d/datasets/new" % researcher.project.id)
+        response = client.post(f"/projects/{researcher.project.uuid}/datasets/new")
         assert response.status_code == 403
 
 
@@ -960,7 +963,7 @@ class TestProjectViewDataset:
         dataset = recipes.dataset.make()
         pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = client.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}")
+        response = client.get(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}")
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager, data_provider_representative):
@@ -970,10 +973,10 @@ class TestProjectViewDataset:
             dataset, data_provider_representative.user, as_programme_manager._user
         )
 
-        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}")
+        response = as_programme_manager.get(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}")
         assert response.status_code == 200
         assert response.context["project"] == project
-        assert response.context["dataset"] == pd
+        assert response.context["project_dataset"] == pd
 
 
 @pytest.mark.django_db
@@ -985,10 +988,10 @@ class TestProjectEditDataset:
         dataset = recipes.dataset.make()
         pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = client.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}")
+        response = client.get(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}")
         helpers.assert_login_redirect(response)
 
-        response = client.post(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit")
+        response = client.post(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit")
         helpers.assert_login_redirect(response)
 
     def test_investigator_cannot_access_page(
@@ -999,19 +1002,19 @@ class TestProjectEditDataset:
         dataset = recipes.dataset.make()
         pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = as_investigator.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit")
+        response = as_investigator.get(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit")
         assert response.status_code == 403
 
-        response = as_investigator.post(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit")
+        response = as_investigator.post(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit")
         assert response.status_code == 403
 
         response = as_investigator.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit_dpr"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit_dpr"
         )
         assert response.status_code == 403
 
         response = as_investigator.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit_dpr"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit_dpr"
         )
         assert response.status_code == 403
 
@@ -1023,21 +1026,21 @@ class TestProjectEditDataset:
         )
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
-        assert response.context["dataset"] == pd
+        assert response.context["project_dataset"] == pd
 
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit",
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit",
             {
                 "name": "Edited Project",
                 "description": "Edited Description",
             },
         )
         assert response.status_code == 302
-        assert response.url == f"/projects/{project.id}/datasets/{pd.dataset.uuid}"
+        assert response.url == f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}"
 
         dataset.refresh_from_db()
         assert dataset.name == "Edited Project"
@@ -1063,11 +1066,11 @@ class TestProjectEditDataset:
         work_package2.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit"
         )
         assert response.status_code == 403
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit",
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit",
             {
                 "name": "Edited Project",
                 "description": "Edited Description",
@@ -1091,20 +1094,20 @@ class TestProjectEditDataset:
         work_package.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit_dpr"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit_dpr"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
-        assert response.context["dataset"] == pd
+        assert response.context["project_dataset"] == pd
 
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/edit_dpr",
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/edit_dpr",
             {
                 "default_representative": user1.pk,
             },
         )
         assert response.status_code == 302
-        assert response.url == f"/projects/{project.id}/datasets/{pd.dataset.uuid}"
+        assert response.url == f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}"
 
         dataset.refresh_from_db()
         assert dataset.default_representative == user1
@@ -1130,10 +1133,10 @@ class TestProjectDeleteDataset:
         dataset = recipes.dataset.make()
         pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = client.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete")
+        response = client.get(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete")
         helpers.assert_login_redirect(response)
 
-        response = client.post(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete")
+        response = client.post(f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete")
         helpers.assert_login_redirect(response)
 
     def test_investigator_cannot_access_page(
@@ -1144,10 +1147,14 @@ class TestProjectDeleteDataset:
         dataset = recipes.dataset.make()
         pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = as_investigator.get(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete")
+        response = as_investigator.get(
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
+        )
         assert response.status_code == 403
 
-        response = as_investigator.post(f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete")
+        response = as_investigator.post(
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
+        )
         assert response.status_code == 403
 
     def test_delete_dataset(self, as_programme_manager, data_provider_representative):
@@ -1158,17 +1165,17 @@ class TestProjectDeleteDataset:
         )
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
-        assert response.context["dataset"] == pd
+        assert response.context["project_dataset"] == pd
 
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 302
-        assert response.url == f"/projects/{project.id}"
+        assert response.url == f"/projects/{project.uuid}"
 
         project.refresh_from_db()
         assert project.datasets.count() == 0
@@ -1193,11 +1200,11 @@ class TestProjectDeleteDataset:
         work_package2.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 403
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 403
 
@@ -1220,17 +1227,17 @@ class TestProjectDeleteDataset:
         work_package.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
-        assert response.context["dataset"] == pd
+        assert response.context["project_dataset"] == pd
 
         response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.dataset.uuid}/delete"
+            f"/projects/{project.uuid}/datasets/{pd.dataset.uuid}/delete"
         )
         assert response.status_code == 302
-        assert response.url == f"/projects/{project.id}"
+        assert response.url == f"/projects/{project.uuid}"
 
         project.refresh_from_db()
         assert project.datasets.count() == 0
@@ -1251,23 +1258,20 @@ class TestWorkPackageAddParticipant:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/participants/new" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/new"
         )
 
         assert response.status_code == 200
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/participants/new" % (project.id, work_package.id),
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/new",
             {
                 "participant": p1.pk,
             },
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d/work_packages/%d" % (
-            project.id,
-            work_package.id,
-        )
+        assert response.url == f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
 
         assert work_package.participants.count() == 1
         assert p1 == work_package.participants.first()
@@ -1279,7 +1283,7 @@ class TestWorkPackageApproveParticipants:
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/approve"
         response = client.get(url)
         helpers.assert_login_redirect(response)
 
@@ -1287,7 +1291,7 @@ class TestWorkPackageApproveParticipants:
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/approve"
         response = as_investigator.get(url)
         assert response.status_code == 404
 
@@ -1310,7 +1314,7 @@ class TestWorkPackageApproveParticipants:
         project.add_dataset(dataset, as_data_provider_representative._user, programme_manager)
         work_package.add_dataset(dataset, programme_manager)
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_data_provider_representative.get(url)
         table = response.context["participants_table"]
 
@@ -1321,7 +1325,7 @@ class TestWorkPackageApproveParticipants:
             [p2.user.display_name(), "Referee", "False", "False"],
         ]
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}/participants/approve"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/approve"
         response = as_data_provider_representative.get(url)
         assert response.status_code == 200
 
@@ -1337,7 +1341,7 @@ class TestWorkPackageApproveParticipants:
             },
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_data_provider_representative.get(url)
         table = response.context["participants_table"]
 
@@ -1355,12 +1359,12 @@ class TestWorkPackageEditParticipants:
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
         response = client.get(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         helpers.assert_login_redirect(response)
 
         response = client.post(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         helpers.assert_login_redirect(response)
 
@@ -1369,7 +1373,7 @@ class TestWorkPackageEditParticipants:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -1390,7 +1394,7 @@ class TestWorkPackageEditParticipants:
         work_package.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id),
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit",
             {
                 "participants-TOTAL_FORMS": 2,
                 "participants-MAX_NUM_FORMS": 2,
@@ -1405,10 +1409,7 @@ class TestWorkPackageEditParticipants:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d/work_packages/%d" % (
-            project.id,
-            work_package.id,
-        )
+        assert response.url == f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
 
         assert work_package.participants.count() == 1
         assert work_package.participants.first().role == ProjectRole.REFEREE.value
@@ -1420,12 +1421,12 @@ class TestWorkPackageEditParticipants:
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
         response = as_standard_user.get(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         assert response.status_code == 404
 
         response = as_standard_user.post(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         assert response.status_code == 404
 
@@ -1436,12 +1437,12 @@ class TestWorkPackageEditParticipants:
         client.force_login(researcher.user)
 
         response = client.get(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         assert response.status_code == 403
 
         response = client.post(
-            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/participants/edit"
         )
         assert response.status_code == 403
 
@@ -1463,23 +1464,20 @@ class TestWorkPackageAddDataset:
         project.add_dataset(ds2, user1, as_programme_manager._user)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/datasets/new" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/new"
         )
 
         assert response.status_code == 200
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/new" % (project.id, work_package.id),
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/new",
             {
                 "dataset": ds1.pk,
             },
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d/work_packages/%d" % (
-            project.id,
-            work_package.id,
-        )
+        assert response.url == f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
 
         assert work_package.datasets.count() == 1
         assert ds1 == work_package.datasets.first()
@@ -1500,7 +1498,7 @@ class TestWorkPackageAddDataset:
         project.add_dataset(ds1, user1, as_programme_manager._user)
         project.add_dataset(ds2, user1, as_programme_manager._user)
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}/datasets/new"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/new"
         response = as_programme_manager.get(url)
         assert response.status_code == 403
 
@@ -1517,12 +1515,12 @@ class TestWorkPackageEditDatasets:
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
         response = client.get(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         helpers.assert_login_redirect(response)
 
         response = client.post(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         helpers.assert_login_redirect(response)
 
@@ -1531,7 +1529,7 @@ class TestWorkPackageEditDatasets:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 200
         assert response.context["project"] == project
@@ -1547,7 +1545,7 @@ class TestWorkPackageEditDatasets:
         wpd2 = work_package.add_dataset(dataset2, as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id),
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit",
             {
                 "datasets-TOTAL_FORMS": 2,
                 "datasets-MAX_NUM_FORMS": 2,
@@ -1562,10 +1560,7 @@ class TestWorkPackageEditDatasets:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d/work_packages/%d" % (
-            project.id,
-            work_package.id,
-        )
+        assert response.url == f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
 
         assert work_package.datasets.count() == 1
         assert work_package.datasets.first() == dataset2
@@ -1577,12 +1572,12 @@ class TestWorkPackageEditDatasets:
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
         response = as_standard_user.get(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 404
 
         response = as_standard_user.post(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 404
 
@@ -1593,12 +1588,12 @@ class TestWorkPackageEditDatasets:
         client.force_login(researcher.user)
 
         response = client.get(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 403
 
         response = client.post(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 403
 
@@ -1609,12 +1604,12 @@ class TestWorkPackageEditDatasets:
         project = work_package.project
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 403
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}/datasets/edit"
         )
         assert response.status_code == 403
 
@@ -1623,16 +1618,16 @@ class TestWorkPackageEditDatasets:
 class TestProjectAddWorkPackage:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
-        response = client.get("/projects/%d/work_packages/new" % project.id)
+        response = client.get(f"/projects/{project.uuid}/work_packages/new")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/projects/%d/work_packages/new" % project.id)
+        response = client.post(f"/projects/{project.uuid}/work_packages/new")
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get("/projects/%d/work_packages/new" % project.id)
+        response = as_programme_manager.get(f"/projects/{project.uuid}/work_packages/new")
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -1640,7 +1635,7 @@ class TestProjectAddWorkPackage:
         project = recipes.project.make(created_by=as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/new" % project.id,
+            f"/projects/{project.uuid}/work_packages/new",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "name": "work package 1",
@@ -1649,7 +1644,7 @@ class TestProjectAddWorkPackage:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.work_packages.count() == 1
         assert project.work_packages.first().name == "work package 1"
@@ -1679,7 +1674,7 @@ class TestProjectAddWorkPackage:
         )
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/new" % project.id,
+            f"/projects/{project.uuid}/work_packages/new",
             {
                 "role": ProjectRole.RESEARCHER.value,
                 "name": "work package 1",
@@ -1689,7 +1684,7 @@ class TestProjectAddWorkPackage:
         )
 
         assert response.status_code == 302
-        assert response.url == "/projects/%d" % project.id
+        assert response.url == f"/projects/{project.uuid}"
 
         assert project.work_packages.count() == 1
         assert list(project.work_packages.first().datasets.all()) == [
@@ -1702,20 +1697,20 @@ class TestProjectAddWorkPackage:
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get("/projects/%d/work_packages/new" % project.id)
+        response = as_standard_user.get(f"/projects/{project.uuid}/work_packages/new")
         assert response.status_code == 404
 
-        response = as_standard_user.post("/projects/%d/work_packages/new" % project.id)
+        response = as_standard_user.post(f"/projects/{project.uuid}/work_packages/new")
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
         # Researchers can't add work packages, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get("/projects/%d/work_packages/new" % researcher.project.id)
+        response = client.get(f"/projects/{researcher.project.uuid}/work_packages/new")
         assert response.status_code == 403
 
-        response = client.post("/projects/%d/work_packages/new" % researcher.project.id)
+        response = client.post(f"/projects/{researcher.project.uuid}/work_packages/new")
         assert response.status_code == 403
 
 
@@ -1734,7 +1729,7 @@ class TestEditWorkPackage:
             role=ProjectRole.INVESTIGATOR.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_investigator.get(url + "/edit")
 
         assert response.status_code == 403
@@ -1750,7 +1745,7 @@ class TestEditWorkPackage:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_project_participant.get(url + "/edit")
 
         assert response.status_code == 403
@@ -1764,7 +1759,7 @@ class TestEditWorkPackage:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_project_participant.get(url + "/edit")
 
         assert response.status_code == 200
@@ -1803,7 +1798,7 @@ class TestDeleteWorkPackage:
             role=ProjectRole.INVESTIGATOR.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_investigator.get(url + "/delete")
 
         assert response.status_code == 403
@@ -1819,7 +1814,7 @@ class TestDeleteWorkPackage:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_project_participant.get(url + "/delete")
 
         assert response.status_code == 403
@@ -1833,7 +1828,7 @@ class TestDeleteWorkPackage:
             role=ProjectRole.PROJECT_MANAGER.value,
         )
 
-        url = f"/projects/{project.id}/work_packages/{work_package.id}"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
         response = as_project_participant.get(url + "/delete")
 
         assert response.status_code == 200
@@ -1842,7 +1837,7 @@ class TestDeleteWorkPackage:
         response = as_project_participant.post(url + "/delete")
 
         assert response.status_code == 302
-        assert response.url == f"/projects/{project.id}"
+        assert response.url == f"/projects/{project.uuid}"
 
         response = as_project_participant.get(url)
 
@@ -1863,10 +1858,12 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Open Classification" in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_open"
         response = as_standard_user.get(url)
         assert b"Open Classification" in response.content
 
@@ -1888,10 +1885,12 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Open Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_open"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -1907,10 +1906,12 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Open Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_open"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -1924,10 +1925,12 @@ class TestWorkPackageOpenClassification:
 
         project = work_package.project
 
-        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_investigator.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Open Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_open"
         response = as_investigator.get(url)
         assert response.status_code == 403
 
@@ -1950,10 +1953,12 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Clear Classification" in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_clear"
         response = as_standard_user.get(url)
         assert b"Clear Classification" in response.content
 
@@ -1973,10 +1978,12 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Clear Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_clear"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -1994,10 +2001,12 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Clear Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_clear"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -2009,10 +2018,12 @@ class TestWorkPackageClearClassification:
 
         project = work_package.project
 
-        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_investigator.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Clear Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_clear"
         response = as_investigator.get(url)
         assert response.status_code == 403
 
@@ -2035,10 +2046,12 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Close Classification" in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_close"
         response = as_standard_user.get(url)
         assert b"Close Classification" in response.content
 
@@ -2058,10 +2071,12 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Close Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_close"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -2078,10 +2093,12 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Close Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_close"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -2099,10 +2116,12 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_standard_user.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Close Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_close"
         response = as_standard_user.get(url)
         assert response.status_code == 403
 
@@ -2114,10 +2133,12 @@ class TestWorkPackageCloseClassification:
 
         project = work_package.project
 
-        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
+        response = as_investigator.get(
+            f"/projects/{project.uuid}/work_packages/{work_package.uuid}"
+        )
         assert b"Close Classification" not in response.content
 
-        url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
+        url = f"/projects/{project.uuid}/work_packages/{work_package.uuid}/classify_close"
         response = as_investigator.get(url)
         assert response.status_code == 403
 
@@ -2128,11 +2149,7 @@ class TestWorkPackageCloseClassification:
 @pytest.mark.django_db
 class TestWorkPackageClassifyData:
     def url(self, work_package, page="classify"):
-        return "/projects/%d/work_packages/%d/%s" % (
-            work_package.project.id,
-            work_package.id,
-            page,
-        )
+        return f"/projects/{work_package.project.uuid}/work_packages/{work_package.uuid}/{page}"
 
     def classify(
         self,
@@ -3397,11 +3414,7 @@ class TestWorkPackageClassifyData:
 @pytest.mark.django_db
 class TestWorkPackageClassifyResults:
     def url(self, work_package, page="classify_results"):
-        return "/projects/%d/work_packages/%d/%s" % (
-            work_package.project.id,
-            work_package.id,
-            page,
-        )
+        return f"/projects/{work_package.project.uuid}/work_packages/{work_package.uuid}/{page}"
 
     def test_returns_403_for_researcher(self, client, researcher):
         work_package = recipes.work_package.make(project=researcher.project)
@@ -3491,7 +3504,7 @@ class TestAutocompleteNewParticipant:
 
         def assert_autocomplete_result(query_string, expected_users):
             response = as_programme_manager.get(
-                f"/projects/{project.id}/autocomplete_new_participant/?q={query_string}"
+                f"/projects/{project.uuid}/autocomplete_new_participant/?q={query_string}"
             )
             assert response.status_code == 200
             output = json.loads(response.content.decode("UTF-8"))
@@ -3562,7 +3575,7 @@ class TestAutocompleteDPR:
     def assert_autocomplete_result(
         self, as_user, project, query_string, expected_dprs, expected_users
     ):
-        response = as_user.get(f"/projects/{project.id}/autocomplete_dpr/?q={query_string}")
+        response = as_user.get(f"/projects/{project.uuid}/autocomplete_dpr/?q={query_string}")
         assert response.status_code == 200
         output = json.loads(response.content.decode("UTF-8"))
 

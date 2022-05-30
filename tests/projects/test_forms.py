@@ -1,7 +1,6 @@
 import pytest
 
 from haven.core import recipes
-from haven.identity.models import User
 from haven.projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
 from haven.projects.roles import ProjectRole
 
@@ -17,7 +16,7 @@ class TestProjectAddUserForm:
                 "user": "some_unknown_user",
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
         assert not form.is_valid()
@@ -31,7 +30,7 @@ class TestProjectAddUserForm:
                 "user": project_participant.pk,
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
 
@@ -42,9 +41,7 @@ class TestProjectAddUserForm:
 
         assert participant.user == project_participant
 
-    def test_cannot_add_user_to_project_twice(
-        self, programme_manager, project_participant
-    ):
+    def test_cannot_add_user_to_project_twice(self, programme_manager, project_participant):
         project = recipes.project.make(created_by=programme_manager)
 
         project.add_user(project_participant, ProjectRole.RESEARCHER, programme_manager)
@@ -55,7 +52,7 @@ class TestProjectAddUserForm:
                 "user": project_participant.pk,
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
 
@@ -94,10 +91,7 @@ class TestAddUserForm:
         form.instance.user = project_participant
         form.save()
 
-        assert (
-            project_participant.project_participation_role(project)
-            == ProjectRole.RESEARCHER
-        )
+        assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
 
     def test_cannot_add_restricted_project_role_combination(self, investigator):
         form = ProjectForUserInlineForm(
@@ -115,13 +109,9 @@ class TestAddUserForm:
         user = investigator.user
         involved_project = investigator.project
         unarchived_project = recipes.project.make()
-        unarchived_project.add_user(
-            user, ProjectRole.INVESTIGATOR.value, programme_manager
-        )
+        unarchived_project.add_user(user, ProjectRole.INVESTIGATOR.value, programme_manager)
         archived_project = recipes.project.make()
-        archived_project.add_user(
-            user, ProjectRole.INVESTIGATOR.value, programme_manager
-        )
+        archived_project.add_user(user, ProjectRole.INVESTIGATOR.value, programme_manager)
         archived_project.archive()
 
         form = ProjectForUserInlineForm(user=user)

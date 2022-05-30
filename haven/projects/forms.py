@@ -99,19 +99,20 @@ class ParticipantInlineFormSetHelper(SaveCancelInlineFormSetHelper):
 # Forms
 
 
-class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectKwargFormMixin:
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop("project", None)
+        super().__init__(*args, **kwargs)
+
+
+class ParticipantForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     """Form template for editing participants on a project"""
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
+        self.fields["work_packages"].queryset = self.project.work_packages
 
-        project = Project.objects.get(pk=project_id)
-        self.fields["work_packages"].queryset = project.work_packages
-
-    role = forms.ChoiceField(
-        choices=ProjectRole.choices(), help_text="Role on this project"
-    )
+    role = forms.ChoiceField(choices=ProjectRole.choices(), help_text="Role on this project")
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -138,7 +139,7 @@ class ParticipantForm(UserKwargModelFormMixin, forms.ModelForm):
         return participant
 
 
-class ProjectForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Project")
 
     class Meta:
@@ -154,31 +155,23 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["programmes"].widget.url = reverse(
-            "projects:autocomplete_programme"
-        )
+        self.fields["programmes"].widget.url = reverse("projects:autocomplete_programme")
 
 
-class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     class Meta:
         model = Dataset
         fields = ("name", "description", "default_representative")
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        autocomplete_url = reverse(
-            "projects:autocomplete_dpr", kwargs={"pk": project_id}
-        )
-        field = UserAutocompleteChoiceField(
-            autocomplete_url, label="Default Representative"
-        )
+        autocomplete_url = reverse("projects:autocomplete_dpr", kwargs={"uuid": self.project.uuid})
+        field = UserAutocompleteChoiceField(autocomplete_url, label="Default Representative")
         self.fields["default_representative"] = field
 
-        self.project = Project.objects.get(pk=project_id)
-        self.fields[
-            "work_packages"
-        ].queryset = self.project.work_packages.filter_by_permission("add_datasets")
+        self.fields["work_packages"].queryset = self.project.work_packages.filter_by_permission(
+            "add_datasets"
+        )
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -194,7 +187,7 @@ class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         return dataset
 
 
-class ProjectEditDatasetForm(forms.ModelForm):
+class ProjectEditDatasetForm(ProjectKwargFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Dataset")
 
     class Meta:
@@ -202,7 +195,7 @@ class ProjectEditDatasetForm(forms.ModelForm):
         fields = ("name", "description")
 
 
-class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectEditDatasetDPRForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Dataset")
 
     class Meta:
@@ -210,14 +203,9 @@ class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ("default_representative",)
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        autocomplete_url = reverse(
-            "projects:autocomplete_dpr", kwargs={"pk": project_id}
-        )
-        field = UserAutocompleteChoiceField(
-            autocomplete_url, label="Default Representative"
-        )
+        autocomplete_url = reverse("projects:autocomplete_dpr", kwargs={"uuid": self.project.uuid})
+        field = UserAutocompleteChoiceField(autocomplete_url, label="Default Representative")
         self.fields["default_representative"] = field
 
     def save(self, *args, **kwargs):
@@ -226,34 +214,28 @@ class ProjectEditDatasetDPRForm(UserKwargModelFormMixin, forms.ModelForm):
         return dataset
 
 
-class ProjectDeleteDatasetForm(forms.Form):
+class ProjectDeleteDatasetForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Dataset", "btn-danger")
     helper.form_method = "POST"
 
 
-class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectAddUserForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     """Form template for adding participants to a project"""
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
-        super(ProjectAddUserForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Update user field with project ID
         autocomplete_url = reverse(
-            "projects:autocomplete_new_participant", kwargs={"pk": project_id}
+            "projects:autocomplete_new_participant", kwargs={"uuid": self.project.uuid}
         )
-        self.fields["user"] = UserAutocompleteChoiceField(
-            autocomplete_url, label="Username"
-        )
+        self.fields["user"] = UserAutocompleteChoiceField(autocomplete_url, label="Username")
 
-        project = Project.objects.get(pk=project_id)
-        self.fields["work_packages"].queryset = project.work_packages
+        self.fields["work_packages"].queryset = self.project.work_packages
 
     user = UserAutocompleteChoiceField(label="Username")
 
-    role = forms.ChoiceField(
-        choices=ProjectRole.choices(), help_text="Role on this project"
-    )
+    role = forms.ChoiceField(choices=ProjectRole.choices(), help_text="Role on this project")
 
     work_packages = forms.ModelMultipleChoiceField(
         queryset=WorkPackage.objects.none(),
@@ -282,20 +264,16 @@ class ProjectAddUserForm(UserKwargModelFormMixin, forms.ModelForm):
         role = self.cleaned_data["role"]
         user = self.cleaned_data["user"]
         work_packages = self.cleaned_data["work_packages"]
-        return self.project.add_user(
-            user, role, work_packages=work_packages, created_by=self.user
-        )
+        return self.project.add_user(user, role, work_packages=work_packages, created_by=self.user)
 
 
-class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
+class ProjectAddWorkPackageForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     class Meta:
         model = WorkPackage
         fields = ("name", "description")
 
     def __init__(self, *args, **kwargs):
-        project_id = kwargs.pop("project_id")
         super().__init__(*args, **kwargs)
-        self.project = Project.objects.get(pk=project_id)
         self.fields["datasets"].queryset = self.project.datasets
 
     datasets = forms.ModelMultipleChoiceField(
@@ -314,7 +292,7 @@ class ProjectAddWorkPackageForm(UserKwargModelFormMixin, forms.ModelForm):
         return work_package
 
 
-class WorkPackageEditForm(UserKwargModelFormMixin, forms.ModelForm):
+class WorkPackageEditForm(ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Save Work Package")
 
     class Meta:
@@ -322,17 +300,17 @@ class WorkPackageEditForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ("name", "description")
 
 
-class WorkPackageDeleteForm(forms.Form):
+class WorkPackageDeleteForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Work Package", "btn-danger")
     helper.form_method = "POST"
 
 
-class ProjectArchiveForm(forms.Form):
+class ProjectArchiveForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Archive Project", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
+class WorkPackageAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Add Dataset to Work Package", "save-btn")
 
     class Meta:
@@ -346,7 +324,7 @@ class WorkPackageAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["dataset"].queryset = qs
 
 
-class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
+class WorkPackageAddParticipantForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     helper = SaveCancelFormHelper("Add Participant to Work Package", "save-btn")
 
     class Meta:
@@ -361,22 +339,22 @@ class WorkPackageAddParticipantForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["participant"].queryset = qs
 
 
-class WorkPackageClearForm(SaveCreatorMixin, forms.Form):
+class WorkPackageClearForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper("Clear Classifications", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyDeleteForm(SaveCreatorMixin, forms.Form):
+class WorkPackageClassifyDeleteForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.Form):
     helper = SaveCancelFormHelper("Delete Classification", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyCloseForm(forms.Form):
+class WorkPackageClassifyCloseForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Close Classification", "btn-danger")
     helper.form_method = "POST"
 
 
-class WorkPackageClassifyOpenForm(forms.Form):
+class WorkPackageClassifyOpenForm(ProjectKwargFormMixin, forms.Form):
     helper = SaveCancelFormHelper("Open Classification", "btn-danger")
     helper.form_method = "POST"
 
@@ -384,7 +362,9 @@ class WorkPackageClassifyOpenForm(forms.Form):
 # Inline forms
 
 
-class DatasetForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+class DatasetForWorkPackageInlineForm(
+    ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm
+):
     """Inline form describing a single work package assignment for a dataset"""
 
     name = forms.CharField(disabled=True, widget=ShowValue, required=False)
@@ -400,7 +380,9 @@ class DatasetForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
         fields = ()
 
 
-class ParticipantForWorkPackageInlineForm(UserKwargModelFormMixin, forms.ModelForm):
+class ParticipantForWorkPackageInlineForm(
+    ProjectKwargFormMixin, UserKwargModelFormMixin, forms.ModelForm
+):
     """Inline form describing a single work package assignment for a user"""
 
     username = forms.CharField(disabled=True, widget=ShowValue, required=False)
@@ -426,14 +408,12 @@ class ParticipantForWorkPackageApprovalInlineForm(ParticipantForWorkPackageInlin
             self.instance.approve(self.user)
 
 
-class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
+class ProjectForUserInlineForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single user/role assignment on a project"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["project"].queryset = Project.objects.get_editable_projects(
-            self.user
-        )
+        self.fields["project"].queryset = Project.objects.get_editable_projects(self.user)
 
     class Meta:
         model = Participant
@@ -448,11 +428,11 @@ class ProjectForUserInlineForm(SaveCreatorMixin, forms.ModelForm):
         return self.cleaned_data
 
 
-class UserForProjectInlineForm(SaveCreatorMixin, forms.ModelForm):
+class UserForProjectInlineForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     """Inline form describing a single project/role assignment for a user"""
 
     def __init__(self, assignable_roles=None, *args, **kwargs):
-        super(UserForProjectInlineForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if assignable_roles:
             self.fields["role"].choices = [
                 (role, name)

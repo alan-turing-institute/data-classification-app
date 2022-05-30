@@ -699,7 +699,7 @@ class WorkPackage(CreatedByModel):
         return PolicyAssignment.objects.filter(tier=self.tier)
 
     def get_absolute_url(self):
-        return reverse("projects:work_package_detail", args=[self.project.id, self.pk])
+        return reverse("projects:work_package_detail", args=[self.project.uuid, self.uuid])
 
     def __str__(self):
         return self.name
@@ -800,7 +800,7 @@ class ProjectDataset(CreatedByModel):
     representative = models.ForeignKey(User, related_name="+", on_delete=models.PROTECT, null=False)
 
     def get_absolute_url(self):
-        return reverse("projects:dataset_detail", args=[self.project.id, self.dataset.uuid])
+        return reverse("projects:dataset_detail", args=[self.project.uuid, self.dataset.uuid])
 
 
 class WorkPackageDataset(CreatedByModel):

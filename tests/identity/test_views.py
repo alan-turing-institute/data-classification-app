@@ -120,25 +120,25 @@ class TestCreateUser:
 @pytest.mark.django_db
 class TestEditUser:
     def test_anonymous_cannot_access_page(self, client, helpers, project_participant):
-        response = client.get("/users/%d/edit" % project_participant.id)
+        response = client.get(f"/users/{project_participant.uuid}/edit")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/users/%d/edit" % project_participant.id, {})
+        response = client.post(f"/users/{project_participant.uuid}/edit", {})
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_system_manager, project_participant):
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         assert response.status_code == 200
         assert response.context["formset"]
 
     def test_view_page_as_pm(self, as_programme_manager, project_participant):
-        response = as_programme_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_programme_manager.get(f"/users/{project_participant.uuid}/edit")
         assert response.status_code == 200
         assert response.context["formset"]
 
     def test_edit_details(self, as_system_manager, project_participant):
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": "new@example.com",
@@ -162,7 +162,7 @@ class TestEditUser:
     def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": project_participant.email,
@@ -185,7 +185,7 @@ class TestEditUser:
         project = researcher.project
         user = researcher.user
         response = as_system_manager.post(
-            "/users/%d/edit" % user.id,
+            f"/users/{user.uuid}/edit",
             {
                 "role": "",
                 "email": "example@example.com",
@@ -208,7 +208,7 @@ class TestEditUser:
 
     def test_cannot_edit_privileged_user(self, as_programme_manager, system_manager):
         response = as_programme_manager.post(
-            "/users/%d/edit" % system_manager.id,
+            f"/users/{system_manager.uuid}/edit",
             {
                 "role": system_manager.role,
                 "email": "my_new_email@example.com",
@@ -240,7 +240,7 @@ class TestEditUser:
             project_participant, ProjectRole.RESEARCHER.value, as_system_manager._user
         )
 
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         forms = response.context["formset"].forms
         choices = [c[0] for c in forms[0].fields["project"].choices]
         defaults = [f.initial.get("project") for f in forms]
@@ -250,7 +250,7 @@ class TestEditUser:
 
         project2.archive()
 
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         forms = response.context["formset"].forms
         choices = [c[0] for c in forms[0].fields["project"].choices]
         defaults = [f.initial.get("project") for f in forms]
@@ -259,7 +259,7 @@ class TestEditUser:
         assert defaults == [project1.pk, None]
 
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": project_participant.email,
@@ -281,10 +281,10 @@ class TestEditUser:
         assert project_participant.project_participation_role(project2) == ProjectRole.RESEARCHER
 
     def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
-        response = as_project_participant.get("/users/%d/edit" % researcher.id)
+        response = as_project_participant.get(f"/users/{researcher.id}/edit")
         assert response.status_code == 403
 
-        response = as_project_participant.post("/users/%d/edit" % researcher.id, {})
+        response = as_project_participant.post(f"/users/{researcher.id}/edit", {})
         assert response.status_code == 403
 
 
@@ -363,7 +363,7 @@ class TestExportUsers:
             role=ProjectRole.RESEARCHER.value,
             created_by=as_programme_manager._user,
         )
-        response = as_programme_manager.get(f"/users/export?project={project.pk}")
+        response = as_programme_manager.get(f"/users/export?project={project.uuid}")
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
