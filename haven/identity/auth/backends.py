@@ -62,15 +62,18 @@ class RemoteExtendedUserBackend(RemoteUserBackend):
         return True
 
     def update_user_role(self, user, target_group_names):
-        roles = [role[0] for role in UserRole.choices()]
-        roles.remove("")
-        roles = frozenset(roles)
-        role = list(roles & target_group_names)
-        if role:
-            user.role = role[0]
+        # Is the user a system manager?
+        if settings.SYSTEM_MANAGER_LDAP_GROUP in target_group_names:
+            user.role = UserRole.SYSTEM_MANAGER
             user.save()
-            target_group_names = target_group_names - set(role)
-        return target_group_names
+            return target_group_names - set([settings.SYSTEM_MANAGER_LDAP_GROUP])
+        # Is the user a programme manager?
+        elif settings.PROGRAMME_MANAGER_LDAP_GROUP in list(target_group_names):
+            user.role = UserRole.PROGRAMME_MANAGER
+            user.save()
+            return target_group_names - set([settings.SYSTEM_MANAGER_LDAP_GROUP])
+        else:
+            return target_group_names
 
     def update_groups(self, user, remote_groups):
         """

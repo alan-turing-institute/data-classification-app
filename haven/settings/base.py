@@ -173,6 +173,8 @@ if "remote" in HAVEN_AUTH_TYPES:
     ]
     MIDDLEWARE.append("haven.identity.auth.middleware.HttpRemoteUserMiddleware")
     LOGOUT_REDIRECT_URL = "https://auth." + BASE_DOMAIN + "/logout"
+    SYSTEM_MANAGER_LDAP_GROUP=env.str("SYSTEM_MANAGER_LDAP_GROUP", default="system_manager")
+    PROGRAMME_MANAGER_LDAP_GROUP=env.str("PROGRAMME_MANAGER_LDAP_GROUP", default="programme_manager")
 if "social" in HAVEN_AUTH_TYPES:
     from .components.social_auth import *
 
