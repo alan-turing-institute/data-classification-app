@@ -13,7 +13,7 @@ from haven.data.models import Dataset
 from haven.projects.models import Project, WorkPackage
 
 
-class DatasetListSerializer(serializers.ModelSerializer):
+class DatasetSerializer(serializers.ModelSerializer):
     """
     Class for converting a Dataset model instance into a JSON representation.
     To be used with DRF API views.
@@ -43,7 +43,6 @@ class DatasetListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        # `host` and `storage_path` not present in fields, for use in dataset list api view
         fields = [
             "name",
             "uuid",
@@ -52,16 +51,15 @@ class DatasetListSerializer(serializers.ModelSerializer):
             "work_packages",
             "default_representative",
             "default_representative_email",
+            "host",
+            "storage_path",
             "created_at",
             "created_by",
         ]
 
 
-class DatasetDetailSerializer(DatasetListSerializer):
-    """
-    Class for converting a Dataset model instance into a JSON representation.
-    To be used with DRF API views.
-    """
+class DatasetExpirySerializer(DatasetSerializer):
+    """Serializer for returning the expiry of a dataset for the requesting user"""
 
     expires_at = serializers.SerializerMethodField()
 
@@ -79,19 +77,8 @@ class DatasetDetailSerializer(DatasetListSerializer):
 
     class Meta:
         model = Dataset
-        # `host` and `storage_path` present in fields, for use in dataset detail api view
         fields = [
-            "name",
             "uuid",
-            "description",
-            "projects",
-            "work_packages",
-            "default_representative",
-            "default_representative_email",
-            "host",
-            "storage_path",
-            "created_at",
-            "created_by",
             "expires_at",
         ]
 
