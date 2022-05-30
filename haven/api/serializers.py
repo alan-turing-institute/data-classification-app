@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import serializers
 
 from haven.api.utils import (
+    WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP,
     get_accessible_datasets,
     get_accessible_projects,
     get_accessible_work_packages,
@@ -67,6 +71,20 @@ class DatasetDetailSerializer(DatasetListSerializer):
     To be used with DRF API views.
     """
 
+    expires_at = serializers.SerializerMethodField()
+
+    def get_expires_at(self, dataset):
+        """Function to get the datetime that dataset access expires for the requesting user"""
+        work_packages = get_accessible_work_packages(
+            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+        )
+        # A dataset can be associated with many work packages, therefore the safest heuristic is to
+        # use the maximum (most confidential) tier of these work packages for calculating expiry
+        # time
+        max_tier = max(list(work_packages.values_list("tier", flat=True)))
+        expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[max_tier]
+        return str(timezone.now() + timedelta(seconds=expiry_seconds))
+
     class Meta:
         model = Dataset
         # `host` and `storage_path` present in fields, for use in dataset detail api view
@@ -83,6 +101,7 @@ class DatasetDetailSerializer(DatasetListSerializer):
             "storage_path",
             "created_at",
             "created_by",
+            "expires_at",
         ]
 
 
