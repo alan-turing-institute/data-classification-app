@@ -58,7 +58,7 @@ The user has four steps to complete within the session. They should initally jus
 
 Please take notes for each step below. Include both what happened, and direct quotes from the user. 
 
-If comfortable, the note-taker can also fill out the [analysis]() notes at the same time. However, recording user thought and what happens is more important.
+If comfortable, the note-taker can also fill out the [analysis](analysis_template.md) notes at the same time. However, recording user thought and what happens is more important.
 
 1. Read through the user guide
  * Duration (m):
