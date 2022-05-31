@@ -158,6 +158,7 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["programmes"].widget.url = reverse(
             "projects:autocomplete_programme"
         )
+        self.fields["question_set"].required = False
 
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):
