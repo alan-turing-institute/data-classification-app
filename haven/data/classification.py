@@ -470,13 +470,23 @@ def initial_questions():
     return questions
 
 
-def insert_initial_questions(ClassificationQuestion, ClassificationGuidance, ClassificationQuestionSet):
+def insert_initial_questions(
+    ClassificationQuestion, 
+    ClassificationGuidance, 
+    ClassificationQuestionSet, 
+    question_set_exists=False
+    ):
     assert not ClassificationGuidance.objects.exists()
     assert not ClassificationQuestion.objects.exists()
-    assert not ClassificationQuestionSet.objects.exists()
+    
+    # During tests question sets may already exist because they've been created by a project
+    if question_set_exists:
+        question_set = ClassificationQuestionSet.objects.get(name="turing")
+    else:
+        assert not ClassificationQuestionSet.objects.exists()
+        question_set = ClassificationQuestionSet(name="turing")
+        question_set.save()
 
-    question_set = ClassificationQuestionSet(name="turing")
-    question_set.save()
     guidance = {}
     questions = {}
 

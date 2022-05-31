@@ -38,12 +38,14 @@ class TestCreateProject:
         assert response.status_code == 403
 
     def test_create_project(self, as_programme_manager):
+        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
         response = as_programme_manager.post(
             "/projects/new",
             {
                 "name": "my project",
                 "description": "a new project",
                 "programmes": "prog1, prog2",
+                "question_set": question_set.id
             },
         )
 
@@ -58,11 +60,11 @@ class TestCreateProject:
         assert project.created_by == as_programme_manager._user
 
     def test_cannot_create_duplicate_project(self, as_programme_manager):
-        recipes.project.make(name="my project")
-
+        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
+        recipes.project.make(name="my project", question_set=question_set)
         response = as_programme_manager.post(
             "/projects/new",
-            {"name": "my project", "description": "a duplicate project"},
+            {"name": "my project", "description": "a duplicate project", "question_set": question_set.id},
         )
 
         assert response.status_code == 200
@@ -73,6 +75,7 @@ class TestCreateProject:
         assert Project.objects.count() == 1
 
     def test_create_project_for_programme(self, as_programme_manager):
+        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
         response = as_programme_manager.get("/projects/new")
         assert response.context["form"].initial == {}
 
@@ -82,6 +85,7 @@ class TestCreateProject:
                 "name": "my project",
                 "description": "a new project",
                 "programmes": "prog1",
+                "question_set": question_set.id,
             },
         )
 
@@ -2480,7 +2484,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
         work_package.status = WorkPackageStatus.NEW.value
@@ -2520,7 +2525,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True,
             )
         work_package = classified_work_package(None)
 
@@ -2542,7 +2548,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion, 
             ClassificationGuidance, 
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True,
             )
         work_package = classified_work_package(None)
 
@@ -2649,7 +2656,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion, 
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -2765,7 +2773,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -2856,7 +2865,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -2890,7 +2900,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -2958,7 +2969,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package_1 = classified_work_package(None)
         work_package_2 = classified_work_package(None)
@@ -3052,7 +3064,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3118,7 +3131,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3175,7 +3189,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3288,7 +3303,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3384,7 +3400,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3503,7 +3520,8 @@ class TestWorkPackageClassifyData:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
@@ -3627,7 +3645,8 @@ class TestWorkPackageClassifyResults:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True,
             )
         project_manager = recipes.user.make()
         investigator = recipes.user.make()

@@ -656,7 +656,8 @@ class TestWorkPackage:
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
-            ClassificationQuestionSet
+            ClassificationQuestionSet,
+            question_set_exists=True
             )
         work_package = classified_work_package(None)
 
