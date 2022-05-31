@@ -143,9 +143,10 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["name", "description", "programmes"]
+        fields = ["name", "description", "question_set", "programmes"]
         labels = {
             "programmes": "Programmes",
+            "question_set": "Data classification question set",
         }
         help_texts = {
             "programmes": "",
