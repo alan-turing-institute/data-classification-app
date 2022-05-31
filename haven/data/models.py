@@ -26,6 +26,11 @@ class ClassificationQuestionSet(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_default_id(cls):
+        q_set, created = cls.objects.get_or_create(name='turing')
+        return q_set.id
+
 
 class ClassificationQuestion(models.Model):
 

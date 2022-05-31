@@ -45,7 +45,7 @@ class Project(CreatedByModel):
         ClassificationQuestionSet,
         on_delete=models.PROTECT,  # Don't allow question_set delete if used by project
         related_name="projects",
-        default=1
+        default=ClassificationQuestionSet.get_default_id
     )
 
     datasets = models.ManyToManyField(
