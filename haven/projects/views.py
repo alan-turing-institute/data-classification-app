@@ -1232,7 +1232,7 @@ class WorkPackageClassifyData(
         question
         """
         self.work_package = self.get_work_package()
-        self.project = self.work_package.
+        self.project = self.work_package.project
         self.question_set = self.project.question_set
         self.starting_question = ClassificationQuestion.objects.get_starting_question(question_set=self.question_set)
         self.previous_question = None
