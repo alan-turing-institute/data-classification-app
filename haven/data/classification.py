@@ -481,6 +481,7 @@ def insert_initial_questions(ClassificationQuestion, ClassificationGuidance, Cla
     questions = {}
 
     for kwargs in initial_guidance():
+        kwargs["question_set"] = question_set
         g = ClassificationGuidance(**kwargs)
         g.full_clean()
         g.save()
