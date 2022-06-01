@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -28,7 +29,7 @@ class ClassificationQuestionSet(models.Model):
 
     @classmethod
     def get_default_id(cls):
-        q_set, created = cls.objects.get_or_create(name='turing')
+        q_set, created = cls.objects.get_or_create(name=settings.DEFAULT_QUESTION_SET_NAME)
         return q_set.id
 
 
