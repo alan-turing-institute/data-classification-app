@@ -2361,6 +2361,40 @@ class TestWorkPackageClassifyData:
 
         return response
 
+    def insert_alternative_question_set(self):
+        from haven.data.tiers import Tier
+        alt_q_set = ClassificationQuestionSet(name="alt")
+        alt_q_set.save()
+        q2 = ClassificationQuestion(
+            name="alt_question_2",
+            question="Would you like to be Tier 4?",
+            question_set=alt_q_set,
+            yes_tier=4,
+            no_tier=3,
+        )
+        q2.save()
+        q1 = ClassificationQuestion(
+            name="alt_question_1",
+            question="Would you like to be Tier 2?",
+            question_set=alt_q_set,
+            yes_tier=2,
+            no_question=q2
+        )
+        q1.save()
+        g1 = ClassificationGuidance(
+            name="alt_question_1",
+            guidance="use the force",
+            question_set=alt_q_set,
+        )
+        g1.save()
+        g2 = ClassificationGuidance(
+            name="alt_question_2",
+            guidance="use the forks",
+            question_set=alt_q_set,
+        )
+        g2.save()
+        
+
     def check_results_page(self, response, work_package, user, tier, questions):
         assert response.status_code == 200
         assert response.context["classification"].tier == tier
@@ -2543,6 +2577,67 @@ class TestWorkPackageClassifyData:
         response = as_investigator.get(self.url(work_package), follow=True)
         assert "question" in response.context
         assert b"Delete My Classification" not in response.content
+
+    def test_select_alternative_question_set(self, classified_work_package, as_investigator):
+        insert_initial_questions(
+            ClassificationQuestion, 
+            ClassificationGuidance, 
+            ClassificationQuestionSet,
+            question_set_exists=True,
+            )
+        self.insert_alternative_question_set()
+        work_package = classified_work_package(None)
+        alt_question_set = ClassificationQuestionSet.objects.get(name="alt")
+        project = work_package.project
+        project.question_set = alt_question_set
+        project.save()
+        
+        response = as_investigator.get(self.url(work_package), follow=True)
+        assert response.context["question"].name == "alt_question_1"
+
+    def test_classify_with_alternative_questions_as_tier(
+        self, classified_work_package, as_investigator):
+        insert_initial_questions(
+            ClassificationQuestion, 
+            ClassificationGuidance, 
+            ClassificationQuestionSet,
+            question_set_exists=True,
+            )
+        self.insert_alternative_question_set()
+        work_package = classified_work_package(None)
+        alt_question_set = ClassificationQuestionSet.objects.get(name="alt")
+        project = work_package.project
+        project.question_set = alt_question_set
+        project.save()
+
+        response = as_investigator.get(self.url(work_package), follow=True)
+        response = self.classify(
+            as_investigator,
+            work_package,
+            response,
+            "alt_question_1",
+            answer=False,
+            next="alt_question_2",
+            number=2,
+        )
+        response = self.classify(
+            as_investigator,
+            work_package,
+            response,
+            "alt_question_2",
+            answer=True,
+        )
+        self.check_results_page(
+            response,
+            work_package,
+            as_investigator._user,
+            4,
+            [
+                ["alt_question_1", "False"],
+                ["alt_question_2", "True"],
+            ],
+        )
+
 
     def test_classify_as_tier(self, classified_work_package, as_investigator):
         insert_initial_questions(
