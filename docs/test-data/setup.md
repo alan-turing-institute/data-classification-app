@@ -1,3 +1,15 @@
+# Loading test data fixtures
+
+**WARNING**: Loading these test data fixtures will overwrite existing data objects if the share the same id.
+
+1. Copy data file to django's docker container: 
+
+   `docker compose cp docs/test-data/projects.json web:/app`
+
+2. Load the data:
+
+   `docker compose exec web ./manage.py loaddata projects.json`
+
 # Preparing for app UX testing sessions
 
 To-do list, ahead of first testing session: 
