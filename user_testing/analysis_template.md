@@ -12,9 +12,12 @@ For each step of the user journey, there are key questions we want to answer. We
 - **Y**: Not applicable/tested
 
 The questions we want to know the answer to are:
-* Did the user understand what they had to do?
+* Did the user understand what they were trying to do conceptually?
 * Were they able to complete the process themselves?
-* Could they find the relevant information when they got stuck?
+
+And more generally:
+* Did they agree with the process?
+   * This is especially applicable to the questions of the classification process
 
 For example:
 
@@ -24,7 +27,6 @@ For example:
 1. Click 'View My Projects'
     * **Understand?**: G
     * **Complete?**: G
-    * **Resolve?**: Y
     * **Comments**: 
         * Found the button straight away
         * 'I love how easy it is to see what we need to do'
@@ -32,11 +34,15 @@ For example:
 2. Click the name of the chosen project
     * **Understand?**: G
     * **Complete?**: R
-    * **Resolve?**: A
     * **Comments**: 
         * 'I didn't realise you could click on the title directly'
         * HS had to step in and explain what to do
         * Wasn't sure which project to choose - need to clarify that any choice is fine
+        
+ General thoughts:
+   * **Agree with process?**: A
+   * **Comments**:
+      * 'Makes a lot of intuitive sense, but feel like you should only be able to see one project at a time.'
 ```
 
 Any actions that need to be taken moving forward should be discussed highlighted below with the relevant category, for instance from the above we might add:
@@ -69,6 +75,13 @@ Any actions that need to be taken moving forward should be discussed highlighted
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
+
+General thoughts:
+   * **Agree with process?**: 
+   * **Comments**:
+      * .
+      * .
+      * .
 
 ### 2. Select a project at random from the list of pre-defined dummy projects
 
@@ -109,6 +122,13 @@ Any actions that need to be taken moving forward should be discussed highlighted
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
+       
+General thoughts:
+   * **Agree with process?**: 
+   * **Comments**:
+      * .
+      * .
+      * .
 
 ### 3. Assign a new (dummy) dataset to a project (tester to create metadata, encouraged to make it similar to the real-life data they are currently working on)
 
@@ -149,6 +169,13 @@ Any actions that need to be taken moving forward should be discussed highlighted
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
+
+General thoughts:
+   * **Agree with process?**: 
+   * **Comments**:
+      * .
+      * .
+      * .
 
 ### 4. Assign random selection of users from pre-defined list of users to other roles in chosen project
 
@@ -208,6 +235,13 @@ Any actions that need to be taken moving forward should be discussed highlighted
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
+
+General thoughts:
+   * **Agree with process?**: 
+   * **Comments**:
+      * .
+      * .
+      * .
 
 ### 5. Run through classification of “Ingress” work package
 
@@ -287,6 +321,11 @@ Any actions that need to be taken moving forward should be discussed highlighted
             * **Urgency**:
             * **Difficulty**:
 
-
+General thoughts:
+   * **Agree with process?**: 
+   * **Comments**:
+      * .
+      * .
+      * .
 
 
