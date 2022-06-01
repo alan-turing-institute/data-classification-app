@@ -49,21 +49,6 @@ management_urlpatterns = [
         user_passes_test(can_access_oauth_application_views)(views.ApplicationUpdate.as_view()),
         name="update",
     ),
-    # Token management views
-    re_path(
-        r"^authorized_tokens/$",
-        user_passes_test(can_access_oauth_application_views)(
-            views.AuthorizedTokensListView.as_view()
-        ),
-        name="authorized-token-list",
-    ),
-    re_path(
-        r"^authorized_tokens/(?P<pk>[\w-]+)/delete/$",
-        user_passes_test(can_access_oauth_application_views)(
-            views.AuthorizedTokenDeleteView.as_view()
-        ),
-        name="authorized-token-delete",
-    ),
 ]
 
 
