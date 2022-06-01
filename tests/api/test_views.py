@@ -1071,3 +1071,87 @@ class TestWorkPackageDetailAPIView:
 
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(work_package.uuid)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "url_name,url_pk",
+    [
+        ("list", False),
+        ("register", False),
+        ("detail", True),
+        ("delete", True),
+        ("update", True),
+    ],
+)
+class TestOAuthApplicationViews:
+    def test_standard_user(
+        self, url_name, url_pk, standard_user, as_standard_user, oauth_application
+    ):
+        """
+        Test that standard user, who is not a superuser and does not have the correct role, is
+        redirected from application views
+        """
+        oauth_application.user = standard_user
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_standard_user.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 302
+
+    def test_superuser(self, url_name, url_pk, standard_user, as_standard_user, oauth_application):
+        """Test that superuser can access application views"""
+        standard_user.is_superuser = True
+        standard_user.save()
+
+        oauth_application.user = standard_user
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_standard_user.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 200
+
+    def test_system_manager(
+        self, url_name, url_pk, system_manager, as_system_manager, oauth_application
+    ):
+        """Test that system manager can access application views"""
+        oauth_application.user = system_manager
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_system_manager.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 200
+
+    def test_programme_manager(
+        self,
+        url_name,
+        url_pk,
+        programme_manager,
+        as_programme_manager,
+        oauth_application,
+    ):
+        """Test that system manager can access application views"""
+        oauth_application.user = programme_manager
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_programme_manager.get(
+            reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs)
+        )
+
+        assert response.status_code == 200
