@@ -3,8 +3,6 @@ from django.urls import re_path
 from oauth2_provider import views
 from oauth2_provider.urls import base_urlpatterns, oidc_urlpatterns
 
-from haven.identity.roles import UserRole
-
 
 app_name = "oauth2_provider"
 
@@ -14,10 +12,7 @@ def can_access_oauth_application_views(user):
     Function which returns a boolean for where or not user should be able to access the application
     views provided by django-oauth-toolkit
     """
-    return user.is_superuser or user.user_role.value in [
-        UserRole.SYSTEM_MANAGER.value,
-        UserRole.PROGRAMME_MANAGER.value,
-    ]
+    return user.is_superuser or user.system_permissions.can_manage_applications
 
 
 management_urlpatterns = [
