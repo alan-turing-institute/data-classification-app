@@ -85,6 +85,7 @@ class UserPermissions:
         view_all_projects    |  Y   Y |  .   .  .   .   . |     .
         edit_all_projects    |  Y   Y |  .   .  .   .   . |     .
         manage_applications  |  Y   Y |  .   .  .   .   . |     .
+        view_all_api_data    |  Y   Y |  .   .  .   .   . |     .
         ---------------------+--------+-------------------+------
         view_project_history |  Y   Y |  Y   .  .   .   . |     .
         edit_project         |  Y   Y |  Y   .  .   .   . |     .

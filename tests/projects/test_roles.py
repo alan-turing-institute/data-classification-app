@@ -47,6 +47,7 @@ class TestUserPermissions:
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
         assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -83,6 +84,7 @@ class TestUserPermissions:
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
         assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -119,6 +121,7 @@ class TestUserPermissions:
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
         assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -155,6 +158,7 @@ class TestUserPermissions:
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
         assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert perms.can_view_all_users
@@ -191,6 +195,7 @@ class TestUserPermissions:
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
         assert perms.can_manage_applications
+        assert perms.can_view_all_api_data
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users
@@ -227,6 +232,7 @@ class TestUserPermissions:
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
         assert perms.can_manage_applications
+        assert perms.can_view_all_api_data
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users
