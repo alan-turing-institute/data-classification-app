@@ -1,7 +1,9 @@
 from oauth2_provider.contrib.rest_framework import TokenHasScope
+from oauth2_provider.views import ApplicationRegistration, ApplicationUpdate
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
+from haven.api.forms import ApplicationCreateOrUpdateForm
 from haven.api.mixins import AllowedPatchFieldsMixin, ExtraFilterKwargsMixin
 from haven.api.serializers import (
     DatasetExpirySerializer,
@@ -26,6 +28,9 @@ class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
+        import ipdb
+
+        ipdb.set_trace(context=25)
         return get_accessible_datasets(
             self.request._auth.user, extra_filters=self.get_filter_kwargs()
         )
@@ -144,3 +149,28 @@ class WorkPackageDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView)
         return get_accessible_work_packages(
             self.request._auth.user, extra_filters=self.get_filter_kwargs()
         )
+
+
+# To see original `ApplicationRegistration` view see:
+# https://github.com/jazzband/django-oauth-toolkit/blob/master/oauth2_provider/views/application.py
+class ClientApplicationRegistration(ApplicationRegistration):
+    """View used to register a new Oauth client Application"""
+
+    def get_form_class(self):
+        """Returns the form class which also saves information to ApplicationProfile model"""
+        return ApplicationCreateOrUpdateForm
+
+
+# To see original `ApplicationUpdate` view see:
+# https://github.com/jazzband/django-oauth-toolkit/blob/master/oauth2_provider/views/application.py
+class ClientApplicationUpdate(ApplicationUpdate):
+    """View used to update an existing Oauth client Application"""
+
+    def get_form_class(self):
+        """Returns the form class which also saves information to ApplicationProfile model"""
+        return ApplicationCreateOrUpdateForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["maximum_tier"] = self.object.profile.maximum_tier
+        return initial

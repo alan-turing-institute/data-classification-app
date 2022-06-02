@@ -1,7 +1,7 @@
 [
     {
         "model": "oauth2_provider.application",
-        "pk": null,
+        "pk": 1,
         "fields": {
             "client_id": "waEtHkVfr1xIRns47tkEJLL8vytaWQBVHb3pZXq1",
             "user": 1,
