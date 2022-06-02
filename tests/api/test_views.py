@@ -1460,3 +1460,13 @@ class TestOAuthApplicationViews:
         )
 
         assert response.status_code == 200
+
+    def test_unauthenticated(self, url_name, url_pk, client, oauth_application):
+        """Test that anonymous user is redirected from application views"""
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = client.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 302

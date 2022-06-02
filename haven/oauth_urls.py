@@ -12,7 +12,9 @@ def can_access_oauth_application_views(user):
     Function which returns a boolean for where or not user should be able to access the application
     views provided by django-oauth-toolkit
     """
-    return user.is_superuser or user.system_permissions.can_manage_applications
+    return user.is_authenticated and (
+        user.is_superuser or user.system_permissions.can_manage_applications
+    )
 
 
 management_urlpatterns = [
