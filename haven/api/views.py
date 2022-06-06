@@ -139,7 +139,7 @@ class WorkPackageDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView)
 
 # To see original `ApplicationRegistration` view see:
 # https://github.com/jazzband/django-oauth-toolkit/blob/master/oauth2_provider/views/application.py
-class ClientApplicationRegistration(ApplicationRegistration):
+class CustomApplicationRegistration(ApplicationRegistration):
     """View used to register a new Oauth client Application"""
 
     def get_form_class(self):
@@ -149,7 +149,7 @@ class ClientApplicationRegistration(ApplicationRegistration):
 
 # To see original `ApplicationUpdate` view see:
 # https://github.com/jazzband/django-oauth-toolkit/blob/master/oauth2_provider/views/application.py
-class ClientApplicationUpdate(ApplicationUpdate):
+class CustomClientApplicationUpdate(ApplicationUpdate):
     """View used to update an existing Oauth client Application"""
 
     def get_form_class(self):

@@ -4,8 +4,8 @@ from oauth2_provider import views
 from oauth2_provider.urls import base_urlpatterns, oidc_urlpatterns
 
 from haven.api.views import (
-    ClientApplicationRegistration,
-    ClientApplicationUpdate,
+    CustomApplicationRegistration,
+    CustomClientApplicationUpdate,
 )
 
 
@@ -32,7 +32,7 @@ management_urlpatterns = [
     re_path(
         r"^applications/register/$",
         user_passes_test(can_access_oauth_application_views)(
-            ClientApplicationRegistration.as_view()
+            CustomApplicationRegistration.as_view()
         ),
         name="register",
     ),
@@ -48,7 +48,9 @@ management_urlpatterns = [
     ),
     re_path(
         r"^applications/(?P<pk>[\w-]+)/update/$",
-        user_passes_test(can_access_oauth_application_views)(ClientApplicationUpdate.as_view()),
+        user_passes_test(can_access_oauth_application_views)(
+            CustomClientApplicationUpdate.as_view()
+        ),
         name="update",
     ),
 ]

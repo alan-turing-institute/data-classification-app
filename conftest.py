@@ -9,6 +9,7 @@ from django.utils.timezone import make_aware
 from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
 
+from haven.api.models import ApplicationProfile
 from haven.core import recipes
 from haven.data.tiers import Tier
 from haven.identity.models import User
@@ -185,8 +186,8 @@ def unclassified_work_package(
 def make_accessible_work_package(classified_work_package, programme_manager):
     """Fixture to return function for creating a work package accessible to given user"""
 
-    def _make_accessible_work_package(user):
-        work_package = classified_work_package(0)
+    def _make_accessible_work_package(user, tier=0):
+        work_package = classified_work_package(tier)
         work_package.project.add_user(
             user=user,
             role=ProjectRole.RESEARCHER.value,
@@ -337,9 +338,18 @@ def oauth_application_registration_data(oauth_application_config):
 
 
 @pytest.fixture
-def oauth_application(oauth_application_config):
+def oauth_application(oauth_application_config, system_manager):
     """Fixture to create dummy OAuth application with deterministic client credentials"""
-    return Application.objects.create(**oauth_application_config)
+    return Application.objects.create(**oauth_application_config, user=system_manager)
+
+
+@pytest.fixture
+def application_profile(oauth_application, oauth_application_registration_data):
+    """Fixture to create dummy ApplicationProfile"""
+    return ApplicationProfile.objects.create(
+        application=oauth_application,
+        maximum_tier=oauth_application_registration_data["maximum_tier"],
+    )
 
 
 @pytest.fixture

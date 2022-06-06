@@ -4,6 +4,7 @@ from haven.api.utils import (
     get_accessible_datasets,
     get_accessible_projects,
     get_accessible_work_packages,
+    get_maximum_tier_filter,
     safe_filter_and_deduplicate,
 )
 from haven.core import recipes
@@ -533,3 +534,50 @@ class TestGetAccessibleWorkPackages:
         # Assert work packages in `unaccessible_work_packages` are not in returned work packages
         for work_package in unaccessible_work_packages:
             assert work_package not in accessible_work_packages
+
+
+@pytest.mark.django_db
+class TestGetMaximumFilterTier:
+    def test_get_accessible_work_packages(
+        self, make_mock_request_with_oauth_application, application_profile
+    ):
+        """Test that the `get_maximum_tier_filter` returns the filter dictionary"""
+        mock_request = make_mock_request_with_oauth_application()
+
+        filter_key = "test"
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key=filter_key)
+
+        assert maximum_tier_filter == {filter_key: application_profile.maximum_tier}
+
+    def test_no_application(
+        self,
+        make_mock_request_with_oauth_application,
+        oauth_application,
+    ):
+        """
+        Test that the `get_maximum_tier_filter` returns an empty dictionary if a matching
+        application does not exist
+        """
+        mock_request = make_mock_request_with_oauth_application()
+
+        # Delete the application that is associated with the request
+        oauth_application.delete()
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key="test")
+
+        assert maximum_tier_filter == {}
+
+    def test_no_application_profile(
+        self,
+        make_mock_request_with_oauth_application,
+    ):
+        """
+        Test that the `get_maximum_tier_filter` returns an empty dictionary if a matching
+        application profile does not exist
+        """
+        mock_request = make_mock_request_with_oauth_application()
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key="test")
+
+        assert maximum_tier_filter == {}
