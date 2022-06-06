@@ -15,5 +15,13 @@
             "updated": "2022-05-26T09:45:45.227Z",
             "algorithm": ""
         }
+    },
+    {
+        "model": "api.applicationprofile",
+        "pk": 1,
+        "fields": {
+            "application": 1,
+            "maximum_tier": 4
+        }
     }
 ]
