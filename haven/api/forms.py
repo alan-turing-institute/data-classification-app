@@ -8,7 +8,7 @@ from haven.api.models import ApplicationProfile
 class ApplicationCreateOrUpdateForm(forms.ModelForm):
     """A custom form for use in OAuth application management views"""
 
-    maximum_tier = forms.IntegerField(initial=5, min_value=0, max_value=5)
+    maximum_tier = forms.IntegerField(initial=4, min_value=0, max_value=4)
 
     class Meta:
         model = Application

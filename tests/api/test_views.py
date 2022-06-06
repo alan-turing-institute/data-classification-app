@@ -602,7 +602,7 @@ class TestDatasetDetailAPIView:
 class TestDatasetExpiryAPIView:
     # Freeze time to make testing datetimes deterministic
     @pytest.mark.freeze_time("2022-01-01")
-    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4, 5])
+    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4])
     def test_expires_at(
         self,
         work_package_tier,

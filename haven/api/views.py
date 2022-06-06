@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from oauth2_provider.views import ApplicationRegistration, ApplicationUpdate
 from rest_framework import generics
@@ -157,5 +158,11 @@ class ClientApplicationUpdate(ApplicationUpdate):
 
     def get_initial(self):
         initial = super().get_initial()
-        initial["maximum_tier"] = self.object.profile.maximum_tier
+        try:
+            initial["maximum_tier"] = self.object.profile.maximum_tier
+        # Incase no `ApplicationProfile` associated with this `Application`
+        # e.g. in a DB which existed before this model was introduced
+        except ObjectDoesNotExist:
+            pass
+
         return initial

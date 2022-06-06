@@ -332,6 +332,7 @@ def oauth_application_registration_data(oauth_application_config):
     registration_data = oauth_application_config.copy()
     registration_data["initial-client_id"] = oauth_application_config["client_id"]
     registration_data["initial-client_secret"] = oauth_application_config["client_secret"]
+    registration_data["maximum_tier"] = 4
     return registration_data
 
 
@@ -389,3 +390,31 @@ class MockPostRequest:
         query_dict = QueryDict("", mutable=True)
         query_dict.update(body)
         self.POST = query_dict
+
+
+class MockAuthObject:
+    """Mock `_auth` object which is used in `MockOAuthRequest`"""
+
+    def __init__(self, *args, application_id=None, **kwargs):
+        self.application_id = application_id
+
+
+class MockOAuthRequest:
+    """Mock request object with a `QueryDict` POST attribute"""
+
+    def __init__(self, *args, user=None, application_id=None, **kwargs):
+        self.user = user
+        self._auth = MockAuthObject(application_id=application_id)
+
+
+@pytest.fixture
+def make_mock_request_with_oauth_application(project_participant, oauth_application):
+    """
+    Fixture to return function which generates a mock request object with an oauth application and
+    user
+    """
+
+    def _make(user=project_participant, application=oauth_application):
+        return MockOAuthRequest(user=user, application_id=application.id)
+
+    return _make
