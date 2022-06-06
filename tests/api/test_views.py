@@ -652,8 +652,8 @@ class TestDatasetExpiryAPIView:
         work_package.save()
         dataset = work_package.datasets.last()
 
-        # Associate dataset with 5 further classified work packages
-        for work_package_tier in range(1, 6):
+        # Associate dataset with 4 further classified work packages
+        for work_package_tier in range(1, 5):
             work_package = make_accessible_work_package(project_participant)
             work_package.tier = work_package_tier
             work_package.save()
@@ -674,7 +674,7 @@ class TestDatasetExpiryAPIView:
         assert result["expires_at"] == str(
             timezone.now()
             # Assert that the highest tier is used, in this case zero
-            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[5])
+            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[4])
         )
 
 

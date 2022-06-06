@@ -32,6 +32,6 @@ class ApplicationCreateOrUpdateForm(forms.ModelForm):
             )
         except Exception:
             capture_message(
-                "Unable to save maximum tier to profile for application '{application.name}'"
+                f"Unable to save maximum tier to profile for application '{application.name}'"
             )
         return application

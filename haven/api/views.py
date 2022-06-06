@@ -28,12 +28,7 @@ class DatasetListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        import ipdb
-
-        ipdb.set_trace(context=25)
-        return get_accessible_datasets(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_datasets(self.request, extra_filters=self.get_filter_kwargs())
 
 
 class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
@@ -48,9 +43,7 @@ class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_datasets(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_datasets(self.request, extra_filters=self.get_filter_kwargs())
 
 
 class DatasetRegisterAPIView(AllowedPatchFieldsMixin, generics.UpdateAPIView):
@@ -69,7 +62,7 @@ class DatasetRegisterAPIView(AllowedPatchFieldsMixin, generics.UpdateAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_datasets(self.request._auth.user)
+        return get_accessible_datasets(self.request)
 
 
 class DatasetExpiryAPIView(generics.RetrieveAPIView):
@@ -86,7 +79,7 @@ class DatasetExpiryAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_datasets(self.request._auth.user)
+        return get_accessible_datasets(self.request)
 
 
 class ProjectListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
@@ -98,9 +91,7 @@ class ProjectListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_projects(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_projects(self.request, extra_filters=self.get_filter_kwargs())
 
 
 class ProjectDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
@@ -114,9 +105,7 @@ class ProjectDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
 
     def get_queryset(self):
         """Return all projects accessible by requesting OAuth user"""
-        return get_accessible_projects(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_projects(self.request, extra_filters=self.get_filter_kwargs())
 
 
 class WorkPackageListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
@@ -129,9 +118,7 @@ class WorkPackageListAPIView(ExtraFilterKwargsMixin, generics.ListAPIView):
 
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_work_packages(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_work_packages(self.request, extra_filters=self.get_filter_kwargs())
 
 
 class WorkPackageDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
@@ -146,9 +133,7 @@ class WorkPackageDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView)
 
     def get_queryset(self):
         """Return all work packages accessible by requesting OAuth user"""
-        return get_accessible_work_packages(
-            self.request._auth.user, extra_filters=self.get_filter_kwargs()
-        )
+        return get_accessible_work_packages(self.request, extra_filters=self.get_filter_kwargs())
 
 
 # To see original `ApplicationRegistration` view see:

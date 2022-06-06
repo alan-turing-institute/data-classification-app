@@ -28,13 +28,13 @@ class DatasetSerializer(serializers.ModelSerializer):
     def get_work_packages(self, dataset):
         """Function to get accessible work packages that this dataset is associated with"""
         return get_accessible_work_packages(
-            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+            self.context["request"], extra_filters={"datasets": dataset}
         ).values_list("uuid", flat=True)
 
     def get_projects(self, dataset):
         """Function to get accessible projects that this dataset is associated with"""
         return get_accessible_projects(
-            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+            self.context["request"], extra_filters={"datasets": dataset}
         ).values_list("uuid", flat=True)
 
     def get_default_representative_email(self, dataset):
@@ -66,7 +66,7 @@ class DatasetExpirySerializer(DatasetSerializer):
     def get_expires_at(self, dataset):
         """Function to get the datetime that dataset access expires for the requesting user"""
         work_packages = get_accessible_work_packages(
-            self.context["request"]._auth.user, extra_filters={"datasets": dataset}
+            self.context["request"], extra_filters={"datasets": dataset}
         )
         # A dataset can be associated with many work packages, therefore the safest heuristic is to
         # use the maximum (most confidential) tier of these work packages for calculating expiry
@@ -96,13 +96,13 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_datasets(self, project):
         """Function to get accessible datasets that this project is associated with"""
         return get_accessible_datasets(
-            self.context["request"]._auth.user, extra_filters={"projects": project}
+            self.context["request"], extra_filters={"projects": project}
         ).values_list("uuid", flat=True)
 
     def get_work_packages(self, project):
         """Function to get accessible work packages that this project is associated with"""
         return get_accessible_work_packages(
-            self.context["request"]._auth.user, extra_filters={"project": project}
+            self.context["request"], extra_filters={"project": project}
         ).values_list("uuid", flat=True)
 
     class Meta:
