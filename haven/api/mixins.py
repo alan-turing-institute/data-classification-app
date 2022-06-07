@@ -1,6 +1,3 @@
-from rest_framework.exceptions import ParseError
-
-
 class ExtraFilterKwargsMixin:
     """
     Mixin for use in API views which are nested under another detail view url path
@@ -19,18 +16,3 @@ class ExtraFilterKwargsMixin:
             if filter_kwarg in self.kwargs:
                 extra_filters = {filter_kwarg: self.kwargs[filter_kwarg]}
         return extra_filters
-
-
-class AllowedPatchFieldsMixin:
-    """Mixin for use in DRF UpdateAPIView which defines which fields can be patched"""
-
-    # Fields which can be patched by this view
-    allowed_patch_fields = []
-    PARSE_ERROR_DETAIL = "Only the following fields can be used with PATCH for this data type: {}"
-
-    def patch(self, request, *args, **kwargs):
-        # If there are any fields that are not allowed in `allowed_patch_fields` then raise error
-        if set(request.POST.keys()) - set(self.allowed_patch_fields):
-            # This results in 400 status code by default
-            raise ParseError(detail=self.PARSE_ERROR_DETAIL.format(self.allowed_patch_fields))
-        return super().patch(request, *args, **kwargs)
