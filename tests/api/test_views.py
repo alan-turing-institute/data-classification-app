@@ -50,7 +50,7 @@ class TestOAuthFlow:
 
         authorize_data = {
             "redirect_uri": oauth_application_registration_data["redirect_uris"],
-            "scope": "read write",
+            "scope": "read",
             "nonce": "",
             "client_id": oauth_application_registration_data["client_id"],
             "state": "",

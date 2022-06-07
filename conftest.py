@@ -356,7 +356,7 @@ def application_profile(oauth_application, oauth_application_registration_data):
 def access_token(oauth_application):
     """Fixture to return function to generate access token"""
 
-    def _access_token(user, scope="read write"):
+    def _access_token(user, scope="read"):
         return AccessToken.objects.create(
             token="test_access_token",
             user=user,

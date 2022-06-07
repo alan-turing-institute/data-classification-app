@@ -233,7 +233,9 @@ BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
 
-OAUTH2_PROVIDER = {"SCOPES": {"read": "Read scope", "write": "Write scope"}}
+OAUTH2_PROVIDER = {
+    "SCOPES": {"read": "Permission to read your projects, work packages and datasets"}
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
