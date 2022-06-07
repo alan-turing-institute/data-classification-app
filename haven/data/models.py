@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from simple_history.models import HistoricalRecords
 
@@ -74,6 +75,19 @@ class ClassificationQuestion(models.Model):
 
     def answer_no(self):
         return self.no_question or self.no_tier
+
+    def clean(self):
+        # Don't allow questions to link to questions from another question set
+        if self.yes_question:
+            if self.question_set != self.yes_question.question_set:
+                raise ValidationError({
+                    "yes_question":"Yes question cannot be from another question set"
+                    })
+        if self.no_question:
+            if self.question_set != self.no_question.question_set:
+                raise ValidationError({
+                    "no_question":"No question cannot be from another question set"
+                    })
 
 
 class ClassificationGuidance(models.Model):
