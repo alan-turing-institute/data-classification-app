@@ -1,3 +1,4 @@
+from os import link
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -77,17 +78,29 @@ class ClassificationQuestion(models.Model):
         return self.no_question or self.no_tier
 
     def clean(self):
-        # Don't allow questions to link to questions from another question set
-        if self.yes_question:
-            if self.question_set != self.yes_question.question_set:
+        """Don't allow questions to link to questions from another question set
+        and questions should have one of yes_question and yes_tier but not both,
+        likewise for no_question and no_tier"""
+        def check_one_not_both(question, tier, yes_no:str):
+            tier = False if tier == None else True
+            if bool(question) == tier:  # Effectively XNOR
+                msg = f"Questions must have a {yes_no} question or a {yes_no} tier, but not both."
                 raise ValidationError({
-                    "yes_question":"Yes question cannot be from another question set"
-                    })
-        if self.no_question:
-            if self.question_set != self.no_question.question_set:
+                    f"{yes_no}_question": msg,
+                    f"{yes_no}_tier": msg,
+                })
+
+        def check_no_foreign_question_sets(question_set, linked_question, yes_no:str):
+            if linked_question and question_set != linked_question.question_set:
+                msg = f"{yes_no.capitalize()} question cannot be from another question set"
                 raise ValidationError({
-                    "no_question":"No question cannot be from another question set"
-                    })
+                    f"{yes_no}_question": msg
+                })
+
+        check_one_not_both(self.yes_question, self.yes_tier, "yes")
+        check_one_not_both(self.no_question, self.no_tier, "no")
+        check_no_foreign_question_sets(self.question_set, self.yes_question, "yes")
+        check_no_foreign_question_sets(self.question_set, self.no_question, "no")
 
 
 class ClassificationGuidance(models.Model):
