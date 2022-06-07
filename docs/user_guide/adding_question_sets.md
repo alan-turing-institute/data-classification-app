@@ -11,6 +11,7 @@ Create a new classification question set container:
 Add questions to the question set. 
 
 **Note** questions should be added in reverse order as their yes and no question fields need to reference existing questions. 
+**Note** yes questions and no questions must be from the same question set as the question being added.
 
 To add a new question:
 1. From the data section of the left hand menu, select the Add button next to classification question
