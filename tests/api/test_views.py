@@ -187,9 +187,6 @@ class TestDatasetListAPIView:
                     == dataset.default_representative.email
                 )
 
-                assert dataset.host == matching_dataset["host"]
-                assert dataset.storage_path == matching_dataset["storage_path"]
-
         # Assert datasets in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
             for dataset in work_package.datasets.all():
@@ -408,9 +405,6 @@ class TestDatasetListAPIView:
                     == dataset.default_representative.email
                 )
 
-                assert dataset.host == matching_dataset["host"]
-                assert dataset.storage_path == matching_dataset["storage_path"]
-
     def test_programme_manager_dataset_list(
         self,
         programme_manager,
@@ -463,9 +457,6 @@ class TestDatasetListAPIView:
                     matching_dataset["default_representative_email"]
                     == dataset.default_representative.email
                 )
-
-                assert dataset.host == matching_dataset["host"]
-                assert dataset.storage_path == matching_dataset["storage_path"]
 
     def test_limited_by_maximum_tier(
         self,
@@ -528,9 +519,6 @@ class TestDatasetListAPIView:
                     matching_dataset["default_representative_email"]
                     == dataset.default_representative.email
                 )
-
-                assert dataset.host == matching_dataset["host"]
-                assert dataset.storage_path == matching_dataset["storage_path"]
 
         # Assert datasets in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
@@ -596,9 +584,6 @@ class TestDatasetListAPIView:
             matching_dataset["default_representative_email"] == dataset.default_representative.email
         )
 
-        assert dataset.host == matching_dataset["host"]
-        assert dataset.storage_path == matching_dataset["storage_path"]
-
 
 @pytest.mark.django_db
 class TestDatasetDetailAPIView:
@@ -639,10 +624,6 @@ class TestDatasetDetailAPIView:
         assert expected_projects == set(result["projects"])
 
         assert result["default_representative_email"] == dataset.default_representative.email
-
-        # `host` and `storage_path` are returned as a part of dataset detail API
-        assert result["host"] == dataset.host
-        assert result["storage_path"] == dataset.storage_path
 
     def test_get_dataset_detail_not_accessible(
         self,

@@ -51,8 +51,6 @@ class DatasetSerializer(serializers.ModelSerializer):
             "work_packages",
             "default_representative",
             "default_representative_email",
-            "host",
-            "storage_path",
             "created_at",
             "created_by",
         ]
