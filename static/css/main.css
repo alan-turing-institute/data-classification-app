@@ -54,6 +54,17 @@ table.formset th.col-form-label {
   color: #ffffff;
 }
 
+.classify-btn-open {
+  border: #495057;
+  color: #ffffff;
+  background-color: #7e65ad;
+  padding: 8px 15px;
+}
+.classify-btn-open:hover {
+  background-color: #502d91;
+  color: #ffffff;
+}
+
 .save-btn {
   border: #495057;
   color: #ffffff;

@@ -379,7 +379,7 @@ class WorkPackageClassifyCloseForm(forms.Form):
 
 
 class WorkPackageClassifyOpenForm(forms.Form):
-    helper = SaveCancelFormHelper("Open Classification", "btn-danger")
+    helper = SaveCancelFormHelper("Open Classification", "classify-btn-open")
     helper.form_method = "POST"
 
 
