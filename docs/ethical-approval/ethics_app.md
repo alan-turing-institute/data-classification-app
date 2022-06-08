@@ -21,7 +21,9 @@ Tools, Practices & Systems
 - how this research project aligns with the Turing's goals, challenges, and/or objectives*
 
 ---
-**Answer here**
+The purpose of the Turing’s information governance app is to bring stakeholders with diverse perspectives on data protection – investigators, data protection experts, and other researchers – to assess datasets and arrive at a sensitivity classification for the data and the technical recommendations for the protections needed. This project is looking to make the app implementable at other institutions and organisations as an open source tool.
+
+This project is building towards an open-source version of the Turing Information Governance app that can be deployed by other research organisations to support their data management and trustworthy research environment infrastructure. We're preparing this release through a combination of technical work, user testing, and a deep understanding of the existing information governance processes and needs at different institutions. It also aims to provide a record of decision-making around information governance and data protection to comply with audit requirements. In the first phase, funded by Turing 2.0, the project team are seeking to set up the potential deployment of the app across the Turing, UCL, and Cambridge.
 
 ---
 
@@ -79,7 +81,7 @@ We will not be carrying out novel analysis as part of the work, and all controls
 For avoidance of any doubt, in these cases, we will request confirmation from each data provider that they are content with consideration of data and metadata for evaluation of future information governance approaches, and, if not, we will for that domain, consider only generic 'typical data in the field' rather than evaluating the particular dataset.
 
 We will collect data from a range of users about app functionality and design. 
-This will involve recording the personal data required to link feedback to individuals for further follow up, but we will acquire explicit consent for this and keep the personal information collected to the minimum required (name and email address). 
+This will involve recording the personal data required to link feedback to individuals for further follow up, but we will acquire explicit consent for this and keep the personal information collected to the minimum required (name and email address). The consent form we share with users providing details on what data we gather and how we use it is attached.
 We will complete the Turing's data protection assessment process for this data.
 
 
@@ -93,7 +95,7 @@ Questions to consider:
 **Answer:** This is a research project about how, in general, best to provide this kind of security. 
 However, we will not, within this project, be using real data in manners that might result in any additional exposure risk over current practices.
 
-The web app (see Q2 on extent of data) will be used during the interviews and will be hosted by each participating institution (Turing, UCL, Cambridge) on their secure, managed and supported computing infrastructure. The notes from each interview will the gathered using HackMD (collaborative online note taking app) and transferred to the project's private GitHub wiki once the final edits have been made.
+The web app (see Q2 on extent of data) will be used during the interviews and will be hosted by each participating institution (Turing, UCL, Cambridge) on their secure, managed and supported computing infrastructure. With user consent, video recordings will be taken of the sessions to facilitate retrospective note-taking, and will be deleted once notes have been assembled. The notes from each interview will the gathered using HackMD (collaborative online note taking app) and transferred to the project's private GitHub wiki once the final edits have been made.
 
 ### Other Harms: 5. Please comment on the potential for individual, societal or ecological harms to arise from your research, beyond what is described above.
 *Where you identify risks, you should inform us how your research plans to minimise or eliminate them.*
