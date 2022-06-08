@@ -143,9 +143,10 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["name", "description", "programmes"]
+        fields = ["name", "description", "question_set", "programmes"]
         labels = {
             "programmes": "Programmes",
+            "question_set": "Data classification question set",
         }
         help_texts = {
             "programmes": "",
@@ -157,6 +158,7 @@ class ProjectForm(SaveCreatorMixin, forms.ModelForm):
         self.fields["programmes"].widget.url = reverse(
             "projects:autocomplete_programme"
         )
+        self.fields["question_set"].required = False
 
 
 class ProjectAddDatasetForm(SaveCreatorMixin, forms.ModelForm):

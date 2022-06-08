@@ -9,7 +9,7 @@ from easyaudit.models import CRUDEvent
 from taggit.managers import TaggableManager
 
 from haven.core.utils import BooleanTextTable
-from haven.data.models import ClassificationQuestion, Dataset
+from haven.data.models import ClassificationQuestion, ClassificationQuestionSet, Dataset
 from haven.data.tiers import TIER_CHOICES, Tier
 from haven.identity.models import User
 from haven.projects.managers import ProjectQuerySet, WorkPackageQuerySet
@@ -40,6 +40,13 @@ class CreatedByModel(models.Model):
 class Project(CreatedByModel):
     name = models.CharField(max_length=256, unique=True)
     description = models.TextField()
+
+    question_set = models.ForeignKey(
+        ClassificationQuestionSet,
+        on_delete=models.PROTECT,  # Don't allow question_set delete if used by project
+        related_name="projects",
+        default=ClassificationQuestionSet.get_default_id
+    )
 
     datasets = models.ManyToManyField(
         Dataset, related_name="projects", through="ProjectDataset", blank=True
