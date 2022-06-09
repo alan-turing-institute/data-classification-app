@@ -14,6 +14,11 @@ urlpatterns = [
         name="dataset_detail",
     ),
     path(
+        "datasets/<slug:uuid>/expiry",
+        views.DatasetExpiryAPIView.as_view(),
+        name="dataset_expiry",
+    ),
+    path(
         "datasets/<slug:uuid>/register",
         views.DatasetRegisterAPIView.as_view(),
         name="dataset_register",

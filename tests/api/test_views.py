@@ -4,7 +4,6 @@ from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from oauth2_provider.models import Application
@@ -146,14 +145,9 @@ class TestDatasetListAPIView:
                     matching_dataset["default_representative_email"]
                     == dataset.default_representative.email
                 )
-                assert matching_dataset["authorization_url"] == (
-                    f"{settings.SITE_URL}"
-                    f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
-                )
 
-                # Host and storage path should not be returned in dataset list view
-                assert "host" not in matching_dataset
-                assert "storage_path" not in matching_dataset
+                assert dataset.host == matching_dataset["host"]
+                assert dataset.storage_path == matching_dataset["storage_path"]
 
         # Assert datasets in `unaccessible_work_packages` are not in results
         for work_package in unaccessible_work_packages:
@@ -360,88 +354,10 @@ class TestDatasetDetailAPIView:
         assert expected_projects == set(result["projects"])
 
         assert result["default_representative_email"] == dataset.default_representative.email
-        assert result["authorization_url"] == (
-            f"{settings.SITE_URL}" f"{reverse('api:dataset_detail', kwargs={'uuid': dataset.uuid})}"
-        )
 
         # `host` and `storage_path` are returned as a part of dataset detail API
         assert result["host"] == dataset.host
         assert result["storage_path"] == dataset.storage_path
-
-    # Freeze time to make testing datetimes deterministic
-    @pytest.mark.freeze_time("2022-01-01")
-    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4, 5])
-    def test_expires_at(
-        self,
-        work_package_tier,
-        project_participant,
-        as_project_participant_api,
-        make_accessible_work_package,
-    ):
-        """
-        Test that dataset detail API returns the correct `expires_at` datetime for work package tier
-        """
-        work_package = make_accessible_work_package(project_participant)
-        work_package.tier = work_package_tier
-        work_package.save()
-
-        dataset = work_package.datasets.last()
-
-        response = as_project_participant_api.get(
-            reverse("api:dataset_detail", kwargs={"uuid": dataset.uuid})
-        )
-
-        assert response.status_code == 200
-
-        result = json.loads(response.content.decode())
-
-        assert result["expires_at"] == str(
-            timezone.now()
-            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[work_package_tier])
-        )
-
-    # Freeze time to make testing datetimes deterministic
-    @pytest.mark.freeze_time("2022-01-01")
-    def test_expires_at_uses_maximum_tier(
-        self,
-        project_participant,
-        as_project_participant_api,
-        make_accessible_work_package,
-        programme_manager,
-        data_provider_representative,
-    ):
-        """
-        Test that if dataset has multiple classified work packages associated with it that the
-        `expires_at` datetime uses the highest work package tier
-        """
-        work_package = make_accessible_work_package(project_participant)
-        work_package.tier = 0
-        work_package.save()
-        dataset = work_package.datasets.last()
-
-        # Associate dataset with 5 further classified work packages
-        for work_package_tier in range(1, 6):
-            work_package = make_accessible_work_package(project_participant)
-            work_package.tier = work_package_tier
-            work_package.save()
-            work_package.project.add_dataset(
-                dataset, data_provider_representative.user, programme_manager
-            )
-            work_package.add_dataset(dataset, programme_manager)
-
-        response = as_project_participant_api.get(
-            reverse("api:dataset_detail", kwargs={"uuid": dataset.uuid})
-        )
-
-        assert response.status_code == 200
-
-        result = json.loads(response.content.decode())
-
-        assert result["expires_at"] == str(
-            timezone.now()
-            # Assert that the highest tier is used, in this case zero
-            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[5])
-        )
 
     def test_get_dataset_detail_not_accessible(
         self,
@@ -568,6 +484,86 @@ class TestDatasetDetailAPIView:
 
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(dataset.uuid)
+
+
+@pytest.mark.django_db
+class TestDatasetExpiryAPIView:
+    # Freeze time to make testing datetimes deterministic
+    @pytest.mark.freeze_time("2022-01-01")
+    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4, 5])
+    def test_expires_at(
+        self,
+        work_package_tier,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+    ):
+        """
+        Test that dataset expiry API returns the correct `expires_at` datetime for work package tier
+        """
+        work_package = make_accessible_work_package(project_participant)
+        work_package.tier = work_package_tier
+        work_package.save()
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_expiry", kwargs={"uuid": str(dataset.uuid)})
+        )
+
+        assert response.status_code == 200
+
+        result = json.loads(response.content.decode())
+
+        assert result["uuid"] == str(dataset.uuid)
+        assert result["expires_at"] == str(
+            timezone.now()
+            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[work_package_tier])
+        )
+
+    # Freeze time to make testing datetimes deterministic
+    @pytest.mark.freeze_time("2022-01-01")
+    def test_expires_at_uses_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        programme_manager,
+        data_provider_representative,
+    ):
+        """
+        Test that if dataset has multiple classified work packages associated with it that the
+        `expires_at` datetime uses the highest work package tier
+        """
+        work_package = make_accessible_work_package(project_participant)
+        work_package.tier = 0
+        work_package.save()
+        dataset = work_package.datasets.last()
+
+        # Associate dataset with 5 further classified work packages
+        for work_package_tier in range(1, 6):
+            work_package = make_accessible_work_package(project_participant)
+            work_package.tier = work_package_tier
+            work_package.save()
+            work_package.project.add_dataset(
+                dataset, data_provider_representative.user, programme_manager
+            )
+            work_package.add_dataset(dataset, programme_manager)
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_expiry", kwargs={"uuid": str(dataset.uuid)})
+        )
+
+        assert response.status_code == 200
+
+        result = json.loads(response.content.decode())
+
+        assert result["uuid"] == str(dataset.uuid)
+        assert result["expires_at"] == str(
+            timezone.now()
+            # Assert that the highest tier is used, in this case zero
+            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[5])
+        )
 
 
 @pytest.mark.django_db
