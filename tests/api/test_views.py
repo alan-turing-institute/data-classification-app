@@ -853,7 +853,7 @@ class TestDatasetExpiryAPIView:
         assert result["uuid"] == str(dataset.uuid)
         assert result["expires_at"] == str(
             timezone.now()
-            # Assert that the highest tier is used, in this case zero
+            # Assert that the highest tier is used, in this case four
             + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[4])
         )
 
