@@ -275,7 +275,3 @@ TIER_4_EXPIRY_SECONDS = env.int(
     "TIER_4_EXPIRY_SECONDS",
     default=24 * 60 * 60,  # 1 day
 )
-TIER_5_EXPIRY_SECONDS = env.int(
-    "TIER_5_EXPIRY_SECONDS",
-    default=60 * 60,  # 1 hour
-)
