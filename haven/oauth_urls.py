@@ -19,6 +19,8 @@ def can_access_oauth_application_views(user):
 
 management_urlpatterns = [
     # Application management views
+    # Applying permissions checks here with user_passes_test decorator to avoid having to 
+    # inherit from multiple 3rd party classes
     re_path(
         r"^applications/$",
         user_passes_test(can_access_oauth_application_views)(views.ApplicationList.as_view()),
