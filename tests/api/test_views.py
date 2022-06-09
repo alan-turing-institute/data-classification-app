@@ -947,9 +947,9 @@ class TestProjectListAPIView:
         projects = [recipes.project.make(created_by=system_manager) for _ in range(3)]
         for project in projects:
             project.add_user(
-                user=system_manager,
+                user=programme_manager,
                 role=ProjectRole.RESEARCHER.value,
-                created_by=programme_manager,
+                created_by=system_manager,
             )
 
         # Create more projects that are not associated with api user, these projects will still show
