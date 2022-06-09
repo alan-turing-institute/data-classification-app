@@ -314,6 +314,118 @@ class TestDatasetListAPIView:
             for dataset in work_package.datasets.all():
                 assert str(dataset.uuid) not in uuid_results
 
+    def test_system_manager_dataset_list(
+        self,
+        system_manager,
+        as_system_manager_api,
+        classified_work_package,
+        make_accessible_work_package,
+    ):
+        """
+        Test a system manager can request dataset list api to see all datasets, regardless of
+        whether they are participants of the project/work package.
+        """
+        work_packages = [make_accessible_work_package(system_manager) for _ in range(3)]
+
+        # Create more work packages that are not associated with api user, the associated datasets
+        # should still be returned for system managers
+        other_work_packages = [classified_work_package(0) for _ in range(3)]
+
+        response = as_system_manager_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(work_packages) + len(other_work_packages)
+
+        uuid_results = [dataset["uuid"] for dataset in results]
+
+        # Assert all datasets in` are in results
+        for work_package in work_packages + other_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) in uuid_results
+
+                matching_dataset = list(
+                    filter(lambda x: x.get("uuid", None) == str(dataset.uuid), results)
+                )[0]
+
+                # Assert that the related accessible work packages are returned as a part of
+                # serialization
+                expected_work_packages = set(
+                    str(uuid) for uuid in dataset.work_packages.all().values_list("uuid", flat=True)
+                )
+                assert expected_work_packages == set(matching_dataset["work_packages"])
+                # Assert that the related projects are returned as a part of serialization
+                expected_projects = set(
+                    str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+                )
+                assert expected_projects == set(matching_dataset["projects"])
+
+                assert (
+                    matching_dataset["default_representative_email"]
+                    == dataset.default_representative.email
+                )
+
+                assert dataset.host == matching_dataset["host"]
+                assert dataset.storage_path == matching_dataset["storage_path"]
+
+    def test_programme_manager_dataset_list(
+        self,
+        programme_manager,
+        as_programme_manager_api,
+        classified_work_package,
+        make_accessible_work_package,
+    ):
+        """
+        Test a programme manager can request dataset list api to see all datasets, regardless of
+        whether they are participants of the project/work package.
+        """
+        work_packages = [make_accessible_work_package(programme_manager) for _ in range(3)]
+
+        # Create more work packages that are not associated with api user, the associated datasets
+        # should still be returned for programme managers
+        other_work_packages = [classified_work_package(0) for _ in range(3)]
+
+        response = as_programme_manager_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(work_packages) + len(other_work_packages)
+
+        uuid_results = [dataset["uuid"] for dataset in results]
+
+        # Assert all datasets in` are in results
+        for work_package in work_packages + other_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) in uuid_results
+
+                matching_dataset = list(
+                    filter(lambda x: x.get("uuid", None) == str(dataset.uuid), results)
+                )[0]
+
+                # Assert that the related accessible work packages are returned as a part of
+                # serialization
+                expected_work_packages = set(
+                    str(uuid) for uuid in dataset.work_packages.all().values_list("uuid", flat=True)
+                )
+                assert expected_work_packages == set(matching_dataset["work_packages"])
+                # Assert that the related projects are returned as a part of serialization
+                expected_projects = set(
+                    str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+                )
+                assert expected_projects == set(matching_dataset["projects"])
+
+                assert (
+                    matching_dataset["default_representative_email"]
+                    == dataset.default_representative.email
+                )
+
+                assert dataset.host == matching_dataset["host"]
+                assert dataset.storage_path == matching_dataset["storage_path"]
+
 
 @pytest.mark.django_db
 class TestDatasetDetailAPIView:
@@ -682,7 +794,6 @@ class TestProjectListAPIView:
         programme_manager,
         project_participant,
         as_project_participant_api,
-        project,
     ):
         """
         Test that an API user can request project list api to see which projects they have to.
@@ -768,6 +879,112 @@ class TestProjectListAPIView:
         # By default DRFClient has no access token applied
         response = DRFClient.get(reverse("api:project_list"))
         assert response.status_code == 401
+
+    def test_system_manager_project_list(
+        self,
+        programme_manager,
+        system_manager,
+        as_system_manager_api,
+    ):
+        """
+        Test that system manager can request project list api and see all projects, regardless of
+        whether they are a participant
+        """
+        # Create projects and add api user
+        projects = [recipes.project.make(created_by=programme_manager) for _ in range(3)]
+        for project in projects:
+            project.add_user(
+                user=system_manager,
+                role=ProjectRole.RESEARCHER.value,
+                created_by=programme_manager,
+            )
+
+        # Create more projects that are not associated with api user, these projects will still show
+        # up in project list view for system manager
+        other_projects = [recipes.project.make(created_by=programme_manager) for _ in range(3)]
+
+        response = as_system_manager_api.get(reverse("api:project_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(projects) + len(other_projects)
+
+        uuid_results = [project["uuid"] for project in results]
+
+        # Assert all projects are in results for system manager
+        for project in projects + other_projects:
+            assert str(project.uuid) in uuid_results
+
+            matching_project = list(
+                filter(lambda x: x.get("uuid", None) == str(project.uuid), results)
+            )[0]
+
+            # Assert that the related accessible work packages are returned as a part of
+            # serialization
+            expected_work_packages = set(
+                str(uuid) for uuid in project.work_packages.all().values_list("uuid", flat=True)
+            )
+            assert expected_work_packages == set(matching_project["work_packages"])
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in project.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_project["datasets"])
+
+    def test_programme_manager_project_list(
+        self,
+        programme_manager,
+        system_manager,
+        as_programme_manager_api,
+    ):
+        """
+        Test that programme manager can request project list api and see all projects, regardless of
+        whether they are a participant
+        """
+        # Create projects and add api user
+        projects = [recipes.project.make(created_by=system_manager) for _ in range(3)]
+        for project in projects:
+            project.add_user(
+                user=programme_manager,
+                role=ProjectRole.RESEARCHER.value,
+                created_by=system_manager,
+            )
+
+        # Create more projects that are not associated with api user, these projects will still show
+        # up in project list view for programme manager
+        other_projects = [recipes.project.make(created_by=system_manager) for _ in range(3)]
+
+        response = as_programme_manager_api.get(reverse("api:project_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(projects) + len(other_projects)
+
+        uuid_results = [project["uuid"] for project in results]
+
+        # Assert all projects are in results for programme manager
+        for project in projects + other_projects:
+            assert str(project.uuid) in uuid_results
+
+            matching_project = list(
+                filter(lambda x: x.get("uuid", None) == str(project.uuid), results)
+            )[0]
+
+            # Assert that the related accessible work packages are returned as a part of
+            # serialization
+            expected_work_packages = set(
+                str(uuid) for uuid in project.work_packages.all().values_list("uuid", flat=True)
+            )
+            assert expected_work_packages == set(matching_project["work_packages"])
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in project.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_project["datasets"])
 
 
 @pytest.mark.django_db
@@ -977,6 +1194,94 @@ class TestWorkPackageListAPIView:
         for work_package in unaccessible_work_packages:
             assert str(work_package.uuid) not in uuid_results
 
+    def test_system_manager_package_list(
+        self,
+        system_manager,
+        as_system_manager_api,
+        classified_work_package,
+        make_accessible_work_package,
+    ):
+        """
+        Test that a system manager can request work package list api to view all work packages,
+        regardless of whether the user is a participant of a work package or if the work package is
+        classified
+        """
+        work_packages = [make_accessible_work_package(system_manager) for _ in range(3)]
+
+        # Create more work packages that are not associated with api user, these work packages
+        # should still show up in work package list view for system manager
+        other_work_packages = [classified_work_package(0) for _ in range(3)]
+
+        response = as_system_manager_api.get(reverse("api:work_package_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(work_packages) + len(other_work_packages)
+
+        uuid_results = [work_package["uuid"] for work_package in results]
+
+        # Assert all work packages are in results for system manager
+        for work_package in work_packages + other_work_packages:
+            assert str(work_package.uuid) in uuid_results
+
+            matching_work_package = list(
+                filter(lambda x: x.get("uuid", None) == str(work_package.uuid), results)
+            )[0]
+
+            # Assert that the related accessible project is returned as a part of serialization
+            assert str(work_package.project.uuid) == matching_work_package["project"]
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in work_package.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_work_package["datasets"])
+
+    def test_programme_manager_package_list(
+        self,
+        programme_manager,
+        as_programme_manager_api,
+        classified_work_package,
+        make_accessible_work_package,
+    ):
+        """
+        Test that a programme manager can request work package list api to view all work packages,
+        regardless of whether the user is a participant of a work package or if the work package is
+        classified
+        """
+        work_packages = [make_accessible_work_package(programme_manager) for _ in range(3)]
+
+        # Create more work packages that are not associated with api user, these work packages
+        # should still show up in work package list view for programme manager
+        other_work_packages = [classified_work_package(0) for _ in range(3)]
+
+        response = as_programme_manager_api.get(reverse("api:work_package_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == len(work_packages) + len(other_work_packages)
+
+        uuid_results = [work_package["uuid"] for work_package in results]
+
+        # Assert all work packages are in results for programme manager
+        for work_package in work_packages + other_work_packages:
+            assert str(work_package.uuid) in uuid_results
+
+            matching_work_package = list(
+                filter(lambda x: x.get("uuid", None) == str(work_package.uuid), results)
+            )[0]
+
+            # Assert that the related accessible project is returned as a part of serialization
+            assert str(work_package.project.uuid) == matching_work_package["project"]
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in work_package.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_work_package["datasets"])
+
 
 @pytest.mark.django_db
 class TestWorkPackageDetailAPIView:
@@ -1071,3 +1376,97 @@ class TestWorkPackageDetailAPIView:
 
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(work_package.uuid)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "url_name,url_pk",
+    [
+        ("list", False),
+        ("register", False),
+        ("detail", True),
+        ("delete", True),
+        ("update", True),
+    ],
+)
+class TestOAuthApplicationViews:
+    def test_standard_user(
+        self, url_name, url_pk, standard_user, as_standard_user, oauth_application
+    ):
+        """
+        Test that standard user, who is not a superuser and does not have the correct role, is
+        redirected from application views
+        """
+        oauth_application.user = standard_user
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_standard_user.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 302
+
+    def test_superuser(self, url_name, url_pk, standard_user, as_standard_user, oauth_application):
+        """Test that superuser can access application views"""
+        standard_user.is_superuser = True
+        standard_user.save()
+
+        oauth_application.user = standard_user
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_standard_user.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 200
+
+    def test_system_manager(
+        self, url_name, url_pk, system_manager, as_system_manager, oauth_application
+    ):
+        """Test that system manager can access application views"""
+        oauth_application.user = system_manager
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_system_manager.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 200
+
+    def test_programme_manager(
+        self,
+        url_name,
+        url_pk,
+        programme_manager,
+        as_programme_manager,
+        oauth_application,
+    ):
+        """Test that system manager can access application views"""
+        oauth_application.user = programme_manager
+        oauth_application.save()
+
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = as_programme_manager.get(
+            reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs)
+        )
+
+        assert response.status_code == 200
+
+    def test_unauthenticated(self, url_name, url_pk, client, oauth_application):
+        """Test that anonymous user is redirected from application views"""
+        url_kwargs = {}
+        if url_pk:
+            url_kwargs = {"pk": oauth_application.pk}
+
+        response = client.get(reverse(f"oauth2_provider:{url_name}", kwargs=url_kwargs))
+
+        assert response.status_code == 302

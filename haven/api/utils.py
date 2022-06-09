@@ -31,6 +31,11 @@ def safe_filter_and_deduplicate(model_class, filters):
 
 def get_accessible_datasets(user, extra_filters={}):
     """Function to return queryset of datasets which are accessible to a given user"""
+    # Users with certain roles can view all API data regardless of whether they are associated with
+    # it or whether the work package is classified
+    if user.system_permissions.can_view_all_api_data:
+        return safe_filter_and_deduplicate(Dataset, extra_filters)
+
     return safe_filter_and_deduplicate(
         Dataset,
         {
@@ -48,6 +53,11 @@ def get_accessible_datasets(user, extra_filters={}):
 
 def get_accessible_projects(user, extra_filters={}):
     """Function to return queryset of projects which are accessible to a given user"""
+    # Users with certain roles can view all API data regardless of whether they are associated with
+    # it
+    if user.system_permissions.can_view_all_api_data:
+        return safe_filter_and_deduplicate(Project, extra_filters)
+
     return safe_filter_and_deduplicate(
         Project,
         {
@@ -61,6 +71,11 @@ def get_accessible_projects(user, extra_filters={}):
 
 def get_accessible_work_packages(user, extra_filters={}):
     """Function to return queryset of projects which are accessible to a given user"""
+    # Users with certain roles can view all API data regardless of whether they are associated with
+    # it or whether the work package is classified
+    if user.system_permissions.can_view_all_api_data:
+        return safe_filter_and_deduplicate(WorkPackage, extra_filters)
+
     return safe_filter_and_deduplicate(
         WorkPackage,
         {

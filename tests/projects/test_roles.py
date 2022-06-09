@@ -10,6 +10,8 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -45,6 +47,8 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -80,6 +84,8 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -115,6 +121,8 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -150,6 +158,8 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
+        assert not perms.can_view_all_api_data
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert perms.can_view_all_users
@@ -185,6 +195,8 @@ class TestUserPermissions:
         perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
+        assert perms.can_manage_applications
+        assert perms.can_view_all_api_data
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users
@@ -220,6 +232,8 @@ class TestUserPermissions:
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
+        assert perms.can_manage_applications
+        assert perms.can_view_all_api_data
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users
@@ -261,9 +275,7 @@ class TestProjectRoleAssignableRoles:
     def test_programme_manager_can_assign_any_roles(self):
         # Use RESEARCHER because we are verifying that system-wide PROGRAMME_MANAGER overrides
         # researchers with lower permissions
-        permissions = UserPermissions(
-            ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER
-        )
+        permissions = UserPermissions(ProjectRole.RESEARCHER, UserRole.PROGRAMME_MANAGER)
         assert permissions.can_assign_role(ProjectRole.PROJECT_MANAGER)
         assert permissions.can_assign_role(ProjectRole.INVESTIGATOR)
         assert permissions.can_assign_role(ProjectRole.RESEARCHER)
@@ -306,15 +318,11 @@ class TestIsValidAssignableParticipantRole:
         assert ProjectRole.is_valid_assignable_participant_role("project_manager")
         assert ProjectRole.is_valid_assignable_participant_role("investigator")
         assert ProjectRole.is_valid_assignable_participant_role("researcher")
-        assert ProjectRole.is_valid_assignable_participant_role(
-            "data_provider_representative"
-        )
+        assert ProjectRole.is_valid_assignable_participant_role("data_provider_representative")
 
     def test_labels_are_not_valid_roles(self):
         assert not ProjectRole.is_valid_assignable_participant_role("Project Manager")
-        assert not ProjectRole.is_valid_assignable_participant_role(
-            "Data Provider Representative"
-        )
+        assert not ProjectRole.is_valid_assignable_participant_role("Data Provider Representative")
 
     def test_invalid_roles(self):
         assert not ProjectRole.is_valid_assignable_participant_role("")
@@ -325,18 +333,12 @@ class TestIsValidAssignableParticipantRole:
 
 @pytest.mark.django_db
 class TestProjectPermissions:
-    def test_user_gets_permissions_on_correct_project(
-        self, programme_manager, project_participant
-    ):
+    def test_user_gets_permissions_on_correct_project(self, programme_manager, project_participant):
         project1 = recipes.project.make(created_by=programme_manager)
         project2 = recipes.project.make(created_by=programme_manager)
 
-        project1.add_user(
-            project_participant, ProjectRole.PROJECT_MANAGER.value, programme_manager
-        )
-        project2.add_user(
-            project_participant, ProjectRole.RESEARCHER.value, programme_manager
-        )
+        project1.add_user(project_participant, ProjectRole.PROJECT_MANAGER.value, programme_manager)
+        project2.add_user(project_participant, ProjectRole.RESEARCHER.value, programme_manager)
 
         permissions = project_participant.project_permissions(project1)
         assert permissions.can_edit_project
