@@ -56,6 +56,7 @@ Any actions that need to be taken moving forward should be discussed highlighted
 ## Template
 
 ### 1. Read through the introductory guide
+User score: X/10
 
 1. Read through the guide
     * **Understand?**: 
@@ -84,6 +85,7 @@ General thoughts:
       * .
 
 ### 2. Select a project at random from the list of pre-defined dummy projects
+User score: X/10
 
 1. Click 'View My Projects'
     * **Understand?**: 
@@ -131,6 +133,7 @@ General thoughts:
       * .
 
 ### 3. Assign a new (dummy) dataset to a project (tester to create metadata, encouraged to make it similar to the real-life data they are currently working on)
+User score: X/10
 
 1. Click 'Add Dataset'
     * **Understand?**: 
@@ -151,7 +154,7 @@ General thoughts:
             * **Urgency**:
             * **Difficulty**:
             
-2. Give the dataset a name, description, add a Dataset Provider and assign to 'Ingress' work package
+2. Give the dataset a name, description, add a Dataset Provider and assign to a work package
     * **Understand?**: 
     * **Complete?**: 
     * **Resolve?**: 
@@ -178,6 +181,7 @@ General thoughts:
       * .
 
 ### 4. Assign random selection of users from pre-defined list of users to other roles in chosen project
+User score: X/10
 
 1. Click 'Add Participant'
     * **Understand?**: 
@@ -198,7 +202,7 @@ General thoughts:
             * **Urgency**:
             * **Difficulty**:
             
-2. Add user, role (referee or project manager), and assign to 'Ingress' work package
+2. Add user, role (referee or project manager), and assign to relevant work package
     * **Understand?**: 
     * **Complete?**: 
     * **Resolve?**: 
@@ -217,7 +221,7 @@ General thoughts:
             * **Urgency**:
             * **Difficulty**:
             
-3. Repeat for other role
+3. Repeat for other role(s)
     * **Understand?**: 
     * **Complete?**: 
     * **Resolve?**: 
@@ -243,9 +247,10 @@ General thoughts:
       * .
       * .
 
-### 5. Run through classification of “Ingress” work package
+### 5. Run through classification of relevant work package
+User score: X/10
 
-1. Click on 'Ingress'
+1. Click on work package
     * **Understand?**: 
     * **Complete?**: 
     * **Resolve?**: 
