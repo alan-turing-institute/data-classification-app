@@ -45,13 +45,15 @@ For example:
       * 'Makes a lot of intuitive sense, but feel like you should only be able to see one project at a time.'
 ```
 
-Any actions that need to be taken moving forward should be discussed highlighted below with the relevant category, for instance from the above we might add:
+Any actions that need to be taken moving forward should be discussed highlighted below alongside its 'Urgency' (how much of a priority is the action - (Low, Medium, High)) and its 'Difficulty' (how hard is the action to implement - (Low, Medium, High)),. For instance, from the above we might add:
 
 ```
 * **Action**: Clarify that any project can be chosen by the user in instructions
 * **Urgency**: Medium
 * **Difficulty** Low
 ```
+
+Add as many actions as required to represent everything actionable that arose in the interview.
 
 ## Template
 
