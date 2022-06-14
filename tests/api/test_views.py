@@ -129,6 +129,8 @@ class TestOAuthFlow:
 
 @pytest.mark.django_db
 class TestDatasetListAPIView:
+    # Freeze time to make testing datetimes deterministic
+    @pytest.mark.freeze_time("2022-01-01")
     def test_get_dataset_list(
         self,
         project_participant,
@@ -149,7 +151,8 @@ class TestDatasetListAPIView:
 
         # Create more work packages that are not associated with api user, and associated datasets
         # should not show up in dataset list view
-        unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
+        work_package_tier = 0
+        unaccessible_work_packages = [classified_work_package(work_package_tier) for _ in range(3)]
 
         response = as_project_participant_api.get(reverse("api:dataset_list"))
 
@@ -185,6 +188,10 @@ class TestDatasetListAPIView:
                 assert (
                     matching_dataset["default_representative_email"]
                     == dataset.default_representative.email
+                )
+                assert matching_dataset["expires_at"] == str(
+                    timezone.now()
+                    + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[work_package_tier])
                 )
 
         # Assert datasets in `unaccessible_work_packages` are not in results
