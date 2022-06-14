@@ -24,6 +24,7 @@ class DatasetSerializer(serializers.ModelSerializer):
     default_representative = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     default_representative_email = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    expires_at = serializers.SerializerMethodField()
 
     def get_work_packages(self, dataset):
         """Function to get accessible work packages that this dataset is associated with"""
@@ -41,26 +42,6 @@ class DatasetSerializer(serializers.ModelSerializer):
         """Function to get the dataset's default representative's email"""
         return dataset.default_representative.email if dataset.default_representative else ""
 
-    class Meta:
-        model = Dataset
-        fields = [
-            "name",
-            "uuid",
-            "description",
-            "projects",
-            "work_packages",
-            "default_representative",
-            "default_representative_email",
-            "created_at",
-            "created_by",
-        ]
-
-
-class DatasetExpirySerializer(DatasetSerializer):
-    """Serializer for returning the expiry of a dataset for the requesting user"""
-
-    expires_at = serializers.SerializerMethodField()
-
     def get_expires_at(self, dataset):
         """Function to get the datetime that dataset access expires for the requesting user"""
         work_packages = get_accessible_work_packages(
@@ -72,6 +53,25 @@ class DatasetExpirySerializer(DatasetSerializer):
         max_tier = max(list(work_packages.values_list("tier", flat=True)))
         expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[max_tier]
         return str(timezone.now() + timedelta(seconds=expiry_seconds))
+
+    class Meta:
+        model = Dataset
+        fields = [
+            "name",
+            "uuid",
+            "description",
+            "projects",
+            "work_packages",
+            "default_representative",
+            "default_representative_email",
+            "expires_at",
+            "created_at",
+            "created_by",
+        ]
+
+
+class DatasetExpirySerializer(DatasetSerializer):
+    """Serializer for returning the expiry of a dataset for the requesting user"""
 
     class Meta:
         model = Dataset
