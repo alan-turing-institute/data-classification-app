@@ -377,22 +377,6 @@ def as_project_participant_api(DRFClient, project_participant, access_token):
     return DRFClient
 
 
-@pytest.fixture
-def as_system_manager_api(DRFClient, system_manager, access_token):
-    """Use this client to call DRF api views, logged in as system manager"""
-    access_token = access_token(system_manager)
-    DRFClient.credentials(HTTP_AUTHORIZATION="Bearer " + access_token.token)
-    return DRFClient
-
-
-@pytest.fixture
-def as_programme_manager_api(DRFClient, programme_manager, access_token):
-    """Use this client to call DRF api views, logged in as programme manager"""
-    access_token = access_token(programme_manager)
-    DRFClient.credentials(HTTP_AUTHORIZATION="Bearer " + access_token.token)
-    return DRFClient
-
-
 class MockPostRequest:
     """Mock request object with a `QueryDict` POST attribute"""
 

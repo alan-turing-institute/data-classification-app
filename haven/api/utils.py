@@ -49,12 +49,6 @@ def get_accessible_datasets(request, extra_filters={}):
     """Function to return queryset of datasets which are accessible to a given user"""
     max_tier_filter = get_maximum_tier_filter(request)
 
-    # Users with certain roles can view all API data regardless of whether they are associated with
-    # it or whether the work package is classified
-    if request.user.system_permissions.can_view_all_api_data:
-        # `max_tier_filter` and `extra_filters` still apply to user that can view all api data
-        return safe_filter_and_deduplicate(Dataset, {**max_tier_filter, **extra_filters})
-
     return safe_filter_and_deduplicate(
         Dataset,
         {
@@ -74,11 +68,6 @@ def get_accessible_datasets(request, extra_filters={}):
 
 def get_accessible_projects(request, extra_filters={}):
     """Function to return queryset of projects which are accessible to a given user"""
-    # Users with certain roles can view all API data regardless of whether they are associated with
-    # it
-    if request.user.system_permissions.can_view_all_api_data:
-        return safe_filter_and_deduplicate(Project, extra_filters)
-
     return safe_filter_and_deduplicate(
         Project,
         {
@@ -93,12 +82,6 @@ def get_accessible_projects(request, extra_filters={}):
 def get_accessible_work_packages(request, extra_filters={}):
     """Function to return queryset of projects which are accessible to a given user"""
     max_tier_filter = get_maximum_tier_filter(request, filter_key="tier__lte")
-
-    # Users with certain roles can view all API data regardless of whether they are associated with
-    # it or whether the work package is classified
-    if request.user.system_permissions.can_view_all_api_data:
-        # `max_tier_filter` and `extra_filters` still apply to user that can view all api data
-        return safe_filter_and_deduplicate(WorkPackage, {**max_tier_filter, **extra_filters})
 
     return safe_filter_and_deduplicate(
         WorkPackage,
