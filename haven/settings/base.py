@@ -234,7 +234,11 @@ DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
 
 OAUTH2_PROVIDER = {
-    "SCOPES": {"read": "Permission to read your projects, work packages and datasets"}
+    "SCOPES": {"read": "Permission to read your projects, work packages and datasets"},
+    # Just in case an asynchronous job refreshes the DAC apps refresh token and the DAC users token
+    # is no longer valid, this grace period will significantly reduce the changes of this race
+    # condition occurring
+    "REFRESH_TOKEN_GRACE_PERIOD_SECONDS": 120,
 }
 
 REST_FRAMEWORK = {
