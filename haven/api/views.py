@@ -5,7 +5,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from haven.api.forms import ApplicationCreateOrUpdateForm
-from haven.api.mixins import AllowedPatchFieldsMixin, ExtraFilterKwargsMixin
+from haven.api.mixins import ExtraFilterKwargsMixin
 from haven.api.serializers import (
     DatasetExpirySerializer,
     DatasetSerializer,
@@ -45,25 +45,6 @@ class DatasetDetailAPIView(ExtraFilterKwargsMixin, generics.RetrieveAPIView):
     def get_queryset(self):
         """Return all datasets accessible by requesting OAuth user"""
         return get_accessible_datasets(self.request, extra_filters=self.get_filter_kwargs())
-
-
-class DatasetRegisterAPIView(AllowedPatchFieldsMixin, generics.UpdateAPIView):
-    """
-    API view to register the location of a dataset that the requesting user has access to, this
-    allows the patching of an already existing dataset in the IG application
-    """
-
-    serializer_class = DatasetSerializer
-    required_scopes = ["write"]
-    permission_classes = [IsAuthenticated, TokenHasScope]
-    lookup_field = "uuid"
-    lookup_url_kwarg = "uuid"
-    # Fields which can be patched by this view
-    allowed_patch_fields = ["host", "storage_path"]
-
-    def get_queryset(self):
-        """Return all datasets accessible by requesting OAuth user"""
-        return get_accessible_datasets(self.request)
 
 
 class DatasetExpiryAPIView(generics.RetrieveAPIView):

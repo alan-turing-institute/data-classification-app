@@ -233,7 +233,9 @@ BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
 
-OAUTH2_PROVIDER = {"SCOPES": {"read": "Read scope", "write": "Write scope"}}
+OAUTH2_PROVIDER = {
+    "SCOPES": {"read": "Permission to read your projects, work packages and datasets"}
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -272,8 +274,4 @@ TIER_3_EXPIRY_SECONDS = env.int(
 TIER_4_EXPIRY_SECONDS = env.int(
     "TIER_4_EXPIRY_SECONDS",
     default=24 * 60 * 60,  # 1 day
-)
-TIER_5_EXPIRY_SECONDS = env.int(
-    "TIER_5_EXPIRY_SECONDS",
-    default=60 * 60,  # 1 hour
 )

@@ -17,11 +17,6 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
     uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
-    # The base url of where the dataset is hosted,
-    # this might be the url of a server running the DAC application but not always
-    host = models.CharField(max_length=1000, null=True, blank=True)
-    # The storage path for where the dataset is located on the host machine
-    storage_path = models.CharField(max_length=1000, null=True, blank=True)
 
     def __str__(self):
         return self.name
