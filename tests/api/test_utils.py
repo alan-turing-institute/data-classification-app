@@ -4,6 +4,7 @@ from haven.api.utils import (
     get_accessible_datasets,
     get_accessible_projects,
     get_accessible_work_packages,
+    get_maximum_tier_filter,
     safe_filter_and_deduplicate,
 )
 from haven.core import recipes
@@ -39,6 +40,7 @@ class TestGetAccessibleDatasets:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_datasets` returns the correct accessible datasets for a given
@@ -53,7 +55,9 @@ class TestGetAccessibleDatasets:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         # Assert datasets in `accessible_work_packages` are in returned datasets
         for work_package in accessible_work_packages:
@@ -70,6 +74,7 @@ class TestGetAccessibleDatasets:
         programme_manager,
         project_participant,
         unclassified_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that even though user is associated with project and work package, that dataset is not
@@ -86,7 +91,9 @@ class TestGetAccessibleDatasets:
             programme_manager,
         )
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         # No datasets returned because work package is not classified
         assert len(accessible_datasets) == 0
@@ -97,6 +104,7 @@ class TestGetAccessibleDatasets:
         data_provider_representative,
         investigator,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """Test that a dataset without a work package is not accessible"""
         work_package = make_accessible_work_package(project_participant)
@@ -108,7 +116,9 @@ class TestGetAccessibleDatasets:
             dataset, data_provider_representative.user, investigator.user
         )
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         assert accessible_datasets.count() == 1
 
@@ -122,6 +132,7 @@ class TestGetAccessibleDatasets:
         programme_manager,
         project_participant,
         classified_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that if user is not associated with classified work package that they cannot access the
@@ -136,7 +147,9 @@ class TestGetAccessibleDatasets:
                 created_by=programme_manager,
             )
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         assert accessible_datasets.count() == 0
 
@@ -144,6 +157,7 @@ class TestGetAccessibleDatasets:
         self,
         project_participant,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """Test that a dataset without a project is not accessible"""
         work_package = make_accessible_work_package(project_participant)
@@ -151,7 +165,9 @@ class TestGetAccessibleDatasets:
         # Is not associated with project
         dataset = recipes.dataset.make()
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         assert accessible_datasets.count() == 1
 
@@ -164,6 +180,7 @@ class TestGetAccessibleDatasets:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_datasets` returns the correct accessible datasets for a given
@@ -180,8 +197,10 @@ class TestGetAccessibleDatasets:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
+        mock_request = make_mock_request_with_oauth_application()
+
         accessible_datasets = get_accessible_datasets(
-            project_participant,
+            mock_request,
             extra_filters={"projects__uuid": accessible_work_package.project.uuid},
         )
 
@@ -203,6 +222,7 @@ class TestGetAccessibleDatasets:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_datasets` returns the correct accessible datasets for a given
@@ -218,8 +238,10 @@ class TestGetAccessibleDatasets:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
+        mock_request = make_mock_request_with_oauth_application()
+
         accessible_datasets = get_accessible_datasets(
-            project_participant,
+            mock_request,
             extra_filters={"work_packages__uuid": accessible_work_package.uuid},
         )
 
@@ -241,6 +263,7 @@ class TestGetAccessibleDatasets:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_datasets` returns the correct accessible datasets for a given
@@ -257,8 +280,10 @@ class TestGetAccessibleDatasets:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
+        mock_request = make_mock_request_with_oauth_application()
+
         accessible_datasets = get_accessible_datasets(
-            project_participant,
+            mock_request,
             extra_filters={
                 "projects__uuid": accessible_work_package.project.uuid,
                 "work_packages__uuid": accessible_work_package.uuid,
@@ -285,6 +310,7 @@ class TestGetAccessibleProjects:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_projects` returns the correct accessible projects for a given
@@ -299,7 +325,9 @@ class TestGetAccessibleProjects:
         # Create more projects that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
-        accessible_projects = get_accessible_projects(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_projects = get_accessible_projects(mock_request)
 
         # Assert projects in `accessible_work_packages` are in returned projects
         for work_package in accessible_work_packages:
@@ -314,6 +342,7 @@ class TestGetAccessibleProjects:
         programme_manager,
         project_participant,
         unclassified_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that if project is associated with unclassified work package, that project is still
@@ -330,7 +359,9 @@ class TestGetAccessibleProjects:
             programme_manager,
         )
 
-        accessible_projects = get_accessible_projects(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_projects = get_accessible_projects(mock_request)
 
         assert len(accessible_projects) == 1
         assert work_package.project in accessible_projects
@@ -339,6 +370,7 @@ class TestGetAccessibleProjects:
         self,
         project_participant,
         programme_manager,
+        make_mock_request_with_oauth_application,
     ):
         """Test that a project without a work package is still accessible"""
         # Is not associated with work package
@@ -349,7 +381,9 @@ class TestGetAccessibleProjects:
             created_by=programme_manager,
         )
 
-        accessible_projects = get_accessible_projects(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_projects = get_accessible_projects(mock_request)
 
         assert accessible_projects.count() == 1
 
@@ -358,13 +392,16 @@ class TestGetAccessibleProjects:
     def test_user_without_project(
         self,
         project_participant,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that if user is not a participant in project that they cannot access the project
         """
         recipes.project.make()
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         assert accessible_datasets.count() == 0
 
@@ -376,6 +413,7 @@ class TestGetAccessibleWorkPackages:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_work_packages` returns the correct accessible work packages
@@ -390,7 +428,9 @@ class TestGetAccessibleWorkPackages:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
-        accessible_datasets = get_accessible_work_packages(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_work_packages(mock_request)
 
         # Assert work packages in `accessible_work_packages` are in returned work packages
         for work_package in accessible_work_packages:
@@ -405,6 +445,7 @@ class TestGetAccessibleWorkPackages:
         programme_manager,
         project_participant,
         unclassified_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that even though user is associated with project and work package, that work package
@@ -421,7 +462,9 @@ class TestGetAccessibleWorkPackages:
             programme_manager,
         )
 
-        accessible_work_packages = get_accessible_work_packages(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_work_packages = get_accessible_work_packages(mock_request)
 
         # No work packages returned because work package is not classified
         assert len(accessible_work_packages) == 0
@@ -431,6 +474,7 @@ class TestGetAccessibleWorkPackages:
         programme_manager,
         project_participant,
         classified_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that if user is not associated with classified work package that they cannot access it
@@ -444,7 +488,9 @@ class TestGetAccessibleWorkPackages:
                 created_by=programme_manager,
             )
 
-        accessible_datasets = get_accessible_datasets(project_participant)
+        mock_request = make_mock_request_with_oauth_application()
+
+        accessible_datasets = get_accessible_datasets(mock_request)
 
         assert accessible_datasets.count() == 0
 
@@ -453,6 +499,7 @@ class TestGetAccessibleWorkPackages:
         project_participant,
         classified_work_package,
         make_accessible_work_package,
+        make_mock_request_with_oauth_application,
     ):
         """
         Test that the `get_accessible_work_packages` returns the correct accessible work packages
@@ -469,8 +516,10 @@ class TestGetAccessibleWorkPackages:
         # Create more work packages that are not associated with api user
         unaccessible_work_packages = [classified_work_package(0) for _ in range(3)]
 
+        mock_request = make_mock_request_with_oauth_application()
+
         accessible_work_packages = get_accessible_work_packages(
-            project_participant,
+            mock_request,
             extra_filters={"project__uuid": accessible_work_package.project.uuid},
         )
 
@@ -485,3 +534,50 @@ class TestGetAccessibleWorkPackages:
         # Assert work packages in `unaccessible_work_packages` are not in returned work packages
         for work_package in unaccessible_work_packages:
             assert work_package not in accessible_work_packages
+
+
+@pytest.mark.django_db
+class TestGetMaximumFilterTier:
+    def test_get_accessible_work_packages(
+        self, make_mock_request_with_oauth_application, application_profile
+    ):
+        """Test that the `get_maximum_tier_filter` returns the filter dictionary"""
+        mock_request = make_mock_request_with_oauth_application()
+
+        filter_key = "test"
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key=filter_key)
+
+        assert maximum_tier_filter == {filter_key: application_profile.maximum_tier}
+
+    def test_no_application(
+        self,
+        make_mock_request_with_oauth_application,
+        oauth_application,
+    ):
+        """
+        Test that the `get_maximum_tier_filter` returns an empty dictionary if a matching
+        application does not exist
+        """
+        mock_request = make_mock_request_with_oauth_application()
+
+        # Delete the application that is associated with the request
+        oauth_application.delete()
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key="test")
+
+        assert maximum_tier_filter == {}
+
+    def test_no_application_profile(
+        self,
+        make_mock_request_with_oauth_application,
+    ):
+        """
+        Test that the `get_maximum_tier_filter` returns an empty dictionary if a matching
+        application profile does not exist
+        """
+        mock_request = make_mock_request_with_oauth_application()
+
+        maximum_tier_filter = get_maximum_tier_filter(mock_request, filter_key="test")
+
+        assert maximum_tier_filter == {}

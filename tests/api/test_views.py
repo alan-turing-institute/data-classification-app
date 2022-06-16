@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from oauth2_provider.models import Application
 
+from haven.api.models import ApplicationProfile
 from haven.api.utils import WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP
 from haven.api.views import AllowedPatchFieldsMixin, DatasetRegisterAPIView
 from haven.core import recipes
@@ -24,7 +25,8 @@ class TestOAuthFlow:
         oauth_application_registration_data,
     ):
         """This tests that a client can use the OAuth2 views to gain an access token"""
-        original_count = Application.objects.count()
+        original_application_count = Application.objects.count()
+        original_application_profile_count = ApplicationProfile.objects.count()
 
         # Register a new client (e.g. data-access-controller)
         response = as_system_manager.post(
@@ -33,9 +35,18 @@ class TestOAuthFlow:
         )
         assert response.status_code == 302
 
-        assert Application.objects.count() == original_count + 1
+        assert Application.objects.count() == original_application_count + 1
+        assert ApplicationProfile.objects.count() == original_application_profile_count + 1
 
         application = Application.objects.last()
+        application_profile = ApplicationProfile.objects.last()
+
+        # Assert `ApplicationProfile` object created with the correct information
+        assert application_profile.application == application
+        assert (
+            application_profile.maximum_tier == oauth_application_registration_data["maximum_tier"]
+        )
+
         # Assert redirected to application detail view
         assert response.url == reverse("oauth2_provider:detail", kwargs={"pk": application.id})
 
@@ -84,6 +95,38 @@ class TestOAuthFlow:
         assert response_json.get("access_token")
         assert response_json.get("refresh_token")
         assert response_json["scope"] == authorize_data["scope"]
+
+    def test_application_profile_update(
+        self,
+        as_system_manager,
+        oauth_application_registration_data,
+        oauth_application,
+        application_profile,
+    ):
+        """
+        This tests a system manager can update the application profile from the application update
+        view
+        """
+        original_application_profile_count = ApplicationProfile.objects.count()
+
+        maximum_tier = 1
+        update_data = {
+            **oauth_application_registration_data,
+            **{"maximum_tier": maximum_tier},
+        }
+
+        # Register a new client (e.g. data-access-controller)
+        response = as_system_manager.post(
+            reverse("oauth2_provider:update", kwargs={"pk": oauth_application.id}),
+            data=update_data,
+        )
+        assert response.status_code == 302
+
+        # Assert no new application profile objects created
+        assert ApplicationProfile.objects.count() == original_application_profile_count
+
+        application_profile.refresh_from_db()
+        assert application_profile.maximum_tier == maximum_tier
 
 
 @pytest.mark.django_db
@@ -426,6 +469,138 @@ class TestDatasetListAPIView:
                 assert dataset.host == matching_dataset["host"]
                 assert dataset.storage_path == matching_dataset["storage_path"]
 
+    def test_limited_by_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+    ):
+        """
+        Test that an API user is limited to datasets by the `maximum_tier` of the application
+        profile
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        num_accessible_datasets = 3
+        accessible_work_packages = [
+            make_accessible_work_package(project_participant, tier=0)
+            for _ in range(num_accessible_datasets)
+        ]
+
+        # The datasets associated with these work packages are unaccessible because the tier is
+        # higher than the maximum tier allowed by the application profile
+        unaccessible_work_packages = [
+            make_accessible_work_package(project_participant, tier=4) for _ in range(3)
+        ]
+
+        response = as_project_participant_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == num_accessible_datasets
+
+        uuid_results = [dataset["uuid"] for dataset in results]
+
+        # Assert datasets in `accessible_work_packages` are in results
+        for work_package in accessible_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) in uuid_results
+
+                matching_dataset = list(
+                    filter(lambda x: x.get("uuid", None) == str(dataset.uuid), results)
+                )[0]
+
+                # Assert that the related accessible work packages are returned as a part of
+                # serialization
+                expected_work_packages = set(
+                    str(uuid) for uuid in dataset.work_packages.all().values_list("uuid", flat=True)
+                )
+                assert expected_work_packages == set(matching_dataset["work_packages"])
+                # Assert that the related projects are returned as a part of serialization
+                expected_projects = set(
+                    str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+                )
+                assert expected_projects == set(matching_dataset["projects"])
+
+                assert (
+                    matching_dataset["default_representative_email"]
+                    == dataset.default_representative.email
+                )
+
+                assert dataset.host == matching_dataset["host"]
+                assert dataset.storage_path == matching_dataset["storage_path"]
+
+        # Assert datasets in `unaccessible_work_packages` are not in results
+        for work_package in unaccessible_work_packages:
+            for dataset in work_package.datasets.all():
+                assert str(dataset.uuid) not in uuid_results
+
+    def test_one_dataset_two_classified_work_packages(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+        investigator,
+    ):
+        """
+        Test that if a dataset is associated with two work packages, one with a tier above and one
+        with a tier below than the maximum tier, and the requesting user is a participant of both
+        work packages, that the user can still see the dataset
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        accessible_work_package = make_accessible_work_package(project_participant, tier=0)
+        unaccessible_work_package = make_accessible_work_package(project_participant, tier=4)
+
+        unaccessible_work_package.project = accessible_work_package.project
+        unaccessible_work_package.save()
+
+        unaccessible_work_package.add_dataset(
+            accessible_work_package.datasets.last(), investigator.user
+        )
+
+        response = as_project_participant_api.get(reverse("api:dataset_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == 1
+
+        uuid_results = [dataset["uuid"] for dataset in results]
+
+        dataset = accessible_work_package.datasets.last()
+
+        # Assert dataset can still be seen in results even though it has two work packages, one
+        # above and one below the maximum tier
+        assert str(dataset.uuid) in uuid_results
+
+        matching_dataset = list(
+            filter(lambda x: x.get("uuid", None) == str(dataset.uuid), results)
+        )[0]
+
+        # Assert only work package with tier below the maximum tier is returned in serialized
+        # work packages
+        assert set([str(accessible_work_package.uuid)]) == set(matching_dataset["work_packages"])
+        # Assert that the related projects are returned as a part of serialization
+        expected_projects = set(
+            str(uuid) for uuid in dataset.projects.all().values_list("uuid", flat=True)
+        )
+        assert expected_projects == set(matching_dataset["projects"])
+
+        assert (
+            matching_dataset["default_representative_email"] == dataset.default_representative.email
+        )
+
+        assert dataset.host == matching_dataset["host"]
+        assert dataset.storage_path == matching_dataset["storage_path"]
+
 
 @pytest.mark.django_db
 class TestDatasetDetailAPIView:
@@ -597,12 +772,38 @@ class TestDatasetDetailAPIView:
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(dataset.uuid)
 
+    def test_limited_by_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+    ):
+        """
+        Test that if dataset is associated with a work package that has a tier above the maximum
+        tier of the work package that the dataset detail API does not return this dataset
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        # Dataset associated with this work package will not be returned over the API because the
+        # tier is above the maximum tier of the application profile
+        work_package = make_accessible_work_package(project_participant, tier=4)
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_detail", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 404
+
 
 @pytest.mark.django_db
 class TestDatasetExpiryAPIView:
     # Freeze time to make testing datetimes deterministic
     @pytest.mark.freeze_time("2022-01-01")
-    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4, 5])
+    @pytest.mark.parametrize("work_package_tier", [0, 1, 2, 3, 4])
     def test_expires_at(
         self,
         work_package_tier,
@@ -652,8 +853,8 @@ class TestDatasetExpiryAPIView:
         work_package.save()
         dataset = work_package.datasets.last()
 
-        # Associate dataset with 5 further classified work packages
-        for work_package_tier in range(1, 6):
+        # Associate dataset with 4 further classified work packages
+        for work_package_tier in range(1, 5):
             work_package = make_accessible_work_package(project_participant)
             work_package.tier = work_package_tier
             work_package.save()
@@ -674,8 +875,34 @@ class TestDatasetExpiryAPIView:
         assert result["expires_at"] == str(
             timezone.now()
             # Assert that the highest tier is used, in this case zero
-            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[5])
+            + timedelta(seconds=WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[4])
         )
+
+    def test_limited_by_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+    ):
+        """
+        Test that if dataset is associated with a work package that has a tier above the maximum
+        tier of the work package that the dataset expiry API does not return this dataset
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        # Dataset associated with this work package will not be returned over the API because the
+        # tier is above the maximum tier of the application profile
+        work_package = make_accessible_work_package(project_participant, tier=4)
+
+        dataset = work_package.datasets.last()
+
+        response = as_project_participant_api.get(
+            reverse("api:dataset_expiry", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db
@@ -1282,6 +1509,63 @@ class TestWorkPackageListAPIView:
             )
             assert expected_datasets == set(matching_work_package["datasets"])
 
+    def test_limited_by_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+    ):
+        """
+        Test that only work packages that have a tier below the maximum tier of the application
+        profile are returned by the work package lis API
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        num_accessible_work_packages = 3
+        accessible_work_packages = [
+            make_accessible_work_package(project_participant, tier=0)
+            for _ in range(num_accessible_work_packages)
+        ]
+
+        # These work packages are unaccessible because their tier is above the application profile
+        # maximum tier
+        unaccessible_work_packages = [
+            make_accessible_work_package(project_participant, tier=4)
+            for _ in range(num_accessible_work_packages)
+        ]
+
+        response = as_project_participant_api.get(reverse("api:work_package_list"))
+
+        assert response.status_code == 200
+
+        results = json.loads(response.content.decode())["results"]
+
+        assert len(results) == num_accessible_work_packages
+
+        uuid_results = [work_package["uuid"] for work_package in results]
+
+        # Assert work packages in `accessible_work_packages` are in results
+        for work_package in accessible_work_packages:
+            assert str(work_package.uuid) in uuid_results
+
+            matching_work_package = list(
+                filter(lambda x: x.get("uuid", None) == str(work_package.uuid), results)
+            )[0]
+
+            # Assert that the related accessible project is returned as a part of serialization
+            assert str(work_package.project.uuid) == matching_work_package["project"]
+            # Assert that the related accessible datasets are returned as a part of serialization
+            expected_datasets = set(
+                str(uuid) for uuid in work_package.datasets.all().values_list("uuid", flat=True)
+            )
+            assert expected_datasets == set(matching_work_package["datasets"])
+
+        # Assert work packages in `unaccessible_work_packages` are not in results
+        for work_package in unaccessible_work_packages:
+            assert str(work_package.uuid) not in uuid_results
+
 
 @pytest.mark.django_db
 class TestWorkPackageDetailAPIView:
@@ -1376,6 +1660,30 @@ class TestWorkPackageDetailAPIView:
 
         result = json.loads(response.content.decode())
         assert result["uuid"] == str(work_package.uuid)
+
+    def test_limited_by_maximum_tier(
+        self,
+        project_participant,
+        as_project_participant_api,
+        make_accessible_work_package,
+        application_profile,
+    ):
+        """
+        Test that the work package detail API does not return a work package that has a tier above
+        the maximum tier of the application profile
+        """
+        application_profile.maximum_tier = 2
+        application_profile.save()
+
+        # Work package will not be returned because the tier is above the maximum tier of the work
+        # package
+        work_package = make_accessible_work_package(project_participant, tier=4)
+
+        response = as_project_participant_api.get(
+            reverse("api:work_package_detail", kwargs={"uuid": work_package.uuid})
+        )
+
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

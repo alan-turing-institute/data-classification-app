@@ -90,6 +90,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "haven.api",
     "haven.core",
     "haven.data",
     "haven.identity",
@@ -249,6 +250,8 @@ SITE_URL = env.str(
     # Assuming locally hosting used docker
     default="http://host.docker.internal:8000",
 )
+
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.application"
 
 TIER_0_EXPIRY_SECONDS = env.int(
     "TIER_0_EXPIRY_SECONDS",

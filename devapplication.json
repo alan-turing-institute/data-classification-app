@@ -1,7 +1,7 @@
 [
     {
         "model": "oauth2_provider.application",
-        "pk": null,
+        "pk": 1,
         "fields": {
             "client_id": "waEtHkVfr1xIRns47tkEJLL8vytaWQBVHb3pZXq1",
             "user": 1,
@@ -14,6 +14,14 @@
             "created": "2022-05-26T09:45:45.227Z",
             "updated": "2022-05-26T09:45:45.227Z",
             "algorithm": ""
+        }
+    },
+    {
+        "model": "api.applicationprofile",
+        "pk": 1,
+        "fields": {
+            "application": 1,
+            "maximum_tier": 4
         }
     }
 ]

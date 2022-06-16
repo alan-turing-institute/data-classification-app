@@ -9,6 +9,7 @@ from django.utils.timezone import make_aware
 from oauth2_provider.models import AccessToken, Application
 from rest_framework.test import APIClient
 
+from haven.api.models import ApplicationProfile
 from haven.core import recipes
 from haven.data.tiers import Tier
 from haven.identity.models import User
@@ -185,8 +186,8 @@ def unclassified_work_package(
 def make_accessible_work_package(classified_work_package, programme_manager):
     """Fixture to return function for creating a work package accessible to given user"""
 
-    def _make_accessible_work_package(user):
-        work_package = classified_work_package(0)
+    def _make_accessible_work_package(user, tier=0):
+        work_package = classified_work_package(tier)
         work_package.project.add_user(
             user=user,
             role=ProjectRole.RESEARCHER.value,
@@ -332,13 +333,23 @@ def oauth_application_registration_data(oauth_application_config):
     registration_data = oauth_application_config.copy()
     registration_data["initial-client_id"] = oauth_application_config["client_id"]
     registration_data["initial-client_secret"] = oauth_application_config["client_secret"]
+    registration_data["maximum_tier"] = 4
     return registration_data
 
 
 @pytest.fixture
-def oauth_application(oauth_application_config):
+def oauth_application(oauth_application_config, system_manager):
     """Fixture to create dummy OAuth application with deterministic client credentials"""
-    return Application.objects.create(**oauth_application_config)
+    return Application.objects.create(**oauth_application_config, user=system_manager)
+
+
+@pytest.fixture
+def application_profile(oauth_application, oauth_application_registration_data):
+    """Fixture to create dummy ApplicationProfile"""
+    return ApplicationProfile.objects.create(
+        application=oauth_application,
+        maximum_tier=oauth_application_registration_data["maximum_tier"],
+    )
 
 
 @pytest.fixture
@@ -389,3 +400,31 @@ class MockPostRequest:
         query_dict = QueryDict("", mutable=True)
         query_dict.update(body)
         self.POST = query_dict
+
+
+class MockAuthObject:
+    """Mock `_auth` object which is used in `MockOAuthRequest`"""
+
+    def __init__(self, *args, application_id=None, **kwargs):
+        self.application_id = application_id
+
+
+class MockOAuthRequest:
+    """Mock request object with a `QueryDict` POST attribute"""
+
+    def __init__(self, *args, user=None, application_id=None, **kwargs):
+        self.user = user
+        self._auth = MockAuthObject(application_id=application_id)
+
+
+@pytest.fixture
+def make_mock_request_with_oauth_application(project_participant, oauth_application):
+    """
+    Fixture to return function which generates a mock request object with an oauth application and
+    user
+    """
+
+    def _make(user=project_participant, application=oauth_application):
+        return MockOAuthRequest(user=user, application_id=application.id)
+
+    return _make
