@@ -87,6 +87,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "simple_history",
     "taggit",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
@@ -248,7 +249,16 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Data-Classification-App API",
+    "DESCRIPTION": "API for projects, work packages and datasets",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
 # Your stuff...
 # ------------------------------------------------------------------------------
 SITE_URL = env.str(

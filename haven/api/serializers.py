@@ -25,6 +25,7 @@ class DatasetSerializer(serializers.ModelSerializer):
     default_representative_email = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     expires_at = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
 
     def get_work_packages(self, dataset):
         """Function to get accessible work packages that this dataset is associated with"""
@@ -53,6 +54,10 @@ class DatasetSerializer(serializers.ModelSerializer):
         max_tier = max(list(work_packages.values_list("tier", flat=True)))
         expiry_seconds = WORK_PACKAGE_TIER_EXPIRY_SECONDS_MAP[max_tier]
         return str(timezone.now() + timedelta(seconds=expiry_seconds))
+
+    def get_created_at(self, dataset):
+        """Call `str` on `created_at` field to use consistent formatting with other datetimes"""
+        return str(dataset.created_at)
 
     class Meta:
         model = Dataset
@@ -90,6 +95,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     datasets = serializers.SerializerMethodField()
     work_packages = serializers.SerializerMethodField()
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    created_at = serializers.SerializerMethodField()
 
     def get_datasets(self, project):
         """Function to get accessible datasets that this project is associated with"""
@@ -102,6 +108,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         return get_accessible_work_packages(
             self.context["request"], extra_filters={"project": project}
         ).values_list("uuid", flat=True)
+
+    def get_created_at(self, dataset):
+        """Call `str` on `created_at` field to use consistent formatting with other datetimes"""
+        return str(dataset.created_at)
 
     class Meta:
         model = Project
@@ -130,6 +140,11 @@ class WorkPackageSerializer(serializers.ModelSerializer):
     # therefore no need for custom function here
     project = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
     created_by = serializers.SlugRelatedField(read_only=True, slug_field="uuid")
+    created_at = serializers.SerializerMethodField()
+
+    def get_created_at(self, dataset):
+        """Call `str` on `created_at` field to use consistent formatting with other datetimes"""
+        return str(dataset.created_at)
 
     class Meta:
         model = WorkPackage

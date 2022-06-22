@@ -1,4 +1,5 @@
 from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from haven.api import views
 
@@ -7,6 +8,12 @@ app_name = "api"
 
 
 urlpatterns = [
+    path("schema/", SpectacularAPIView.as_view(), name="schema"),
+    path(
+        "docs/",
+        SpectacularSwaggerView.as_view(url_name="api:schema"),
+        name="api-docs",
+    ),
     path("datasets", views.DatasetListAPIView.as_view(), name="dataset_list"),
     path(
         "datasets/<slug:uuid>",
