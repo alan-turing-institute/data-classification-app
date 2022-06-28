@@ -8,34 +8,18 @@ def insert(model_cls, **kwargs):
     return q
 
 
-def insert_initial_policies(
-    policy_group_model_cls, policy_model_cls, policy_assignment_model_cls
-):
+def insert_initial_policies(policy_group_model_cls, policy_model_cls, policy_assignment_model_cls):
     # This method should only be called on an empty database (i.e. on first
     # migration or during tests). If you make changes, they will not be
     # reflected in the actual database unless you make a related migration.
-    connection_group = insert(
-        policy_group_model_cls, name="connection", description="Connection"
-    )
+    connection_group = insert(policy_group_model_cls, name="connection", description="Connection")
     copy_group = insert(policy_group_model_cls, name="copy", description="Copy-paste")
-    egress_group = insert(
-        policy_group_model_cls, name="egress", description="Data egress"
-    )
-    ingress_group = insert(
-        policy_group_model_cls, name="ingress", description="Data ingress"
-    )
-    inbound_group = insert(
-        policy_group_model_cls, name="inbound", description="Inbound network"
-    )
-    internet_group = insert(
-        policy_group_model_cls, name="internet", description="Internet access"
-    )
-    outbound_group = insert(
-        policy_group_model_cls, name="outbound", description="Outbound network"
-    )
-    mirror_group = insert(
-        policy_group_model_cls, name="mirror", description="Package mirrors"
-    )
+    egress_group = insert(policy_group_model_cls, name="egress", description="Data egress")
+    ingress_group = insert(policy_group_model_cls, name="ingress", description="Data ingress")
+    inbound_group = insert(policy_group_model_cls, name="inbound", description="Inbound network")
+    internet_group = insert(policy_group_model_cls, name="internet", description="Internet access")
+    outbound_group = insert(policy_group_model_cls, name="outbound", description="Outbound network")
+    mirror_group = insert(policy_group_model_cls, name="mirror", description="Package mirrors")
     physical_group = insert(
         policy_group_model_cls, name="physical", description="Physical security"
     )
@@ -49,16 +33,10 @@ def insert_initial_policies(
         name="ref_reclass",
         description="Refereeing of reclassification",
     )
-    software_group = insert(
-        policy_group_model_cls, name="software", description="Software ingress"
-    )
+    software_group = insert(policy_group_model_cls, name="software", description="Software ingress")
     tier_group = insert(policy_group_model_cls, name="tier", description="Tier")
-    device_group = insert(
-        policy_group_model_cls, name="device", description="User devices"
-    )
-    user_group = insert(
-        policy_group_model_cls, name="user", description="User management"
-    )
+    device_group = insert(policy_group_model_cls, name="device", description="User devices")
+    user_group = insert(policy_group_model_cls, name="user", description="User management")
 
     connection_rdp_policy = insert(
         policy_model_cls,
@@ -130,8 +108,7 @@ def insert_initial_policies(
         policy_model_cls,
         group=inbound_group,
         name="inbound_institution",
-        description="Access nodes should only be accessible from an "
-        "Institutional network.",
+        description="Access nodes should only be accessible from an " "Institutional network.",
     )
     inbound_open_policy = insert(
         policy_model_cls,
@@ -201,8 +178,7 @@ def insert_initial_policies(
         policy_model_cls,
         group=outbound_group,
         name="outbound_restricted",
-        description="The virtual network inside the environment is "
-        "completely isolated.",
+        description="The virtual network inside the environment is " "completely isolated.",
     )
     physical_high_policy = insert(
         policy_model_cls,
@@ -226,15 +202,13 @@ def insert_initial_policies(
         policy_model_cls,
         group=ref_class_group,
         name="ref_class_open",
-        description="Independent Referee scrutiny of data classification is "
-        "not required.",
+        description="Independent Referee scrutiny of data classification is " "not required.",
     )
     ref_class_required_policy = insert(
         policy_model_cls,
         group=ref_class_group,
         name="ref_class_required",
-        description="Independent Referee scrutiny of data classification is "
-        "required.",
+        description="Independent Referee scrutiny of data classification is " "required.",
     )
     ref_reclass_open_policy = insert(
         policy_model_cls,
@@ -277,21 +251,11 @@ def insert_initial_policies(
         description="Users should be able to install software directly into "
         "the environment (in user space) from the open internet.",
     )
-    tier_0_policy = insert(
-        policy_model_cls, group=tier_group, name="tier_0", description="0"
-    )
-    tier_1_policy = insert(
-        policy_model_cls, group=tier_group, name="tier_1", description="1"
-    )
-    tier_2_policy = insert(
-        policy_model_cls, group=tier_group, name="tier_2", description="2"
-    )
-    tier_3_policy = insert(
-        policy_model_cls, group=tier_group, name="tier_3", description="3"
-    )
-    tier_4_policy = insert(
-        policy_model_cls, group=tier_group, name="tier_4", description="4"
-    )
+    tier_0_policy = insert(policy_model_cls, group=tier_group, name="tier_0", description="0")
+    tier_1_policy = insert(policy_model_cls, group=tier_group, name="tier_1", description="1")
+    tier_2_policy = insert(policy_model_cls, group=tier_group, name="tier_2", description="2")
+    tier_3_policy = insert(policy_model_cls, group=tier_group, name="tier_3", description="3")
+    tier_4_policy = insert(policy_model_cls, group=tier_group, name="tier_4", description="4")
     user_signoff_policy = insert(
         policy_model_cls,
         group=user_group,
@@ -341,9 +305,7 @@ def insert_initial_policies(
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=tier_2_policy)
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=mirror_delay_policy)
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=inbound_instiution_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.TWO, policy=outbound_restricted_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.TWO, policy=outbound_restricted_policy)
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=device_open_policy)
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=physical_open_policy)
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=user_open_policy)
@@ -357,51 +319,31 @@ def insert_initial_policies(
     insert(policy_assignment_model_cls, tier=Tier.TWO, policy=egress_allowed_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=tier_3_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=mirror_whitelist_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.THREE, policy=inbound_restricted_policy
-    )
-    insert(
-        policy_assignment_model_cls, tier=Tier.THREE, policy=outbound_restricted_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.THREE, policy=inbound_restricted_policy)
+    insert(policy_assignment_model_cls, tier=Tier.THREE, policy=outbound_restricted_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=device_managed_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=physical_medium_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=user_signoff_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=connection_rdp_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.THREE, policy=internet_forbidden_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.THREE, policy=internet_forbidden_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=software_signoff_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=ingress_secure_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=copy_forbidden_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.THREE, policy=ref_class_required_policy
-    )
-    insert(
-        policy_assignment_model_cls, tier=Tier.THREE, policy=ref_reclass_required_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.THREE, policy=ref_class_required_policy)
+    insert(policy_assignment_model_cls, tier=Tier.THREE, policy=ref_reclass_required_policy)
     insert(policy_assignment_model_cls, tier=Tier.THREE, policy=egress_signoff_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=tier_4_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=mirror_whitelist_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.FOUR, policy=inbound_restricted_policy
-    )
-    insert(
-        policy_assignment_model_cls, tier=Tier.FOUR, policy=outbound_restricted_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=inbound_restricted_policy)
+    insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=outbound_restricted_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=device_managed_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=physical_high_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=user_signoff_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=connection_rdp_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.FOUR, policy=internet_forbidden_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=internet_forbidden_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=software_signoff_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=ingress_secure_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=copy_forbidden_policy)
-    insert(
-        policy_assignment_model_cls, tier=Tier.FOUR, policy=ref_class_required_policy
-    )
-    insert(
-        policy_assignment_model_cls, tier=Tier.FOUR, policy=ref_reclass_required_policy
-    )
+    insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=ref_class_required_policy)
+    insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=ref_reclass_required_policy)
     insert(policy_assignment_model_cls, tier=Tier.FOUR, policy=egress_signoff_policy)

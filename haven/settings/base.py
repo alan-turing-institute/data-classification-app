@@ -62,7 +62,9 @@ WSGI_APPLICATION = "haven.wsgi.application"
 THIRD_PARTY_PRE_APPS = [
     "dal",
     "dal_select2",
-    "whitenoise.runserver_nostatic",  # Let WhiteNoise handle static files in local development instead of Django, for consistency with production
+    # Let WhiteNoise handle static files in local development instead of Django, for consistency
+    # with production
+    "whitenoise.runserver_nostatic",
 ]
 
 DJANGO_APPS = [
@@ -174,19 +176,20 @@ if "remote" in HAVEN_AUTH_TYPES:
     MIDDLEWARE.append("haven.identity.auth.middleware.HttpRemoteUserMiddleware")
     LOGOUT_REDIRECT_URL = "https://auth." + BASE_DOMAIN + "/logout"
 if "social" in HAVEN_AUTH_TYPES:
-    from .components.social_auth import *
+    from .components.social_auth import *  # noqa
 
-    SOCIAL_AUTH_PROVIDERS=env.list("SOCIAL_AUTH_PROVIDERS", default=[])
+    SOCIAL_AUTH_PROVIDERS = env.list("SOCIAL_AUTH_PROVIDERS", default=[])
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
-        AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]
-        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = \
-            provider_dictionary[provider]["display_name"]
+        AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]  # noqa
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider][  # noqa
+            "display_name"
+        ]
 if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",
     ]
-    LOCAL_AUTH=True
+    LOCAL_AUTH = True
 
 
 # PASSWORDS

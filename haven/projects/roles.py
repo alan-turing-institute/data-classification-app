@@ -156,11 +156,7 @@ class UserPermissions:
             UserRole.PROGRAMME_MANAGER,
             UserRole.NONE,
         ]
-        return (
-            []
-            if not self.can_create_users
-            else [r for r in roles if self.can_assign_role(r)]
-        )
+        return [] if not self.can_create_users else [r for r in roles if self.can_assign_role(r)]
 
     @property
     def can_add_participants(self):

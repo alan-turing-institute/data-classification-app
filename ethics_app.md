@@ -36,11 +36,11 @@ Please cover:
 
 This project will not make direct use of any sensitive and confidential data, addressing exemplar sensitive datasets only for the purpose of evaluating our novel information governance tools. As such, ethics and governance risks are minimal.
 
-We will make some use of sensitive data already entrusted to the participating domain co-investigators, but only to test and evaluate the information governance app. 
-The resulting classifications are for evaluation purposes only and will not change how the data is handled for the research projects it is part of. 
+We will make some use of sensitive data already entrusted to the participating domain co-investigators, but only to test and evaluate the information governance app.
+The resulting classifications are for evaluation purposes only and will not change how the data is handled for the research projects it is part of.
 If, at any point during testing, data is re-identified, the exercise will halt and domain co-investigator alerted.
 
-We will not be carrying out novel analysis as part of the work, and all controls already in place around this data will remain in place. 
+We will not be carrying out novel analysis as part of the work, and all controls already in place around this data will remain in place.
 For avoidance of any doubt, in these cases, we will request confirmation from each data provider that they are content with consideration of data and metadata for evaluation of future information governance approaches, and, if not, we will for that domain, consider only generic 'typical data in the field' rather than evaluating the particular dataset.
 
 ### Has your study received funding from the Department of Health (for Social Care Research) or the Ministry of Defence?
@@ -70,14 +70,14 @@ Questions to consider:
 - If your study involves collecting data about, with, or from human participants, will they receive all relevant information about what their participation will involve, prior to providing consent?
 - If your study involves using existing data about people, was their consent given for the original data collection? Did they consent to this data being reused?
 
-**Answer:** We will make some use of knowledge of the attributes of sensitive data already entrusted to the participating domain co-investigators, but only to test and evaluate the information governance app. 
-The resulting classifications are for evaluation purposes only and will not change how the data is handled for the research projects it is part of. 
+**Answer:** We will make some use of knowledge of the attributes of sensitive data already entrusted to the participating domain co-investigators, but only to test and evaluate the information governance app.
+The resulting classifications are for evaluation purposes only and will not change how the data is handled for the research projects it is part of.
 
-We will not be carrying out novel analysis as part of the work, and all controls already in place around this data will remain in place. 
+We will not be carrying out novel analysis as part of the work, and all controls already in place around this data will remain in place.
 For avoidance of any doubt, in these cases, we will request confirmation from each data provider that they are content with consideration of data and metadata for evaluation of future information governance approaches, and, if not, we will for that domain, consider only generic 'typical data in the field' rather than evaluating the particular dataset.
 
-We will collect data from a range of users about app functionality and design. 
-This will involve recording the personal data required to link feedback to individuals for further follow up, but we will acquire explicit consent for this and keep the personal information collected to the minimum required (name and email address). 
+We will collect data from a range of users about app functionality and design.
+This will involve recording the personal data required to link feedback to individuals for further follow up, but we will acquire explicit consent for this and keep the personal information collected to the minimum required (name and email address).
 We will complete the Turing's data protection assessment process for this data.
 
 
@@ -88,7 +88,7 @@ Questions to consider:
 - If you use data about people in your study, is this data anonymous, or anonymised? Could it be associated with identifiable individuals, including by triangulating with other publicly available datasets?
 - How do you plan to keep sensitive data safe and secure? What will you do with sensitive data after the study is completed?
 
-**Answer:** This is a research project about how, in general, best to provide this kind of security. 
+**Answer:** This is a research project about how, in general, best to provide this kind of security.
 However, we will not, within this project, be using real data in manners that might result in any additional exposure risk over current practices.
 
 ### Other Harms: 5. Please comment on the potential for individual, societal or ecological harms to arise from your research, beyond what is described above.
@@ -102,8 +102,8 @@ Questions to consider:
 
 **Answer:** None expected. The purpose of this work is to develop a research prototype in order to generate insight and understanding, which we will openly publish.
 
-However, there are potential implications if the research prototype developed here is adopted for real production use without due reivew. 
-Therefore, we undertake for our own institutions not to move into production without a proper ethics and governance review. 
+However, there are potential implications if the research prototype developed here is adopted for real production use without due reivew.
+Therefore, we undertake for our own institutions not to move into production without a proper ethics and governance review.
 In our (open) publications of research outputs from this work, we will highlight that institutions making use of the conclusions of this research must apply appropriate governance and ethics process.
 
 

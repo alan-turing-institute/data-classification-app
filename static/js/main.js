@@ -20,4 +20,3 @@ global.formset = function(selector, prefix, addText){
     $(selector).find(".formset tbody tr").formset(options);
   });
 }
-

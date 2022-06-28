@@ -90,9 +90,7 @@ class Project(CreatedByModel):
                 created_by,
             )
         elif participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
-            raise ValidationError(
-                f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}"
-            )
+            raise ValidationError(f"User is not a {ProjectRole.DATA_PROVIDER_REPRESENTATIVE}")
         return ProjectDataset.objects.create(
             project=self,
             dataset=dataset,
@@ -177,9 +175,7 @@ class Project(CreatedByModel):
     def ordered_participants(self):
         """Order participants on this project by their ProjectRole"""
         ordered_role_list = ProjectRole.ordered_display_role_list()
-        order = Case(
-            *[When(role=role, then=pos) for pos, role in enumerate(ordered_role_list)]
-        )
+        order = Case(*[When(role=role, then=pos) for pos, role in enumerate(ordered_role_list)])
         return self.participants.filter(role__in=ordered_role_list).order_by(order)
 
     def get_participant(self, role):
@@ -189,9 +185,9 @@ class Project(CreatedByModel):
         return self.participants.filter(role=role)
 
     def get_datasets(self, representative):
-        project_datasets = self.get_project_datasets(
-            representative=representative
-        ).select_related("dataset")
+        project_datasets = self.get_project_datasets(representative=representative).select_related(
+            "dataset"
+        )
         return [pd.dataset for pd in project_datasets]
 
     def get_representative(self, dataset):
@@ -224,18 +220,12 @@ class Project(CreatedByModel):
         return self._can_edit_dataset(dataset, "delete_datasets")
 
     def _can_edit_dataset(self, dataset, permission):
-        work_packages = self.work_packages.filter_by_permission(
-            permission, exclude=True
-        )
-        datasets = self.get_work_package_datasets(
-            dataset=dataset, work_package__in=work_packages
-        )
+        work_packages = self.work_packages.filter_by_permission(permission, exclude=True)
+        datasets = self.get_work_package_datasets(dataset=dataset, work_package__in=work_packages)
         return not datasets.exists()
 
     def get_audit_history(self):
-        this_object = Q(
-            content_type=ContentType.objects.get_for_model(self), object_id=self.pk
-        )
+        this_object = Q(content_type=ContentType.objects.get_for_model(self), object_id=self.pk)
         # This is a bit of a hack - if the model uses a different field name for example, it
         # won't be picked up, it doesn't catch transitive relationships,
         # and it relies on how the json has been formatted
@@ -371,9 +361,7 @@ class WorkPackage(CreatedByModel):
             raise ValidationError("User is already on work package")
 
         qs = WorkPackageParticipant.objects
-        return qs.create(
-            work_package=self, participant=participant, created_by=created_by
-        )
+        return qs.create(work_package=self, participant=participant, created_by=created_by)
 
     def get_work_package_datasets(self, representative=None, dataset=None):
         qs = WorkPackageDataset.objects.filter(work_package=self)
@@ -385,9 +373,7 @@ class WorkPackage(CreatedByModel):
 
     def get_work_package_participant(self, user):
         participant = user.get_participant(self.project)
-        return WorkPackageParticipant.objects.filter(
-            work_package=self, participant=participant
-        )
+        return WorkPackageParticipant.objects.filter(work_package=self, participant=participant)
 
     @property
     def can_open_classification(self):
@@ -445,10 +431,7 @@ class WorkPackage(CreatedByModel):
                 roles.add(c.role)
             else:
                 pending_classifications.add(c)
-            if (
-                c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-                and c.tier >= Tier.TWO
-            ):
+            if c.role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value and c.tier >= Tier.TWO:
                 required_roles.add(ProjectRole.REFEREE.value)
                 roles_required_in_wp.add(ProjectRole.REFEREE.value)
                 if c.tier >= Tier.THREE:
@@ -491,9 +474,7 @@ class WorkPackage(CreatedByModel):
 
             elif warn_no_roles_approved:
                 # Warn if role approval is required and has not been granted
-                approver = ProjectRole.display_name(
-                    ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-                )
+                approver = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
                 missing_requirements.append(
                     f"Each {approver} for this Work Package needs to approve the {role}."
                 )
@@ -508,17 +489,13 @@ class WorkPackage(CreatedByModel):
                 )
 
         for d in missing_datasets:
-            role = ProjectRole.display_name(
-                ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-            )
+            role = ProjectRole.display_name(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
             missing_requirements.append(
                 f"{a_or_an(role)} for dataset {d} still needs to classify this Work Package."
             )
 
         if not self.has_datasets:
-            missing_requirements.append(
-                "No datasets have been added to this Work Package"
-            )
+            missing_requirements.append("No datasets have been added to this Work Package")
 
         return missing_requirements
 
@@ -675,14 +652,10 @@ class WorkPackage(CreatedByModel):
         def approved_annotation(user=None):
             if self.has_tier and self.tier <= Tier.TWO:
                 return Value(True, output_field=BooleanField())
-            participants_to_approve = self.get_work_package_participants_to_approve(
-                approver=user
-            )
+            participants_to_approve = self.get_work_package_participants_to_approve(approver=user)
             ids = [p.id for p in participants_to_approve]
             return Case(
-                When(
-                    participant__role__in=ProjectRole.approved_roles(), then=Value(True)
-                ),
+                When(participant__role__in=ProjectRole.approved_roles(), then=Value(True)),
                 When(id__in=ids, then=Value(False)),
                 default=Value(has_datasets),
                 output_field=BooleanField(),
@@ -740,12 +713,8 @@ class Participant(CreatedByModel):
         help_text="The participant's role on this project",
     )
 
-    user = models.ForeignKey(
-        User, related_name="participants", on_delete=models.CASCADE
-    )
-    project = models.ForeignKey(
-        Project, related_name="participants", on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(User, related_name="participants", on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, related_name="participants", on_delete=models.CASCADE)
 
     class Meta(CreatedByModel.Meta):
         unique_together = ("user", "project")
@@ -758,9 +727,7 @@ class Participant(CreatedByModel):
         return self.user.project_permissions(self.project, participant=self)
 
     def get_work_package_participant(self, work_package):
-        qs = WorkPackageParticipant.objects.filter(
-            participant=self, work_package=work_package
-        )
+        qs = WorkPackageParticipant.objects.filter(participant=self, work_package=work_package)
         if qs.exists():
             return qs.first()
         return None
@@ -798,9 +765,7 @@ class ClassificationOpinionQuestion(models.Model):
         ClassificationOpinion, on_delete=models.CASCADE, related_name="questions"
     )
     order = models.SmallIntegerField()
-    question = models.ForeignKey(
-        ClassificationQuestion, on_delete=models.PROTECT, related_name="+"
-    )
+    question = models.ForeignKey(ClassificationQuestion, on_delete=models.PROTECT, related_name="+")
     question_version = models.IntegerField()
     answer = models.BooleanField()
 
@@ -826,13 +791,9 @@ class PolicyAssignment(models.Model):
 
 
 class ProjectDataset(CreatedByModel):
-    project = models.ForeignKey(
-        Project, related_name="project_datasets", on_delete=models.CASCADE
-    )
+    project = models.ForeignKey(Project, related_name="project_datasets", on_delete=models.CASCADE)
     dataset = models.ForeignKey(Dataset, related_name="+", on_delete=models.PROTECT)
-    representative = models.ForeignKey(
-        User, related_name="+", on_delete=models.PROTECT, null=False
-    )
+    representative = models.ForeignKey(User, related_name="+", on_delete=models.PROTECT, null=False)
 
     def get_absolute_url(self):
         return reverse("projects:dataset_detail", args=[self.project.id, self.id])
@@ -855,9 +816,7 @@ class WorkPackageParticipant(CreatedByModel):
     work_package = models.ForeignKey(
         WorkPackage, related_name="work_package_participants", on_delete=models.CASCADE
     )
-    participant = models.ForeignKey(
-        Participant, related_name="+", on_delete=models.CASCADE
-    )
+    participant = models.ForeignKey(Participant, related_name="+", on_delete=models.CASCADE)
 
     class Meta(CreatedByModel.Meta):
         unique_together = ("participant", "work_package")
@@ -866,9 +825,7 @@ class WorkPackageParticipant(CreatedByModel):
         approver_participant = approver.get_participant(self.work_package.project)
 
         if approver_participant.role != ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value:
-            raise ValidationError(
-                "Only Data Provider Representatives can approve users"
-            )
+            raise ValidationError("Only Data Provider Representatives can approve users")
 
         for pd in ProjectDataset.objects.filter(
             project=self.work_package.project, representative=approver

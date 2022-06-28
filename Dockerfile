@@ -26,7 +26,7 @@ RUN npm install -g gulp
 RUN npm install gulp
 
 
-COPY static/gulpfile.js ./ 
+COPY static/gulpfile.js ./
 COPY entrypoint.sh /
 RUN sed -i 's/\r$//g' /entrypoint.sh
 RUN chmod +x /entrypoint.sh

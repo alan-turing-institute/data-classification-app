@@ -70,9 +70,7 @@ PUBLISHABLE = "publishable"
 SOPHISTICATED_ATTACK = "sophisticated_attack"
 SUBSTANTIAL_THREAT = "substantial_threat"
 
-CLOSED_PERSONAL_TEXT = (
-    'Will any project input be <a href="#personal_data">personal data</a>?'
-)
+CLOSED_PERSONAL_TEXT = 'Will any project input be <a href="#personal_data">personal data</a>?'
 FINANCIAL_LOW_TEXT = (
     "Do you have high confidence that the commercial, legal, "
     "reputational or political consequences of unauthorised "
@@ -532,9 +530,7 @@ def verify_initial_questions(apps):
     stored = ClassificationQuestion.objects.filter(hidden=False)
     initial = {q["name"]: q for q in initial_questions()}
     if len(stored) != len(initial):
-        raise RuntimeError(
-            f"Expected {len(initial)} questions but there were {len(stored)}"
-        )
+        raise RuntimeError(f"Expected {len(initial)} questions but there were {len(stored)}")
     for q in stored:
         q = {
             "name": q.name,
@@ -557,9 +553,7 @@ def verify_initial_questions(apps):
     stored = ClassificationGuidance.objects.filter()
     initial = {g["name"]: g for g in initial_guidance()}
     if len(stored) != len(initial):
-        raise RuntimeError(
-            f"Expected {len(initial)} guidance but there were {len(stored)}"
-        )
+        raise RuntimeError(f"Expected {len(initial)} guidance but there were {len(stored)}")
     for g in stored:
         g = {
             "name": g.name,
@@ -575,13 +569,9 @@ def migrate_question(apps, name, kwargs):
     ClassificationQuestion = apps.get_model("data", "ClassificationQuestion")
     q = ClassificationQuestion.objects.get(name=name)
     if kwargs["yes_question"]:
-        kwargs["yes_question"] = ClassificationQuestion.objects.get(
-            name=kwargs["yes_question"]
-        )
+        kwargs["yes_question"] = ClassificationQuestion.objects.get(name=kwargs["yes_question"])
     if kwargs["no_question"]:
-        kwargs["no_question"] = ClassificationQuestion.objects.get(
-            name=kwargs["no_question"]
-        )
+        kwargs["no_question"] = ClassificationQuestion.objects.get(name=kwargs["no_question"])
     q.question = kwargs["question"]
     q.yes_question = kwargs["yes_question"]
     q.no_question = kwargs["no_question"]
@@ -614,9 +604,7 @@ def hide_question_if_present(apps, name):
 
 def _attach_history(apps, q):
     ClassificationQuestion = apps.get_model("data", "ClassificationQuestion")
-    HistoricalClassificationQuestion = apps.get_model(
-        "data", "HistoricalClassificationQuestion"
-    )
+    HistoricalClassificationQuestion = apps.get_model("data", "HistoricalClassificationQuestion")
     manager = HistoryManager(HistoricalClassificationQuestion)
     q.history = manager
     history = HistoricalRecords()

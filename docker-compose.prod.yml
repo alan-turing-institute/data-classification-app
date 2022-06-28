@@ -11,11 +11,11 @@ services:
     ports:
       - '5432:5432'
      # ensure postgres is coming up with ssl mode on
-     #command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgressql/server.key  
+     #command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgressql/server.key
     environment:
       - POSTGRES_DB=haven
       - POSTGRES_USER=haven
-      - POSTGRES_PASSWORD=haven  
+      - POSTGRES_PASSWORD=haven
 
   web:
     build:
@@ -86,7 +86,7 @@ services:
       - ./redis:/data
     expose:
       - 6379
-    restart: unless-stopped      
+    restart: unless-stopped
 
 volumes:
   postgres_data:

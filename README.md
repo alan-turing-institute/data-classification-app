@@ -7,7 +7,7 @@ the [Turing Safe Haven](https://github.com/alan-turing-institute/data-safe-haven
 ## Requirements
 
 The web application is not designed for any specific cloud platform, but currently has only been tested on Azure.
- The web framework is built on Django with Python3. It uses an external database (tested on PostgreSQL), 
+ The web framework is built on Django with Python3. It uses an external database (tested on PostgreSQL),
  OAuth2 for authentication (tested on OAuth2 for Azure Active Directory) and Graph API for group membership.
 
 The webapp has been tested, and instructions are provided for, the following deployment scenarios:
@@ -24,7 +24,7 @@ The webapp has been tested, and instructions are provided for, the following dep
 
 ## Deploying test instances for development
 
-* [Setting up local development](docs/development/set-up-local-development.md)  
+* [Setting up local development](docs/development/set-up-local-development.md)
 * [Creating a staging server on Azure](docs/development/create-staging-server-on-azure.md)
 * [Local development notes](docs/development/local-development-notes.md)
 
