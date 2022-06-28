@@ -6,8 +6,9 @@ repos:
     rev: v4.1.0
     hooks:
       - id: trailing-whitespace
+        exclude: '^static/'
       - id: end-of-file-fixer
-        exclude: '^static/css/'
+        exclude: '^static/'
       - id: check-yaml
 
   - repo: https://github.com/psf/black

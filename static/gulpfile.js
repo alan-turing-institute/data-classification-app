@@ -48,7 +48,7 @@ var bundle = function(pkg) {
       .pipe(gulp.dest(config.js.outputDir));
 };
 gulp.task('js', bundle.bind(null, browserified()));
-
+ 
 
 gulp.task('watch', function() {
   gulp.watch(config.sass.src, { usePolling: config.poll }, sass);
