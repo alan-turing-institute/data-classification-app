@@ -34,9 +34,7 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assignable_roles = [
-            r.value for r in self.user.system_permissions.creatable_roles
-        ]
+        assignable_roles = [r.value for r in self.user.system_permissions.creatable_roles]
 
         # Hide the role field if the only allowable role is standard user
         if assignable_roles and assignable_roles != [UserRole.NONE.value]:
@@ -57,18 +55,14 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
                 raise ValidationError(f"You cannot assign the role {role_display}")
         else:
             if not self.user.system_permissions.can_assign_role(role_model):
-                raise ValidationError(
-                    f"You cannot edit users with the role {role_display}"
-                )
+                raise ValidationError(f"You cannot edit users with the role {role_display}")
         return role
 
     def clean_email(self):
         email = self.cleaned_data["email"]
         if "email" in self.changed_data:
             if User.objects.filter(email=email).exists():
-                raise ValidationError(
-                    "There is already a user with this email address."
-                )
+                raise ValidationError("There is already a user with this email address.")
         return email
 
     def clean(self):
@@ -77,9 +71,7 @@ class EditUserForm(UserKwargModelFormMixin, forms.ModelForm):
             role_model = self.instance.user_role
             role_display = UserRole.display_name(self.instance.role)
             if not self.user.system_permissions.can_assign_role(role_model):
-                raise ValidationError(
-                    f"You cannot edit users with the role {role_display}"
-                )
+                raise ValidationError(f"You cannot edit users with the role {role_display}")
 
 
 class CreateUserForm(SaveCreatorMixin, EditUserForm):

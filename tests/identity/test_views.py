@@ -422,9 +422,10 @@ class TestImportUsers:
 
     def test_csv_users(self):
         users = csv_users(
-            "Email,Last Name,First Name,Mobile Phone,Other field\nem1@email.com,ln1,fn1,01234567890"
-            ",other1\nem2@email.com,ln2,fn2,02345678901,other2\nem3@email.com,ln3,fn3,03456789012,"
-            "other3"
+            "Email,Last Name,First Name,Mobile Phone,Other field\n"
+            "em1@email.com,ln1,fn1,01234567890,other1\n"
+            "em2@email.com,ln2,fn2,02345678901,other2\n"
+            "em3@email.com,ln3,fn3,03456789012,other3"
         )
         u1 = users.__next__()
         assert u1.first_name == "fn1"

@@ -38,7 +38,7 @@ RUN npm install gulp
 COPY haven ./haven
 COPY static ./static
 
-COPY static/gulpfile.js ./ 
+COPY static/gulpfile.js ./
 COPY manage.py ./
 COPY entrypoint.prod.sh ./
 RUN sed -i 's/\r$//g' /app/entrypoint.prod.sh
