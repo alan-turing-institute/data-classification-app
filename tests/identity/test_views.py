@@ -436,7 +436,7 @@ class TestExportUsers:
                 role=ProjectRole.RESEARCHER.value,
                 created_by=as_programme_manager._user,
             )
-            response = as_programme_manager.get(f"/users/export?project={project.pk}&new=true")
+            response = as_programme_manager.get(f"/users/export?project={project.uuid}&new=true")
             assert response.status_code == 200
             assert response["Content-Type"] == "text/csv"
             parsed = self.parse_csv_response(response)
