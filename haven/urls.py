@@ -63,5 +63,10 @@ if settings.LOCAL_AUTH:
             "accounts/login/",
             auth_views.LoginView.as_view(template_name="identity/login.html"),
             name="login",
-        )
+        ),
+        path(
+            "accounts/logout/",
+            auth_views.LogoutView.as_view(),
+            name="logout",
+        ),
     ] + urlpatterns

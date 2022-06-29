@@ -72,7 +72,7 @@
             Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
           </span>
           <span class="nav-item">
-            <a class="nav-link" href="{% url 'sso_logout' %}">Log Out</a>
+            <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
           </span>
           {% else %}
           <span class="dropdown show nav-item">
