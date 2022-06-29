@@ -1,5 +1,6 @@
 import csv
 import io
+from unittest import mock
 
 import pytest
 
@@ -344,6 +345,38 @@ class TestExportUsers:
             ["user1", "", "", "", "user@example.com"],
         ]
 
+    def test_export_new_as_pm(
+        self,
+        as_programme_manager,
+        system_manager,
+        standard_user,
+        project_participant,
+        user1,
+    ):
+        with mock.patch("haven.identity.views.get_system_user_list") as get_system_user_list:
+            get_system_user_list.return_value = [
+                "user1@example.com",
+                "nonuser@example.com",
+                "CONTROLLER@example.com",
+            ]
+
+            response = as_programme_manager.get("/users/export?new=true")
+            assert response.status_code == 200
+            assert response["Content-Type"] == "text/csv"
+            parsed = self.parse_csv_response(response)
+            assert parsed == [
+                ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
+                ["coordinator", "", "", "", "coordinator@example.com"],
+                ["user", "", "", "", "user@example.com"],
+                [
+                    "project_participant",
+                    "Angela",
+                    "Zala",
+                    "+441234567890",
+                    "project_participant@example.com",
+                ],
+            ]
+
     def test_export_by_project(
         self,
         as_programme_manager,
@@ -376,6 +409,47 @@ class TestExportUsers:
             "project_participant@example.com",
         ] in parsed
         assert len(parsed) == 3
+
+    def test_export_new_by_project(
+        self,
+        as_programme_manager,
+        system_manager,
+        standard_user,
+        project_participant,
+        user1,
+    ):
+        with mock.patch("haven.identity.views.get_system_user_list") as get_system_user_list:
+            get_system_user_list.return_value = [
+                "user1@example.com",
+                "nonuser@example.com",
+                "CONTROLLER@example.com",
+            ]
+
+            project = recipes.project.make(created_by=as_programme_manager._user)
+            project.add_user(
+                user1,
+                role=ProjectRole.PROJECT_MANAGER.value,
+                created_by=as_programme_manager._user,
+            )
+            project.add_user(
+                project_participant,
+                role=ProjectRole.RESEARCHER.value,
+                created_by=as_programme_manager._user,
+            )
+            response = as_programme_manager.get(f"/users/export?project={project.pk}&new=true")
+            assert response.status_code == 200
+            assert response["Content-Type"] == "text/csv"
+            parsed = self.parse_csv_response(response)
+            assert parsed == [
+                ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
+                [
+                    "project_participant",
+                    "Angela",
+                    "Zala",
+                    "+441234567890",
+                    "project_participant@example.com",
+                ],
+            ]
 
 
 @pytest.mark.django_db

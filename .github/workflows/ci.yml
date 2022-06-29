@@ -21,7 +21,8 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     env:
-      AUTH_TYPES: local
+      AUTH_TYPES: social,local
+      SOCIAL_AUTH_PROVIDERS: azure-ad-tenant
       DATABASE_URL: pgsql://haven:haven@db:5432/haven
       DJANGO_SETTINGS_MODULE: haven.settings.test
       SECRET_KEY: notasecret

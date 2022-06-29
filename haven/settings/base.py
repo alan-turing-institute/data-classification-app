@@ -86,6 +86,7 @@ THIRD_PARTY_APPS = [
     "oauth2_provider",
     "rest_framework",
     "simple_history",
+    "social_django",
     "taggit",
     "drf_spectacular",
 ]
@@ -114,6 +115,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
     "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
 ]
 
@@ -132,6 +134,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "sourcerevision.context_processors.source_revision",
+                "social_django.context_processors.backends",
+                "social_django.context_processors.login_redirect",
                 "haven.core.context_processors.auth_types",
             ],
             "libraries": {
@@ -179,6 +183,16 @@ if "remote" in HAVEN_AUTH_TYPES:
     ]
     MIDDLEWARE.append("haven.identity.auth.middleware.HttpRemoteUserMiddleware")
     LOGOUT_REDIRECT_URL = "https://auth." + BASE_DOMAIN + "/logout"
+if "social" in HAVEN_AUTH_TYPES:
+    from .components.social_auth import *  # noqa
+
+    SOCIAL_AUTH_PROVIDERS = env.list("SOCIAL_AUTH_PROVIDERS", default=[])
+    SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
+    for provider in SOCIAL_AUTH_PROVIDERS:
+        AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]  # noqa
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider][  # noqa
+            "display_name"
+        ]
 if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",
