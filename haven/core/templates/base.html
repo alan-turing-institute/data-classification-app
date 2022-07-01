@@ -83,6 +83,11 @@
               {% if "local" in AUTH_TYPES %}
                 <a class="dropdown-item" href="{% url "login" %}">Login with local account</a>
               {% endif %}
+              {% if "social" in AUTH_TYPES %}
+                {% for backend in backends.backends %}
+                  <a class="dropdown-item" href="{% url "social:begin" backend %}">Login with {{ backend | auth_display }}</a>
+                {% endfor %}
+              {% endif %}
             </div>
           </span>
           {% endif %}
