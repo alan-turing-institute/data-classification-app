@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from django.conf import settings
 
 from haven.identity.pipeline import (
     determine_role,
@@ -70,8 +71,7 @@ class TestUserFields:
 @pytest.mark.django_db
 @patch("haven.identity.pipeline.user_client")
 class TestDetermineRole:
-    @pytest.mark.xfail(reason="`mock_client` fixture cannot be found")
-    def test_detects_sys_controller(self, settings, mock_client, azure_backend, user1):
+    def test_detects_sys_controller(self, mock_client, azure_backend, user1):
         settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
@@ -88,8 +88,7 @@ class TestDetermineRole:
         user1.refresh_from_db()
         assert user1.role == "system_manager"
 
-    @pytest.mark.xfail(reason="`mock_client` fixture cannot be found")
-    def test_detects_programme_manager(self, settings, mock_client, azure_backend, user1):
+    def test_detects_programme_manager(self, mock_client, azure_backend, user1):
         settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
@@ -106,8 +105,7 @@ class TestDetermineRole:
         user1.refresh_from_db()
         assert user1.role == "programme_manager"
 
-    @pytest.mark.xfail(reason="`mock_client` fixture cannot be found")
-    def test_detects_no_role(self, settings, mock_client, azure_backend, system_manager):
+    def test_detects_no_role(self, mock_client, azure_backend, system_manager):
         settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
