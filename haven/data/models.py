@@ -81,7 +81,7 @@ class ClassificationQuestion(models.Model):
         likewise for no_question and no_tier"""
 
         def check_one_not_both(question, tier, yes_no: str):
-            tier = False if tier == None else True
+            tier = False if tier is None else True
             if bool(question) == tier:  # Effectively XNOR
                 msg = f"Questions must have a {yes_no} question or a {yes_no} tier, but not both."
                 raise ValidationError(

@@ -184,9 +184,9 @@ if "social" in HAVEN_AUTH_TYPES:
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
         AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]  # noqa
-        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider][
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider][  # noqa
             "display_name"
-        ]  # noqa
+        ]
 if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",

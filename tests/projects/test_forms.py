@@ -1,7 +1,6 @@
 import pytest
 
 from haven.core import recipes
-from haven.identity.models import User
 from haven.projects.forms import ProjectAddUserForm, ProjectForUserInlineForm
 from haven.projects.roles import ProjectRole
 
