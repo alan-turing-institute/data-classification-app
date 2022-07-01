@@ -133,9 +133,7 @@ def as_investigator(client, investigator):
 
 
 @pytest.fixture
-def classified_work_package(
-    programme_manager, investigator, data_provider_representative, referee
-):
+def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
     def _classified_work_package(tier):
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
@@ -159,9 +157,7 @@ def classified_work_package(
         )
         work_package.add_user(referee.user, programme_manager)
 
-        project.add_dataset(
-            dataset, data_provider_representative.user, investigator.user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
         work_package.open_classification()

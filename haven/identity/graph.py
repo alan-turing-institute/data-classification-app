@@ -51,9 +51,7 @@ class GraphClient:
                 response_json = json.loads(response.text)
 
                 # Get the next set of users
-                next_user_list = [
-                    item["userPrincipalName"] for item in response_json["value"]
-                ]
+                next_user_list = [item["userPrincipalName"] for item in response_json["value"]]
                 user_list = user_list + next_user_list
 
                 # Check if there are additional pages of users to be returned

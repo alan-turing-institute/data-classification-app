@@ -35,7 +35,6 @@ class ClassificationQuestionSet(models.Model):
 
 
 class ClassificationQuestion(models.Model):
-
     class Meta:
         unique_together = [["name", "question_set"]]
 
@@ -43,7 +42,7 @@ class ClassificationQuestion(models.Model):
     question_set = models.ForeignKey(
         "ClassificationQuestionSet",
         on_delete=models.CASCADE,  # delete this if question_set is deleted
-        related_name="questions"
+        related_name="questions",
     )
     question = models.TextField()
     yes_question = models.ForeignKey(
@@ -80,21 +79,22 @@ class ClassificationQuestion(models.Model):
         """Don't allow questions to link to questions from another question set
         and questions should have one of yes_question and yes_tier but not both,
         likewise for no_question and no_tier"""
-        def check_one_not_both(question, tier, yes_no:str):
+
+        def check_one_not_both(question, tier, yes_no: str):
             tier = False if tier == None else True
             if bool(question) == tier:  # Effectively XNOR
                 msg = f"Questions must have a {yes_no} question or a {yes_no} tier, but not both."
-                raise ValidationError({
-                    f"{yes_no}_question": msg,
-                    f"{yes_no}_tier": msg,
-                })
+                raise ValidationError(
+                    {
+                        f"{yes_no}_question": msg,
+                        f"{yes_no}_tier": msg,
+                    }
+                )
 
-        def check_no_foreign_question_sets(question_set, linked_question, yes_no:str):
+        def check_no_foreign_question_sets(question_set, linked_question, yes_no: str):
             if linked_question and question_set != linked_question.question_set:
                 msg = f"{yes_no.capitalize()} question cannot be from another question set"
-                raise ValidationError({
-                    f"{yes_no}_question": msg
-                })
+                raise ValidationError({f"{yes_no}_question": msg})
 
         check_one_not_both(self.yes_question, self.yes_tier, "yes")
         check_one_not_both(self.no_question, self.no_tier, "no")
@@ -108,7 +108,7 @@ class ClassificationGuidance(models.Model):
     question_set = models.ForeignKey(
         "ClassificationQuestionSet",
         on_delete=models.CASCADE,  # delete this if question_set is deleted
-        related_name="guidance"
+        related_name="guidance",
     )
 
     def __str__(self):

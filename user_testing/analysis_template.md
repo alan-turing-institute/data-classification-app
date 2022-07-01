@@ -27,18 +27,18 @@ For example:
 1. Click 'View My Projects'
     * **Understand?**: G
     * **Complete?**: G
-    * **Comments**: 
+    * **Comments**:
         * Found the button straight away
         * 'I love how easy it is to see what we need to do'
 
 2. Click the name of the chosen project
     * **Understand?**: G
     * **Complete?**: R
-    * **Comments**: 
+    * **Comments**:
         * 'I didn't realise you could click on the title directly'
         * HS had to step in and explain what to do
         * Wasn't sure which project to choose - need to clarify that any choice is fine
-        
+
  General thoughts:
    * **Agree with process?**: A
    * **Comments**:
@@ -61,10 +61,10 @@ Add as many actions as required to represent everything actionable that arose in
 User score: X/10
 
 1. Read through the guide
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -80,7 +80,7 @@ User score: X/10
             * **Difficulty**:
 
 General thoughts:
-   * **Agree with process?**: 
+   * **Agree with process?**:
    * **Comments**:
       * .
       * .
@@ -90,10 +90,10 @@ General thoughts:
 User score: X/10
 
 1. Click 'View My Projects'
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -109,10 +109,10 @@ User score: X/10
             * **Difficulty**:
 
 2. Click the name of the chosen project
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -126,9 +126,9 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-       
+
 General thoughts:
-   * **Agree with process?**: 
+   * **Agree with process?**:
    * **Comments**:
       * .
       * .
@@ -138,10 +138,10 @@ General thoughts:
 User score: X/10
 
 1. Click 'Add Dataset'
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -155,12 +155,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 2. Give the dataset a name, description, add a Dataset Provider and assign to a work package
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -176,7 +176,7 @@ User score: X/10
             * **Difficulty**:
 
 General thoughts:
-   * **Agree with process?**: 
+   * **Agree with process?**:
    * **Comments**:
       * .
       * .
@@ -186,10 +186,10 @@ General thoughts:
 User score: X/10
 
 1. Click 'Add Participant'
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -203,12 +203,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 2. Add user, role (referee or project manager), and assign to relevant work package
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -222,12 +222,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 3. Repeat for other role(s)
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -243,7 +243,7 @@ User score: X/10
             * **Difficulty**:
 
 General thoughts:
-   * **Agree with process?**: 
+   * **Agree with process?**:
    * **Comments**:
       * .
       * .
@@ -253,10 +253,10 @@ General thoughts:
 User score: X/10
 
 1. Click on work package
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -270,12 +270,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 2. Open classification
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -289,12 +289,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 3. Start process to classify work package
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -308,12 +308,12 @@ User score: X/10
         3. **Action**:
             * **Urgency**:
             * **Difficulty**:
-            
+
 4. Answer questions
-    * **Understand?**: 
-    * **Complete?**: 
-    * **Resolve?**: 
-    * **Comments**: 
+    * **Understand?**:
+    * **Complete?**:
+    * **Resolve?**:
+    * **Comments**:
         * .
         * .
         * .
@@ -329,10 +329,8 @@ User score: X/10
             * **Difficulty**:
 
 General thoughts:
-   * **Agree with process?**: 
+   * **Agree with process?**:
    * **Comments**:
       * .
       * .
       * .
-
-

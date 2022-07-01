@@ -178,17 +178,16 @@ if "remote" in HAVEN_AUTH_TYPES:
 if "social" in HAVEN_AUTH_TYPES:
     from .components.social_auth import *
 
-    SOCIAL_AUTH_PROVIDERS=env.list("SOCIAL_AUTH_PROVIDERS", default=[])
+    SOCIAL_AUTH_PROVIDERS = env.list("SOCIAL_AUTH_PROVIDERS", default=[])
     SOCIAL_AUTH_BACKEND_DISPLAY_NAMES = {}
     for provider in SOCIAL_AUTH_PROVIDERS:
         AUTHENTICATION_BACKENDS += [provider_dictionary[provider]["backend"]]
-        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = \
-            provider_dictionary[provider]["display_name"]
+        SOCIAL_AUTH_BACKEND_DISPLAY_NAMES[provider] = provider_dictionary[provider]["display_name"]
 if "local" in HAVEN_AUTH_TYPES:
     AUTHENTICATION_BACKENDS += [
         "django.contrib.auth.backends.ModelBackend",
     ]
-    LOCAL_AUTH=True
+    LOCAL_AUTH = True
 
 
 # PASSWORDS

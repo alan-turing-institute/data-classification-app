@@ -5,7 +5,11 @@ import pytest
 
 from haven.core import recipes
 from haven.data.classification import insert_initial_questions
-from haven.data.models import ClassificationGuidance, ClassificationQuestion, ClassificationQuestionSet
+from haven.data.models import (
+    ClassificationGuidance,
+    ClassificationQuestion,
+    ClassificationQuestionSet,
+)
 from haven.identity.models import User
 from haven.projects.models import (
     ClassificationOpinion,
@@ -38,14 +42,14 @@ class TestCreateProject:
         assert response.status_code == 403
 
     def test_create_project(self, as_programme_manager):
-        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
+        question_set, _ = ClassificationQuestionSet.objects.get_or_create(name="turing")
         response = as_programme_manager.post(
             "/projects/new",
             {
                 "name": "my project",
                 "description": "a new project",
                 "programmes": "prog1, prog2",
-                "question_set": question_set.id
+                "question_set": question_set.id,
             },
         )
 
@@ -60,11 +64,15 @@ class TestCreateProject:
         assert project.created_by == as_programme_manager._user
 
     def test_cannot_create_duplicate_project(self, as_programme_manager):
-        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
+        question_set, _ = ClassificationQuestionSet.objects.get_or_create(name="turing")
         recipes.project.make(name="my project", question_set=question_set)
         response = as_programme_manager.post(
             "/projects/new",
-            {"name": "my project", "description": "a duplicate project", "question_set": question_set.id},
+            {
+                "name": "my project",
+                "description": "a duplicate project",
+                "question_set": question_set.id,
+            },
         )
 
         assert response.status_code == 200
@@ -75,7 +83,7 @@ class TestCreateProject:
         assert Project.objects.count() == 1
 
     def test_create_project_for_programme(self, as_programme_manager):
-        question_set,_ = ClassificationQuestionSet.objects.get_or_create(name="turing")
+        question_set, _ = ClassificationQuestionSet.objects.get_or_create(name="turing")
         response = as_programme_manager.get("/projects/new")
         assert response.context["form"].initial == {}
 
@@ -251,9 +259,7 @@ class TestArchiveProject:
 
 @pytest.mark.django_db
 class TestViewWorkPackage:
-    def test_view_work_package_policy_tier0(
-        self, as_programme_manager, classified_work_package
-    ):
+    def test_view_work_package_policy_tier0(self, as_programme_manager, classified_work_package):
         insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(0)
 
@@ -267,9 +273,7 @@ class TestViewWorkPackage:
         assert table[0] == ["Policy", "Description"]
         assert table[1] == ["Tier", "0"]
 
-    def test_cannot_view_for_wrong_project(
-        self, as_programme_manager, classified_work_package
-    ):
+    def test_cannot_view_for_wrong_project(self, as_programme_manager, classified_work_package):
         wp1 = classified_work_package(0)
         wp2 = classified_work_package(0)
 
@@ -299,12 +303,8 @@ class TestViewWorkPackage:
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             as_programme_manager._user,
         )
-        project.add_user(
-            user2, ProjectRole.RESEARCHER.value, as_programme_manager._user
-        )
-        project.add_user(
-            user3, ProjectRole.RESEARCHER.value, as_programme_manager._user
-        )
+        project.add_user(user2, ProjectRole.RESEARCHER.value, as_programme_manager._user)
+        project.add_user(user3, ProjectRole.RESEARCHER.value, as_programme_manager._user)
 
         work_package = recipes.work_package.make(project=project)
         work_package.add_user(user2, as_programme_manager._user)
@@ -406,9 +406,7 @@ class TestAddUserToProject:
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            "/projects/%d/participants/add" % project.id
-        )
+        response = as_programme_manager.get("/projects/%d/participants/add" % project.id)
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -427,9 +425,7 @@ class TestAddUserToProject:
         assert response.url == "/projects/%d" % project.id
 
         assert project.participants.count() == 1
-        assert (
-            project.participants.first().user.username == project_participant.username
-        )
+        assert project.participants.first().user.username == project_participant.username
 
     def test_add_new_user_to_project_and_work_packages(
         self, as_programme_manager, project_participant
@@ -472,9 +468,7 @@ class TestAddUserToProject:
         assert participants.count() == 1
         assert participants.first().user.username == project_participant.username
 
-    def test_cancel_add_new_user_to_project(
-        self, as_programme_manager, project_participant
-    ):
+    def test_cancel_add_new_user_to_project(self, as_programme_manager, project_participant):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         response = as_programme_manager.post(
@@ -511,14 +505,10 @@ class TestAddUserToProject:
         assert project.participants.count() == 1
         assert project.participants.first().user.username == "newuser"
 
-    def test_cannot_add_existing_user_to_project(
-        self, as_programme_manager, project_participant
-    ):
+    def test_cannot_add_existing_user_to_project(self, as_programme_manager, project_participant):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        project.add_user(
-            project_participant, ProjectRole.RESEARCHER, as_programme_manager._user
-        )
+        project.add_user(project_participant, ProjectRole.RESEARCHER, as_programme_manager._user)
         assert project.participants.count() == 1
 
         response = as_programme_manager.post(
@@ -590,14 +580,10 @@ class TestEditParticipant:
     def test_anonymous_cannot_access_page(self, client, helpers):
         project = recipes.project.make()
         investigator = recipes.investigator.make(project=project)
-        response = client.get(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id)
-        )
+        response = client.get("/projects/%d/participants/%d/edit" % (project.id, investigator.id))
         helpers.assert_login_redirect(response)
 
-        response = client.post(
-            "/projects/%d/participants/%d/edit" % (project.id, investigator.id)
-        )
+        response = client.post("/projects/%d/participants/%d/edit" % (project.id, investigator.id))
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_programme_manager):
@@ -671,9 +657,7 @@ class TestEditParticipant:
         assert participants.count() == 1
         assert participants.first().user.username == investigator.user.username
 
-    def test_edit_approved_participant(
-        self, data_provider_representative, as_programme_manager
-    ):
+    def test_edit_approved_participant(self, data_provider_representative, as_programme_manager):
 
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(
@@ -682,14 +666,10 @@ class TestEditParticipant:
 
         investigator = recipes.investigator.make(project=project)
         dataset = recipes.dataset.make()
-        project.add_dataset(
-            dataset, data_provider_representative.user, as_programme_manager._user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, as_programme_manager._user)
         work_package.add_dataset(dataset, as_programme_manager._user)
 
-        p = work_package.add_user(
-            investigator.user, created_by=as_programme_manager._user
-        )
+        p = work_package.add_user(investigator.user, created_by=as_programme_manager._user)
         p.approve(data_provider_representative.user)
         assert p.approvals.count() == 1
 
@@ -769,9 +749,7 @@ class TestEditParticipants:
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            "/projects/%d/participants/edit" % (project.id,)
-        )
+        response = as_programme_manager.get("/projects/%d/participants/edit" % (project.id,))
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -808,28 +786,20 @@ class TestEditParticipants:
 
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
-        response = as_standard_user.get(
-            "/projects/%d/participants/edit" % (project.id,)
-        )
+        response = as_standard_user.get("/projects/%d/participants/edit" % (project.id,))
         assert response.status_code == 404
 
-        response = as_standard_user.post(
-            "/projects/%d/participants/edit" % (project.id,)
-        )
+        response = as_standard_user.post("/projects/%d/participants/edit" % (project.id,))
         assert response.status_code == 404
 
     def test_returns_403_if_no_add_permissions(self, client, researcher):
         # Researchers can't add participants, so do not display the page
         client.force_login(researcher.user)
 
-        response = client.get(
-            "/projects/%d/participants/edit" % (researcher.project.id,)
-        )
+        response = client.get("/projects/%d/participants/edit" % (researcher.project.id,))
         assert response.status_code == 403
 
-        response = client.post(
-            "/projects/%d/participants/edit" % (researcher.project.id,)
-        )
+        response = client.post("/projects/%d/participants/edit" % (researcher.project.id,))
         assert response.status_code == 403
 
     def test_restricts_creation_based_on_role(self, client, referee, researcher):
@@ -951,10 +921,7 @@ class TestProjectAddDataset:
 
         assert project.get_representative(dataset) == user1
 
-        assert (
-            user1.get_participant(project).role
-            == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        assert user1.get_participant(project).role == ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
 
     def test_add_new_dataset_to_project_no_user(self, as_programme_manager, user1):
         project = recipes.project.make(created_by=as_programme_manager._user)
@@ -999,9 +966,7 @@ class TestProjectViewDataset:
     ):
         project = recipes.project.make(created_by=programme_manager)
         dataset = recipes.dataset.make()
-        pd = project.add_dataset(
-            dataset, data_provider_representative.user, programme_manager
-        )
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
         response = client.get("/projects/%d/datasets/%d" % (project.id, pd.id))
         helpers.assert_login_redirect(response)
@@ -1013,9 +978,7 @@ class TestProjectViewDataset:
             dataset, data_provider_representative.user, as_programme_manager._user
         )
 
-        response = as_programme_manager.get(
-            "/projects/%d/datasets/%d" % (project.id, pd.id)
-        )
+        response = as_programme_manager.get("/projects/%d/datasets/%d" % (project.id, pd.id))
         assert response.status_code == 200
         assert response.context["project"] == project
         assert response.context["dataset"] == pd
@@ -1028,9 +991,7 @@ class TestProjectEditDataset:
     ):
         project = recipes.project.make(created_by=programme_manager)
         dataset = recipes.dataset.make()
-        pd = project.add_dataset(
-            dataset, data_provider_representative.user, programme_manager
-        )
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
         response = client.get("/projects/%d/datasets/%d/edit" % (project.id, pd.id))
         helpers.assert_login_redirect(response)
@@ -1042,32 +1003,20 @@ class TestProjectEditDataset:
         self, data_provider_representative, programme_manager, as_investigator
     ):
         project = recipes.project.make(created_by=programme_manager)
-        project.add_user(
-            as_investigator._user, ProjectRole.INVESTIGATOR.value, programme_manager
-        )
+        project.add_user(as_investigator._user, ProjectRole.INVESTIGATOR.value, programme_manager)
         dataset = recipes.dataset.make()
-        pd = project.add_dataset(
-            dataset, data_provider_representative.user, programme_manager
-        )
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = as_investigator.get(
-            "/projects/%d/datasets/%d/edit" % (project.id, pd.id)
-        )
+        response = as_investigator.get("/projects/%d/datasets/%d/edit" % (project.id, pd.id))
         assert response.status_code == 403
 
-        response = as_investigator.post(
-            "/projects/%d/datasets/%d/edit" % (project.id, pd.id)
-        )
+        response = as_investigator.post("/projects/%d/datasets/%d/edit" % (project.id, pd.id))
         assert response.status_code == 403
 
-        response = as_investigator.get(
-            "/projects/%d/datasets/%d/edit_dpr" % (project.id, pd.id)
-        )
+        response = as_investigator.get("/projects/%d/datasets/%d/edit_dpr" % (project.id, pd.id))
         assert response.status_code == 403
 
-        response = as_investigator.post(
-            "/projects/%d/datasets/%d/edit_dpr" % (project.id, pd.id)
-        )
+        response = as_investigator.post("/projects/%d/datasets/%d/edit_dpr" % (project.id, pd.id))
         assert response.status_code == 403
 
     def test_edit_dataset(self, as_programme_manager, data_provider_representative):
@@ -1077,9 +1026,7 @@ class TestProjectEditDataset:
             dataset, data_provider_representative.user, as_programme_manager._user
         )
 
-        response = as_programme_manager.get(
-            "/projects/%d/datasets/%d/edit" % (project.id, pd.id)
-        )
+        response = as_programme_manager.get("/projects/%d/datasets/%d/edit" % (project.id, pd.id))
         assert response.status_code == 200
         assert response.context["project"] == project
         assert response.context["dataset"] == pd
@@ -1098,9 +1045,7 @@ class TestProjectEditDataset:
         assert dataset.name == "Edited Project"
         assert dataset.description == "Edited Description"
 
-    def test_cannot_edit_used_dataset(
-        self, as_programme_manager, data_provider_representative
-    ):
+    def test_cannot_edit_used_dataset(self, as_programme_manager, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(
             project=project,
@@ -1119,9 +1064,7 @@ class TestProjectEditDataset:
         work_package.add_dataset(dataset, as_programme_manager._user)
         work_package2.add_dataset(dataset, as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.id}/edit"
-        )
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/edit")
         assert response.status_code == 403
         response = as_programme_manager.post(
             f"/projects/{project.id}/datasets/{pd.id}/edit",
@@ -1147,9 +1090,7 @@ class TestProjectEditDataset:
         )
         work_package.add_dataset(dataset, as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.id}/edit_dpr"
-        )
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/edit_dpr")
         assert response.status_code == 200
         assert response.context["project"] == project
         assert response.context["dataset"] == pd
@@ -1166,9 +1107,7 @@ class TestProjectEditDataset:
         dataset.refresh_from_db()
         assert dataset.default_representative == user1
         assert project.get_representative(dataset) == user1
-        participants = project.get_all_participants(
-            ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value
-        )
+        participants = project.get_all_participants(ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value)
         assert [p.user for p in participants] == [
             data_provider_representative.user,
             user1,
@@ -1187,9 +1126,7 @@ class TestProjectDeleteDataset:
     ):
         project = recipes.project.make(created_by=programme_manager)
         dataset = recipes.dataset.make()
-        pd = project.add_dataset(
-            dataset, data_provider_representative.user, programme_manager
-        )
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
         response = client.get(f"/projects/{project.id}/datasets/{pd.id}/delete")
         helpers.assert_login_redirect(response)
@@ -1201,22 +1138,14 @@ class TestProjectDeleteDataset:
         self, data_provider_representative, programme_manager, as_investigator
     ):
         project = recipes.project.make(created_by=programme_manager)
-        project.add_user(
-            as_investigator._user, ProjectRole.INVESTIGATOR.value, programme_manager
-        )
+        project.add_user(as_investigator._user, ProjectRole.INVESTIGATOR.value, programme_manager)
         dataset = recipes.dataset.make()
-        pd = project.add_dataset(
-            dataset, data_provider_representative.user, programme_manager
-        )
+        pd = project.add_dataset(dataset, data_provider_representative.user, programme_manager)
 
-        response = as_investigator.get(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_investigator.get(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 403
 
-        response = as_investigator.post(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_investigator.post(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 403
 
     def test_delete_dataset(self, as_programme_manager, data_provider_representative):
@@ -1226,25 +1155,19 @@ class TestProjectDeleteDataset:
             dataset, data_provider_representative.user, as_programme_manager._user
         )
 
-        response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 200
         assert response.context["project"] == project
         assert response.context["dataset"] == pd
 
-        response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.post(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 302
         assert response.url == f"/projects/{project.id}"
 
         project.refresh_from_db()
         assert project.datasets.count() == 0
 
-    def test_cannot_delete_used_dataset(
-        self, as_programme_manager, data_provider_representative
-    ):
+    def test_cannot_delete_used_dataset(self, as_programme_manager, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(
             project=project,
@@ -1263,13 +1186,9 @@ class TestProjectDeleteDataset:
         work_package.add_dataset(dataset, as_programme_manager._user)
         work_package2.add_dataset(dataset, as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 403
-        response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.post(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 403
 
         project.refresh_from_db()
@@ -1277,9 +1196,7 @@ class TestProjectDeleteDataset:
         assert work_package.datasets.count() == 1
         assert work_package2.datasets.count() == 1
 
-    def test_delete_dataset_used_on_new(
-        self, as_programme_manager, data_provider_representative
-    ):
+    def test_delete_dataset_used_on_new(self, as_programme_manager, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(
             project=project,
@@ -1292,16 +1209,12 @@ class TestProjectDeleteDataset:
         )
         work_package.add_dataset(dataset, as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.get(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 200
         assert response.context["project"] == project
         assert response.context["dataset"] == pd
 
-        response = as_programme_manager.post(
-            f"/projects/{project.id}/datasets/{pd.id}/delete"
-        )
+        response = as_programme_manager.post(f"/projects/{project.id}/datasets/{pd.id}/delete")
         assert response.status_code == 302
         assert response.url == f"/projects/{project.id}"
 
@@ -1324,15 +1237,13 @@ class TestWorkPackageAddParticipant:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/participants/new"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/new" % (project.id, work_package.id)
         )
 
         assert response.status_code == 200
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/participants/new"
-            % (project.id, work_package.id),
+            "/projects/%d/work_packages/%d/participants/new" % (project.id, work_package.id),
             {
                 "participant": p1.pk,
             },
@@ -1358,9 +1269,7 @@ class TestWorkPackageApproveParticipants:
         response = client.get(url)
         helpers.assert_login_redirect(response)
 
-    def test_unprivileged_user_cannot_access_page(
-        self, as_investigator, programme_manager
-    ):
+    def test_unprivileged_user_cannot_access_page(self, as_investigator, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
 
@@ -1377,18 +1286,14 @@ class TestWorkPackageApproveParticipants:
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             programme_manager,
         )
-        p2 = project.add_user(
-            referee.user, ProjectRole.REFEREE.value, programme_manager
-        )
+        p2 = project.add_user(referee.user, ProjectRole.REFEREE.value, programme_manager)
         work_package = recipes.work_package.make(
             project=project, status=WorkPackageStatus.UNDERWAY.value
         )
         work_package.add_user(as_data_provider_representative._user, programme_manager)
         work_package.add_user(referee.user, programme_manager)
         dataset = recipes.dataset.make()
-        project.add_dataset(
-            dataset, as_data_provider_representative._user, programme_manager
-        )
+        project.add_dataset(dataset, as_data_provider_representative._user, programme_manager)
         work_package.add_dataset(dataset, programme_manager)
 
         url = f"/projects/{project.id}/work_packages/{work_package.id}"
@@ -1436,14 +1341,12 @@ class TestWorkPackageEditParticipants:
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
         response = client.get(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         helpers.assert_login_redirect(response)
 
         response = client.post(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         helpers.assert_login_redirect(response)
 
@@ -1452,38 +1355,28 @@ class TestWorkPackageEditParticipants:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 200
         assert response.context["project"] == project
 
-    def test_edit_participants(
-        self, as_programme_manager, referee, data_provider_representative
-    ):
+    def test_edit_participants(self, as_programme_manager, referee, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         project.add_user(
             data_provider_representative.user,
             ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             as_programme_manager._user,
         )
-        project.add_user(
-            referee.user, ProjectRole.REFEREE.value, as_programme_manager._user
-        )
+        project.add_user(referee.user, ProjectRole.REFEREE.value, as_programme_manager._user)
         work_package = recipes.work_package.make(project=project)
-        wpp1 = work_package.add_user(
-            data_provider_representative.user, as_programme_manager._user
-        )
+        wpp1 = work_package.add_user(data_provider_representative.user, as_programme_manager._user)
         wpp2 = work_package.add_user(referee.user, as_programme_manager._user)
         dataset = recipes.dataset.make()
-        project.add_dataset(
-            dataset, data_provider_representative.user, as_programme_manager._user
-        )
+        project.add_dataset(dataset, data_provider_representative.user, as_programme_manager._user)
         work_package.add_dataset(dataset, as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id),
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id),
             {
                 "participants-TOTAL_FORMS": 2,
                 "participants-MAX_NUM_FORMS": 2,
@@ -1513,14 +1406,12 @@ class TestWorkPackageEditParticipants:
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
         response = as_standard_user.get(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 404
 
         response = as_standard_user.post(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 404
 
@@ -1531,14 +1422,12 @@ class TestWorkPackageEditParticipants:
         client.force_login(researcher.user)
 
         response = client.get(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
         response = client.post(
-            "/projects/%d/work_packages/%d/participants/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/participants/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
@@ -1566,8 +1455,7 @@ class TestWorkPackageAddDataset:
         assert response.status_code == 200
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/new"
-            % (project.id, work_package.id),
+            "/projects/%d/work_packages/%d/datasets/new" % (project.id, work_package.id),
             {
                 "dataset": ds1.pk,
             },
@@ -1615,14 +1503,12 @@ class TestWorkPackageEditDatasets:
         project = recipes.project.make()
         work_package = recipes.work_package.make(project=project)
         response = client.get(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         helpers.assert_login_redirect(response)
 
         response = client.post(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         helpers.assert_login_redirect(response)
 
@@ -1631,31 +1517,23 @@ class TestWorkPackageEditDatasets:
         work_package = recipes.work_package.make(project=project)
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 200
         assert response.context["project"] == project
 
-    def test_edit_datasets(
-        self, as_programme_manager, referee, data_provider_representative
-    ):
+    def test_edit_datasets(self, as_programme_manager, referee, data_provider_representative):
         project = recipes.project.make(created_by=as_programme_manager._user)
         work_package = recipes.work_package.make(project=project)
         dataset1 = recipes.dataset.make()
-        project.add_dataset(
-            dataset1, data_provider_representative.user, as_programme_manager._user
-        )
+        project.add_dataset(dataset1, data_provider_representative.user, as_programme_manager._user)
         wpd1 = work_package.add_dataset(dataset1, as_programme_manager._user)
         dataset2 = recipes.dataset.make()
-        project.add_dataset(
-            dataset2, data_provider_representative.user, as_programme_manager._user
-        )
+        project.add_dataset(dataset2, data_provider_representative.user, as_programme_manager._user)
         wpd2 = work_package.add_dataset(dataset2, as_programme_manager._user)
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id),
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id),
             {
                 "datasets-TOTAL_FORMS": 2,
                 "datasets-MAX_NUM_FORMS": 2,
@@ -1685,14 +1563,12 @@ class TestWorkPackageEditDatasets:
         # Programme manager shouldn't have visibility of this other project at all
         # so pretend it doesn't exist and raise a 404
         response = as_standard_user.get(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 404
 
         response = as_standard_user.post(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 404
 
@@ -1703,14 +1579,12 @@ class TestWorkPackageEditDatasets:
         client.force_login(researcher.user)
 
         response = client.get(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
         response = client.post(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
@@ -1721,14 +1595,12 @@ class TestWorkPackageEditDatasets:
         project = work_package.project
 
         response = as_programme_manager.get(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
         response = as_programme_manager.post(
-            "/projects/%d/work_packages/%d/datasets/edit"
-            % (project.id, work_package.id)
+            "/projects/%d/work_packages/%d/datasets/edit" % (project.id, work_package.id)
         )
         assert response.status_code == 403
 
@@ -1746,9 +1618,7 @@ class TestProjectAddWorkPackage:
     def test_view_page(self, as_programme_manager):
         project = recipes.project.make(created_by=as_programme_manager._user)
 
-        response = as_programme_manager.get(
-            "/projects/%d/work_packages/new" % project.id
-        )
+        response = as_programme_manager.get("/projects/%d/work_packages/new" % project.id)
         assert response.status_code == 200
         assert response.context["project"] == project
 
@@ -1901,9 +1771,7 @@ class TestEditWorkPackage:
 
         assert response.status_code == 200
         assert response.context["work_package"].name == "my updated work package"
-        assert (
-            response.context["work_package"].description == "a different work package"
-        )
+        assert response.context["work_package"].description == "a different work package"
 
 
 @pytest.mark.django_db
@@ -1981,9 +1849,7 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Open Classification" in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
@@ -2008,9 +1874,7 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Open Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
@@ -2029,9 +1893,7 @@ class TestWorkPackageOpenClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Open Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
@@ -2041,18 +1903,14 @@ class TestWorkPackageOpenClassification:
         response = as_standard_user.post(url, {}, follow=True)
         assert response.status_code == 403
 
-    def test_cannot_open_as_investigator(
-        self, classified_work_package, as_investigator
-    ):
+    def test_cannot_open_as_investigator(self, classified_work_package, as_investigator):
         work_package = classified_work_package(None)
         work_package.status = WorkPackageStatus.NEW.value
         work_package.save()
 
         project = work_package.project
 
-        response = as_investigator.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Open Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_open"
@@ -2078,9 +1936,7 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Clear Classification" in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
@@ -2103,9 +1959,7 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Clear Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
@@ -2126,9 +1980,7 @@ class TestWorkPackageClearClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Clear Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
@@ -2138,16 +1990,12 @@ class TestWorkPackageClearClassification:
         response = as_standard_user.post(url, {}, follow=True)
         assert response.status_code == 403
 
-    def test_cannot_clear_as_investigator(
-        self, classified_work_package, as_investigator
-    ):
+    def test_cannot_clear_as_investigator(self, classified_work_package, as_investigator):
         work_package = classified_work_package(0)
 
         project = work_package.project
 
-        response = as_investigator.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Clear Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_clear"
@@ -2173,9 +2021,7 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Close Classification" in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
@@ -2198,9 +2044,7 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Close Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
@@ -2220,9 +2064,7 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Close Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
@@ -2243,9 +2085,7 @@ class TestWorkPackageCloseClassification:
             as_standard_user._user, ProjectRole.PROJECT_MANAGER.value, programme_manager
         )
 
-        response = as_standard_user.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_standard_user.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Close Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
@@ -2255,16 +2095,12 @@ class TestWorkPackageCloseClassification:
         response = as_standard_user.post(url, {}, follow=True)
         assert response.status_code == 403
 
-    def test_cannot_close_as_investigator(
-        self, classified_work_package, as_investigator
-    ):
+    def test_cannot_close_as_investigator(self, classified_work_package, as_investigator):
         work_package = classified_work_package(0)
 
         project = work_package.project
 
-        response = as_investigator.get(
-            f"/projects/{project.pk}/work_packages/{work_package.pk}"
-        )
+        response = as_investigator.get(f"/projects/{project.pk}/work_packages/{work_package.pk}")
         assert b"Close Classification" not in response.content
 
         url = f"/projects/{project.pk}/work_packages/{work_package.pk}/classify_close"
@@ -2363,6 +2199,7 @@ class TestWorkPackageClassifyData:
 
     def insert_alternative_question_set(self):
         from haven.data.tiers import Tier
+
         alt_q_set = ClassificationQuestionSet(name="alt")
         alt_q_set.save()
         q2 = ClassificationQuestion(
@@ -2378,7 +2215,7 @@ class TestWorkPackageClassifyData:
             question="Would you like to be Tier 2?",
             question_set=alt_q_set,
             yes_tier=2,
-            no_question=q2
+            no_question=q2,
         )
         q1.save()
         g1 = ClassificationGuidance(
@@ -2393,7 +2230,6 @@ class TestWorkPackageClassifyData:
             question_set=alt_q_set,
         )
         g2.save()
-        
 
     def check_results_page(self, response, work_package, user, tier, questions):
         assert response.status_code == 200
@@ -2419,14 +2255,10 @@ class TestWorkPackageClassifyData:
         response = client.post(self.url(work_package), {})
         helpers.assert_login_redirect(response)
 
-    def test_unassigned_cannot_view_page(
-        self, as_project_participant, programme_manager
-    ):
+    def test_unassigned_cannot_view_page(self, as_project_participant, programme_manager):
         insert_initial_questions(
-            ClassificationQuestion,
-            ClassificationGuidance,
-            ClassificationQuestionSet
-            )
+            ClassificationQuestion, ClassificationGuidance, ClassificationQuestionSet
+        )
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
         project.add_user(
@@ -2440,10 +2272,8 @@ class TestWorkPackageClassifyData:
 
     def test_view_page(self, as_project_participant, programme_manager):
         insert_initial_questions(
-            ClassificationQuestion,
-            ClassificationGuidance,
-            ClassificationQuestionSet
-            )
+            ClassificationQuestion, ClassificationGuidance, ClassificationQuestionSet
+        )
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(
             project=project, status=WorkPackageStatus.UNDERWAY.value
@@ -2453,9 +2283,7 @@ class TestWorkPackageClassifyData:
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             created_by=programme_manager,
         )
-        work_package.add_user(
-            user=as_project_participant._user, created_by=programme_manager
-        )
+        work_package.add_user(user=as_project_participant._user, created_by=programme_manager)
 
         response = as_project_participant.get(self.url(work_package), follow=True)
         assert response.status_code == 200
@@ -2493,18 +2321,14 @@ class TestWorkPackageClassifyData:
         response = as_programme_manager.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_returns_403_for_project_manager(
-        self, client, researcher, programme_manager
-    ):
+    def test_returns_403_for_project_manager(self, client, researcher, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
         project.add_user(
             researcher.user,
             ProjectRole.PROJECT_MANAGER.value,
             created_by=programme_manager,
         )
-        work_package = recipes.work_package.make(
-            project=project, created_by=programme_manager
-        )
+        work_package = recipes.work_package.make(project=project, created_by=programme_manager)
 
         client.force_login(researcher.user)
 
@@ -2519,8 +2343,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
         work_package.status = WorkPackageStatus.NEW.value
         work_package.save()
@@ -2561,7 +2385,7 @@ class TestWorkPackageClassifyData:
             ClassificationGuidance,
             ClassificationQuestionSet,
             question_set_exists=True,
-            )
+        )
         work_package = classified_work_package(None)
 
         work_package.classify_as(0, as_investigator._user)
@@ -2580,29 +2404,30 @@ class TestWorkPackageClassifyData:
 
     def test_select_alternative_question_set(self, classified_work_package, as_investigator):
         insert_initial_questions(
-            ClassificationQuestion, 
-            ClassificationGuidance, 
+            ClassificationQuestion,
+            ClassificationGuidance,
             ClassificationQuestionSet,
             question_set_exists=True,
-            )
+        )
         self.insert_alternative_question_set()
         work_package = classified_work_package(None)
         alt_question_set = ClassificationQuestionSet.objects.get(name="alt")
         project = work_package.project
         project.question_set = alt_question_set
         project.save()
-        
+
         response = as_investigator.get(self.url(work_package), follow=True)
         assert response.context["question"].name == "alt_question_1"
 
     def test_classify_with_alternative_questions_as_tier(
-        self, classified_work_package, as_investigator):
+        self, classified_work_package, as_investigator
+    ):
         insert_initial_questions(
-            ClassificationQuestion, 
-            ClassificationGuidance, 
+            ClassificationQuestion,
+            ClassificationGuidance,
             ClassificationQuestionSet,
             question_set_exists=True,
-            )
+        )
         self.insert_alternative_question_set()
         work_package = classified_work_package(None)
         alt_question_set = ClassificationQuestionSet.objects.get(name="alt")
@@ -2638,14 +2463,13 @@ class TestWorkPackageClassifyData:
             ],
         )
 
-
     def test_classify_as_tier(self, classified_work_package, as_investigator):
         insert_initial_questions(
-            ClassificationQuestion, 
-            ClassificationGuidance, 
+            ClassificationQuestion,
+            ClassificationGuidance,
             ClassificationQuestionSet,
             question_set_exists=True,
-            )
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2749,11 +2573,11 @@ class TestWorkPackageClassifyData:
 
     def test_classify_backwards(self, classified_work_package, as_investigator):
         insert_initial_questions(
-            ClassificationQuestion, 
+            ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2869,8 +2693,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2961,8 +2785,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -2996,8 +2820,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3065,8 +2889,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package_1 = classified_work_package(None)
         work_package_2 = classified_work_package(None)
 
@@ -3153,15 +2977,13 @@ class TestWorkPackageClassifyData:
             ],
         )
 
-    def test_modify_classification_from_start(
-        self, classified_work_package, as_investigator
-    ):
+    def test_modify_classification_from_start(self, classified_work_package, as_investigator):
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3227,8 +3049,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3285,8 +3107,8 @@ class TestWorkPackageClassifyData:
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3392,15 +3214,13 @@ class TestWorkPackageClassifyData:
             ],
         )
 
-    def test_modify_classification_unanswered(
-        self, classified_work_package, as_investigator
-    ):
+    def test_modify_classification_unanswered(self, classified_work_package, as_investigator):
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3489,15 +3309,13 @@ class TestWorkPackageClassifyData:
             ],
         )
 
-    def test_modify_classification_question_changed(
-        self, classified_work_package, as_investigator
-    ):
+    def test_modify_classification_question_changed(self, classified_work_package, as_investigator):
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3609,15 +3427,13 @@ class TestWorkPackageClassifyData:
             ],
         )
 
-    def test_modify_classification_abandoned(
-        self, classified_work_package, as_investigator
-    ):
+    def test_modify_classification_abandoned(self, classified_work_package, as_investigator):
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
-            question_set_exists=True
-            )
+            question_set_exists=True,
+        )
         work_package = classified_work_package(None)
 
         response = as_investigator.get(self.url(work_package), follow=True)
@@ -3734,15 +3550,13 @@ class TestWorkPackageClassifyResults:
         response = client.get(self.url(work_package))
         assert response.status_code == 403
 
-    def test_view_as_project_manager(
-        self, client, classified_work_package, programme_manager
-    ):
+    def test_view_as_project_manager(self, client, classified_work_package, programme_manager):
         insert_initial_questions(
             ClassificationQuestion,
             ClassificationGuidance,
             ClassificationQuestionSet,
             question_set_exists=True,
-            )
+        )
         project_manager = recipes.user.make()
         investigator = recipes.user.make()
 
@@ -3840,9 +3654,7 @@ class TestAutocompleteNewParticipant:
         assert_autocomplete_result("Cohen", {user5})
         assert_autocomplete_result("mj@exampl", {user3})
         assert_autocomplete_result("j@example.", {user3})
-        assert_autocomplete_result(
-            "example.com", {user0, user1, user2, user3, user4, user5}
-        )
+        assert_autocomplete_result("example.com", {user0, user1, user2, user3, user4, user5})
         assert_autocomplete_result("Dor Va", {user2})
         assert_autocomplete_result("Dor Va example", {user2})
         assert_autocomplete_result("Dott Va", {})
@@ -3883,9 +3695,7 @@ class TestAutocompleteNewParticipant:
         assert_autocomplete_result("jcohen@example.com", {user5})
 
         # Check autocomplete does not return users who are already in a project
-        project.add_user(
-            user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0
-        )
+        project.add_user(user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0)
         assert_autocomplete_result("", {user0, user2, user3, user4, user5})
         assert_autocomplete_result("K Johnson", {})
         assert_autocomplete_result("son", {user3})
@@ -3896,9 +3706,7 @@ class TestAutocompleteDPR:
     def assert_autocomplete_result(
         self, as_user, project, query_string, expected_dprs, expected_users
     ):
-        response = as_user.get(
-            f"/projects/{project.id}/autocomplete_dpr/?q={query_string}"
-        )
+        response = as_user.get(f"/projects/{project.id}/autocomplete_dpr/?q={query_string}")
         assert response.status_code == 200
         output = json.loads(response.content.decode("UTF-8"))
 
@@ -3910,10 +3718,7 @@ class TestAutocompleteDPR:
             expected_set = {u.display_name() for u in expected_dprs}
             assert expected_set == output_set
         else:
-            assert (
-                len(output["results"]) == 0
-                or output["results"][0]["text"] == "Other users"
-            )
+            assert len(output["results"]) == 0 or output["results"][0]["text"] == "Other users"
 
         if expected_users:
             group = output["results"][-1]
@@ -3968,17 +3773,11 @@ class TestAutocompleteDPR:
             {},
             {user0, user1, user2, user3, user4, user5},
         )
-        self.assert_autocomplete_result(
-            as_programme_manager, project, "K Johnson", {}, {user1}
-        )
-        self.assert_autocomplete_result(
-            as_programme_manager, project, "son", {}, {user1, user3}
-        )
+        self.assert_autocomplete_result(as_programme_manager, project, "K Johnson", {}, {user1})
+        self.assert_autocomplete_result(as_programme_manager, project, "son", {}, {user1, user3})
 
         # Check autocomplete does not return users who are already in a project
-        project.add_user(
-            user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0
-        )
+        project.add_user(user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0)
         project.add_user(
             user=user3,
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
@@ -3987,12 +3786,8 @@ class TestAutocompleteDPR:
         self.assert_autocomplete_result(
             as_programme_manager, project, "", {user3}, {user0, user2, user4, user5}
         )
-        self.assert_autocomplete_result(
-            as_programme_manager, project, "K Johnson", {}, {}
-        )
-        self.assert_autocomplete_result(
-            as_programme_manager, project, "son", {user3}, {}
-        )
+        self.assert_autocomplete_result(as_programme_manager, project, "K Johnson", {}, {})
+        self.assert_autocomplete_result(as_programme_manager, project, "son", {user3}, {})
 
     def test_visit_as_pm(self, as_project_participant):
 
@@ -4028,26 +3823,16 @@ class TestAutocompleteDPR:
 
         # Test all users returned with no query string
         self.assert_autocomplete_result(as_project_participant, project, "", {}, {})
-        self.assert_autocomplete_result(
-            as_project_participant, project, "K Johnson", {}, {}
-        )
+        self.assert_autocomplete_result(as_project_participant, project, "K Johnson", {}, {})
         self.assert_autocomplete_result(as_project_participant, project, "son", {}, {})
 
         # Check autocomplete does not return users who are already in a project
-        project.add_user(
-            user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0
-        )
+        project.add_user(user=user1, role=ProjectRole.RESEARCHER.value, created_by=user0)
         project.add_user(
             user=user3,
             role=ProjectRole.DATA_PROVIDER_REPRESENTATIVE.value,
             created_by=user0,
         )
-        self.assert_autocomplete_result(
-            as_project_participant, project, "", {user3}, {}
-        )
-        self.assert_autocomplete_result(
-            as_project_participant, project, "K Johnson", {}, {}
-        )
-        self.assert_autocomplete_result(
-            as_project_participant, project, "son", {user3}, {}
-        )
+        self.assert_autocomplete_result(as_project_participant, project, "", {user3}, {})
+        self.assert_autocomplete_result(as_project_participant, project, "K Johnson", {}, {})
+        self.assert_autocomplete_result(as_project_participant, project, "son", {user3}, {})

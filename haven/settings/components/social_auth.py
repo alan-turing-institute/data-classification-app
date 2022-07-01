@@ -4,18 +4,15 @@ import environ
 env = environ.Env()
 
 provider_dictionary = {
-    "github": {
-        "backend": "social_core.backends.github.GithubOAuth2",
-        "display_name": "GitHub"
-    },
+    "github": {"backend": "social_core.backends.github.GithubOAuth2", "display_name": "GitHub"},
     "orcid-sandbox": {
         "backend": "social_core.backends.orcid.ORCIDOAuth2Sandbox",
-        "display_name": "ORCID Sandbox"
+        "display_name": "ORCID Sandbox",
     },
     "azure-ad-tenant": {
         "backend": "haven.identity.backends.CustomAzureOAuth2Backend",
-        "display_name": "Azure AD"
-    }
+        "display_name": "Azure AD",
+    },
 }
 
 SOCIAL_AUTH_LOGIN_ERROR_URL = "/error/"
@@ -42,9 +39,7 @@ SOCIAL_AUTH_ORCID_SANDBOX_SECRET = env.str("SOCIAL_AUTH_ORCID_SANDBOX_SECRET", d
 
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_KEY = env.str("AZUREAD_OAUTH2_KEY", default="")
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_SECRET = env.str("AZUREAD_OAUTH2_SECRET", default="")
-SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str(
-    "AZUREAD_OAUTH2_TENANT_ID", default=""
-)
+SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_TENANT_ID = env.str("AZUREAD_OAUTH2_TENANT_ID", default="")
 SOCIAL_AUTH_AZUREAD_TENANT_OAUTH2_RESOURCE = "https://graph.microsoft.com"
 # Haven specific Azure AD settings
 SECURITY_GROUP_SYSTEM_MANAGERS = env.str(

@@ -19,15 +19,15 @@ This template is based on one used by The Turing Way.
 *(delete as appropriate)*
 
 # Details
-*Please provide some more detail about the user story here, including any relevant links to further reading or information, or any notes from discussions - this will help people working on this story to understand it better* 
+*Please provide some more detail about the user story here, including any relevant links to further reading or information, or any notes from discussions - this will help people working on this story to understand it better*
 
 # Acceptance criteria
 *In this section, write about what "done" looks like for this story*
 - [ ] Checklists are helpful to break down the story down into individual tasks
 
-# Estimation of work 
+# Estimation of work
 
-*Approximately how many hours/days do you expect this work to take?* 
+*Approximately how many hours/days do you expect this work to take?*
 
-# Updates 
+# Updates
 *Any updates from further down the thread are encouraged so people can easily see the status of this issue*
