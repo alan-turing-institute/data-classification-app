@@ -28,12 +28,12 @@ class TestUser:
     def test_system_manager_does_not_get_participation_for_non_involed_projects(
         self, system_manager
     ):
-        assert system_manager.get_participant(recipes.project.make()) == None
+        assert system_manager.get_participant(recipes.project.make()) is None
         assert system_manager.project_participation_role(recipes.project.make()) is None
 
     def test_project_owner_is_not_participant_when_not_involved(self, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
-        assert programme_manager.get_participant(project) == None
+        assert programme_manager.get_participant(project) is None
         assert programme_manager.project_participation_role(project) is None
 
     def test_project_owner_is_participant_when_involved(self, programme_manager):

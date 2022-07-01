@@ -2,7 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from haven.core import recipes
-from haven.data.models import ClassificationQuestion, ClassificationQuestionSet
+from haven.data.models import ClassificationQuestion
 
 
 @pytest.mark.django_db

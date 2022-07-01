@@ -486,7 +486,8 @@ class TestAddUserToProject:
         assert project.participants.count() == 0
 
     def test_add_user_without_domain_to_project(self, as_programme_manager):
-        """Check that domain will not be added to entered username if the username exists as it is"""
+        """Check that domain will not be added to entered username if
+        the username exists as it is"""
 
         project = recipes.project.make(created_by=as_programme_manager._user)
 
@@ -2198,8 +2199,6 @@ class TestWorkPackageClassifyData:
         return response
 
     def insert_alternative_question_set(self):
-        from haven.data.tiers import Tier
-
         alt_q_set = ClassificationQuestionSet(name="alt")
         alt_q_set.save()
         q2 = ClassificationQuestion(

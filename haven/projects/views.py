@@ -3,7 +3,6 @@ import re
 from collections import defaultdict
 
 from braces.views import UserFormKwargsMixin
-from crispy_forms.helper import FormHelper
 from dal import autocomplete
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin

@@ -15,7 +15,6 @@ from haven.projects.models import (
     Policy,
     PolicyAssignment,
     PolicyGroup,
-    Project,
     ProjectDataset,
     WorkPackageParticipant,
     WorkPackageStatus,
