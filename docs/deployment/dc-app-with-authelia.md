@@ -66,7 +66,7 @@ cd ..
   `./init-letsencrypt.sh`
 * If it works without any complaints, set staging to 0 and run the script again
 
-  `LETSENCRYPT_STAGING=0 ./init-letencrypt.sh`
+  `LETSENCRYPT_STAGING=0 ./init-letsencrypt.sh`
 
 ## Authelia ldap configuration
 TBC

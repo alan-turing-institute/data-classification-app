@@ -323,7 +323,8 @@ class TestExportUsers:
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
-        assert parsed == [
+        assert parsed[0] == ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"]
+        assert sorted(parsed) == sorted([
             ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
             ["coordinator", "", "", "", "coordinator@example.com"],
             [
@@ -342,7 +343,7 @@ class TestExportUsers:
                 "project_participant@example.com",
             ],
             ["user1", "", "", "", "user@example.com"],
-        ]
+        ])
 
     def test_export_by_project(
         self,

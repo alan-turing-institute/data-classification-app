@@ -68,9 +68,11 @@
 
         <div class="navbar-nav">
           {% if request.user.is_authenticated %}
-          <span class="navbar-text">
-            Logged in as {{ request.user.display_name }} ({{ request.user.role | role_display }})
+          <span  class="navbar-text">
+            Logged in as: 
           </span>
+          <span id="user-name">{{ request.user.display_name }} </span>
+          <span class="navbar-text">({{ request.user.role | role_display }})</span>
           <span class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
           </span>

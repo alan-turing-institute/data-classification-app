@@ -144,9 +144,10 @@ class ProjectForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ["name", "description", "programmes"]
+        fields = ["name", "description", "question_set", "programmes"]
         labels = {
             "programmes": "Programmes",
+            "question_set": "Data classification question set",
         }
         help_texts = {
             "programmes": "",
@@ -156,6 +157,7 @@ class ProjectForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["programmes"].widget.url = reverse("projects:autocomplete_programme")
+        self.fields["question_set"].required = False
 
 
 class ProjectAddDatasetForm(ProjectKwargFormMixin, SaveCreatorMixin, forms.ModelForm):
@@ -355,7 +357,7 @@ class WorkPackageClassifyCloseForm(ProjectKwargFormMixin, forms.Form):
 
 
 class WorkPackageClassifyOpenForm(ProjectKwargFormMixin, forms.Form):
-    helper = SaveCancelFormHelper("Open Classification", "btn-danger")
+    helper = SaveCancelFormHelper("Open Classification", "classify-btn-open")
     helper.form_method = "POST"
 
 
