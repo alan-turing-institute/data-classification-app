@@ -1,6 +1,6 @@
 # Data Safe Haven web management application
 
-These instructions are for running a local test instance of the management web application on your machine.
+These instructions are for running a local test instance of the data classification app on your machine.
 
 ## Cloning the github repo
 Clone the github repo using the following command in your local terminal:
@@ -13,28 +13,29 @@ After entering the folder containing the main repositories' code (either through
 
 ## :whale: Quick setup with `docker`
 
-#### Local dev docker set-up:
+The docker-compose file `local.yml` will build two containers `igapp_db` (postgres database) and `igapp_django` (django app), with a persistent `postgres_data` volume.
 
-To build two containers `data_classification_app_db` and `django`.
+The environment files in `.envs/.local/.django` specify a basic deployment with local user authentication, but can be edited to use alternative authentication methods. **DO NOT COMMIT CHANGES TO THESE FILES - ESPECIALLY SOCIAL AUTH SECRETS**
 
-To build the containers from scratch, from the folllowing commands:
-
+To build and deploy locally run:
 ```
-docker-compose build --no-cache
-docker-compose up -d
+docker-compose -f local.yml build --no-cache
+docker-compose -f local.yml up -d
 docker-compose ps # (to check the running containers)
 ```
 
-Visit `localhost:8000/accounts/login` and sign in with username `developer`, password `developer`. This user should be a superuser with the system manager role applied. Check the admin console to make sure classification guidance and classification questions have been imported.
+Visit `localhost:8000/accounts/login` and sign in with username `developer`, password `developer`. This user is a superuser with the system manager role applied. Check the admin console to make sure classification guidance and classification questions have been imported.
 
-To bring down containers and volumes prior to a clean build:
+To bring down the containers run:
 
 `docker-compose down -v`
 
-> :rotating_light: The following instructions are not required if you have completed `docker` setup  :rotating_light:
+To bring down containers and remove the persistent data volume prior to a clean build run:
+
+`docker-compose down -v`
 
 ## Local Development Setup (not tested alternative to Docker)
-
+> :rotating_light: The following instructions are not required if you have completed `docker` setup  :rotating_light:
 ### Install system requirements
 
 * Python 3.8+

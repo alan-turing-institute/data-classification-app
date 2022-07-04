@@ -1,11 +1,14 @@
-# Steps to setup data classification app with authelia on a virtual machine
+# Remote authentication with Authelia and LDAP
+The Data Classification App can be configured to use remote authentication by including `remote` in the `AUTH_TYPES` environment variable at deployment. The `production.yml` docker-compose file will automatically build an Authelia service which can be configured to connect to LDAP or use a local file: `users_database.yml`.
 
-## Domains
+## Deploying with authelia on a virtual machine
+
+### Domains
 You'll need to setup a domain for the app, as well as an 'auth' subdomain off it, pointing to the VM; e.g.:
 * data-classification.example.com
 * auth.data-classification.example.com
 
-## Initial configuration
+### Initial configuration
 * Create a directory for the app and clone the repository:
 ```
 mkdir dc-app && cd dc-app
@@ -50,7 +53,7 @@ export BASE_DOMAIN=<custom domain>
 cd ..
 ```
 
-## Certificates
+### Certificates
 
 * Build the containers before starting:
 
