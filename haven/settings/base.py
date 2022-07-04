@@ -192,6 +192,8 @@ if "local" in HAVEN_AUTH_TYPES:
         "django.contrib.auth.backends.ModelBackend",
     ]
     LOCAL_AUTH = True
+else:
+    LOCAL_AUTH = False
 
 
 # PASSWORDS
