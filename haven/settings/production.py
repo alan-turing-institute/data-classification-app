@@ -44,7 +44,7 @@ LOGGING = {
     },
 }
 
-ENABLE_SENTRY = env.bool("ENABLE_SENTRY", default=True)  # noqa
+ENABLE_SENTRY = env.bool("ENABLE_SENTRY", default=False)  # noqa
 
 if ENABLE_SENTRY:
     # Initialise Sentry
