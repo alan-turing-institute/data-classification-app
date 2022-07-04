@@ -18,6 +18,7 @@ git clone git@github.com:alan-turing-institute/data-classification-app.git .
 * If using LDAP, you can specify the Sytem Manager and Programme Manager LDAP Groups
 **Avoid quotes around variables**:
 
+`.envs/.production/.django`
 ```
 DJANGO_SETTINGS_MODULE=haven.settings.production
 
@@ -33,9 +34,6 @@ AUTH_TYPES=remote
 SYSTEM_MANAGER_LDAP_GROUP=dca_sys_man
 PROGRAMME_MANAGER_LDAP_GROUP=dca_prog_man
 
-# Database parameters
-DATABASE_URL=pgsql://haven:haven@db:5432/haven
-
 # Email parameters
 EMAIL_HOST=smtp.sendgrid.net
 EMAIL_HOST_USER=sendgrid-username
@@ -43,6 +41,15 @@ EMAIL_HOST_PASSWORD=sendgrid-password
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
 FROM_MAIL=noreply@example.com
+```
+
+`.envs/.production/.postgres`
+```
+POSTGRES_DB=haven
+POSTGRES_USER=haven
+POSTGRES_PASSWORD=haven
+POSTGRES_HOST=db
+POSTGRES_PORT=5432
 ```
 
 * Create a configuration file for Authelia from the template:
