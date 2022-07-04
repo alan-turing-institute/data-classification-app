@@ -8,8 +8,8 @@ import haven.data.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0019_classificationguidance_question_set'),
-        ('projects', '0037_add_question_set_to_project'),
+        ('data', '0025_classificationguidance_question_set'),
+        ('projects', '0043_add_question_set_to_project'),
     ]
 
     operations = [

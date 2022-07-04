@@ -11,7 +11,7 @@ def insert_default_questionset(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0017_auto_20200115_1423'),
+        ('data', '0023_remove_host_and_storage_path'),
     ]
 
     operations = [
