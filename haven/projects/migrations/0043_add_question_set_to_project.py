@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('data', '0025_classificationguidance_question_set'),
-        ('projects', '0042_project_programmes'),
+        ('projects', '0042_project_uuid_unique_non_editable'),
     ]
 
     operations = [
