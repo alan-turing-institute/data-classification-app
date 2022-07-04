@@ -12,7 +12,7 @@ class RemoteExtendedUserBackend(RemoteUserBackend):
     (name, email and groups).
 
     Extends RemoteUserBackend (it creates the Django user if it does not exist,
-    as explained here: 
+    as explained here:
     https://github.com/django/django/blob/main/django/contrib/auth/backends.py#L167),
     updating the user with the information received from the remote headers.
 
