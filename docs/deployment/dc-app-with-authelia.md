@@ -11,10 +11,12 @@ You'll need to setup a domain for the app, as well as an 'auth' subdomain off it
 mkdir dc-app && cd dc-app
 git clone git@github.com:alan-turing-institute/data-classification-app.git .
 ```
-* Create a .env file, including `remote` in the list of `AUTH_TYPES`, and your custom domain in `ALLOWED_HOSTS` and `BASE_DOMAIN`. **Avoid quotes around variables**:
+* Create `.django` and `.postgres` env files under `./.envs/.production/`, including `remote` in the list of `AUTH_TYPES`, and your custom domain in `ALLOWED_HOSTS` and `BASE_DOMAIN`. 
+* If using LDAP, you can specify the Sytem Manager and Programme Manager LDAP Groups
+**Avoid quotes around variables**:
 
 ```
-DJANGO_SETTINGS_MODULE=haven.settings.local
+DJANGO_SETTINGS_MODULE=haven.settings.production
 
 SECRET_KEY=notasecret # try https://djecrety.ir/ for example
 APP_NAME=data-classification-app
@@ -22,7 +24,11 @@ WEBAPP_TITLE=Data Classification
 BASE_DOMAIN=data-classification.example.com
 ALLOWED_HOSTS=data-classification.example.com
 DEBUG=false
-AUTH_TYPES=remote,local
+AUTH_TYPES=remote
+
+# LDAP role groups
+SYSTEM_MANAGER_LDAP_GROUP=dca_sys_man
+PROGRAMME_MANAGER_LDAP_GROUP=dca_prog_man
 
 # Database parameters
 DATABASE_URL=pgsql://haven:haven@db:5432/haven
@@ -38,7 +44,7 @@ FROM_MAIL=noreply@example.com
 
 * Create a configuration file for Authelia from the template:
 ```
-cd authelia
+cd compose/production/authelia
 export BASE_DOMAIN=<custom domain>
 . setup-config.sh
 cd ..
@@ -48,7 +54,7 @@ cd ..
 
 * Build the containers before starting:
 
-  `sudo docker-compose -f docker-compose.prod.yml build`
+  `sudo docker-compose -f production.yml build`
 * Create directories for certbot to store things:
 
   `mkdir -p data/certbot/{conf,www}`
@@ -68,8 +74,3 @@ cd ..
 
   `LETSENCRYPT_STAGING=0 ./init-letsencrypt.sh`
 
-## Authelia ldap configuration
-TBC
-
-## Authelia OIDC setup
-TBC

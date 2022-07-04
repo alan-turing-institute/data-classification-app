@@ -1,0 +1,28 @@
+DJANGO_SETTINGS_MODULE=haven.settings.local
+DEBUG=1
+SECRET_KEY=notasecret
+DATABASE_URL=pgsql://haven:haven@db:5432/haven
+ALLOWED_HOSTS=localhost,127.0.0.1
+WEBAPP_TITLE=Data Classification
+BASE_DOMAIN=example.com
+ENVIRONMENT=local
+
+### User Auth Settings ###
+# ------------------------
+
+AUTH_TYPES=social,local  # Comma separated list: remote,social,local
+
+### Social Auth ###
+# SOCIAL_AUTH_PROVIDERS=azure-ad-tenant, github
+# Social auth client credentials
+# SOCIAL_AUTH_GITHUB_KEY=
+# SOCIAL_AUTH_GITHUB_SECRET=
+# SOCIAL_AUTH_ORCID_SANDBOX_KEY=
+# SOCIAL_AUTH_ORCID_SANDBOX_SECRET=
+# AZUREAD_OAUTH2_KEY=
+# AZUREAD_OAUTH2_SECRET=
+# AZUREAD_OAUTH2_TENANT_ID=
+
+### Remote Auth LDAP ###
+# SYSTEM_MANAGER_LDAP_GROUP=dca_sys_man
+# PROGRAMME_MANAGER_LDAP_GROUP=dca_prog_man

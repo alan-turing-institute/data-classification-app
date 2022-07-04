@@ -12,42 +12,37 @@ services:
       - '5432:5432'
      # ensure postgres is coming up with ssl mode on
      #command: -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgressql/server.key
-    environment:
-      - POSTGRES_DB=haven
-      - POSTGRES_USER=haven
-      - POSTGRES_PASSWORD=haven
+    env_file:
+      - ./.envs/.production/.postgres
 
   web:
     build:
       context: .
-      dockerfile: Dockerfile.prod
-    command: sh -c "python manage.py makemigrations &&
-                    python manage.py migrate easyaudit &&
-                    python manage.py migrate &&
-                    python manage.py collectstatic --no-input --clear &&
-                    gunicorn haven.wsgi:application --bind 0.0.0.0:8000"
+      dockerfile: ./compose/production/django/Dockerfile
+    image: ig_app_production_django
     volumes:
       - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
     env_file:
-      - ./.env
+      - ./.envs/.production/.django
+      - ./.envs/.production/.postgres
     #restart: "on-failure"
     depends_on:
       - db
-
+    command: /start
 
   nginx:
     build:
-      context: ./nginx/
-      dockerfile: ./Dockerfile
-    image: haven_production_nginx
-    container_name: nginx_haven
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: igapp_production_nginx
+    container_name: igapp_nginx
     ports:
       - "80:80"
       - "443:443"
     env_file:
-      - ./.env
+      - ./.envs/.production/.django
     command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
     volumes:
       - static_volume:/app/staticfiles
@@ -70,13 +65,13 @@ services:
 
   authelia:
     image: authelia/authelia
-    container_name: authelia
+    container_name: igapp_authelia
     volumes:
-      - ./authelia:/config
+      - ./compose/production/authelia:/config
     ports:
       - 9091:9091
     env_file:
-      - ./.env
+      - ./.envs/.production/.django
     restart: unless-stopped
 
   redis:

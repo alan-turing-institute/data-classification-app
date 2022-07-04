@@ -1,9 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ "$DATABASE" = "postgres" ]
-then
-    echo "PostgreSQL started"
-fi
+set -o errexit
+set -o pipefail
+set -o nounset
 
 # Install any new dependencies
 poetry install --no-interaction --no-ansi
@@ -11,8 +10,6 @@ poetry install --no-interaction --no-ansi
 # Run migrations
 python manage.py migrate easyaudit  # Needs to run first as other migrations will trigger this
 python manage.py migrate
-
 # Create superuser (developer:developer)
-python manage.py loaddata devsuperuser.json
-
-exec "$@"
+python manage.py loaddata compose/local/django/devsuperuser.json
+python manage.py runserver_plus --keep-meta-shutdown 0.0.0.0:8000

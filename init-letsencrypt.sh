@@ -9,7 +9,7 @@ domains=(${BASE_DOMAIN} auth.${BASE_DOMAIN})
 rsa_key_size=4096
 data_path="./data/certbot"
 email="${LETSENCRYPT_EMAIL}" # Adding a valid address is strongly recommended
-compose_file=${LETSENCRYPT_COMPOSE:-"docker-compose.prod.yml"}
+compose_file=${LETSENCRYPT_COMPOSE:-"production.yml"}
 
 
 # important!

@@ -25,11 +25,14 @@ RUN poetry install --no-interaction --no-ansi
 RUN npm install -g gulp
 RUN npm install gulp
 
-
 COPY static/gulpfile.js ./
-COPY entrypoint.sh /
+COPY ./compose/local/django/entrypoint.sh /
 RUN sed -i 's/\r$//g' /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+COPY ./compose/local/django/start /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start
 
 # run entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

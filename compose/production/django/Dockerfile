@@ -40,11 +40,15 @@ COPY static ./static
 
 COPY static/gulpfile.js ./
 COPY manage.py ./
-COPY entrypoint.prod.sh ./
-RUN sed -i 's/\r$//g' /app/entrypoint.prod.sh
-RUN chmod +x /app/entrypoint.prod.sh
+COPY ./compose/production/django/entrypoint.sh ./
+RUN sed -i 's/\r$//g' /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+COPY ./compose/production/django/start /start
+RUN sed -i 's/\r$//g' /start
+RUN chmod +x /start
 
 # run entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.prod.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 CMD ["gulp"]
