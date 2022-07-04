@@ -69,9 +69,7 @@ class User(AbstractUser):
     def ordered_participants(cls):
         """Order Users by their UserRole"""
         ordered_role_list = UserRole.ordered_display_role_list()
-        order = Case(
-            *[When(role=role, then=pos) for pos, role in enumerate(ordered_role_list)]
-        )
+        order = Case(*[When(role=role, then=pos) for pos, role in enumerate(ordered_role_list)])
         return User.objects.filter(role__in=ordered_role_list).order_by(order)
 
     @property
@@ -95,11 +93,7 @@ class User(AbstractUser):
         Spaces between names are replaced by dots.
         """
         value = str(value)
-        value = (
-            unicodedata.normalize("NFKD", value)
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
         value = re.sub(r"[^\w\s-]", "", value).strip().lower()
         return mark_safe(re.sub(r"[\s]+", ".", value))
 
@@ -204,8 +198,6 @@ class User(AbstractUser):
         full_name = self.get_full_name()
         username = self.username
         if full_name:
-            return "{full_name}: {username}".format(
-                full_name=full_name, username=username
-            )
+            return "{full_name}: {username}".format(full_name=full_name, username=username)
         else:
             return username

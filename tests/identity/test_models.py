@@ -19,25 +19,21 @@ class TestUser:
 
     def test_project_role_for_participant(self, researcher):
         assert (
-            researcher.user.project_permissions(researcher.project).role
-            is ProjectRole.RESEARCHER
+            researcher.user.project_permissions(researcher.project).role is ProjectRole.RESEARCHER
         )
         assert (
-            researcher.user.project_participation_role(researcher.project)
-            is ProjectRole.RESEARCHER
+            researcher.user.project_participation_role(researcher.project) is ProjectRole.RESEARCHER
         )
 
     def test_system_manager_does_not_get_participation_for_non_involed_projects(
         self, system_manager
     ):
-        assert system_manager.get_participant(recipes.project.make()) == None
+        assert system_manager.get_participant(recipes.project.make()) is None
         assert system_manager.project_participation_role(recipes.project.make()) is None
 
-    def test_project_owner_is_not_participant_when_not_involved(
-        self, programme_manager
-    ):
+    def test_project_owner_is_not_participant_when_not_involved(self, programme_manager):
         project = recipes.project.make(created_by=programme_manager)
-        assert programme_manager.get_participant(project) == None
+        assert programme_manager.get_participant(project) is None
         assert programme_manager.project_participation_role(project) is None
 
     def test_project_owner_is_participant_when_involved(self, programme_manager):
@@ -48,10 +44,7 @@ class TestUser:
             created_by=programme_manager,
         )
         assert programme_manager.get_participant(project).user == programme_manager
-        assert (
-            programme_manager.project_participation_role(project)
-            is ProjectRole.INVESTIGATOR
-        )
+        assert programme_manager.project_participation_role(project) is ProjectRole.INVESTIGATOR
 
     def test_project_owner_does_not_get_role_on_other_project_when_not_participating(
         self, programme_manager
@@ -64,12 +57,8 @@ class TestUser:
     def test_project_role_is_None_for_non_involved_project(self, researcher):
         assert researcher.user.project_permissions(recipes.project.make()).role is None
 
-    def test_project_participation_role_is_None_for_non_involved_project(
-        self, researcher
-    ):
-        assert (
-            researcher.user.project_participation_role(recipes.project.make()) is None
-        )
+    def test_project_participation_role_is_None_for_non_involved_project(self, researcher):
+        assert researcher.user.project_participation_role(recipes.project.make()) is None
 
     @pytest.mark.parametrize(
         "first,last,expected",

@@ -34,9 +34,7 @@ class ParticipantTable(tables.Table):
 
     def link_username(self, record):
         if self.show_edit_links:
-            return reverse(
-                "projects:edit_participant", args=[record.project.id, record.id]
-            )
+            return reverse("projects:edit_participant", args=[record.project.id, record.id])
         return None
 
 
@@ -119,9 +117,7 @@ class PolicyTable(tables.Table):
 
 
 class ClassificationOpinionQuestionTable(tables.Table):
-    question = tables.Column(
-        "Question", linkify=lambda record: record.get("modify_url")
-    )
+    question = tables.Column("Question", linkify=lambda record: record.get("modify_url"))
 
     class Meta:
         orderable = False
@@ -134,9 +130,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
         for questions in all_questions:
             column_name, column = self._create_column(questions[0].opinion)
             columns.append((column_name, column))
-            self._populate_column_data(
-                column_name, questions, unique_questions, current_user
-            )
+            self._populate_column_data(column_name, questions, unique_questions, current_user)
 
         data = self._get_sorted_data(all_questions, unique_questions)
 

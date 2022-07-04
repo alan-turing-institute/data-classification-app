@@ -62,6 +62,18 @@ table.formset th.col-form-label {
   }
 }
 
+.classify-btn-open {
+  border: #495057;
+  color: #ffffff;
+  background-color: #7e65ad;
+  padding: 8px 15px; 
+
+  &:hover { 
+    background-color: #502d91;
+    color: #ffffff;
+  }
+}
+
 
 .save-btn {
   border: #495057;

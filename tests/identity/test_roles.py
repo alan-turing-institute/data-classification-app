@@ -19,18 +19,14 @@ class TestUserRoleCreateUser:
 
 class TestUserRoleCreatableRoles:
     def test_system_manager_assignable_roles(self):
-        assert permissions_user(UserRole.SYSTEM_MANAGER).can_assign_role(
-            UserRole.PROGRAMME_MANAGER
-        )
+        assert permissions_user(UserRole.SYSTEM_MANAGER).can_assign_role(UserRole.PROGRAMME_MANAGER)
         assert permissions_user(UserRole.SYSTEM_MANAGER).can_assign_role(UserRole.NONE)
         assert not permissions_user(UserRole.SYSTEM_MANAGER).can_assign_role(
             UserRole.SYSTEM_MANAGER
         )
 
     def test_programme_manager_assignable_roles(self):
-        assert permissions_user(UserRole.PROGRAMME_MANAGER).can_assign_role(
-            UserRole.NONE
-        )
+        assert permissions_user(UserRole.PROGRAMME_MANAGER).can_assign_role(UserRole.NONE)
         assert not permissions_user(UserRole.PROGRAMME_MANAGER).can_assign_role(
             UserRole.PROGRAMME_MANAGER
         )
