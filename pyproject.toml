@@ -55,6 +55,7 @@ django-autocomplete-light = "3.5.1"
 sentry-sdk = "^1.5.11"
 drf-spectacular = "0.22.1"
 PyYAML = "^6.0"
+python-social-auth = "^0.3.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "6.2.5"
