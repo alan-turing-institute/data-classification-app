@@ -141,11 +141,6 @@ def as_project_participant(client, project_participant):
 def as_investigator(client, investigator):
     return client_login(client, investigator.user)
 
-
-@pytest.fixture
-def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
-    def _classified_work_package(tier):
-
 @pytest.fixture        
 def project(programme_manager):
     return recipes.project.make(created_by=programme_manager)
