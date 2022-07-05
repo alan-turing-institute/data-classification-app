@@ -1,5 +1,4 @@
 from django import template
-from django.conf import settings
 from django.template.defaultfilters import stringfilter
 
 from haven.identity.roles import UserRole

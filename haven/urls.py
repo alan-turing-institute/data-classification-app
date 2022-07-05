@@ -17,18 +17,15 @@ from django.conf import settings
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from haven.core import views as core_views
-
 
 urlpatterns = [
     path("users/", include("haven.identity.urls", namespace="identity")),
     path("projects/", include("haven.projects.urls", namespace="projects")),
-    path("logout/", core_views.logout, name="logout"),
+    path("api/v1/", include("haven.api.urls", namespace="api")),
     # Externally-driven single sign out
-    path("ssologout/", core_views.sso_logout, name="sso_logout"),
     path("", TemplateView.as_view(template_name="home.html"), name="home"),
-    path("auth/", include("social_django.urls", namespace="social")),
     path("error/", TemplateView.as_view(template_name="error.html"), name="error-page"),
+    path("o/", include("haven.oauth_urls", namespace="oauth2_provider")),
 ]
 
 
@@ -60,5 +57,10 @@ if settings.LOCAL_AUTH:
             "accounts/login/",
             auth_views.LoginView.as_view(template_name="identity/login.html"),
             name="login",
-        )
+        ),
+        path(
+            "accounts/logout/",
+            auth_views.LogoutView.as_view(),
+            name="logout",
+        ),
     ] + urlpatterns

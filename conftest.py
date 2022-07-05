@@ -1,5 +1,15 @@
-import pytest
+import base64
+from datetime import datetime, timedelta
+from hashlib import sha256
 
+import pytest
+from django.db.models.deletion import ProtectedError
+from django.http import QueryDict
+from django.utils.timezone import make_aware
+from oauth2_provider.models import AccessToken, Application
+from rest_framework.test import APIClient
+
+from haven.api.models import ApplicationProfile
 from haven.core import recipes
 from haven.data.tiers import Tier
 from haven.identity.models import User
@@ -135,9 +145,19 @@ def as_investigator(client, investigator):
 @pytest.fixture
 def classified_work_package(programme_manager, investigator, data_provider_representative, referee):
     def _classified_work_package(tier):
+
+@pytest.fixture        
+def project(programme_manager):
+    return recipes.project.make(created_by=programme_manager)
+
+@pytest.fixture
+def unclassified_work_package(
+    programme_manager, data_provider_representative, investigator, referee
+):
+    def _unclassified_work_package():
         project = recipes.project.make(created_by=programme_manager)
         work_package = recipes.work_package.make(project=project)
-        dataset = recipes.dataset.make()
+        dataset = recipes.dataset.make(default_representative=data_provider_representative.user)
 
         project.add_user(
             user=investigator.user,
@@ -160,13 +180,45 @@ def classified_work_package(programme_manager, investigator, data_provider_repre
         project.add_dataset(dataset, data_provider_representative.user, investigator.user)
         work_package.add_dataset(dataset, investigator.user)
 
+        return work_package
+
+    return _unclassified_work_package
+
+
+@pytest.fixture
+def make_accessible_work_package(classified_work_package, programme_manager):
+    """Fixture to return function for creating a work package accessible to given user"""
+
+    def _make_accessible_work_package(user, tier=0):
+        work_package = classified_work_package(tier)
+        work_package.project.add_user(
+            user=user,
+            role=ProjectRole.RESEARCHER.value,
+            created_by=programme_manager,
+        )
+        work_package.add_user(
+            user,
+            programme_manager,
+        )
+        return work_package
+
+    return _make_accessible_work_package
+
+
+@pytest.fixture
+def classified_work_package(
+    investigator, data_provider_representative, referee, unclassified_work_package
+):
+    def _classified_work_package(tier):
+        work_package = unclassified_work_package()
+
         work_package.open_classification()
         if tier is not None:
             work_package.classify_as(tier, investigator.user)
             work_package.classify_as(tier, data_provider_representative.user)
             work_package.classify_as(tier, referee.user)
             if tier >= Tier.THREE:
-                p = referee.user.get_participant(project)
+                p = referee.user.get_participant(work_package.project)
                 p = p.get_work_package_participant(work_package)
                 p.approve(data_provider_representative.user)
                 work_package = p.work_package
@@ -195,3 +247,171 @@ def hide_audit_warnings(caplog):
         return True
 
     caplog.handler.addFilter(filter)
+
+
+@pytest.fixture
+def remove_data_from_model_with_self_references():
+    """
+    Fixture to return a function which removes data from a model class that has protected
+    self-references, for example `ClassificationQuestion` has the protected foreign keys
+    `yes_question` and `no_question` pointing to itself, therefore need to be deleted in particular
+    order. This brute force approach does not need to know the order ahead of time and keeps trying
+    to delete rows of data until it can.
+    """
+
+    def remove_data(model_class):
+        if model_class.objects.exists():
+            for _ in range(model_class.objects.all().count()):
+                for instance in model_class.objects.all():
+                    try:
+                        instance.delete()
+                    except ProtectedError:
+                        pass
+                if not model_class.objects.exists():
+                    break
+
+    # Pass function into fixture output which can be called in test
+    return remove_data
+
+
+@pytest.fixture
+def DRFClient():
+    return APIClient()
+
+
+def base64URLEncode(random_bytes):
+    return base64.urlsafe_b64encode(random_bytes)
+
+
+def generate_pkce_verifier(secret_data):
+    """Function to generate a PKCE verifier from secret data"""
+    return base64URLEncode(secret_data).rstrip(b"=")
+
+
+def generate_pkce_code_challenge(verifier):
+    """Function to generate a PKCE code challenge from a verifier"""
+    return base64URLEncode(sha256(verifier).digest()).rstrip(b"=")
+
+
+@pytest.fixture
+def encoded_pkce_verifier():
+    """Generate encoded PKCE verifier to be used in generation of PKCE code challenge"""
+    return generate_pkce_verifier(b"test")
+
+
+@pytest.fixture
+def pkce_verifier(encoded_pkce_verifier):
+    """Generate decoded PKCE verifier to be used in query parameters of OAuth2 flow"""
+    return encoded_pkce_verifier.decode()
+
+
+@pytest.fixture
+def pkce_code_challenge(encoded_pkce_verifier):
+    """Generate PKCE code challenge to be used in query parameters of OAuth2 flow"""
+    return generate_pkce_code_challenge(encoded_pkce_verifier).decode()
+
+
+@pytest.fixture
+def oauth_application_config():
+    return {
+        "name": "Test",
+        "client_id": "IcqQdcuqWmXfm28NLhvvCkGpfOcQr5t7ZLxol1Dj",
+        "client_secret": (
+            "1Yrycxhi3CG1tAzvWgDenzOweXE6XNrMbckQaYQnzN81I9JUz3PKtqZc9wpn3nZCUQciP"
+            "phZTx8DxCz4W97PrQigTrA58gFi4qR52UsRz0P7yDyoSWdXNaFPsWQcXlji"
+        ),
+        "client_type": "confidential",
+        "authorization_grant_type": "authorization-code",
+        "redirect_uris": "http://testserver/noexist/callback",
+        "algorithm": "",
+    }
+
+
+@pytest.fixture
+def oauth_application_registration_data(oauth_application_config):
+    """
+    Takes oauth_application_config and returns the appropriate POST data required to call the OAuth
+    application registration endpoint
+    """
+    registration_data = oauth_application_config.copy()
+    registration_data["initial-client_id"] = oauth_application_config["client_id"]
+    registration_data["initial-client_secret"] = oauth_application_config["client_secret"]
+    registration_data["maximum_tier"] = 4
+    return registration_data
+
+
+@pytest.fixture
+def oauth_application(oauth_application_config, system_manager):
+    """Fixture to create dummy OAuth application with deterministic client credentials"""
+    return Application.objects.create(**oauth_application_config, user=system_manager)
+
+
+@pytest.fixture
+def application_profile(oauth_application, oauth_application_registration_data):
+    """Fixture to create dummy ApplicationProfile"""
+    return ApplicationProfile.objects.create(
+        application=oauth_application,
+        maximum_tier=oauth_application_registration_data["maximum_tier"],
+    )
+
+
+@pytest.fixture
+def access_token(oauth_application):
+    """Fixture to return function to generate access token"""
+
+    def _access_token(user, scope="read"):
+        return AccessToken.objects.create(
+            token="test_access_token",
+            user=user,
+            application=oauth_application,
+            scope=scope,
+            # Token to expire in 3 days
+            expires=make_aware(datetime.now() + timedelta(days=3)),
+        )
+
+    return _access_token
+
+
+@pytest.fixture
+def as_project_participant_api(DRFClient, project_participant, access_token):
+    """Use this client to call DRF api views, logged in as project participant"""
+    access_token = access_token(project_participant)
+    DRFClient.credentials(HTTP_AUTHORIZATION="Bearer " + access_token.token)
+    return DRFClient
+
+
+class MockPostRequest:
+    """Mock request object with a `QueryDict` POST attribute"""
+
+    def __init__(self, *args, body={}, **kwargs):
+        query_dict = QueryDict("", mutable=True)
+        query_dict.update(body)
+        self.POST = query_dict
+
+
+class MockAuthObject:
+    """Mock `_auth` object which is used in `MockOAuthRequest`"""
+
+    def __init__(self, *args, application_id=None, **kwargs):
+        self.application_id = application_id
+
+
+class MockOAuthRequest:
+    """Mock request object with a `QueryDict` POST attribute"""
+
+    def __init__(self, *args, user=None, application_id=None, **kwargs):
+        self.user = user
+        self._auth = MockAuthObject(application_id=application_id)
+
+
+@pytest.fixture
+def make_mock_request_with_oauth_application(project_participant, oauth_application):
+    """
+    Fixture to return function which generates a mock request object with an oauth application and
+    user
+    """
+
+    def _make(user=project_participant, application=oauth_application):
+        return MockOAuthRequest(user=user, application_id=application.id)
+
+    return _make

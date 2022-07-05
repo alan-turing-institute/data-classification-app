@@ -702,7 +702,12 @@ class TestWorkPackage:
         ]
         assert [q.name for q in questions] == ordered
 
-    def test_default_guidance(self):
+    def test_default_guidance(self, remove_data_from_model_with_self_references):
+        # Remove data before running `insert_initial_questions` to ensure starting from a clean
+        # state, otherwise test will fail when the `--migrations` flag is used
+        remove_data_from_model_with_self_references(ClassificationQuestion)
+        remove_data_from_model_with_self_references(ClassificationGuidance)
+
         insert_initial_questions(
             ClassificationQuestion, ClassificationGuidance, ClassificationQuestionSet
         )
@@ -819,7 +824,8 @@ class TestWorkPackage:
         assert tier == 4
 
     def test_work_package_policy_tier0(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(0)
         assert work_package.has_tier
 
@@ -844,7 +850,8 @@ class TestWorkPackage:
         assert table == expected
 
     def test_work_package_policy_tier1(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(1)
         assert work_package.has_tier
 
@@ -869,7 +876,8 @@ class TestWorkPackage:
         assert table == expected
 
     def test_work_package_policy_tier2(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(2)
         assert work_package.has_tier
 
@@ -894,7 +902,8 @@ class TestWorkPackage:
         assert table == expected
 
     def test_work_package_policy_tier3(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(3)
         assert work_package.has_tier
 
@@ -919,7 +928,8 @@ class TestWorkPackage:
         assert table == expected
 
     def test_work_package_policy_tier4(self, classified_work_package):
-        insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
+        if not Policy.objects.exists():
+            insert_initial_policies(PolicyGroup, Policy, PolicyAssignment)
         work_package = classified_work_package(4)
         assert work_package.has_tier
 

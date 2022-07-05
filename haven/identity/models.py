@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -43,6 +44,8 @@ class User(AbstractUser):
 
     first_name = models.CharField(max_length=30, verbose_name="first name")
     last_name = models.CharField(max_length=150, verbose_name="last name")
+
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     # AD creation failed
     AAD_STATUS_FAILED_TO_CREATE = "failed_to_create"
@@ -130,7 +133,7 @@ class User(AbstractUser):
         except Participant.DoesNotExist:
             return None
 
-    def combined_permissions(self, project_id=None):
+    def combined_permissions(self, project_uuid=None):
         """
         Return a UserPermissions object which may include project permissions for a particular
         project if the project_id is specified
@@ -140,8 +143,8 @@ class User(AbstractUser):
 
         from haven.projects.models import Project
 
-        if project_id:
-            project = Project.objects.get(pk=project_id)
+        if project_uuid:
+            project = Project.objects.get(uuid=project_uuid)
             return self.project_permissions(project)
         else:
             return self.system_permissions

@@ -8,7 +8,7 @@
 {% block content %}
 <p>
   If the dataset you wish to add is not present below, it has not yet been added to the project.
-  {% url_check 'projects:add_dataset' work_package.project.id as add_dataset_href %}
+  {% url_check 'projects:add_dataset' work_package.project.uuid as add_dataset_href %}
   {% if add_dataset_href %}
     Please <a href="{{ add_dataset_href }}">add the dataset to the project</a> first.
   {% else %}
@@ -25,7 +25,7 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.uuid %}">{{ work_package.project.name }}</a></li>
   <li class="breadcrumb-item">Work Packages</li>
   <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
   <li class="breadcrumb-item">Datasets</li>

@@ -16,7 +16,7 @@ class TestProjectAddUserForm:
                 "user": "some_unknown_user",
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
         assert not form.is_valid()
@@ -30,7 +30,7 @@ class TestProjectAddUserForm:
                 "user": project_participant.pk,
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
 
@@ -52,7 +52,7 @@ class TestProjectAddUserForm:
                 "user": project_participant.pk,
             },
             user=programme_manager,
-            project_id=project.pk,
+            project=project,
         )
         form.project = project
 

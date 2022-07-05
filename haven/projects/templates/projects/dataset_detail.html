@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load haven %}
 
-{% block page_title %}{{ dataset.dataset.name }}{% endblock %}
-{% block h1_title %}{{ dataset.dataset.name }}{% endblock %}
+{% block page_title %}{{ project_dataset.dataset.name }}{% endblock %}
+{% block h1_title %}{{ project_dataset.dataset.name }}{% endblock %}
 
 {% block content %}
   <p>
@@ -10,20 +10,25 @@
   </p>
 
   <p>
-  {{ dataset.dataset.description }}
+  ID: {{ project_dataset.dataset.uuid }}
   </p>
+
+  <p>
+  Description: {{ project_dataset.dataset.description }}
+  </p>
+
 {% endblock content %}
 
 {% block actions %}
-  {% url_check 'projects:edit_dataset' project.id dataset.id as edit_dataset_href %}
+  {% url_check 'projects:edit_dataset' project.uuid project_dataset.dataset.uuid as edit_dataset_href %}
   {% if edit_dataset_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ edit_dataset_href }}">Edit Description</a>
   {% endif %}
-  {% url_check 'projects:edit_dataset_dpr' project.id dataset.id as edit_dataset_dpr_href %}
+  {% url_check 'projects:edit_dataset_dpr' project.uuid project_dataset.dataset.uuid as edit_dataset_dpr_href %}
   {% if edit_dataset_dpr_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ edit_dataset_dpr_href }}">Edit Representative</a>
   {% endif %}
-  {% url_check 'projects:delete_dataset' project.id dataset.id as delete_dataset_href %}
+  {% url_check 'projects:delete_dataset' project.uuid project_dataset.dataset.uuid as delete_dataset_href %}
   {% if delete_dataset_href %}
     <a class="btn btn-lg my-2 custom-btn" href="{{ delete_dataset_href }}">Delete Dataset</a>
   {% endif %}
@@ -32,7 +37,7 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:detail' dataset.project.id %}">{{ dataset.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.uuid %}">{{ project.name }}</a></li>
   <li class="breadcrumb-item">Datasets</li>
-  <li class="breadcrumb-item active" aria-current="page">{{ dataset.dataset.name }}</li>
+  <li class="breadcrumb-item active" aria-current="page">{{ project_dataset.dataset.name }}</li>
 {% endblock crumbs %}

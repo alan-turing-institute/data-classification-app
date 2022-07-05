@@ -1,0 +1,70 @@
+name: CI
+
+# Enable Buildkit and let compose use it to speed up image building
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  pull_request:
+    paths-ignore: [ "docs/**" ]
+
+  push:
+    branches: [ "master", "main", "development" ]
+    paths-ignore: [ "docs/**" ]
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    env:
+      AUTH_TYPES: local
+      DATABASE_URL: pgsql://haven:haven@db:5432/haven
+      DJANGO_SETTINGS_MODULE: haven.settings.test
+      SECRET_KEY: notasecret
+      ENABLE_SENTRY: False
+    services:
+      postgres:
+        image: postgres:10.8
+        ports:
+        - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+
+      - name: Checkout Code Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install Poetry
+        run:  pip install poetry
+
+      - name: Install requirements
+        run:  poetry install
+
+      - name: Run Django Tests
+        run:  poetry run pytest --cov-config=./.coveragerc --cov-report term-missing --cov haven
+
+      - name: Run Django Migration Tests
+        run:  poetry run pytest tests/migrations --migrations
+
+      - name: Check missing migrations
+        run: poetry run ./manage.py makemigrations --check --dry-run --settings=haven.settings.test
+
+      - name: Run deployment checks
+        run: poetry run ./manage.py check --deploy --settings=haven.settings.production
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Verify built JS files are up to date
+        run: cd static && npm i && gulp && git diff && git diff --exit-code --numstat

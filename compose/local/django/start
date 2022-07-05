@@ -12,4 +12,6 @@ python manage.py migrate easyaudit  # Needs to run first as other migrations wil
 python manage.py migrate
 # Create superuser (developer:developer)
 python manage.py loaddata compose/local/django/devsuperuser.json
+# Create local client application credentials
+python manage.py loaddata compose/local/django/devapplication.json
 python manage.py runserver_plus --keep-meta-shutdown 0.0.0.0:8000

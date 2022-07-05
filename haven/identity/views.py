@@ -82,6 +82,8 @@ class UserEdit(LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMi
     model = User
     template_name = "identity/user_form.html"
     user_permissions = ["can_edit_users"]
+    slug_url_kwarg = "uuid"
+    slug_field = "uuid"
 
     def get_success_url(self):
         return reverse("identity:list")
@@ -164,13 +166,11 @@ class UserList(LoginRequiredMixin, UserPermissionRequiredMixin, ListView):
         kwargs["ordered_user_list"] = [
             {
                 "user": user,
-                "has_account": user.username.lower() in system_usernames
-                if has_system_userlist
-                else "Unknown",
+                "has_account": "Unknown",
             }
             for user in ordered_user_list
         ]
-        kwargs["can_read_system_userlist"] = has_system_userlist
+        kwargs["can_read_system_userlist"] = False
         return super().get_context_data(**kwargs)
 
 
@@ -186,38 +186,8 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
 
         # If a project is specified, filter only users in this project
         if "project" in request.GET:
-            project_id = request.GET["project"]
-            app_users = app_users.filter(participants__project_id=project_id)
-        else:
-            project_id = None
-
-        # If requested, remove users that are already on the system
-        if "new" in request.GET:
-            try:
-                system_usernames = [
-                    username.lower() for username in get_system_user_list(self.request.user)
-                ]
-            except GraphClientException as e:
-                messages.error(
-                    self.request,
-                    "The list of new users cannot be exported because it is not "
-                    "possible to determine which users are already on the system. "
-                    "Your user not not have sufficient permissions to read the system "
-                    "userlist. or there may be a network issue. "
-                    "You can still export the list of all users.",
-                )
-                logger.error("Could not get system userlist through graph API. Error: " + str(e))
-                if project_id:
-                    return HttpResponseRedirect(reverse("projects:detail", args=[project_id]))
-                else:
-                    return HttpResponseRedirect(reverse("identity:list"))
-
-            exclude_usernames = [system_username.lower() for system_username in system_usernames]
-            app_users = [
-                app_user
-                for app_user in app_users
-                if app_user.username.lower() not in exclude_usernames
-            ]
+            project_uuid = request.GET["project"]
+            app_users = app_users.filter(participants__project__uuid=project_uuid)
 
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type="text/csv")
