@@ -324,26 +324,29 @@ class TestExportUsers:
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
-        assert parsed == [
-            ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
+        assert parsed[0] == ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"]
+        assert sorted(parsed) == sorted(
             [
-                "controller",
-                "System",
-                "Manager",
-                "+441234567890",
-                "controller@example.com",
-            ],
-            ["user", "", "", "", "user@example.com"],
-            [
-                "project_participant",
-                "Angela",
-                "Zala",
-                "+441234567890",
-                "project_participant@example.com",
-            ],
-            ["user1", "", "", "", "user@example.com"],
-        ]
+                ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
+                ["coordinator", "", "", "", "coordinator@example.com"],
+                [
+                    "controller",
+                    "System",
+                    "Manager",
+                    "+441234567890",
+                    "controller@example.com",
+                ],
+                ["user", "", "", "", "user@example.com"],
+                [
+                    "project_participant",
+                    "Angela",
+                    "Zala",
+                    "+441234567890",
+                    "project_participant@example.com",
+                ],
+                ["user1", "", "", "", "user@example.com"],
+            ]
+        )
 
     def test_export_new_as_pm(
         self,

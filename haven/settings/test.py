@@ -15,3 +15,9 @@ SAFE_HAVEN_DOMAIN = "example.com"
 # This should prevent Whitenoise from looking in a non-existent directory and raising a warning
 # during every test
 WHITENOISE_AUTOREFRESH = True
+
+# Azure AD Tenant settings
+# Names of the Azure AD security groups used to give system-level permissions to users
+SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
+SECURITY_GROUP_PROGRAMME_MANAGERS = "SG SHM Programme Managers"
+SECURITY_GROUP_PROJECT_MANAGERS = "SG SHM Project Managers"

@@ -158,10 +158,11 @@ class UserList(LoginRequiredMixin, UserPermissionRequiredMixin, ListView):
             system_usernames = None
             has_system_userlist = False
 
-        # The context data to the webpage is a list of dictionaries. Each entry represents a webapp
-        # user and contains a property for the user object and a `has_account` property which is
-        # true/false if the username exists/does not exist on the system, or Unknown if the graph
-        # call to get the userlist failed
+        # The context data to the webpage is a list of dictionaries.
+        # Each entry represents a webapp user and contains a
+        # property for the user object and a `has_account` property
+        # which is true/false if the username exists/does not
+        # exist on the system, or Unknown if the graph call to get the userlist failed
         kwargs["ordered_user_list"] = [
             {
                 "user": user,

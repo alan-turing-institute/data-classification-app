@@ -26,6 +26,8 @@ SAFE_HAVEN_DOMAIN = env.str("SAFE_HAVEN_DOMAIN", default="example.com")
 BASE_DOMAIN = env.str("BASE_DOMAIN", default="localhost:8000")
 BASE_URL = env.str("BASE_URL", default="http://localhost:8000/")
 
+DEFAULT_QUESTION_SET_NAME = env.str("DEFAULT_QUESTION_SET_NAME", default="turing")
+
 # DATABASES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
@@ -62,8 +64,8 @@ WSGI_APPLICATION = "haven.wsgi.application"
 THIRD_PARTY_PRE_APPS = [
     "dal",
     "dal_select2",
-    # Let WhiteNoise handle static files in local development instead of Django, for consistency
-    # with production
+    # Let WhiteNoise handle static files in local development instead of Django,
+    # for consistency with production
     "whitenoise.runserver_nostatic",
 ]
 
@@ -198,6 +200,8 @@ if "local" in HAVEN_AUTH_TYPES:
         "django.contrib.auth.backends.ModelBackend",
     ]
     LOCAL_AUTH = True
+else:
+    LOCAL_AUTH = False
 
 
 # PASSWORDS

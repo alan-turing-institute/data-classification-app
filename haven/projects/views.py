@@ -1182,7 +1182,12 @@ class WorkPackageClassifyData(
         If there isn't a question identified in the URL, user will be redirected to the starting
         question
         """
-        self.starting_question = ClassificationQuestion.objects.get_starting_question()
+        self.work_package = self.get_work_package()
+        self.project = self.work_package.project
+        self.question_set = self.project.question_set.name
+        self.starting_question = ClassificationQuestion.objects.get_starting_question(
+            question_set=self.question_set
+        )
         self.previous_question = None
         if "question_pk" not in self.kwargs:
             if self.start_modification:
@@ -1612,10 +1617,7 @@ class AutocompleteDataProviderRepresentative(
         if "uuid" in self.kwargs:
             project_id = Project.objects.get(uuid=self.kwargs["uuid"])
             qs = qs.annotate(
-                you=FilteredRelation(
-                    "participants",
-                    condition=Q(participants__project=project_id),
-                )
+                you=FilteredRelation("participants", condition=Q(participants__project=project_id))
             )
             qs = qs.annotate(project_role=F("you__role"))
         return qs

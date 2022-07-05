@@ -11,7 +11,7 @@
     "django-formset": "^0.2.1",
     "jquery": "^3.6.0",
     "popper.js": "^1.14.3",
-    "sass": "^1.50.0"
+    "sass": "^1.51.0"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
