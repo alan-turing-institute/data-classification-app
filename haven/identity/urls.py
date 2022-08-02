@@ -11,7 +11,7 @@ urlpatterns = [
     path("import", views.ImportUsers.as_view(), name="import_users"),
     path("export", views.ExportUsers.as_view(), name="export_users"),
     path(
-        "<int:pk>/edit",
+        "<slug:uuid>/edit",
         views.UserEdit.as_view(),
         name="edit_user",
     ),

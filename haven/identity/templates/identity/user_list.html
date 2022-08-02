@@ -20,7 +20,7 @@
           <tr>
             <td>
 
-              {% url_check 'identity:edit_user' next_user.user.id as edit_user_href %}
+              {% url_check 'identity:edit_user' next_user.user.uuid as edit_user_href %}
               {% if edit_user_href %}
                 <a href="{{ edit_user_href }}">
               {% endif %}

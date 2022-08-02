@@ -1,3 +1,6 @@
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
 from haven.settings.base import *  # noqa
 
 
@@ -40,3 +43,10 @@ LOGGING = {
         },
     },
 }
+
+ENABLE_SENTRY = env.bool("ENABLE_SENTRY", default=False)  # noqa
+
+if ENABLE_SENTRY:
+    # Initialise Sentry
+    SENTRY_DSN = env.str("SENTRY_DSN")  # noqa
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])

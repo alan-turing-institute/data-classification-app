@@ -1,0 +1,27 @@
+[
+    {
+        "model": "oauth2_provider.application",
+        "pk": 1,
+        "fields": {
+            "client_id": "waEtHkVfr1xIRns47tkEJLL8vytaWQBVHb3pZXq1",
+            "user": 1,
+            "redirect_uris": "http://localhost:8001/o/callback/",
+            "client_type": "confidential",
+            "authorization_grant_type": "authorization-code",
+            "client_secret": "pbkdf2_sha256$216000$9F0WVDC5LDFH$qQNi2JrjEud/bZT/gwKA8oNBgjXTXC8K4LZ8WwA4k7s=",
+            "name": "DAC Client 1",
+            "skip_authorization": false,
+            "created": "2022-05-26T09:45:45.227Z",
+            "updated": "2022-05-26T09:45:45.227Z",
+            "algorithm": ""
+        }
+    },
+    {
+        "model": "api.applicationprofile",
+        "pk": 1,
+        "fields": {
+            "application": 1,
+            "maximum_tier": 4
+        }
+    }
+]

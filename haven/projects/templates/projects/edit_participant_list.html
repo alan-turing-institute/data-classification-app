@@ -9,7 +9,7 @@
 {% block content %}
 <p>
   If the user you wish to edit is not present below, they have not yet been added to the project.
-  {% url_check 'projects:add_user' project.id as add_user_href %}
+  {% url_check 'projects:add_user' project.uuid as add_user_href %}
   {% if add_user_href %}
     Please <a href="{{ add_user_href }}">add the user to the project</a> first.
   {% else %}
@@ -29,7 +29,7 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.id %}">{{ project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' project.uuid %}">{{ project.name }}</a></li>
   <li class="breadcrumb-item active" aria-current="page">Participants</li>
 {% endblock crumbs %}
 

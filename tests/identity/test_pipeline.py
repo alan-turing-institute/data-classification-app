@@ -72,6 +72,7 @@ class TestUserFields:
 @patch("haven.identity.pipeline.user_client")
 class TestDetermineRole:
     def test_detects_sys_controller(self, mock_client, azure_backend, user1):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {
@@ -88,6 +89,7 @@ class TestDetermineRole:
         assert user1.role == "system_manager"
 
     def test_detects_programme_manager(self, mock_client, azure_backend, user1):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {
@@ -104,6 +106,7 @@ class TestDetermineRole:
         assert user1.role == "programme_manager"
 
     def test_detects_no_role(self, mock_client, azure_backend, system_manager):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {

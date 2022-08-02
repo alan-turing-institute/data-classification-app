@@ -73,27 +73,32 @@ DJANGO_APPS = [
     "django.contrib.admin",  # admin currently required by django-easy-audit
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sessions",
     "django.contrib.staticfiles",
     "django.forms",
 ]
 
 THIRD_PARTY_APPS = [
+    "corsheaders",
     "crispy_forms",
     "django_bleach",
     "django_tables2",
     "easyaudit",
+    "oauth2_provider",
+    "rest_framework",
     "simple_history",
     "social_django",
     "taggit",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
+    "haven.api",
     "haven.core",
+    "haven.data",
     "haven.identity",
     "haven.projects",
-    "haven.data",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = THIRD_PARTY_PRE_APPS + DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -102,6 +107,7 @@ INSTALLED_APPS = THIRD_PARTY_PRE_APPS + DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_A
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -156,6 +162,8 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 SECURE_BROWSER_XSS_FILTER = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = "DENY"
+# https://github.com/adamchainz/django-cors-headers#configuration
+CORS_ORIGIN_ALLOW_ALL = True
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -243,3 +251,59 @@ PHONENUMBER_DEFAULT_REGION = "GB"
 BLEACH_ALLOWED_TAGS = ["a", "em", "li", "ol", "p", "strong", "ul"]
 DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
 DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+OAUTH2_PROVIDER = {
+    "SCOPES": {"read": "Permission to read your projects, work packages and datasets"},
+    # Just in case an asynchronous job refreshes the DAC apps refresh token and the DAC users token
+    # is no longer valid, this grace period will significantly reduce the changes of this race
+    # condition occurring
+    "REFRESH_TOKEN_GRACE_PERIOD_SECONDS": 120,
+}
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 100,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Data-Classification-App API",
+    "DESCRIPTION": "API for projects, work packages and datasets",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
+# Your stuff...
+# ------------------------------------------------------------------------------
+SITE_URL = env.str(
+    "SITE_URL",
+    # Assuming locally hosting used docker
+    default="http://host.docker.internal:8000",
+)
+
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.application"
+
+TIER_0_EXPIRY_SECONDS = env.int(
+    "TIER_0_EXPIRY_SECONDS",
+    default=5 * 24 * 60 * 60,  # 5 days
+)
+TIER_1_EXPIRY_SECONDS = env.int(
+    "TIER_1_EXPIRY_SECONDS",
+    default=4 * 24 * 60 * 60,  # 4 days
+)
+TIER_2_EXPIRY_SECONDS = env.int(
+    "TIER_2_EXPIRY_SECONDS",
+    default=3 * 24 * 60 * 60,  # 3 days
+)
+TIER_3_EXPIRY_SECONDS = env.int(
+    "TIER_3_EXPIRY_SECONDS",
+    default=2 * 24 * 60 * 60,  # 2 days
+)
+TIER_4_EXPIRY_SECONDS = env.int(
+    "TIER_4_EXPIRY_SECONDS",
+    default=24 * 60 * 60,  # 1 day
+)

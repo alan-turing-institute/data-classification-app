@@ -15399,7 +15399,6 @@ global.formset = function(selector, prefix, addText){
   });
 }
 
-
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{"bootstrap-checkbox":1,"bootstrap/js/dist/collapse":2,"bootstrap/js/dist/dropdown":3,"django-formset":5,"jquery":6}]},{},[8])

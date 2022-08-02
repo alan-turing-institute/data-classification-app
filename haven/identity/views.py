@@ -82,6 +82,8 @@ class UserEdit(LoginRequiredMixin, UserFormKwargsMixin, UserPermissionRequiredMi
     model = User
     template_name = "identity/user_form.html"
     user_permissions = ["can_edit_users"]
+    slug_url_kwarg = "uuid"
+    slug_field = "uuid"
 
     def get_success_url(self):
         return reverse("identity:list")
@@ -186,10 +188,8 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
 
         # If a project is specified, filter only users in this project
         if "project" in request.GET:
-            project_id = request.GET["project"]
-            app_users = app_users.filter(participants__project_id=project_id)
-        else:
-            project_id = None
+            project_uuid = request.GET["project"]
+            app_users = app_users.filter(participants__project__uuid=project_uuid)
 
         # If requested, remove users that are already on the system
         if "new" in request.GET:
@@ -207,8 +207,8 @@ class ExportUsers(LoginRequiredMixin, UserPermissionRequiredMixin, View):
                     "You can still export the list of all users.",
                 )
                 logger.error("Could not get system userlist through graph API. Error: " + str(e))
-                if project_id:
-                    return HttpResponseRedirect(reverse("projects:detail", args=[project_id]))
+                if project_uuid:
+                    return HttpResponseRedirect(reverse("projects:detail", args=[project_uuid]))
                 else:
                     return HttpResponseRedirect(reverse("identity:list"))
 

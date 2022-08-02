@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0018_add_classification_questionset'),
+        ('data', '0024_add_classification_questionset'),
     ]
 
     operations = [

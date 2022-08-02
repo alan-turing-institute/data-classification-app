@@ -30,10 +30,10 @@
   <div class="form-group form-row">
     <div class="col">
       {% if previous_question and previous_question != question %}
-        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id previous_question.id %}">Previous Question</a>
+        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.uuid work_package.uuid previous_question.id %}">Previous Question</a>
       {% endif %}
       {% if starting_question and starting_question != question and starting_question != previous_question %}
-        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.id work_package.id starting_question.id %}">Start Over</a>
+        <a class="btn btn-secondary" href="{% url 'projects:classify_data' project.uuid work_package.uuid starting_question.id %}">Start Over</a>
       {% endif %}
       <a class="btn btn-danger" href="{{ work_package.get_absolute_url }}">Cancel Classification</a>
     </div>
@@ -63,7 +63,7 @@
 {% block crumbs %}
   <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
   <li class="breadcrumb-item"><a href="{% url 'projects:list' %}">Projects</a></li>
-  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.id %}">{{ work_package.project.name }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'projects:detail' work_package.project.uuid %}">{{ work_package.project.name }}</a></li>
   <li class="breadcrumb-item">Work Packages</li>
   <li class="breadcrumb-item"><a href="{{ work_package.get_absolute_url }}">{{ work_package.name }}</a></li>
   <li class="breadcrumb-item active" aria-current="page">Data Classification</li>

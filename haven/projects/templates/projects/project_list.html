@@ -13,14 +13,14 @@
       {% for project in projects %}
       <li class="list-group-item">
           <div class="float-left">
-            <h4><a href="{% url "projects:detail" project.id %}">{{ project.name }}</a>
+            <h4><a href="{% url 'projects:detail' project.uuid %}">{{ project.name }}</a>
               {% if project.your_role %}
                 ({{ project.your_role|project_role_display }})
               {% endif %}
             </h4>
             <p>{{ project.description }}</p>
             {% for p in project.programmes.all %}
-              <a href="{% url "projects:list" %}?programme={{ p.slug }}" class="badge badge-info project-badge">{{ p.name }}</a>
+              <a href="{% url 'projects:list' %}?programme={{ p.slug }}" class="badge badge-info project-badge">{{ p.name }}</a>
             {% endfor %}
           </div>
           <div class="float-right">

@@ -34,7 +34,10 @@ class ParticipantTable(tables.Table):
 
     def link_username(self, record):
         if self.show_edit_links:
-            return reverse("projects:edit_participant", args=[record.project.id, record.id])
+            return reverse(
+                "projects:edit_participant",
+                args=[record.project.uuid, record.user.uuid],
+            )
         return None
 
 
@@ -79,6 +82,11 @@ class WorkPackageTable(tables.Table):
 
 class ProjectDatasetTable(tables.Table):
     name = tables.Column("Name", accessor="dataset__name", linkify=True)
+    uuid = tables.Column(
+        "ID",
+        accessor="dataset__uuid",
+        linkify=True,
+    )
     representative = tables.Column("Representative")
     created_at = tables.DateTimeColumn(verbose_name="Created", short=False)
 
@@ -153,7 +161,7 @@ class ClassificationOpinionQuestionTable(tables.Table):
     @classmethod
     def _create_column(cls, classification):
         user = classification.created_by
-        column_name = "user_{}".format(user.id)
+        column_name = "user_{}".format(user.uuid)
         column = tables.BooleanColumn(
             verbose_name=user.username,
             yesno=("Yes", "No"),
@@ -177,8 +185,8 @@ class ClassificationOpinionQuestionTable(tables.Table):
             row[column_name] = question.answer
             if current_user == question.opinion.created_by:
                 args = [
-                    question.opinion.work_package.project.id,
-                    question.opinion.work_package.id,
+                    question.opinion.work_package.project.uuid,
+                    question.opinion.work_package.uuid,
                     question.question.id,
                 ]
                 url = reverse("projects:classify_data", args=args)

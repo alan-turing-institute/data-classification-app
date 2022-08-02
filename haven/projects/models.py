@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import uuid4
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -57,6 +58,8 @@ class Project(CreatedByModel):
     )
     archived = models.BooleanField(default=False)
     programmes = TaggableManager(blank=True)
+
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     objects = ProjectQuerySet.as_manager()
 
@@ -267,6 +270,7 @@ class WorkPackage(CreatedByModel):
     )
     name = models.CharField(max_length=256)
     description = models.TextField()
+    uuid = models.UUIDField(default=uuid4, unique=True, editable=False)
 
     participants = models.ManyToManyField(
         "Participant",
@@ -706,7 +710,7 @@ class WorkPackage(CreatedByModel):
         return PolicyAssignment.objects.filter(tier=self.tier)
 
     def get_absolute_url(self):
-        return reverse("projects:work_package_detail", args=[self.project.id, self.id])
+        return reverse("projects:work_package_detail", args=[self.project.uuid, self.uuid])
 
     def __str__(self):
         return self.name
@@ -807,7 +811,7 @@ class ProjectDataset(CreatedByModel):
     representative = models.ForeignKey(User, related_name="+", on_delete=models.PROTECT, null=False)
 
     def get_absolute_url(self):
-        return reverse("projects:dataset_detail", args=[self.project.id, self.id])
+        return reverse("projects:dataset_detail", args=[self.project.uuid, self.dataset.uuid])
 
 
 class WorkPackageDataset(CreatedByModel):

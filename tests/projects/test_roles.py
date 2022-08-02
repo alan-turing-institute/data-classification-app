@@ -10,6 +10,7 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.RESEARCHER, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -45,6 +46,7 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.REFEREE, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -80,6 +82,7 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.INVESTIGATOR, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -115,6 +118,7 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.DATA_PROVIDER_REPRESENTATIVE, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert not perms.can_view_all_users
@@ -150,6 +154,7 @@ class TestUserPermissions:
         perms = UserPermissions(ProjectRole.PROJECT_MANAGER, UserRole.NONE)
         assert not perms.can_view_all_projects
         assert not perms.can_edit_all_projects
+        assert not perms.can_manage_applications
         assert not perms.can_create_projects
         assert not perms.can_create_users
         assert perms.can_view_all_users
@@ -185,6 +190,7 @@ class TestUserPermissions:
         perms = UserPermissions(None, UserRole.PROGRAMME_MANAGER)
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
+        assert perms.can_manage_applications
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users
@@ -220,6 +226,7 @@ class TestUserPermissions:
         perms = UserPermissions(None, UserRole.SYSTEM_MANAGER)
         assert perms.can_view_all_projects
         assert perms.can_edit_all_projects
+        assert perms.can_manage_applications
         assert perms.can_create_projects
         assert perms.can_create_users
         assert perms.can_view_all_users

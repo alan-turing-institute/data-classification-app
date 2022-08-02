@@ -235,3 +235,9 @@ coverage/
 # npm installs
 node_modules/
 staticfiles
+
+# VSCode config
+.vscode/
+
+# Pipenv (since this project uses Poetry)
+Pipfile
