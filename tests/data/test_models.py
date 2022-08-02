@@ -2,7 +2,8 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from haven.core import recipes
-from haven.data.models import ClassificationQuestion, ClassificationQuestionSet
+from haven.data.models import ClassificationQuestion
+
 
 @pytest.mark.django_db
 class TestClassificationQuestion:
@@ -17,7 +18,7 @@ class TestClassificationQuestion:
             "name": "question1",
             "question_set": wrong_question_set,
             "yes_question": question2,
-            "no_tier": 0
+            "no_tier": 0,
         }
         question1 = ClassificationQuestion.objects.create(**question1_data)
 
@@ -34,11 +35,11 @@ class TestClassificationQuestion:
             "name": "question1",
             "question_set": question2.question_set,
             "yes_question": question2,
-            "yes_tier": 0
+            "yes_tier": 0,
         }
         question1 = ClassificationQuestion.objects.create(**question1_data)
         msg = "Questions must have a yes question or a yes tier, but not both."
-        
+
         with pytest.raises(ValidationError) as excinfo:
             question1.clean()
 

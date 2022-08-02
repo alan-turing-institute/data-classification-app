@@ -15,9 +15,7 @@ class SingleQuestionForm(forms.Form):
             "question_label": question.question,
             "yes_tier": question.yes_tier,
             "no_tier": question.no_tier,
-            "yes_question": question.yes_question.name
-            if question.yes_question
-            else None,
+            "yes_question": question.yes_question.name if question.yes_question else None,
             "no_question": question.no_question.name if question.no_question else None,
         }
         return type(name, (cls,), attrs)

@@ -121,25 +121,25 @@ class TestCreateUser:
 @pytest.mark.django_db
 class TestEditUser:
     def test_anonymous_cannot_access_page(self, client, helpers, project_participant):
-        response = client.get("/users/%d/edit" % project_participant.id)
+        response = client.get(f"/users/{project_participant.uuid}/edit")
         helpers.assert_login_redirect(response)
 
-        response = client.post("/users/%d/edit" % project_participant.id, {})
+        response = client.post(f"/users/{project_participant.uuid}/edit", {})
         helpers.assert_login_redirect(response)
 
     def test_view_page(self, as_system_manager, project_participant):
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         assert response.status_code == 200
         assert response.context["formset"]
 
     def test_view_page_as_pm(self, as_programme_manager, project_participant):
-        response = as_programme_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_programme_manager.get(f"/users/{project_participant.uuid}/edit")
         assert response.status_code == 200
         assert response.context["formset"]
 
     def test_edit_details(self, as_system_manager, project_participant):
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": "new@example.com",
@@ -163,7 +163,7 @@ class TestEditUser:
     def test_add_to_project(self, as_system_manager, project_participant):
         project = recipes.project.make()
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": project_participant.email,
@@ -180,16 +180,13 @@ class TestEditUser:
             follow=True,
         )
         assert response.status_code == 200
-        assert (
-            project_participant.project_participation_role(project)
-            == ProjectRole.RESEARCHER
-        )
+        assert project_participant.project_participation_role(project) == ProjectRole.RESEARCHER
 
     def test_remove_from_project(self, as_system_manager, researcher):
         project = researcher.project
         user = researcher.user
         response = as_system_manager.post(
-            "/users/%d/edit" % user.id,
+            f"/users/{user.uuid}/edit",
             {
                 "role": "",
                 "email": "example@example.com",
@@ -212,7 +209,7 @@ class TestEditUser:
 
     def test_cannot_edit_privileged_user(self, as_programme_manager, system_manager):
         response = as_programme_manager.post(
-            "/users/%d/edit" % system_manager.id,
+            f"/users/{system_manager.uuid}/edit",
             {
                 "role": system_manager.role,
                 "email": "my_new_email@example.com",
@@ -244,7 +241,7 @@ class TestEditUser:
             project_participant, ProjectRole.RESEARCHER.value, as_system_manager._user
         )
 
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         forms = response.context["formset"].forms
         choices = [c[0] for c in forms[0].fields["project"].choices]
         defaults = [f.initial.get("project") for f in forms]
@@ -254,7 +251,7 @@ class TestEditUser:
 
         project2.archive()
 
-        response = as_system_manager.get("/users/%d/edit" % project_participant.id)
+        response = as_system_manager.get(f"/users/{project_participant.uuid}/edit")
         forms = response.context["formset"].forms
         choices = [c[0] for c in forms[0].fields["project"].choices]
         defaults = [f.initial.get("project") for f in forms]
@@ -263,7 +260,7 @@ class TestEditUser:
         assert defaults == [project1.pk, None]
 
         response = as_system_manager.post(
-            "/users/%d/edit" % project_participant.id,
+            f"/users/{project_participant.uuid}/edit",
             {
                 "role": project_participant.role,
                 "email": project_participant.email,
@@ -281,22 +278,14 @@ class TestEditUser:
             follow=True,
         )
         assert response.status_code == 200
-        assert (
-            project_participant.project_participation_role(project1)
-            == ProjectRole.RESEARCHER
-        )
-        assert (
-            project_participant.project_participation_role(project2)
-            == ProjectRole.RESEARCHER
-        )
+        assert project_participant.project_participation_role(project1) == ProjectRole.RESEARCHER
+        assert project_participant.project_participation_role(project2) == ProjectRole.RESEARCHER
 
-    def test_returns_403_for_unprivileged_user(
-        self, as_project_participant, researcher
-    ):
-        response = as_project_participant.get("/users/%d/edit" % researcher.id)
+    def test_returns_403_for_unprivileged_user(self, as_project_participant, researcher):
+        response = as_project_participant.get(f"/users/{researcher.id}/edit")
         assert response.status_code == 403
 
-        response = as_project_participant.post("/users/%d/edit" % researcher.id, {})
+        response = as_project_participant.post(f"/users/{researcher.id}/edit", {})
         assert response.status_code == 403
 
 
@@ -336,26 +325,28 @@ class TestExportUsers:
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
         assert parsed[0] == ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"]
-        assert sorted(parsed) == sorted([
-            ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
-            ["coordinator", "", "", "", "coordinator@example.com"],
+        assert sorted(parsed) == sorted(
             [
-                "controller",
-                "System",
-                "Manager",
-                "+441234567890",
-                "controller@example.com",
-            ],
-            ["user", "", "", "", "user@example.com"],
-            [
-                "project_participant",
-                "Angela",
-                "Zala",
-                "+441234567890",
-                "project_participant@example.com",
-            ],
-            ["user1", "", "", "", "user@example.com"],
-        ])
+                ["SamAccountName", "GivenName", "Surname", "Mobile", "SecondaryEmail"],
+                ["coordinator", "", "", "", "coordinator@example.com"],
+                [
+                    "controller",
+                    "System",
+                    "Manager",
+                    "+441234567890",
+                    "controller@example.com",
+                ],
+                ["user", "", "", "", "user@example.com"],
+                [
+                    "project_participant",
+                    "Angela",
+                    "Zala",
+                    "+441234567890",
+                    "project_participant@example.com",
+                ],
+                ["user1", "", "", "", "user@example.com"],
+            ]
+        )
 
     def test_export_new_as_pm(
         self,
@@ -365,9 +356,7 @@ class TestExportUsers:
         project_participant,
         user1,
     ):
-        with mock.patch(
-            "haven.identity.views.get_system_user_list"
-        ) as get_system_user_list:
+        with mock.patch("haven.identity.views.get_system_user_list") as get_system_user_list:
             get_system_user_list.return_value = [
                 "user1@example.com",
                 "nonuser@example.com",
@@ -410,18 +399,18 @@ class TestExportUsers:
             role=ProjectRole.RESEARCHER.value,
             created_by=as_programme_manager._user,
         )
-        response = as_programme_manager.get(f"/users/export?project={project.pk}")
+        response = as_programme_manager.get(f"/users/export?project={project.uuid}")
         assert response.status_code == 200
         assert response["Content-Type"] == "text/csv"
         parsed = self.parse_csv_response(response)
         assert ["user1", "", "", "", "user@example.com"] in parsed
         assert [
-                "project_participant",
-                "Angela",
-                "Zala",
-                "+441234567890",
-                "project_participant@example.com",
-            ] in parsed
+            "project_participant",
+            "Angela",
+            "Zala",
+            "+441234567890",
+            "project_participant@example.com",
+        ] in parsed
         assert len(parsed) == 3
 
     def test_export_new_by_project(
@@ -432,9 +421,7 @@ class TestExportUsers:
         project_participant,
         user1,
     ):
-        with mock.patch(
-            "haven.identity.views.get_system_user_list"
-        ) as get_system_user_list:
+        with mock.patch("haven.identity.views.get_system_user_list") as get_system_user_list:
             get_system_user_list.return_value = [
                 "user1@example.com",
                 "nonuser@example.com",
@@ -452,9 +439,7 @@ class TestExportUsers:
                 role=ProjectRole.RESEARCHER.value,
                 created_by=as_programme_manager._user,
             )
-            response = as_programme_manager.get(
-                f"/users/export?project={project.pk}&new=true"
-            )
+            response = as_programme_manager.get(f"/users/export?project={project.uuid}&new=true")
             assert response.status_code == 200
             assert response["Content-Type"] == "text/csv"
             parsed = self.parse_csv_response(response)
@@ -503,16 +488,21 @@ class TestImportUsers:
     def test_import_as_pm(self, as_programme_manager):
         response = self.post_csv(as_programme_manager)
         assert response.status_code == 200
-        assert set([u.username for u in User.objects.all()]) == set([
-            "coordinator@example.com",
-            "fn1.ln1@example.com",
-            "fn2.ln2@example.com",
-            "fn3.ln3@example.com",
-        ])
+        assert set([u.username for u in User.objects.all()]) == set(
+            [
+                "coordinator@example.com",
+                "fn1.ln1@example.com",
+                "fn2.ln2@example.com",
+                "fn3.ln3@example.com",
+            ]
+        )
 
     def test_csv_users(self):
         users = csv_users(
-            "Email,Last Name,First Name,Mobile Phone,Other field\nem1@email.com,ln1,fn1,01234567890,other1\nem2@email.com,ln2,fn2,02345678901,other2\nem3@email.com,ln3,fn3,03456789012,other3"
+            "Email,Last Name,First Name,Mobile Phone,Other field\n"
+            "em1@email.com,ln1,fn1,01234567890,other1\n"
+            "em2@email.com,ln2,fn2,02345678901,other2\n"
+            "em3@email.com,ln3,fn3,03456789012,other3"
         )
         u1 = users.__next__()
         assert u1.first_name == "fn1"

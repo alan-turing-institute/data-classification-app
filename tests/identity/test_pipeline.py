@@ -3,7 +3,11 @@ from unittest.mock import Mock, patch
 import pytest
 from django.conf import settings
 
-from haven.identity.pipeline import determine_role, find_existing_user, user_fields
+from haven.identity.pipeline import (
+    determine_role,
+    find_existing_user,
+    user_fields,
+)
 
 
 @pytest.fixture
@@ -51,9 +55,7 @@ class TestUserFields:
         assert user1.email == "my-email@example.com"
 
     @patch("haven.identity.pipeline.user_client")
-    def test_db_email_not_changed_if_return_value_empty(
-        self, mock_client, azure_backend, user1
-    ):
+    def test_db_email_not_changed_if_return_value_empty(self, mock_client, azure_backend, user1):
         oauth_response = {"upn": "azure-username@azure-domain.com"}
 
         response = mock_client.return_value.get_me.return_value
@@ -70,6 +72,7 @@ class TestUserFields:
 @patch("haven.identity.pipeline.user_client")
 class TestDetermineRole:
     def test_detects_sys_controller(self, mock_client, azure_backend, user1):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {
@@ -86,6 +89,7 @@ class TestDetermineRole:
         assert user1.role == "system_manager"
 
     def test_detects_programme_manager(self, mock_client, azure_backend, user1):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {
@@ -102,6 +106,7 @@ class TestDetermineRole:
         assert user1.role == "programme_manager"
 
     def test_detects_no_role(self, mock_client, azure_backend, system_manager):
+        settings.SECURITY_GROUP_SYSTEM_MANAGERS = "SG SHM System Managers"
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {
@@ -125,9 +130,7 @@ class TestDetermineRole:
         system_manager.refresh_from_db()
         assert system_manager.role == ""
 
-    def test_programme_manager_role_preserved(
-        self, mock_client, azure_backend, programme_manager
-    ):
+    def test_programme_manager_role_preserved(self, mock_client, azure_backend, programme_manager):
         response = mock_client.return_value.get_my_memberships.return_value
         response.ok = True
         response.json.return_value = {"value": []}

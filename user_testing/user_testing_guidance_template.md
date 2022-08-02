@@ -18,7 +18,7 @@ To share with the user:
 ### Attendance
 It's good to have two attendees minimum, one to facilitate the session with the user and one to take notes. Please note that if the user declines to have the session recorded, comprehensive notes will have to be taken to record as much information as possible.
 
-    
+
 ## Facilitator notes
 
 ### Session structure
@@ -29,7 +29,7 @@ Before starting the testing session, run through the following points with the u
     * [Ethics approval form](https://hackmd.io/bBcyMwPsT3qj_uHkwro72A?both)
     * Clarify that they are happy for the session to be recorded, and for us to take notes
 2. Highlight that we are testing the *app*, not the user - anything that isn't clear/they struggle with is on us not them!
-    * Encourage them to think aloud as much as possible, even if they feel unsure - this helps us clarify their experience and learn about exactly what needs to change about the app. 
+    * Encourage them to think aloud as much as possible, even if they feel unsure - this helps us clarify their experience and learn about exactly what needs to change about the app.
     * We may also ask questions during the session to tease out some of these ideas
 3. Explain how the session will run
     * They will first have a chance to read through the user introduction, and we will then pause for feedback
@@ -56,7 +56,7 @@ The user has four steps to complete within the session. They should initally jus
 
 ## Note taking
 
-Please take notes for each step below. Include both what happened, and direct quotes from the user. 
+Please take notes for each step below. Include both what happened, and direct quotes from the user.
 
 If comfortable, the note-taker can also fill out the [analysis](analysis_template.md) notes at the same time. However, recording user thought and what happens is more important.
 
@@ -75,9 +75,9 @@ If comfortable, the note-taker can also fill out the [analysis](analysis_templat
 3. Assign a new (dummy) dataset to a project (tester to create metadata, encouraged to make it similar to the real-life data they are currently working on). Assume that the data provider representative associated with the dataset is called Crystal Bowers, and her details have already been added to the app
   * Duration (m):
   * Tester UX score:
-  * Comments: 
+  * Comments:
   * Confusing:
-  
+
 4. Assign random selection of users from pre-defined list of users to other roles in chosen project
   * Duration (m):
   * Tester UX score:
@@ -88,7 +88,6 @@ If comfortable, the note-taker can also fill out the [analysis](analysis_templat
   * Duration (m):
   * Tester UX score:
   * Comments:
-  * Confusing: 
+  * Confusing:
 
 Finally, go back through the questions that appeared while the tester was working through the classification task and assess how relevant each was to their own situation, and whether there was a clear answer in each case.
-

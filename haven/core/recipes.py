@@ -14,9 +14,6 @@ work_package = Recipe("WorkPackage")
 social_auth = Recipe("UserSocialAuth")
 
 
-question_set = Recipe(
-    "ClassificationQuestionSet",
-    name="qset1"
-    )
-question = Recipe("ClassificationQuestion",question_set=foreign_key(question_set))
+question_set = Recipe("ClassificationQuestionSet", name="qset1")
+question = Recipe("ClassificationQuestion", question_set=foreign_key(question_set))
 alt_question_set = question_set.extend(name="qset2")

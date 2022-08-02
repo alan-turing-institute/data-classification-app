@@ -2,8 +2,6 @@ import json
 import logging
 from urllib.parse import urljoin
 
-from django.conf import settings
-from oauthlib.oauth2 import BackendApplicationClient
 from requests import RequestException
 from requests_oauthlib import OAuth2Session
 from social_django.utils import load_strategy
@@ -38,7 +36,7 @@ class GraphClient:
         try:
             # Only return specified properties
             user_list = []
-            next_url = f"users?$select=userPrincipalName&$top=100"
+            next_url = "users?$select=userPrincipalName&$top=100"
 
             # Loop over pages of results with page size of 100
             while next_url:
@@ -51,9 +49,7 @@ class GraphClient:
                 response_json = json.loads(response.text)
 
                 # Get the next set of users
-                next_user_list = [
-                    item["userPrincipalName"] for item in response_json["value"]
-                ]
+                next_user_list = [item["userPrincipalName"] for item in response_json["value"]]
                 user_list = user_list + next_user_list
 
                 # Check if there are additional pages of users to be returned

@@ -29,6 +29,6 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - [ ] Any dependent changes have been merged and published in downstream modules
 - [ ] I have checked my code and corrected any misspellings
 
-## What should reviewers look for? 
+## What should reviewers look for?
 
-Please provide any specific areas of feedback you're looking for from reviewers. 
+Please provide any specific areas of feedback you're looking for from reviewers.

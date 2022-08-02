@@ -1,6 +1,7 @@
 # flake8: noqa F405
 import os
 import socket
+
 from haven.settings.base import *  # noqa
 
 
@@ -13,6 +14,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS.extend(
     [
         "debug_toolbar",
+        "django_extensions",
     ]
 )
 
@@ -21,7 +23,7 @@ MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 # required for debug toolbar if using docker
 if DEBUG:
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS = [ip[:-1] + '1' for ip in ips] + ['127.0.0.1', '10.0.2.2']
+    INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 
 # Allow local database user login
@@ -44,8 +46,7 @@ LOGGING = {
     },
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+            "format": "%(levelname)s %(asctime)s %(module)s " "%(process)d %(thread)d %(message)s"
         },
     },
     "handlers": {
