@@ -2,7 +2,7 @@
 name = "data-safe-haven-webapp"
 version = "0.1.0"
 description = ""
-authors = ["ChristinaLast <christina.last@outlook.com>", "Rebecca Osselton"]
+authors = ["Christina Last", "Rebecca Osselton"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
