@@ -3,7 +3,10 @@
 #                   Authelia configuration                    #
 ###############################################################
 
-jwt_secret: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJkYXRhY2xhc3NpZmljYXRpb25hcHAiLCJpYXQiOjE2NDQzOTg3NzMsImV4cCI6MTY3NTkzNDgxOSwiYXVkIjoiZGNhLnVrc291dGguY2xvdWRhcHAuYXp1cmUuY29tIiwic3ViIjoiYWRtaW51c2VyQGFkbWluLmNvbSJ9.wJVUxRIpbf0PcLGuixYX_EWuLiUwubfcr_DPfj-temM
+# Replace with a random alphanumeric string >64 characters in production
+# https://www.authelia.com/configuration/miscellaneous/introduction/#jwt_secret
+jwt_secret: v3ry_important_s3cr3t
+
 default_redirection_url: https://${BASE_DOMAIN}
 
 server:
@@ -46,7 +49,8 @@ access_control:
 session:
   name: authelia_session
   # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
-  secret: YBhhHp3QS9NWJNSUqbLDVK1dw2mIQ3DA
+  # https://www.authelia.com/configuration/session/introduction/#secret
+  secret: unsecure_session_secret
   expiration: 3600  # 1 hour
   inactivity: 300  # 5 minutes
   domain: ${BASE_DOMAIN}  # Should match whatever your root protected domain is

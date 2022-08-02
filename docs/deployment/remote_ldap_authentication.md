@@ -59,6 +59,7 @@ export BASE_DOMAIN=<custom domain>
 . setup-config.sh
 cd ..
 ```
+* Generate a new random alphanumeric strings for jwt_secret and session/secret and substitute these for placeholders in authelia/configuration.yml
 
 ### Certificates
 
