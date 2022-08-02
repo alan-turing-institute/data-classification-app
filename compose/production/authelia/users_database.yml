@@ -10,8 +10,8 @@
 users:
   authelia:
     password: $argon2id$v=19$m=65536,t=1,p=8$Y3hSaTMxaXYvRUxqQjExTg$duF9VLnrth4eCLjKSt/uKF3qZVx6A0de42C8SZ27e/E
-    displayname: DCA User
-    email: rebecca.osselton@newcastle.ac.uk
+    displayname: DCA Admin
+    email: admin@example.com
     groups:
     - admins
     - dev
@@ -23,8 +23,8 @@ users:
     groups: []
   developer:
     password: $argon2id$v=19$m=65536,t=1,p=8$dDNobVlLb2NFOGI5OGtiMw$V9wBQWd9+HCnEr4aEPVn9fVPIhgFtb0eBLlqTg2GLTo
-    displayname: Developer
-    email: t.couch@ucl.ac.uk
+    displayname: DCA Developer
+    email: dev@example.com
     groups:
     - staff
     - dev
