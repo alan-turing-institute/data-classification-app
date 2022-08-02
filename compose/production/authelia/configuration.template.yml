@@ -25,7 +25,7 @@ totp:
 #  hostname: api-123456789.example.com
 #  integration_key: ABCDEF
 #  # This secret can also be set using the env variables AUTHELIA_DUO_API_SECRET_KEY_FILE
-#  secret_key: 1234567890abcdefghifjkl
+#  secret_key: a_very_important_secret
 
 authentication_backend:
   file:
@@ -69,16 +69,17 @@ regulation:
 storage:
   local:
     path: /config/db.sqlite3
-  encryption_key : S8mmMrVnzuZHF8HAZC4J
+  # https://www.authelia.com/configuration/storage/introduction/#encryption_key
+  encryption_key : a_very_important_secret
 
 notifier:
   filesystem:
     filename: /config/notification.txt
   #smtp:
-    #username: bexosselton@gmail.com
+    #username: admin@example.com
     # This secret can also be set using the env variables AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
     #password: password
-    #host: dca.uksouth.cloudapp.azure.com
+    #host: dca.example.com
     #port: 25
     #sender: admin@example.com
 ...
