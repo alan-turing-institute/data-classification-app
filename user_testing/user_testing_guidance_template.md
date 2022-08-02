@@ -9,8 +9,8 @@ This is the template for user testing sessions.
 
 ### Details
 To share with the user:
-* [URL](https://dca.dsgroupdev.co.uk/)
-* [User introduction](https://hackmd.io/CZ07HWEISQ6kx2lyiVesRA?view)
+* Test server URL
+* [User introduction](./user-introduction.md)
 * User credentials:
     * **Username**: `authelia`
     * **Password**: Stored in Keybase
@@ -26,7 +26,6 @@ It's good to have two attendees minimum, one to facilitate the session with the 
 Before starting the testing session, run through the following points with the user:
 
 1. Ethics approval
-    * [Ethics approval form](https://hackmd.io/bBcyMwPsT3qj_uHkwro72A?both)
     * Clarify that they are happy for the session to be recorded, and for us to take notes
 2. Highlight that we are testing the *app*, not the user - anything that isn't clear/they struggle with is on us not them!
     * Encourage them to think aloud as much as possible, even if they feel unsure - this helps us clarify their experience and learn about exactly what needs to change about the app.
