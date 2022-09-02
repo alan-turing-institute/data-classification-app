@@ -53,7 +53,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/harisood"><img src="https://avatars.githubusercontent.com/u/67151373?v=4?s=100" width="100px;" alt=""/><br /><sub><b>harisood</b></sub></a><br /><a href="#content-harisood" title="Content">🖋</a></td>
   </tr>
 </table>
-=======
 
 
 <!-- markdownlint-restore -->
@@ -62,4 +61,3 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-=======
