@@ -36,3 +36,15 @@ The webapp has been tested, and instructions are provided for, the following dep
 ## Sample user guide
 
 * [Instructions for data provider representatives](docs/user_guide/user_guide.md)
+
+## Contributors
+Thanks to all our wonderful contributors! 
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
