@@ -47,6 +47,21 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://edlowther.github.io/"><img src="https://avatars.githubusercontent.com/u/7374954?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ed Lowther</b></sub></a><br /><a href="#ideas-edlowther" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Aedlowther" title="Bug reports">🐛</a> <a href="#content-edlowther" title="Content">🖋</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=edlowther" title="Code">💻</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Aedlowther" title="Reviewed Pull Requests">👀</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 
 <table>
   <tr>

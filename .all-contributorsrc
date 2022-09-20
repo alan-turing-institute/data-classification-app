@@ -4,6 +4,7 @@
   ],
   "imageSize": 100,
   "commit": false,
+  "commitConvention": "angular",
   "contributors": [
     {
       "login": "harisood",
@@ -13,6 +14,18 @@
       "contributions": [
         "content"
       ]
+    },
+    {
+      "login": "edlowther",
+      "name": "Ed Lowther",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7374954?v=4",
+      "profile": "https://edlowther.github.io/",
+      "contributions": [
+        "ideas",
+        "bug",
+        "content",
+        "code",
+        "review"
     }
   ],
   "contributorsPerLine": 7,
