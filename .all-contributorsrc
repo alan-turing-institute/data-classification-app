@@ -26,7 +26,20 @@
         "content",
         "code",
         "review"
-       ]
+      ]
+    },
+    {
+      "login": "rosselton",
+      "name": "Rebecca Osselton",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51399124?v=4",
+      "profile": "https://github.com/rosselton",
+      "contributions": [
+        "bug",
+        "code",
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
