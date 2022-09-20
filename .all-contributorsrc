@@ -7,6 +7,15 @@
   "commitConvention": "angular",
   "contributors": [
     {
+      "login": "harisood",
+      "name": "harisood",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67151373?v=4",
+      "profile": "https://github.com/harisood",
+      "contributions": [
+        "content"
+      ]
+    },
+    {
       "login": "edlowther",
       "name": "Ed Lowther",
       "avatar_url": "https://avatars.githubusercontent.com/u/7374954?v=4",
@@ -17,13 +26,12 @@
         "content",
         "code",
         "review"
-      ]
     }
   ],
   "contributorsPerLine": 7,
-  "skipCi": true,
+  "projectName": "data-classification-app",
+  "projectOwner": "alan-turing-institute",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "projectName": "data-classification-app",
-  "projectOwner": "alan-turing-institute"
+  "skipCi": true
 }
