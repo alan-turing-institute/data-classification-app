@@ -101,6 +101,17 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "trevor-ucl",
+      "name": "trevor-ucl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/97737012?v=4",
+      "profile": "https://github.com/trevor-ucl",
+      "contributions": [
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
