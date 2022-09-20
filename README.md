@@ -1,6 +1,6 @@
 # Classification webapp for the Turing Data Safe Haven
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is a web application that can be used for data classification. It is designed for use with
@@ -53,6 +53,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/harisood"><img src="https://avatars.githubusercontent.com/u/67151373?v=4?s=100" width="100px;" alt=""/><br /><sub><b>harisood</b></sub></a><br /><a href="#content-harisood" title="Content">🖋</a></td>
       <td align="center"><a href="https://edlowther.github.io/"><img src="https://avatars.githubusercontent.com/u/7374954?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ed Lowther</b></sub></a><br /><a href="#ideas-edlowther" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Aedlowther" title="Bug reports">🐛</a> <a href="#content-edlowther" title="Content">🖋</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=edlowther" title="Code">💻</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Aedlowther" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/rosselton"><img src="https://avatars.githubusercontent.com/u/51399124?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rebecca Osselton</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Arosselton" title="Bug reports">🐛</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=rosselton" title="Code">💻</a> <a href="#content-rosselton" title="Content">🖋</a> <a href="#ideas-rosselton" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Arosselton" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center"><a href="https://christinalast.com"><img src="https://avatars.githubusercontent.com/u/36204574?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christina Last</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3AChristinaLast" title="Bug reports">🐛</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=ChristinaLast" title="Code">💻</a> <a href="#content-ChristinaLast" title="Content">🖋</a> <a href="#ideas-ChristinaLast" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3AChristinaLast" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>
 </table>
