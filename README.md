@@ -1,6 +1,6 @@
 # Classification webapp for the Turing Data Safe Haven
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is a web application that can be used for data classification. It is designed for use with
@@ -66,6 +66,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/jemrobinson"><img src="https://avatars.githubusercontent.com/u/3502751?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Robinson</b></sub></a><br /><a href="#ideas-jemrobinson" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Ajemrobinson" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="www.tomdoel.com"><img src="https://avatars.githubusercontent.com/u/4216900?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tom Doel</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Atomdoel" title="Bug reports">🐛</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=tomdoel" title="Code">💻</a> <a href="#content-tomdoel" title="Content">🖋</a> <a href="#ideas-tomdoel" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Atomdoel" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/steven-cd"><img src="https://avatars.githubusercontent.com/u/5108635?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Steven Carlysle-Davies</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Asteven-cd" title="Bug reports">🐛</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=steven-cd" title="Code">💻</a> <a href="#content-steven-cd" title="Content">🖋</a> <a href="#ideas-steven-cd" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Asteven-cd" title="Reviewed Pull Requests">👀</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/jack89roberts"><img src="https://avatars.githubusercontent.com/u/16308271?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jack Roberts</b></sub></a><br /><a href="#ideas-jack89roberts" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
