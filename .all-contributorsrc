@@ -64,6 +64,19 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "tcouch",
+      "name": "Tom Couch",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5113832?v=4",
+      "profile": "https://github.com/tcouch",
+      "contributions": [
+        "bug",
+        "code",
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
