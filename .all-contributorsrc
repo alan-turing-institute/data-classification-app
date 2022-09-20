@@ -122,6 +122,16 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "wojtur",
+      "name": "wojtur",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6866254?v=4",
+      "profile": "https://github.com/wojtur",
+      "contributions": [
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
