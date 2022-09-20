@@ -77,6 +77,19 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "DavidBeavan",
+      "name": "David Beavan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6524799?v=4",
+      "profile": "https://github.com/DavidBeavan",
+      "contributions": [
+        "code",
+        "content",
+        "ideas",
+        "projectManagement",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
