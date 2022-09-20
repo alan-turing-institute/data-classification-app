@@ -1,6 +1,6 @@
 # Classification webapp for the Turing Data Safe Haven
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is a web application that can be used for data classification. It is designed for use with
@@ -61,6 +61,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center"><a href="https://github.com/martintoreilly"><img src="https://avatars.githubusercontent.com/u/21147592?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Martin O'Reilly</b></sub></a><br /><a href="#content-martintoreilly" title="Content">🖋</a> <a href="#ideas-martintoreilly" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Amartintoreilly" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/trevor-ucl"><img src="https://avatars.githubusercontent.com/u/97737012?v=4?s=100" width="100px;" alt=""/><br /><sub><b>trevor-ucl</b></sub></a><br /><a href="#content-trevor-ucl" title="Content">🖋</a> <a href="#ideas-trevor-ucl" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Atrevor-ucl" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center"><a href="https://github.com/jamespjh"><img src="https://avatars.githubusercontent.com/u/55009?v=4?s=100" width="100px;" alt=""/><br /><sub><b>James Hetherington</b></sub></a><br /><a href="#ideas-jamespjh" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Ajamespjh" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>
 </table>
