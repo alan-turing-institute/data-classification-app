@@ -40,6 +40,19 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "ChristinaLast",
+      "name": "Christina Last",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36204574?v=4",
+      "profile": "https://christinalast.com",
+      "contributions": [
+        "bug",
+        "code",
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
