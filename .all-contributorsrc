@@ -199,6 +199,17 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "jackgrahamhindley",
+      "name": "jackgrahamhindley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/62214824?v=4",
+      "profile": "https://github.com/jackgrahamhindley",
+      "contributions": [
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
