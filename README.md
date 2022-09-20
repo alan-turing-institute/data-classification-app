@@ -1,6 +1,6 @@
 # Classification webapp for the Turing Data Safe Haven
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is a web application that can be used for data classification. It is designed for use with
@@ -72,6 +72,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/bw-faststream"><img src="https://avatars.githubusercontent.com/u/54804128?v=4?s=100" width="100px;" alt=""/><br /><sub><b>bw-faststream</b></sub></a><br /><a href="#content-bw-faststream" title="Content">🖋</a> <a href="#ideas-bw-faststream" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Abw-faststream" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/sysdan"><img src="https://avatars.githubusercontent.com/u/49038294?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Daniel</b></sub></a><br /><a href="#content-sysdan" title="Content">🖋</a> <a href="#ideas-sysdan" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Asysdan" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/jackgrahamhindley"><img src="https://avatars.githubusercontent.com/u/62214824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jackgrahamhindley</b></sub></a><br /><a href="#content-jackgrahamhindley" title="Content">🖋</a> <a href="#ideas-jackgrahamhindley" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Ajackgrahamhindley" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center"><a href="https://github.com/oforrest"><img src="https://avatars.githubusercontent.com/u/49275282?v=4?s=100" width="100px;" alt=""/><br /><sub><b>oforrest</b></sub></a><br /><a href="#content-oforrest" title="Content">🖋</a> <a href="#ideas-oforrest" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Aoforrest" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>
 </table>
