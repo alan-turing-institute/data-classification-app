@@ -142,6 +142,19 @@
         "ideas",
         "review"
       ]
+    },
+    {
+      "login": "tomdoel",
+      "name": "Tom Doel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4216900?v=4",
+      "profile": "www.tomdoel.com",
+      "contributions": [
+        "bug",
+        "code",
+        "content",
+        "ideas",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
