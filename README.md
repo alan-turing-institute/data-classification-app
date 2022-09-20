@@ -1,6 +1,6 @@
 # Classification webapp for the Turing Data Safe Haven
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is a web application that can be used for data classification. It is designed for use with
@@ -57,6 +57,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/Arielle-Bennett"><img src="https://avatars.githubusercontent.com/u/74651964?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Arielle-Bennett</b></sub></a><br /><a href="#content-Arielle-Bennett" title="Content">🖋</a> <a href="#ideas-Arielle-Bennett" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3AArielle-Bennett" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/tcouch"><img src="https://avatars.githubusercontent.com/u/5113832?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tom Couch</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/issues?q=author%3Atcouch" title="Bug reports">🐛</a> <a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=tcouch" title="Code">💻</a> <a href="#content-tcouch" title="Content">🖋</a> <a href="#ideas-tcouch" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Atcouch" title="Reviewed Pull Requests">👀</a></td>
       <td align="center"><a href="https://github.com/DavidBeavan"><img src="https://avatars.githubusercontent.com/u/6524799?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Beavan</b></sub></a><br /><a href="https://github.com/alan-turing-institute/data-classification-app/commits?author=DavidBeavan" title="Code">💻</a> <a href="#content-DavidBeavan" title="Content">🖋</a> <a href="#ideas-DavidBeavan" title="Ideas, Planning, & Feedback">🤔</a> <a href="#projectManagement-DavidBeavan" title="Project Management">📆</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3ADavidBeavan" title="Reviewed Pull Requests">👀</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/martintoreilly"><img src="https://avatars.githubusercontent.com/u/21147592?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Martin O'Reilly</b></sub></a><br /><a href="#content-martintoreilly" title="Content">🖋</a> <a href="#ideas-martintoreilly" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/alan-turing-institute/data-classification-app/pulls?q=is%3Apr+reviewed-by%3Amartintoreilly" title="Reviewed Pull Requests">👀</a></td>
     </tr>
   </tbody>
 </table>
